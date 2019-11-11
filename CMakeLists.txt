@@ -1,4 +1,6 @@
-cmake_minimum_required (VERSION 3.15)
+cmake_minimum_required (VERSION 3.9)
+
+
 
 # Includes
 include("cmake/functions.cmake")
@@ -12,7 +14,7 @@ project("${projectDir}" LANGUAGES CXX CUDA)
 
 
 # Project settings
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "limited configs" FORCE)
 set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} /debug:fastlink")
 set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} /debug:fastlink")
