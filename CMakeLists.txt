@@ -60,3 +60,16 @@ add_dependencies(Tracer Resources)
 
 # Set default startup project
 set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Tracer)
+
+
+
+# Doxygen
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+	add_custom_target(Doxygen ALL
+		COMMAND ${DOXYGEN_EXECUTABLE} "${CMAKE_SOURCE_DIR}/doxyfile"
+		WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+		VERBATIM
+	)
+	set_target_properties(Doxygen PROPERTIES FOLDER Utility)
+endif()
