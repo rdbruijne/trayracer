@@ -1,5 +1,6 @@
 // Project
 #include "OptixHelpers.h"
+#include "Window.h"
 
 // C++
 #include <iostream>
@@ -8,6 +9,10 @@
  */
 int main(int argc, char** argv)
 {
+	// create window
+	Tracer::Window* window = new Tracer::Window("Tracer", make_int2(1280, 720));
+
+	// init OptiX
 	const bool initOptix = Tracer::OptixHelpers::Init();
 	if(!initOptix)
 	{
@@ -16,5 +21,20 @@ int main(int argc, char** argv)
 	}
 
 	printf("Successfully initialized OptiX.\n");
+
+
+	// main loop
+	while (!window->WindowClosed())
+	{
+		// user input
+		window->UpdateInput();
+
+		// run window shaders
+		window->Display();
+	}
+
+	// cleanup
+	delete window;
+
 	return 0;
 }
