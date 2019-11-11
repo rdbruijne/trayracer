@@ -9,7 +9,7 @@
 
 namespace Tracer
 {
-s	bool Tracer::OptixHelpers::Init()
+	bool Tracer::OptixHelpers::Init()
 	{
 		// check for available devices
 		int numDevices = 0;
