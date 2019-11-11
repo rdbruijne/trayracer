@@ -1,8 +1,7 @@
 #include "OptixHelpers.h"
 
 // OptiX
-//#include <optix_function_table_definition.h>
-OptixFunctionTable g_optixFunctionTable;
+#include <optix_function_table_definition.h>
 
 // C++
 #include <iostream>
@@ -10,7 +9,7 @@ OptixFunctionTable g_optixFunctionTable;
 
 namespace Tracer
 {
-	bool Tracer::OptixHelpers::Init()
+s	bool Tracer::OptixHelpers::Init()
 	{
 		// check for available devices
 		int numDevices = 0;
