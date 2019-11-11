@@ -31,10 +31,13 @@ include_directories(Tracer
 
 # Link libraries
 target_link_libraries(Tracer
+	"cudart.lib"
 	"opengl32.lib"
 	"${LIBRARIES_DIR}/glew/glew32s.lib"
 	"${LIBRARIES_DIR}/glfw/glfw3.lib"
 )
+
+
 
 # set working directory
 set_property(TARGET Tracer PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${OUTPUT_DIR}")
