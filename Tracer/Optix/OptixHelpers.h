@@ -13,15 +13,17 @@ namespace Tracer
 	class OptixHelpers
 	{
 	public:
-		/** Initialize OptiX
-		 *  @return True on success, false otherwise.
+		/**
+		 * @brief Initialize OptiX
+		 * @return True on success, false otherwise.
 		 */
 		static bool Init();
 
 
-		/** Convert OptixResult to corresponding string.
-		 *  @param optixResult OptixResult code to convert.
-		 *  @return String containing error code.
+		/**
+		 * @brief Convert OptixResult to corresponding string.
+		 * @param[in] optixResult OptixResult code to convert.
+		 * @return String containing error code.
 		 */
 		static std::string ToString(OptixResult optixResult);
 	};

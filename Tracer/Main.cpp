@@ -5,7 +5,8 @@
 // C++
 #include <iostream>
 
-/** Main entry point into the program.
+/**
+ * @brief Main entry point into the program.
  */
 int main(int argc, char** argv)
 {
@@ -22,9 +23,8 @@ int main(int argc, char** argv)
 
 	printf("Successfully initialized OptiX.\n");
 
-
 	// main loop
-	while (!window->WindowClosed())
+	while (!window->IsClosed())
 	{
 		// user input
 		window->UpdateInput();
