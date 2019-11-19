@@ -48,8 +48,8 @@ extern "C" __global__ void __raygen__renderFrame()
 	const int iy = optixGetLaunchIndex().y;
 
 	// generate a color
-	const int r = ix & 255;
-	const int g = iy & 255;
+	const int r = (ix + optixLaunchParams.frameID) & 255;
+	const int g = (iy + optixLaunchParams.frameID * 2) & 255;
 	const int b = (ix + iy) & 255;
 	const uint32_t rgba = 0xFF000000 | (r << 0) | (g << 8) | (b << 16);
 
