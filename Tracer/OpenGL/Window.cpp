@@ -37,7 +37,7 @@ namespace Tracer
 		glfwMakeContextCurrent(mHandle);
 
 		// enable VSync
-		glfwSwapInterval(1);
+		glfwSwapInterval(0);
 
 		// set window callbacks
 		glfwSetKeyCallback(mHandle, Window::KeyCallback);
