@@ -1,6 +1,7 @@
 // Project
 #include "OptixHelpers.h"
 #include "Renderer.h"
+#include "Stopwatch.h"
 #include "Window.h"
 
 // C++
@@ -28,6 +29,10 @@ int main(int argc, char** argv)
 	// create window
 	Tracer::Window* window = new Tracer::Window("Tracer", renderResolution);
 
+	// timer
+	Tracer::Stopwatch stopwatch;
+	int64_t elapsedNs = 0;
+
 	// main loop
 	while (!window->IsClosed())
 	{
@@ -42,6 +47,13 @@ int main(int argc, char** argv)
 
 		// run window shaders
 		window->Display(pixels);
+
+		// update the title bar
+		window->SetTitle(Tracer::format("Tracer - %.1f ms - %.1f FPS", elapsedNs * 1e-3f, 1e6f / elapsedNs));
+
+		// update timer
+		elapsedNs = stopwatch.GetElapsedTimeNS();
+		stopwatch.Reset();
 	}
 
 	// cleanup
