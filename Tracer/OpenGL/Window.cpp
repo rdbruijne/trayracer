@@ -67,13 +67,6 @@ namespace Tracer
 		glDisable(GL_DEPTH_TEST);
 		glDepthMask(GL_FALSE);
 
-		// GL PBO (RGBA32F)
-		glGenBuffers(1, &mGLPbo);
-		assert(mGLPbo != 0);
-		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, mGLPbo);
-		glBufferData(GL_PIXEL_UNPACK_BUFFER, static_cast<GLsizeiptr>(resolution.x * resolution.y * sizeof(float) * 4), nullptr, GL_STREAM_READ);
-		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-
 		// GL texture
 		glGenTextures(1, &mGLTexture);
 		glBindTexture(GL_TEXTURE_2D, mGLTexture);
@@ -90,9 +83,6 @@ namespace Tracer
 	{
 		if (mGLTexture)
 			glDeleteTextures(1, &mGLTexture);
-
-		if (mGLPbo)
-			glDeleteBuffers(1, &mGLPbo);
 
 		if (mHandle)
 			glfwDestroyWindow(mHandle);
@@ -141,11 +131,62 @@ namespace Tracer
 
 
 
-	void Window::Display()
+	void Window::SetResolution(const int2& resolution)
+	{
+		// #TODO: window resizing
+		assert(false);
+	}
+
+
+
+	void Window::Display(const std::vector<uint32_t>& pixels)
 	{
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		glClearColor(0.2f, 0.2f, 0.2f, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+		// copy render target result to OpenGL buffer
+		glBindTexture(GL_TEXTURE_2D, mGLTexture);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, mGLTexture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mResolution.x, mResolution.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		// draw a fullscreen quad
+		glDisable(GL_LIGHTING);
+		glColor3f(1, 1, 1);
+
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, mGLTexture);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		glDisable(GL_DEPTH_TEST);
+
+		glViewport(0, 0, mResolution.x, mResolution.y);
+
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		glOrtho(0.f, static_cast<float>(mResolution.x), static_cast<float>(mResolution.y), 0.f, -1.f, 1.f);
+
+		glBegin(GL_QUADS);
+		{
+			glTexCoord2f(0.f, 0.f);
+			glVertex3f(0.f, 0.f, 0.f);
+
+			glTexCoord2f(0.f, 1.f);
+			glVertex3f(0.f, static_cast<float>(mResolution.y), 0.f);
+
+			glTexCoord2f(1.f, 1.f);
+			glVertex3f(static_cast<float>(mResolution.x), static_cast<float>(mResolution.y), 0.f);
+
+			glTexCoord2f(1.f, 0.f);
+			glVertex3f(static_cast<float>(mResolution.x), 0.f, 0.f);
+		}
+		glEnd();
 
 		glfwSwapBuffers(mHandle);
 	}

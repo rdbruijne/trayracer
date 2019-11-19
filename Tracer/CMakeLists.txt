@@ -31,6 +31,7 @@ include_directories(Tracer
 
 # Link libraries
 target_link_libraries(Tracer
+	"cuda.lib"
 	"cudart.lib"
 	"opengl32.lib"
 	"${LIBRARIES_DIR}/glew/glew32s.lib"
