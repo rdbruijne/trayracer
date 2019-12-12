@@ -17,7 +17,9 @@ set_property(TARGET CudaPTX PROPERTY CUDA_PTX_COMPILATION ON)
 # Include directories
 include_directories(CudaPTX
 	"${CMAKE_SOURCE_DIR}/Tracer/Common"
-	"${LIBRARIES_DIR}/optix7"
+	"${CMAKE_SOURCE_DIR}/Tracer/Optix"
+	"${CMAKE_SOURCE_DIR}/libraries/CUDA"
+	"${CMAKE_SOURCE_DIR}/libraries/optix7"
 )
 
 

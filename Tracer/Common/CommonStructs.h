@@ -3,20 +3,42 @@
 // CUDA
 #include <vector_types.h>
 
+// OptiX
+#include "Optix7.h"
+
 // C++
 #include <stdint.h>
 
 /*!
  * @brief Program launch parameters.
  */
-struct LaunchParams
+struct alignas(16) LaunchParams
 {
-	/*! Render buffer resolution */
-	int2      resolution;	// 16
+	float3 cameraPos;
+	int32_t resolutionX;
 
-	/*! Render buffer */
-	uint32_t* colorBuffer;	// 16
+	float3 cameraForward;
+	int32_t resolutionY;
 
-	/*! Frame ID */
-	int32_t   frameID;		// 8
+	float3 cameraSide;
+	int32_t frameID;
+
+	float3 cameraUp;
+	int32_t dummy;
+
+	OptixTraversableHandle sceneRoot;
+	uint32_t* colorBuffer;
 };
+
+
+
+/*!
+ * @brief Ray type identifiers
+ */
+enum RayTypes
+{
+	RAY_TYPE_SURFACE,
+
+	RAY_TYPE_COUNT
+};
+

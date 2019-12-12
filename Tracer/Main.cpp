@@ -49,7 +49,7 @@ int main(int argc, char** argv)
 		window->Display(pixels);
 
 		// update the title bar
-		window->SetTitle(Tracer::format("Tracer - %.1f ms - %.1f FPS", elapsedNs * 1e-3f, 1e6f / elapsedNs));
+		window->SetTitle(Tracer::format("Tracer - %.1f ms - %.1f FPS", static_cast<double>(elapsedNs) * 1e-3, 1e6f / elapsedNs));
 
 		// update timer
 		elapsedNs = stopwatch.GetElapsedTimeNS();

@@ -34,9 +34,9 @@ namespace Tracer
 
 
 
-		void OptixLogCallback(unsigned int level, const char* tag, const char* message, void* cbdata)
+		void OptixLogCallback(unsigned int level, const char* tag, const char* message, void* cbdata) noexcept
 		{
-			printf("[%2u][%12s]: %s\n", level, tag, message);
+			printf("[%1u][%-12s]: %s\n", level, tag, message);
 		}
 	}
 
@@ -78,14 +78,14 @@ namespace Tracer
 
 	void Renderer::RenderFrame()
 	{
-		if(mLaunchParams.resolution.x == 0 || mLaunchParams.resolution.y == 0)
+		if(mLaunchParams.resolutionX == 0 || mLaunchParams.resolutionY == 0)
 			return;
 
 		mLaunchParamsBuffer.Upload(&mLaunchParams, 1);
 		mLaunchParams.frameID++;
 
 		optixLaunch(mPipeline, mStream, mLaunchParamsBuffer.DevicePtr(), mLaunchParamsBuffer.Size(), &mShaderBindingTable,
-					mLaunchParams.resolution.x, mLaunchParams.resolution.y, 1);
+					static_cast<unsigned int>(mLaunchParams.resolutionX), static_cast<unsigned int>(mLaunchParams.resolutionY), 1);
 		cudaDeviceSynchronize();
 	}
 
@@ -93,8 +93,8 @@ namespace Tracer
 
 	void Renderer::DownloadPixels(std::vector<uint32_t>& dstPixels)
 	{
-		dstPixels.resize(mLaunchParams.resolution.x * mLaunchParams.resolution.y);
-		mColorBuffer.Download(dstPixels.data(), mLaunchParams.resolution.x * mLaunchParams.resolution.y);
+		dstPixels.resize(static_cast<size_t>(mLaunchParams.resolutionX) * mLaunchParams.resolutionY);
+		mColorBuffer.Download(dstPixels.data(), static_cast<size_t>(mLaunchParams.resolutionX) * mLaunchParams.resolutionY);
 	}
 
 
@@ -105,7 +105,8 @@ namespace Tracer
 		mColorBuffer.Resize(sizeof(uint32_t) * resolution.x * resolution.y);
 
 		// update launch params
-		mLaunchParams.resolution = resolution;
+		mLaunchParams.resolutionX = resolution.x;
+		mLaunchParams.resolutionY = resolution.y;
 		mLaunchParams.colorBuffer = reinterpret_cast<uint32_t*>(mColorBuffer.DevicePtr());
 	}
 
@@ -134,25 +135,25 @@ namespace Tracer
 		// module compile options
 		mModuleCompileOptions.maxRegisterCount = 100;
 #ifdef _DEBUG
-		mModuleCompileOptions.optLevel = OPTIX_COMPILE_OPTIMIZATION_LEVEL_0;
+		mModuleCompileOptions.optLevel   = OPTIX_COMPILE_OPTIMIZATION_LEVEL_0;
 		mModuleCompileOptions.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_LINEINFO;
 #else
-		mModuleCompileOptions.optLevel = OPTIX_COMPILE_OPTIMIZATION_LEVEL_3;
+		mModuleCompileOptions.optLevel   = OPTIX_COMPILE_OPTIMIZATION_LEVEL_3;
 		mModuleCompileOptions.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_NONE;
 #endif
 
 		// pipeline compile options
-		mPipelineCompileOptions = {};
-		mPipelineCompileOptions.traversableGraphFlags = OPTIX_TRAVERSABLE_GRAPH_FLAG_ALLOW_ANY;
-		mPipelineCompileOptions.usesMotionBlur = false;
-		mPipelineCompileOptions.numPayloadValues = 2;
-		mPipelineCompileOptions.numAttributeValues = 2;
-		mPipelineCompileOptions.exceptionFlags = OPTIX_EXCEPTION_FLAG_NONE;
+		mPipelineCompileOptions                                  = {};
+		mPipelineCompileOptions.traversableGraphFlags            = OPTIX_TRAVERSABLE_GRAPH_FLAG_ALLOW_ANY;
+		mPipelineCompileOptions.usesMotionBlur                   = false;
+		mPipelineCompileOptions.numPayloadValues                 = 2;
+		mPipelineCompileOptions.numAttributeValues               = 2;
+		mPipelineCompileOptions.exceptionFlags                   = OPTIX_EXCEPTION_FLAG_NONE;
 		mPipelineCompileOptions.pipelineLaunchParamsVariableName = "optixLaunchParams";
 
 		// pipeline link options
 		mPipelineLinkOptions.overrideUsesMotionBlur = false;
-		mPipelineLinkOptions.maxTraceDepth = 2;
+		mPipelineLinkOptions.maxTraceDepth          = 2;
 
 		// load PTX
 		const std::string ptxCode = ReadFile("ptx/program.ptx");
@@ -175,10 +176,10 @@ namespace Tracer
 		mRayGenPrograms.resize(1);
 
 		OptixProgramGroupOptions options = {};
-		OptixProgramGroupDesc desc = {};
-		desc.kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
-		desc.raygen.module = mModule;
-		desc.raygen.entryFunctionName = "__raygen__renderFrame";
+		OptixProgramGroupDesc desc       = {};
+		desc.kind                        = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
+		desc.raygen.module               = mModule;
+		desc.raygen.entryFunctionName    = "__raygen__renderFrame";
 
 		char log[2048];
 		size_t sizeof_log = sizeof(log);
@@ -196,10 +197,10 @@ namespace Tracer
 		mMissPrograms.resize(1);
 
 		OptixProgramGroupOptions options = {};
-		OptixProgramGroupDesc desc = {};
-		desc.kind = OPTIX_PROGRAM_GROUP_KIND_MISS;
-		desc.miss.module = mModule;
-		desc.miss.entryFunctionName = "__miss__radiance";
+		OptixProgramGroupDesc desc       = {};
+		desc.kind                        = OPTIX_PROGRAM_GROUP_KIND_MISS;
+		desc.miss.module                 = mModule;
+		desc.miss.entryFunctionName      = "__miss__radiance";
 
 		char log[2048];
 		size_t logLength = sizeof(log);
@@ -216,13 +217,12 @@ namespace Tracer
 	{
 		mHitgroupPrograms.resize(1);
 
-		OptixProgramGroupOptions options = {};
-		OptixProgramGroupDesc desc = {};
-		desc.kind = OPTIX_PROGRAM_GROUP_KIND_HITGROUP;
-		desc.raygen.module = mModule;
-		desc.hitgroup.moduleCH = mModule;
+		OptixProgramGroupOptions options  = {};
+		OptixProgramGroupDesc desc        = {};
+		desc.kind                         = OPTIX_PROGRAM_GROUP_KIND_HITGROUP;
+		desc.hitgroup.moduleCH            = mModule;
 		desc.hitgroup.entryFunctionNameCH = "__closesthit__radiance";
-		desc.hitgroup.moduleAH = mModule;
+		desc.hitgroup.moduleAH            = mModule;
 		desc.hitgroup.entryFunctionNameAH = "__anyhit__radiance";
 
 		char log[2048];
@@ -250,14 +250,18 @@ namespace Tracer
 		char log[2048];
 		size_t logLength = sizeof(log);
 		const OptixResult optixRes = optixPipelineCreate(mOptixContext, &mPipelineCompileOptions, &mPipelineLinkOptions,
-														 programGroups.data(), static_cast<int>(programGroups.size()),
+														 programGroups.data(), static_cast<unsigned int>(programGroups.size()),
 														 log, &logLength, &mPipeline);
 		assert(optixRes == OPTIX_SUCCESS);
 
 		if (logLength > 1)
 			printf("%s\n", log);
 
-		const OptixResult optixRes2 = optixPipelineSetStackSize(mPipeline, 2 << 10, 2 << 10, 2 << 10, 3);
+		const OptixResult optixRes2 = optixPipelineSetStackSize(mPipeline,
+																2 << 10, // directCallableStackSizeFromTraversal
+																2 << 10, // directCallableStackSizeFromState
+																2 << 10, // continuationStackSize
+																3);      // maxTraversableGraphDepth
 		assert(optixRes2 == OPTIX_SUCCESS);
 	}
 
@@ -291,7 +295,7 @@ namespace Tracer
 		mMissRecordsBuffer.AllocAndUpload(missRecords);
 		mShaderBindingTable.missRecordBase          = mMissRecordsBuffer.DevicePtr();
 		mShaderBindingTable.missRecordStrideInBytes = sizeof(MissRecord);
-		mShaderBindingTable.missRecordCount         = static_cast<int>(missRecords.size());
+		mShaderBindingTable.missRecordCount         = static_cast<unsigned int>(missRecords.size());
 
 		// hitgroup records
 		const int numObjects = 1; // dummy object to prevent nullptr.
@@ -299,7 +303,7 @@ namespace Tracer
 		hitgroupRecords.reserve(numObjects);
 		for(int i = 0; i < numObjects; i++)
 		{
-			int objectType = 0;
+			uint64_t objectType = 0;
 			HitgroupRecord r;
 			optixSbtRecordPackHeader(mHitgroupPrograms[objectType], &r);
 			r.objectID = i;
@@ -308,6 +312,6 @@ namespace Tracer
 		mHitgroupRecordsBuffer.AllocAndUpload(hitgroupRecords);
 		mShaderBindingTable.hitgroupRecordBase          = mHitgroupRecordsBuffer.DevicePtr();
 		mShaderBindingTable.hitgroupRecordStrideInBytes = sizeof(HitgroupRecord);
-		mShaderBindingTable.hitgroupRecordCount         = static_cast<int>(hitgroupRecords.size());
+		mShaderBindingTable.hitgroupRecordCount         = static_cast<unsigned int>(hitgroupRecords.size());
 	}
 }
