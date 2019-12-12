@@ -1,5 +1,8 @@
 #pragma once
 
+#pragma warning(push)
+#pragma warning(disable: 5039) // 'function': pointer or reference to potentially throwing function passed to extern C function under -EHc. Undefined behavior may occur if this function throws an exception.
+
 /*  If defined, the following flags inhibit definition
 *     of the indicated items.
 */
@@ -47,3 +50,5 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 #include <Windows.h>
+
+#pragma warning(pop)

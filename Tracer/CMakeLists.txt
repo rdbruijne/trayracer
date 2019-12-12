@@ -13,7 +13,20 @@ assign_source_group(${Tracer_SRC})
 
 # Declare project
 add_executable(Tracer ${Tracer_SRC})
-target_compile_definitions(Tracer PRIVATE "_CRT_SECURE_NO_WARNINGS;GLEW_STATIC")
+
+# Compile options
+target_compile_definitions(Tracer PRIVATE "_CRT_SECURE_NO_WARNINGS;GLEW_STATIC;__STDC_WANT_SECURE_LIB__=1")
+target_compile_options(Tracer PRIVATE -WX -Wall -MP)
+set_target_properties(Tracer PROPERTIES COMPILE_FLAGS "/wd4100 /wd4324 /wd4514 /wd4710 /wd4711 /wd4820 /wd5045")
+	# 4100: 'identifier' : unreferenced formal parameter
+	# 4324: 'struct_name' : structure was padded due to __declspec(align())
+	# 4514: 'function' : unreferenced inline function has been removed
+	# 4710: 'function' : function not inlined
+	# 4711: function 'function' selected for inline expansion
+	# 4820: 'bytes' bytes padding added after construct 'member_name'
+	# 5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+
+# Link options
 set_target_properties(Tracer PROPERTIES LINK_FLAGS "/NODEFAULTLIB:LIBCMT")
 
 # Include directories
@@ -21,10 +34,10 @@ subdirs(TracerSubdirs ${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(Tracer
 	.
 	${TracerSubdirs}
-	"${LIBRARIES_DIR}"
-	"${LIBRARIES_DIR}/glew"
-	"${LIBRARIES_DIR}/glfw"
-	"${LIBRARIES_DIR}/optix7"
+	"${CMAKE_SOURCE_DIR}/libraries"
+	"${CMAKE_SOURCE_DIR}/libraries/glew"
+	"${CMAKE_SOURCE_DIR}/libraries/glfw"
+	"${CMAKE_SOURCE_DIR}/libraries/optix7"
 )
 
 
@@ -34,11 +47,11 @@ target_link_libraries(Tracer
 	"cuda.lib"
 	"cudart.lib"
 	"opengl32.lib"
-	"${LIBRARIES_DIR}/glew/glew32s.lib"
-	"${LIBRARIES_DIR}/glfw/glfw3.lib"
+	"${CMAKE_SOURCE_DIR}/libraries/glew/glew32s.lib"
+	"${CMAKE_SOURCE_DIR}/libraries/glfw/glfw3.lib"
 )
 
 
 
 # set working directory
-set_property(TARGET Tracer PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${OUTPUT_DIR}")
+set_property(TARGET Tracer PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")

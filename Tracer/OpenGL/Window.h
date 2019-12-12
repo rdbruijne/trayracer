@@ -93,7 +93,7 @@ namespace Tracer
 		 * @param[in] error An error code.
 		 * @param[in] description A UTF-8 encoded string describing the error.
 		 */
-		static void ErrorCallback(int error, const char* description);
+		static void ErrorCallback(int error, const char* description) noexcept;
 
 		/*!
 		 * @brief Handling of key set callbacks.
@@ -103,14 +103,14 @@ namespace Tracer
 		 * @param[in] action `GLFW_PRESS`, `GLFW_RELEASE` or `GLFW_REPEAT`.
 		 * @param[in] mods Bit field describing which modifier keys were held down.
 		 */
-		static void KeyCallback(GLFWwindow* handle, int key, int scancode, int action, int mods);
+		static void KeyCallback(GLFWwindow* handle, int key, int scancode, int action, int mods) noexcept;
 
 		/*!
 		 * @brief Handling of Unicode character callbacks.
 		 * @param[in] handle The window that received the event.
 		 * @param[in] codepoint The Unicode code point of the character.
 		 */
-		static void CharCallback(GLFWwindow* handle, unsigned int codepoint);
+		static void CharCallback(GLFWwindow* handle, unsigned int codepoint) noexcept;
 
 		/*!
 		 * @brief Handling of Unicode character with modifiers callbacks.
@@ -118,7 +118,7 @@ namespace Tracer
 		 * @param[in] codepoint The Unicode code point of the character.
 		 * @param[in] mods Bit field describing which modifier keys were held down.
 		 */
-		static void CharModsCallback(GLFWwindow* handle, unsigned int codepoint, int mods);
+		static void CharModsCallback(GLFWwindow* handle, unsigned int codepoint, int mods) noexcept;
 
 		/*!
 		 * @brief Handling of mouse button callbacks.
@@ -127,7 +127,7 @@ namespace Tracer
 		 * @param[in] action One of `GLFW_PRESS` or `GLFW_RELEASE`.
 		 * @param[in] mods Bit field describing which modifier keys were held down.
 		 */
-		static void MouseButtonCallback(GLFWwindow* handle, int button, int action, int mods);
+		static void MouseButtonCallback(GLFWwindow* handle, int button, int action, int mods) noexcept;
 
 		/*!
 		 * @brief Handling of cursor position callbacks.
@@ -135,14 +135,14 @@ namespace Tracer
 		 * @param[in] xPos The new cursor x-coordinate, relative to the left edge of the client area.
 		 * @param[in] yPos The new cursor y-coordinate, relative to the top edge of the client area.
 		 */
-		static void CursorPosCallback(GLFWwindow* handle, double xPos, double yPos);
+		static void CursorPosCallback(GLFWwindow* handle, double xPos, double yPos) noexcept;
 
 		/*!
 		 * @brief Handling of cursor enter/exit callbacks.
 		 * @param[in] handle The window that received the event.
 		 * @param[in] entered `GLFW_TRUE` if the cursor entered the window's client area, or `GLFW_FALSE` if it left it.
 		 */
-		static void CursorEnterCallback(GLFWwindow* handle, int entered);
+		static void CursorEnterCallback(GLFWwindow* handle, int entered) noexcept;
 
 		/*!
 		 * @brief Handling of scroll callbacks.
@@ -150,7 +150,7 @@ namespace Tracer
 		 * @param[in] xOffset The scroll offset along the x-axis.
 		 * @param[in] yOffset The scroll offset along the y-axis.
 		 */
-		static void ScrollCallback(GLFWwindow* handle, double xOffset, double yOffset);
+		static void ScrollCallback(GLFWwindow* handle, double xOffset, double yOffset) noexcept;
 
 		/*!
 		 * @brief Handling of drop callbacks.
@@ -158,7 +158,7 @@ namespace Tracer
 		 * @param[in] count The number of dropped files.
 		 * @param[in] paths The UTF-8 encoded file and/or directory path names.
 		 */
-		static void DropCallback(GLFWwindow* handle, int count, const char** paths);
+		static void DropCallback(GLFWwindow* handle, int count, const char** paths) noexcept;
 
 
 

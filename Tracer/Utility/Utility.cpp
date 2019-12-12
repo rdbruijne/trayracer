@@ -107,7 +107,7 @@ namespace Tracer
 			return "";
 
 		fileStream.seekg(0, std::ios::end);
-		const size_t fileSize = fileStream.tellg();
+		const size_t fileSize = static_cast<size_t>(fileStream.tellg());
 		fileStream.seekg(0, std::ios::beg);
 
 		std::string fileContent;
@@ -124,7 +124,7 @@ namespace Tracer
 		std::ofstream fileStream;
 		fileStream.open(filePath, std::ofstream::out | std::ofstream::trunc);
 		assert(fileStream.is_open());
-		fileStream.write(text.c_str(), text.length());
+		fileStream.write(text.c_str(), static_cast<std::streamsize>(text.length()));
 	}
 
 

@@ -203,56 +203,56 @@ namespace Tracer
 	//--------------------------------------------------------------------------------------------------------------------------
 	// GLFW Input callbacks
 	//--------------------------------------------------------------------------------------------------------------------------
-	void Window::ErrorCallback(int error, const char* description)
+	void Window::ErrorCallback(int error, const char* description) noexcept
 	{
 		printf("GLFW error %i: %s\n", error, description);
 	}
 
 
 
-	void Window::KeyCallback(GLFWwindow* handle, int key, int scancode, int action, int mods)
+	void Window::KeyCallback(GLFWwindow* handle, int key, int scancode, int action, int mods) noexcept
 	{
 	}
 
 
 
-	void Window::CharCallback(GLFWwindow* handle, unsigned int codepoint)
+	void Window::CharCallback(GLFWwindow* handle, unsigned int codepoint) noexcept
 	{
 	}
 
 
 
-	void Window::CharModsCallback(GLFWwindow* handle, unsigned int codepoint, int mods)
+	void Window::CharModsCallback(GLFWwindow* handle, unsigned int codepoint, int mods) noexcept
 	{
 	}
 
 
 
-	void Window::MouseButtonCallback(GLFWwindow* handle, int button, int action, int mods)
+	void Window::MouseButtonCallback(GLFWwindow* handle, int button, int action, int mods) noexcept
 	{
 	}
 
 
 
-	void Window::CursorPosCallback(GLFWwindow* handle, double xPos, double yPos)
+	void Window::CursorPosCallback(GLFWwindow* handle, double xPos, double yPos) noexcept
 	{
 	}
 
 
 
-	void Window::CursorEnterCallback(GLFWwindow* handle, int entered)
+	void Window::CursorEnterCallback(GLFWwindow* handle, int entered) noexcept
 	{
 	}
 
 
 
-	void Window::ScrollCallback(GLFWwindow* handle, double xOffset, double yOffset)
+	void Window::ScrollCallback(GLFWwindow* handle, double xOffset, double yOffset) noexcept
 	{
 	}
 
 
 
-	void Window::DropCallback(GLFWwindow* handle, int count, const char** paths)
+	void Window::DropCallback(GLFWwindow* handle, int count, const char** paths) noexcept
 	{
 	}
 }

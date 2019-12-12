@@ -23,13 +23,6 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 
 
-# CMake settings
-set(OUTPUT_DIR		"${CMAKE_SOURCE_DIR}/bin")
-set(LIBRARIES_DIR	"${CMAKE_SOURCE_DIR}/libraries")
-set(RESOURCES_DIR	"${CMAKE_SOURCE_DIR}/Resources")
-
-
-
 # First for the generic no-config case (e.g. with mingw)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${OUTPUT_DIR})
