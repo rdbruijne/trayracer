@@ -1,29 +1,56 @@
 #pragma once
 
-// Project
-#include "Utility.h"
-
 // CUDA
 #include <cuda.h>
 #include <cuda_runtime.h>
 
 // C++
-#include <stdexcept>
+#include <cassert>
+#include <string>
+#include <sstream>
+
+
+
+/*!
+ * @brief Check the value of a CUresult. Will throw an exception when an error occurs.
+ */
+#define CU_CHECK(x)																												\
+	{																															\
+		const CUresult res = x;																									\
+		assert(res == CUDA_SUCCESS);																							\
+		if(res != CUDA_SUCCESS)																									\
+		{																														\
+			std::stringstream ss;																								\
+			ss << "CUDA error " << ToString(res) << "(" << res << ")";															\
+			throw std::runtime_error(ss.str());																					\
+		}																														\
+	}
+
+
+
+/*!
+ * @brief Check the value of a cudaError_t. Will throw an exception when an error occurs.
+ */
+#define CUDA_CHECK(x)																											\
+	{																															\
+		const cudaError_t res = x;																								\
+		assert(res == cudaSuccess);																								\
+		if(res != cudaSuccess)																									\
+		{																														\
+			std::stringstream ss;																								\
+			ss << "CUDA error " << cudaGetErrorName(res) << " (" << cudaGetErrorString(res) << ")";								\
+			throw std::runtime_error(ss.str());																					\
+		}																														\
+	}
+
+
 
 namespace Tracer
 {
 	/*!
-	 * @brief Check if a CUDA result is valid.
-	 *
-	 * Will throw a runtime error if the cudaResult is not `cudaSuccess`.
-	 * @param[in] cudaResult The result to check.
-	 */
-	static inline void Check(cudaError_t cudaResult)
-	{
-		if (cudaResult != cudaSuccess)
-		{
-			const std::string msg = format("CUDA error: %s (%s)\n", cudaGetErrorName(cudaResult), cudaGetErrorString(cudaResult));
-			throw std::runtime_error(msg.c_str());
-		}
-	}
+	* @brief Convert CUresult to corresponding string.
+	* @param[in] cuResult CUresult code to convert.
+	* @return String containing error code.
+	*/
+	std::string ToString(CUresult cuResult);
 }

@@ -1,5 +1,16 @@
 #include "Renderer.h"
 
+// Project
+#include "OptixHelpers.h"
+#include "Utility.h"
+
+// CUDA
+#pragma warning(push)
+#pragma warning(disable: 4365) // 'argument': conversion from '%1' to '%2', signed/unsigned mismatch
+#pragma warning(disable: 28251) // Inconsistent annotation for '%1': this instance has no annotations.
+#include "helper_math.h"
+#pragma warning(pop)
+
 // C++
 #include <assert.h>
 
@@ -84,9 +95,9 @@ namespace Tracer
 		mLaunchParamsBuffer.Upload(&mLaunchParams, 1);
 		mLaunchParams.frameID++;
 
-		optixLaunch(mPipeline, mStream, mLaunchParamsBuffer.DevicePtr(), mLaunchParamsBuffer.Size(), &mShaderBindingTable,
-					static_cast<unsigned int>(mLaunchParams.resolutionX), static_cast<unsigned int>(mLaunchParams.resolutionY), 1);
-		cudaDeviceSynchronize();
+		OPTIX_CHECK(optixLaunch(mPipeline, mStream, mLaunchParamsBuffer.DevicePtr(), mLaunchParamsBuffer.Size(), &mShaderBindingTable,
+								static_cast<unsigned int>(mLaunchParams.resolutionX), static_cast<unsigned int>(mLaunchParams.resolutionY), 1));
+		CUDA_CHECK(cudaDeviceSynchronize());
 	}
 
 
@@ -112,20 +123,39 @@ namespace Tracer
 
 
 
+	void Renderer::SetSceneRoot(OptixTraversableHandle sceneRoot)
+	{
+		mLaunchParams.sceneRoot = sceneRoot;
+	}
+
+
+
+	void Renderer::SetCamera(float3 cameraPos, float3 cameraTarget, float3 cameraUp)
+	{
+		const float cosFovY = 0.66f;
+		const float aspect = static_cast<float>(mLaunchParams.resolutionX) / static_cast<float>(mLaunchParams.resolutionY);
+
+		mLaunchParams.cameraPos     = cameraPos;
+		mLaunchParams.cameraForward = normalize(cameraTarget - cameraPos);
+		mLaunchParams.cameraSide    = cosFovY * aspect * normalize(cross(mLaunchParams.cameraForward, cameraUp));
+		mLaunchParams.cameraUp      = cosFovY * normalize(cross(mLaunchParams.cameraSide, mLaunchParams.cameraForward));
+	}
+
+
+
 	void Renderer::CreateContext()
 	{
 		const int deviceID = 0;
-		cudaSetDevice(deviceID);
-		cudaStreamCreate(&mStream);
+		CUDA_CHECK(cudaSetDevice(deviceID));
+		CUDA_CHECK(cudaStreamCreate(&mStream));
 
-		cudaGetDeviceProperties(&mDeviceProperties, deviceID);
+		CUDA_CHECK(cudaGetDeviceProperties(&mDeviceProperties, deviceID));
 		printf("Running on %s\n", mDeviceProperties.name);
 
-		const CUresult cuRes = cuCtxGetCurrent(&mCudaContext);
-		assert(cuRes == CUDA_SUCCESS);
+		CU_CHECK(cuCtxGetCurrent(&mCudaContext));
 
-		optixDeviceContextCreate(mCudaContext, 0, &mOptixContext);
-		optixDeviceContextSetLogCallback(mOptixContext, OptixLogCallback, nullptr, 4);
+		OPTIX_CHECK(optixDeviceContextCreate(mCudaContext, 0, &mOptixContext));
+		OPTIX_CHECK(optixDeviceContextSetLogCallback(mOptixContext, OptixLogCallback, nullptr, 4));
 	}
 
 
@@ -161,10 +191,8 @@ namespace Tracer
 
 		char log[2048];
 		size_t sizeof_log = sizeof(log);
-		const OptixResult optixRes = optixModuleCreateFromPTX(mOptixContext, &mModuleCompileOptions, &mPipelineCompileOptions,
-															  ptxCode.c_str(), ptxCode.size(), log, &sizeof_log, &mModule);
-		assert(optixRes == OPTIX_SUCCESS);
-
+		OPTIX_CHECK(optixModuleCreateFromPTX(mOptixContext, &mModuleCompileOptions, &mPipelineCompileOptions,
+											 ptxCode.c_str(), ptxCode.size(), log, &sizeof_log, &mModule));
 		if (sizeof_log > 1)
 			printf("%s\n", log);
 	}
@@ -183,9 +211,7 @@ namespace Tracer
 
 		char log[2048];
 		size_t sizeof_log = sizeof(log);
-		const OptixResult optixRes = optixProgramGroupCreate(mOptixContext, &desc, 1, &options, log, &sizeof_log, &mRayGenPrograms[0]);
-		assert(optixRes == OPTIX_SUCCESS);
-
+		OPTIX_CHECK(optixProgramGroupCreate(mOptixContext, &desc, 1, &options, log, &sizeof_log, &mRayGenPrograms[0]));
 		if (sizeof_log > 1)
 			printf("%s\n", log);
 	}
@@ -204,9 +230,7 @@ namespace Tracer
 
 		char log[2048];
 		size_t logLength = sizeof(log);
-		const OptixResult optixRes = optixProgramGroupCreate(mOptixContext, &desc, 1, &options, log, &logLength, &mMissPrograms[0]);
-		assert(optixRes == OPTIX_SUCCESS);
-
+		OPTIX_CHECK(optixProgramGroupCreate(mOptixContext, &desc, 1, &options, log, &logLength, &mMissPrograms[0]));
 		if (logLength > 1)
 			printf("%s\n", log);
 	}
@@ -227,9 +251,7 @@ namespace Tracer
 
 		char log[2048];
 		size_t logLength = sizeof(log);
-		const OptixResult optixRes = optixProgramGroupCreate(mOptixContext, &desc, 1, &options, log, &logLength, &mHitgroupPrograms[0]);
-		assert(optixRes == OPTIX_SUCCESS);
-
+		OPTIX_CHECK(optixProgramGroupCreate(mOptixContext, &desc, 1, &options, log, &logLength, &mHitgroupPrograms[0]));
 		if (logLength > 1)
 			printf("%s\n", log);
 	}
@@ -249,20 +271,17 @@ namespace Tracer
 
 		char log[2048];
 		size_t logLength = sizeof(log);
-		const OptixResult optixRes = optixPipelineCreate(mOptixContext, &mPipelineCompileOptions, &mPipelineLinkOptions,
+		OPTIX_CHECK(optixPipelineCreate(mOptixContext, &mPipelineCompileOptions, &mPipelineLinkOptions,
 														 programGroups.data(), static_cast<unsigned int>(programGroups.size()),
-														 log, &logLength, &mPipeline);
-		assert(optixRes == OPTIX_SUCCESS);
-
+														 log, &logLength, &mPipeline));
 		if (logLength > 1)
 			printf("%s\n", log);
 
-		const OptixResult optixRes2 = optixPipelineSetStackSize(mPipeline,
-																2 << 10, // directCallableStackSizeFromTraversal
-																2 << 10, // directCallableStackSizeFromState
-																2 << 10, // continuationStackSize
-																3);      // maxTraversableGraphDepth
-		assert(optixRes2 == OPTIX_SUCCESS);
+		OPTIX_CHECK(optixPipelineSetStackSize(mPipeline,
+											  2 << 10, // directCallableStackSizeFromTraversal
+											  2 << 10, // directCallableStackSizeFromState
+											  2 << 10, // continuationStackSize
+											  3));      // maxTraversableGraphDepth
 	}
 
 
@@ -275,7 +294,7 @@ namespace Tracer
 		for(auto p : mRayGenPrograms)
 		{
 			RaygenRecord r;
-			optixSbtRecordPackHeader(p, &r);
+			OPTIX_CHECK(optixSbtRecordPackHeader(p, &r));
 			r.data = nullptr;
 			raygenRecords.push_back(r);
 		}
@@ -288,7 +307,7 @@ namespace Tracer
 		for(auto p : mMissPrograms)
 		{
 			MissRecord r;
-			optixSbtRecordPackHeader(p, &r);
+			OPTIX_CHECK(optixSbtRecordPackHeader(p, &r));
 			r.data = nullptr;
 			missRecords.push_back(r);
 		}
@@ -305,7 +324,7 @@ namespace Tracer
 		{
 			uint64_t objectType = 0;
 			HitgroupRecord r;
-			optixSbtRecordPackHeader(mHitgroupPrograms[objectType], &r);
+			OPTIX_CHECK(optixSbtRecordPackHeader(mHitgroupPrograms[objectType], &r));
 			r.objectID = i;
 			hitgroupRecords.push_back(r);
 		}

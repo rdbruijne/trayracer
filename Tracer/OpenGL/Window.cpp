@@ -174,16 +174,16 @@ namespace Tracer
 
 		glBegin(GL_QUADS);
 		{
-			glTexCoord2f(0.f, 0.f);
+			glTexCoord2f(0.f, 1.f);
 			glVertex3f(0.f, 0.f, 0.f);
 
-			glTexCoord2f(0.f, 1.f);
+			glTexCoord2f(0.f, 0.f);
 			glVertex3f(0.f, static_cast<float>(mResolution.y), 0.f);
 
-			glTexCoord2f(1.f, 1.f);
+			glTexCoord2f(1.f, 0.f);
 			glVertex3f(static_cast<float>(mResolution.x), static_cast<float>(mResolution.y), 0.f);
 
-			glTexCoord2f(1.f, 0.f);
+			glTexCoord2f(1.f, 1.f);
 			glVertex3f(static_cast<float>(mResolution.x), 0.f, 0.f);
 		}
 		glEnd();

@@ -165,13 +165,13 @@ namespace Tracer
 		//----------------------------------------------------------------------------------------------------------------------
 		// Members
 		//----------------------------------------------------------------------------------------------------------------------
-		/*! Render resolutions */
+		/*! Render resolution. */
 		int2 mResolution = make_int2(0, 0);
 
-		/*! Handle to the OpenGL window */
+		/*! Handle to the OpenGL window. */
 		GLFWwindow* mHandle = nullptr;
 
-		/*! OpenGL texture for the fullscreen quad */
+		/*! OpenGL texture for the fullscreen quad. */
 		uint32_t mGLTexture = 0;
 	};
 }

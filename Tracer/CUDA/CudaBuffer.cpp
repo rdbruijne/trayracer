@@ -9,20 +9,32 @@
 namespace Tracer
 {
 
+	CudaBuffer::CudaBuffer(size_t size)
+	{
+		Alloc(size);
+	}
+
+
+
+	CudaBuffer::~CudaBuffer()
+	{
+		Free();
+	}
+
+
+
 	void CudaBuffer::Alloc(size_t size)
 	{
 		assert(mPtr == nullptr);
 		mSize = size;
-		const cudaError_t cuResult = cudaMalloc(&mPtr, size);
-		Check(cuResult);
+		CUDA_CHECK(cudaMalloc(&mPtr, size));
 	}
 
 
 
 	void CudaBuffer::Resize(size_t size)
 	{
-		if(mPtr)
-			Free();
+		Free();
 		Alloc(size);
 	}
 
@@ -30,9 +42,11 @@ namespace Tracer
 
 	void CudaBuffer::Free()
 	{
-		const cudaError_t cuResult = cudaFree(mPtr);
-		Check(cuResult);
-		mPtr = nullptr;
+		if(mPtr)
+		{
+			CUDA_CHECK(cudaFree(mPtr));
+			mPtr = nullptr;
+		}
 		mSize = 0;
 	}
 }

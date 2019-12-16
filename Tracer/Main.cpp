@@ -1,7 +1,9 @@
 // Project
+#include "App.h"
 #include "OptixHelpers.h"
 #include "Renderer.h"
 #include "Stopwatch.h"
+#include "Utility.h"
 #include "Window.h"
 
 // C++
@@ -13,7 +15,7 @@
 int main(int argc, char** argv)
 {
 	// init OptiX
-	const bool initOptix = Tracer::OptixHelpers::Init();
+	const bool initOptix = Tracer::InitOptix();
 	if(!initOptix)
 	{
 		printf("Failed to init OptiX.\n");
@@ -29,6 +31,10 @@ int main(int argc, char** argv)
 	// create window
 	Tracer::Window* window = new Tracer::Window("Tracer", renderResolution);
 
+	// create app
+	Tracer::App* app = new Tracer::App();
+	app->Init(renderer, window);
+
 	// timer
 	Tracer::Stopwatch stopwatch;
 	int64_t elapsedNs = 0;
@@ -38,6 +44,9 @@ int main(int argc, char** argv)
 	{
 		// user input
 		window->UpdateInput();
+
+		// update the app
+		app->Tick(renderer, window, static_cast<float>(elapsedNs) * 1e-6f);
 
 		// run OptiX
 		renderer->RenderFrame();
@@ -57,6 +66,9 @@ int main(int argc, char** argv)
 	}
 
 	// cleanup
+	app->DeInit(renderer, window);
+	delete app;
+
 	delete window;
 
 	return 0;

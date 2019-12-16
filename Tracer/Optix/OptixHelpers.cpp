@@ -1,5 +1,8 @@
 #include "OptixHelpers.h"
 
+// Project
+#include "CudaHelpers.h"
+
 // OptiX
 #include <optix_function_table_definition.h>
 
@@ -9,11 +12,11 @@
 
 namespace Tracer
 {
-	bool Tracer::OptixHelpers::Init()
+	bool InitOptix()
 	{
 		// check for available devices
 		int numDevices = 0;
-		cudaGetDeviceCount(&numDevices);
+		CUDA_CHECK(cudaGetDeviceCount(&numDevices));
 		if(numDevices == 0)
 		{
 			printf("No CUDA capable devices found.\n");
@@ -34,7 +37,7 @@ namespace Tracer
 
 
 
-	std::string OptixHelpers::ToString(OptixResult optixResult)
+	std::string ToString(OptixResult optixResult)
 	{
 		switch(optixResult)
 		{

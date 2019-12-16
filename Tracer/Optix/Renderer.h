@@ -45,9 +45,28 @@ namespace Tracer
 		 */
 		void Resize(const int2& resolution);
 
+		/*!
+		 * @brief Set the scene root.
+		 * @param[in] sceneRoot Handle to the scene root object.
+		 */
+		void SetSceneRoot(OptixTraversableHandle sceneRoot);
+
+		/*!
+		 * @brief Set the camera info.
+		 */
+		void SetCamera(float3 cameraPos, float3 cameraTarget, float3 cameraUp);
+
+		/*!
+		 * @brief Get the OptiX context
+		 */
+		OptixDeviceContext GetOptixDeviceContext()
+		{
+			return mOptixContext;
+		}
+
 	private:
 		/*!
-		 * @brief Create and configures Optix device context.
+		 * @brief Create and configures OptiX device context.
 		 */
 		void CreateContext();
 

@@ -19,6 +19,22 @@ namespace Tracer
 	{
 	public:
 		/*!
+		 * @brief Default constructor.
+		 */
+		CudaBuffer() = default;
+
+		/*!
+		 * @brief Create buffer with given size.
+		 * @param[in] size Size in bytes.
+		 */
+		CudaBuffer(size_t size);
+
+		/*!
+		 * @brief Destructor.
+		 */
+		~CudaBuffer();
+
+		/*!
 		 * @brief Allocate to given size.
 		 * @param[in] size Size in bytes.
 		 */
@@ -38,7 +54,7 @@ namespace Tracer
 
 		/*!
 		 * @brief Upload to buffer.
-		 * @param[in] data
+		 * @param[in] data Data to upload.
 		 * @param[in] count Number of elements.
 		 */
 		template<typename TYPE>
@@ -46,13 +62,12 @@ namespace Tracer
 		{
 			assert(mPtr != nullptr);
 			assert(mSize == sizeof(TYPE) * count);
-			const cudaError_t cuResult = cudaMemcpy(mPtr, static_cast<const void*>(data), sizeof(TYPE) * count, cudaMemcpyHostToDevice);
-			Check(cuResult);
+			CUDA_CHECK(cudaMemcpy(mPtr, static_cast<const void*>(data), sizeof(TYPE) * count, cudaMemcpyHostToDevice));
 		}
 
 		/*!
 		 * @brief Download from buffer.
-		 * @param[out] data
+		 * @param[out] data Allocated destination for the downloaded data.
 		 * @param[in] count Number of elements.
 		 */
 		template<typename TYPE>
@@ -60,8 +75,7 @@ namespace Tracer
 		{
 			assert(mPtr != nullptr);
 			assert(mSize == sizeof(TYPE) * count);
-			const cudaError_t cuResult = cudaMemcpy(static_cast<void*>(data), mPtr, sizeof(TYPE) * count, cudaMemcpyDeviceToHost);
-			Check(cuResult);
+			CUDA_CHECK(cudaMemcpy(static_cast<void*>(data), mPtr, sizeof(TYPE) * count, cudaMemcpyDeviceToHost));
 		}
 
 		/*!
@@ -85,6 +99,15 @@ namespace Tracer
 		}
 
 		/*!
+		 * @brief Get pointer to CUDA device pointer.
+		 * @return Pointer to CUDA device pointer.
+		 */
+		inline const CUdeviceptr* DevicePtrPtr() const
+		{
+			return reinterpret_cast<const CUdeviceptr*>(&mPtr);
+		}
+
+		/*!
 		 * @brief Get the buffer's size (in bytes).
 		 * @return Size in bytes.
 		 */
@@ -94,14 +117,10 @@ namespace Tracer
 		}
 
 	private:
-		/*!
-		 * Size in bytes.
-		 */
+		/*! Size in bytes. */
 		size_t mSize = 0;
 
-		/*!
-		 * Data pointer.
-		 */
+		/*! Data pointer. */
 		void* mPtr = nullptr;
 	};
 }

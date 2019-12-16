@@ -77,9 +77,9 @@ float3 IdToColor(uint32_t id)
 	for(uint32_t i = 0; i < 3; i++)
 	{
 		c[i] = (id >> i) & 0x249249;
-		c[i] = ((c[i] << 2)| (c[i] >>  3)) & 0x0C30C3;
-		c[i] = ((c[i] << 4)| (c[i] >>  6)) & 0x00F00F;
-		c[i] = ((c[i] << 8)| (c[i] >> 12)) & 0x0000FF;
+		c[i] = ((c[i] << 1) | (c[i] >>  3)) & 0x0C30C3;
+		c[i] = ((c[i] << 2) | (c[i] >>  6)) & 0x00F00F;
+		c[i] = ((c[i] << 4) | (c[i] >> 12)) & 0x0000FF;
 	}
 
 	return make_float3(c[0] * (1.f / 255.f), c[1] * (1.f / 255.f), c[2] * (1.f / 255.f));
@@ -141,7 +141,9 @@ extern "C" __global__ void __raygen__renderFrame()
 	const float2 screen = make_float2(ix + 0.5f, iy + 0.5f) / make_float2(optixLaunchParams.resolutionX, optixLaunchParams.resolutionY);
 
 	// ray direction
-	float3 rayDir = normalize(optixLaunchParams.cameraForward + ((screen.x - 0.5f) * optixLaunchParams.cameraSide) + ((screen.x - 0.5f) * optixLaunchParams.cameraUp));
+	float3 rayDir = normalize(optixLaunchParams.cameraForward +
+								((screen.x - 0.5f) * optixLaunchParams.cameraSide) +
+								((screen.y - 0.5f) * optixLaunchParams.cameraUp));
 
 	// trace the ray
 	optixTrace(optixLaunchParams.sceneRoot,
