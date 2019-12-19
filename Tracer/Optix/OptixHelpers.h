@@ -10,9 +10,6 @@
 
 
 
-/*!
- * @brief Check the value of an OptixResult. Will throw an exception when an error occurs.
- */
 #define OPTIX_CHECK(x)																											\
 	{																															\
 		OptixResult res = x;																									\
@@ -29,17 +26,6 @@
 
 namespace Tracer
 {
-	/*!
-	* @brief Initialize OptiX.
-	* @return True on success, false otherwise.
-	*/
 	bool InitOptix();
-
-
-	/*!
-	* @brief Convert OptixResult to corresponding string.
-	* @param[in] optixResult OptixResult code to convert.
-	* @return String containing error code.
-	*/
 	std::string ToString(OptixResult optixResult);
 }

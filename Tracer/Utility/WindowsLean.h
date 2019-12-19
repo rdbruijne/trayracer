@@ -3,9 +3,7 @@
 #pragma warning(push)
 #pragma warning(disable: 5039) // 'function': pointer or reference to potentially throwing function passed to extern C function under -EHc. Undefined behavior may occur if this function throws an exception.
 
-/*  If defined, the following flags inhibit definition
-*     of the indicated items.
-*/
+// If defined, the following flags inhibit definition of the indicated items.
 #define NOGDICAPMASKS     // CC_*, LC_*, PC_*, CP_*, TC_*, RC_
 #define NOVIRTUALKEYCODES // VK_*
 #define NOWINMESSAGES     // WM_*, EM_*, LB_*, CB_*

@@ -1,6 +1,7 @@
 #include "App.h"
 
 // Project
+#include "LinearMath.h"
 #include "OptixHelpers.h"
 #include "Renderer.h"
 
@@ -10,6 +11,7 @@ namespace Tracer
 	{
 		CreateScene();
 		BuildScene(renderer);
+		mCamera = Camera(make_float3(-10, 10, -12), make_float3(0, 0, 0), make_float3(0, 1, 0));
 	}
 
 
@@ -23,8 +25,7 @@ namespace Tracer
 	void App::Tick(Renderer* renderer, Window* window, float dt /*= 1.f / 60.f*/)
 	{
 		renderer->SetSceneRoot(mSceneRoot);
-		//renderer->SetCamera(make_float3(0, 0, -10), make_float3(0, 0, 0), make_float3(0, 1, 0));
-		renderer->SetCamera(make_float3(-10, 10, -12), make_float3(0, 0, 0), make_float3(0, 1, 0));
+		renderer->SetCamera(mCamera.Position, normalize(mCamera.Target - mCamera.Position), mCamera.Up);
 	}
 
 

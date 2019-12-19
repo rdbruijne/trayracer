@@ -2,14 +2,8 @@
 
 // Project
 #include "OptixHelpers.h"
+#include "LinearMath.h"
 #include "Utility.h"
-
-// CUDA
-#pragma warning(push)
-#pragma warning(disable: 4365) // 'argument': conversion from '%1' to '%2', signed/unsigned mismatch
-#pragma warning(disable: 28251) // Inconsistent annotation for '%1': this instance has no annotations.
-#include "helper_math.h"
-#pragma warning(pop)
 
 // C++
 #include <assert.h>
@@ -18,7 +12,7 @@ namespace Tracer
 {
 	namespace
 	{
-		/*! Raygen program Shader Binding Table record */
+		// Raygen program Shader Binding Table record
 		struct alignas(OPTIX_SBT_RECORD_ALIGNMENT) RaygenRecord
 		{
 			char header[OPTIX_SBT_RECORD_HEADER_SIZE] = {};
@@ -27,7 +21,7 @@ namespace Tracer
 
 
 
-		/*! Miss program Shader Binding Table record */
+		// Miss program Shader Binding Table record
 		struct alignas(OPTIX_SBT_RECORD_ALIGNMENT) MissRecord
 		{
 			char header[OPTIX_SBT_RECORD_HEADER_SIZE] = {};
@@ -36,7 +30,7 @@ namespace Tracer
 
 
 
-		/*! Hitgroup program Shader Binding Table record */
+		// Hitgroup program Shader Binding Table record
 		struct alignas(OPTIX_SBT_RECORD_ALIGNMENT) HitgroupRecord
 		{
 			char header[OPTIX_SBT_RECORD_HEADER_SIZE] = {};
@@ -130,13 +124,13 @@ namespace Tracer
 
 
 
-	void Renderer::SetCamera(float3 cameraPos, float3 cameraTarget, float3 cameraUp)
+	void Renderer::SetCamera(float3 cameraPos, float3 cameraForward, float3 cameraUp)
 	{
 		const float cosFovY = 0.66f;
 		const float aspect = static_cast<float>(mLaunchParams.resolutionX) / static_cast<float>(mLaunchParams.resolutionY);
 
 		mLaunchParams.cameraPos     = cameraPos;
-		mLaunchParams.cameraForward = normalize(cameraTarget - cameraPos);
+		mLaunchParams.cameraForward = cameraForward;
 		mLaunchParams.cameraSide    = cosFovY * aspect * normalize(cross(mLaunchParams.cameraForward, cameraUp));
 		mLaunchParams.cameraUp      = cosFovY * normalize(cross(mLaunchParams.cameraSide, mLaunchParams.cameraForward));
 	}

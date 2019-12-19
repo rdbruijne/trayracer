@@ -11,9 +11,6 @@
 
 
 
-/*!
- * @brief Check the value of a CUresult. Will throw an exception when an error occurs.
- */
 #define CU_CHECK(x)																												\
 	{																															\
 		const CUresult res = x;																									\
@@ -28,9 +25,6 @@
 
 
 
-/*!
- * @brief Check the value of a cudaError_t. Will throw an exception when an error occurs.
- */
 #define CUDA_CHECK(x)																											\
 	{																															\
 		const cudaError_t res = x;																								\
@@ -47,10 +41,5 @@
 
 namespace Tracer
 {
-	/*!
-	* @brief Convert CUresult to corresponding string.
-	* @param[in] cuResult CUresult code to convert.
-	* @return String containing error code.
-	*/
 	std::string ToString(CUresult cuResult);
 }
