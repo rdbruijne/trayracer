@@ -1,8 +1,8 @@
 #pragma once
 
 // Project
-#include "CommonStructs.h"
-#include "CudaBuffer.h"
+#include "CUDA/CudaBuffer.h"
+#include "Common/CommonStructs.h"
 
 // C++
 #include <string>

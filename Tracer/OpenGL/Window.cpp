@@ -1,7 +1,7 @@
-#include "Window.h"
+#include "OpenGL/Window.h"
 
 // Windows
-#include "WindowsLean.h"
+#include "Utility/WindowsLean.h"
 
 // GL
 #include "glew/glew.h"

@@ -1,9 +1,9 @@
-#include "App.h"
+#include "App/App.h"
 
 // Project
-#include "LinearMath.h"
-#include "OptixHelpers.h"
-#include "Renderer.h"
+#include "Optix/OptixHelpers.h"
+#include "Optix/Renderer.h"
+#include "Utility/LinearMath.h"
 
 namespace Tracer
 {

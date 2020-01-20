@@ -12,8 +12,8 @@
 #include <cuda_runtime.h>
 
 // OptiX
-#include <optix.h>
-#include <optix_stubs.h>
-#include <optix_function_table.h>
+#include "optix7/optix.h"
+#include "optix7/optix_stubs.h"
+#include "optix7/optix_function_table.h"
 
 #pragma warning(pop)

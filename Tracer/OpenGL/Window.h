@@ -1,7 +1,7 @@
 #pragma once
 
-// OptiX
-#include "Optix7.h"
+// Project
+#include "Optix/Optix7.h"
 
 // C++
 #include <string>

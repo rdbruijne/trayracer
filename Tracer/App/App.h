@@ -1,11 +1,9 @@
 #pragma once
 
 // Project
-#include "CudaBuffer.h"
-#include "Mesh.h"
-
-// OptiX
-#include "Optix7.h"
+#include "CUDA/CudaBuffer.h"
+#include "Optix/Optix7.h"
+#include "Resources/Mesh.h"
 
 // C++
 #include <memory>

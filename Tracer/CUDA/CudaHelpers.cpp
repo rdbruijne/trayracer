@@ -1,4 +1,4 @@
-#include "CudaHelpers.h"
+#include "CUDA/CudaHelpers.h"
 
 #pragma warning(push)
 #pragma warning(disable: 26812) // The enum type %type% is unscoped. Prefer 'enum class' over 'enum'

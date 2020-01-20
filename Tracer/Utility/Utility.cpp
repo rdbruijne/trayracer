@@ -7,7 +7,7 @@
 #include <fstream>
 
 // Windows
-#include "WindowsLean.h"
+#include "Utility/WindowsLean.h"
 
 namespace Tracer
 {
@@ -131,7 +131,7 @@ namespace Tracer
 
 	bool FileExists(const std::string& filePath)
 	{
-		DWORD fileAttrib = GetFileAttributes(filePath.c_str());
+		DWORD fileAttrib = GetFileAttributesA(filePath.c_str());
 		return (fileAttrib != INVALID_FILE_ATTRIBUTES && !(fileAttrib & FILE_ATTRIBUTE_DIRECTORY));
 	}
 }

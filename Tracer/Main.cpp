@@ -1,17 +1,14 @@
 // Project
-#include "App.h"
-#include "OptixHelpers.h"
-#include "Renderer.h"
-#include "Stopwatch.h"
-#include "Utility.h"
-#include "Window.h"
+#include "App/App.h"
+#include "OpenGL/Window.h"
+#include "Optix/OptixHelpers.h"
+#include "Optix/Renderer.h"
+#include "Utility/Stopwatch.h"
+#include "Utility/Utility.h"
 
 // C++
 #include <iostream>
 
-/*!
- * @brief Main entry point into the program.
- */
 int main(int argc, char** argv)
 {
 	// init OptiX

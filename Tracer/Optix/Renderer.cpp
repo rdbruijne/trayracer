@@ -1,9 +1,9 @@
-#include "Renderer.h"
+#include "Optix/Renderer.h"
 
 // Project
-#include "OptixHelpers.h"
-#include "LinearMath.h"
-#include "Utility.h"
+#include "Optix/OptixHelpers.h"
+#include "Utility/LinearMath.h"
+#include "Utility/Utility.h"
 
 // C++
 #include <assert.h>

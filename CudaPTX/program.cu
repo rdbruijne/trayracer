@@ -1,11 +1,11 @@
 // OptiX
-#include <optix_device.h>
+#include "optix7/optix_device.h"
 
 // CUDA
-#include <helper_math.h>
+#include "CUDA/helper_math.h"
 
 // Project
-#include "CommonStructs.h"
+#include "Common/CommonStructs.h"
 
 //------------------------------------------------------------------------------------------------------------------------------
 // GLobal data

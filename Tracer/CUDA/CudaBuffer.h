@@ -1,10 +1,8 @@
 #pragma once
 
 // Project
-#include "CudaHelpers.h"
-
-// OptiX
-#include "Optix7.h"
+#include "CUDA/CudaHelpers.h"
+#include "Optix/Optix7.h"
 
 // C++
 #include <assert.h>

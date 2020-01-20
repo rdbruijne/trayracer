@@ -1,7 +1,7 @@
-#include "Stopwatch.h"
+#include "Utility/Stopwatch.h"
 
 // Project
-#include "Utility.h"
+#include "Utility/Utility.h"
 
 namespace Tracer
 {

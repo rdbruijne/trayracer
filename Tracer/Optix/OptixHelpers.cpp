@@ -1,10 +1,10 @@
-#include "OptixHelpers.h"
+#include "Optix/OptixHelpers.h"
 
 // Project
-#include "CudaHelpers.h"
+#include "CUDA/CudaHelpers.h"
 
 // OptiX
-#include <optix_function_table_definition.h>
+#include "optix7/optix_function_table_definition.h"
 
 // C++
 #include <iostream>
