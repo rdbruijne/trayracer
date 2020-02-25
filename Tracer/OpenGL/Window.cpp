@@ -295,8 +295,8 @@ namespace Tracer
 	void Window::KeyCallback(GLFWwindow* handle, int key, int scancode, int action, int mods) noexcept
 	{
 		Window* const window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(handle));
-		if(scancode < static_cast<int>(Input::Keys::_KeyboardCount))
-			window->mNextInputState.Keyboard[static_cast<size_t>(scancode)] = (action == GLFW_PRESS || action == GLFW_REPEAT);
+		if(key < static_cast<int>(Input::Keys::_KeyboardCount))
+			window->mNextInputState.Keyboard[static_cast<size_t>(key)] = (action == GLFW_PRESS || action == GLFW_REPEAT);
 	}
 
 
