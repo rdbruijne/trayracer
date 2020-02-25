@@ -6,7 +6,7 @@
 #include "Utility/WindowsLean.h"
 
 // GL
-#include "glew/glew.h"
+#include "GL/glew.h"
 #include "glfw/glfw3.h"
 #include "glfw/glfw3native.h"
 
