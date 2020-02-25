@@ -141,8 +141,9 @@ extern "C" __global__ void __raygen__renderFrame()
 	const float2 screen = make_float2(ix + 0.5f, iy + 0.5f) / make_float2(optixLaunchParams.resolutionX, optixLaunchParams.resolutionY);
 
 	// ray direction
+	const float aspect = static_cast<float>(optixLaunchParams.resolutionX) / static_cast<float>(optixLaunchParams.resolutionY);
 	float3 rayDir = normalize(optixLaunchParams.cameraForward +
-								((screen.x - 0.5f) * optixLaunchParams.cameraSide) +
+								((screen.x - 0.5f) * optixLaunchParams.cameraSide * aspect) +
 								((screen.y - 0.5f) * optixLaunchParams.cameraUp));
 
 	// trace the ray

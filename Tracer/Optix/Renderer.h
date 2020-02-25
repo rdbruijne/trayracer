@@ -22,7 +22,7 @@ namespace Tracer
 
 		void Resize(const int2& resolution);
 		void SetSceneRoot(OptixTraversableHandle sceneRoot);
-		void SetCamera(float3 cameraPos, float3 cameraForward, float3 cameraUp);
+		void SetCamera(float3 cameraPos, float3 cameraForward, float3 cameraUp, float camFov);
 
 		inline OptixDeviceContext GetOptixDeviceContext() const
 		{

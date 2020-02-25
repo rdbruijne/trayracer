@@ -21,7 +21,7 @@ struct alignas(16) LaunchParams
 	int32_t frameID;
 
 	float3 cameraForward;
-	int32_t dummy;
+	float cameraFov;
 
 	OptixTraversableHandle sceneRoot;
 	uint32_t* colorBuffer;

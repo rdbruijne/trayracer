@@ -124,15 +124,13 @@ namespace Tracer
 
 
 
-	void Renderer::SetCamera(float3 cameraPos, float3 cameraForward, float3 cameraUp)
+	void Renderer::SetCamera(float3 cameraPos, float3 cameraForward, float3 cameraUp, float camFov)
 	{
-		const float cosFovY = 0.66f;
-		const float aspect = static_cast<float>(mLaunchParams.resolutionX) / static_cast<float>(mLaunchParams.resolutionY);
-
+		mLaunchParams.cameraFov     = camFov;
 		mLaunchParams.cameraPos     = cameraPos;
 		mLaunchParams.cameraForward = cameraForward;
-		mLaunchParams.cameraSide    = cosFovY * aspect * normalize(cross(mLaunchParams.cameraForward, cameraUp));
-		mLaunchParams.cameraUp      = cosFovY * normalize(cross(mLaunchParams.cameraSide, mLaunchParams.cameraForward));
+		mLaunchParams.cameraSide    = normalize(cross(cameraForward, cameraUp));
+		mLaunchParams.cameraUp      = normalize(cross(mLaunchParams.cameraSide, cameraForward));
 	}
 
 
