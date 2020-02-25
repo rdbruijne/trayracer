@@ -29,6 +29,12 @@
     <ClCompile Include="Utility\Utility.cpp">
       <Filter>Utility</Filter>
     </ClCompile>
+    <ClCompile Include="App\ControlScheme.cpp">
+      <Filter>App</Filter>
+    </ClCompile>
+    <ClCompile Include="App\OrbitCameraController.cpp">
+      <Filter>App</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">
@@ -91,6 +97,21 @@
       <Filter>Utility</Filter>
     </ClInclude>
     <ClInclude Include="Utility\WindowsLean.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="App\ControlScheme.h">
+      <Filter>App</Filter>
+    </ClInclude>
+    <ClInclude Include="App\OrbitCameraController.h">
+      <Filter>App</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenGL\Input.h">
+      <Filter>OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="App\CameraNode.h">
+      <Filter>App</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\Declarations.h">
       <Filter>Utility</Filter>
     </ClInclude>
   </ItemGroup>

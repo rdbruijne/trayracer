@@ -1,6 +1,9 @@
 #pragma once
 
 // Project
+#include "OpenGL/Input.h"
+
+// OptiX
 #include "Optix/Optix7.h"
 
 // C++
@@ -35,9 +38,21 @@ namespace Tracer
 
 		// Display
 		void Display(const std::vector<uint32_t>& pixels);
+		void SwapBuffers();
 
 		// Input
 		void UpdateInput();
+		bool IsKeyDown(Input::Keys key) const;
+		bool WasKeyPressed(Input::Keys key) const;
+		bool IsCursorWithinWindow() const;
+		float2 GetCursorPos() const;
+		float2 GetScroll() const;
+		float2 GetCursorDelta() const;
+		float2 GetScrollDelta() const;
+
+		// GL
+		GLFWwindow* GetGlfwWindow() { return mHandle; }
+		const GLFWwindow* GetGlfwWindow() const { return mHandle; }
 
 	private:
 		// GLFW Input callbacks
@@ -55,5 +70,10 @@ namespace Tracer
 		int2 mResolution = make_int2(0, 0);
 		GLFWwindow* mHandle = nullptr;
 		uint32_t mGLTexture = 0;
+
+		// Input
+		Input::State mPrevInputState = Input::State();
+		Input::State mCurInputState = Input::State();
+		Input::State mNextInputState = Input::State();
 	};
 }

@@ -1,6 +1,7 @@
 #include "App/App.h"
 
 // Project
+#include "App/OrbitCameraController.h"
 #include "Optix/OptixHelpers.h"
 #include "Optix/Renderer.h"
 #include "Utility/LinearMath.h"
@@ -11,7 +12,7 @@ namespace Tracer
 	{
 		CreateScene();
 		BuildScene(renderer);
-		mCamera = Camera(make_float3(-10, 10, -12), make_float3(0, 0, 0), make_float3(0, 1, 0));
+		mCamera = CameraNode(make_float3(-10, 10, -12), make_float3(0, 0, 0), make_float3(0, 1, 0), 90.f * DegToRad);
 	}
 
 
@@ -26,6 +27,8 @@ namespace Tracer
 	{
 		renderer->SetSceneRoot(mSceneRoot);
 		renderer->SetCamera(mCamera.Position, normalize(mCamera.Target - mCamera.Position), mCamera.Up);
+
+		OrbitCameraController::HandleInput(mCamera, &mControlScheme, window);
 	}
 
 

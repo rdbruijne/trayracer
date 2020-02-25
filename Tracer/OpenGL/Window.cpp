@@ -1,6 +1,8 @@
-#include "OpenGL/Window.h"
+#include "Window.h"
 
-// Windows
+// Project
+#include "Utility/LinearMath.h"
+#include "Utility/Utility.h"
 #include "Utility/WindowsLean.h"
 
 // GL
@@ -41,13 +43,13 @@ namespace Tracer
 
 		// set window callbacks
 		glfwSetKeyCallback(mHandle, Window::KeyCallback);
-		glfwSetCharCallback(mHandle, Window::CharCallback);
-		glfwSetCharModsCallback(mHandle, Window::CharModsCallback);
+		//glfwSetCharCallback(mHandle, Window::CharCallback);
+		//glfwSetCharModsCallback(mHandle, Window::CharModsCallback);
 		glfwSetMouseButtonCallback(mHandle, Window::MouseButtonCallback);
 		glfwSetCursorPosCallback(mHandle, Window::CursorPosCallback);
 		glfwSetCursorEnterCallback(mHandle, Window::CursorEnterCallback);
 		glfwSetScrollCallback(mHandle, Window::ScrollCallback);
-		glfwSetDropCallback(mHandle, Window::DropCallback);
+		//glfwSetDropCallback(mHandle, Window::DropCallback);
 
 		// init GL
 		const GLenum glewResult = glewInit();
@@ -187,15 +189,95 @@ namespace Tracer
 			glVertex3f(static_cast<float>(mResolution.x), 0.f, 0.f);
 		}
 		glEnd();
+	}
 
+
+
+	void Window::SwapBuffers()
+	{
 		glfwSwapBuffers(mHandle);
 	}
 
 
 
+	//
+	// Input
+	//
 	void Window::UpdateInput()
 	{
 		glfwPollEvents();
+
+		mPrevInputState = mCurInputState;
+		mCurInputState  = mNextInputState;
+	}
+
+
+
+	bool Window::IsKeyDown(Input::Keys key) const
+	{
+		if(key < Input::Keys::_LastKeyboard)
+			return mCurInputState.Keyboard[static_cast<size_t>(key)];
+
+		if(key >= Input::Keys::_FirstMouse && key <= Input::Keys::_LastMouse)
+			return mCurInputState.Mouse[static_cast<size_t>(key) - static_cast<size_t>(Input::Keys::_FirstMouse)];
+
+		assert(false);
+		return false;
+	}
+
+
+
+	bool Window::WasKeyPressed(Input::Keys key) const
+	{
+		if(key < Input::Keys::_LastKeyboard)
+		{
+			const size_t keyIx = static_cast<size_t>(key);
+			return mPrevInputState.Keyboard[keyIx] && !mCurInputState.Keyboard[keyIx];
+		}
+
+		if(key >= Input::Keys::_FirstMouse && key <= Input::Keys::_LastMouse)
+		{
+			const size_t keyIx = static_cast<size_t>(key) - static_cast<size_t>(Input::Keys::_FirstMouse);
+			return mPrevInputState.Mouse[keyIx] && !mCurInputState.Mouse[keyIx];
+		}
+
+		assert(false);
+		return false;
+	}
+
+
+
+	bool Window::IsCursorWithinWindow() const
+	{
+		return mCurInputState.MouseIsWithinWindow;
+	}
+
+
+
+	float2 Window::GetCursorPos() const
+	{
+		return mCurInputState.MousePos;
+	}
+
+
+
+	float2 Window::GetScroll() const
+	{
+		return mCurInputState.MouseScroll;
+	}
+
+
+
+	float2 Window::GetCursorDelta() const
+	{
+		return mCurInputState.MousePos - mPrevInputState.MousePos;
+	}
+
+
+
+	float2 Window::GetScrollDelta() const
+	{
+		return mCurInputState.MouseScroll - mPrevInputState.MouseScroll;
 	}
 
 
@@ -212,47 +294,62 @@ namespace Tracer
 
 	void Window::KeyCallback(GLFWwindow* handle, int key, int scancode, int action, int mods) noexcept
 	{
+		Window* const window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(handle));
+		if(scancode < static_cast<int>(Input::Keys::_KeyboardCount))
+			window->mNextInputState.Keyboard[static_cast<size_t>(scancode)] = (action == GLFW_PRESS || action == GLFW_REPEAT);
 	}
 
 
 
 	void Window::CharCallback(GLFWwindow* handle, unsigned int codepoint) noexcept
 	{
+		//Window* const window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(handle));
 	}
 
 
 
 	void Window::CharModsCallback(GLFWwindow* handle, unsigned int codepoint, int mods) noexcept
 	{
+		//Window* const window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(handle));
 	}
 
 
 
 	void Window::MouseButtonCallback(GLFWwindow* handle, int button, int action, int mods) noexcept
 	{
+		Window* const window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(handle));
+		if(button < static_cast<int>(Input::Keys::_MouseCount))
+			window->mNextInputState.Mouse[static_cast<size_t>(button)] = (action == GLFW_PRESS);
 	}
 
 
 
 	void Window::CursorPosCallback(GLFWwindow* handle, double xPos, double yPos) noexcept
 	{
+		Window* const window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(handle));
+		window->mNextInputState.MousePos = make_float2(static_cast<float>(xPos), static_cast<float>(yPos));
 	}
 
 
 
 	void Window::CursorEnterCallback(GLFWwindow* handle, int entered) noexcept
 	{
+		Window* const window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(handle));
+		window->mNextInputState.MouseIsWithinWindow = !entered;
 	}
 
 
 
 	void Window::ScrollCallback(GLFWwindow* handle, double xOffset, double yOffset) noexcept
 	{
+		Window* const window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(handle));
+		window->mNextInputState.MouseScroll += make_float2(static_cast<float>(xOffset), static_cast<float>(yOffset));
 	}
 
 
 
 	void Window::DropCallback(GLFWwindow* handle, int count, const char** paths) noexcept
 	{
+		//Window* const window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(handle));
 	}
 }

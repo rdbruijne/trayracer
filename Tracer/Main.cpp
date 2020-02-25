@@ -54,6 +54,9 @@ int main(int argc, char** argv)
 		// run window shaders
 		window->Display(pixels);
 
+		// swap buffers
+		window->SwapBuffers();
+
 		// update the title bar
 		window->SetTitle(Tracer::format("Tracer - %.1f ms - %.1f FPS", static_cast<double>(elapsedNs) * 1e-3, 1e6f / elapsedNs));
 
@@ -65,7 +68,6 @@ int main(int argc, char** argv)
 	// cleanup
 	app->DeInit(renderer, window);
 	delete app;
-
 	delete window;
 
 	return 0;
