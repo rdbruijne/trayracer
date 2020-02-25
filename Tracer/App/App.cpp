@@ -2,6 +2,7 @@
 
 // Project
 #include "App/OrbitCameraController.h"
+#include "Gui/GuiHelpers.h"
 #include "Optix/OptixHelpers.h"
 #include "Optix/Renderer.h"
 #include "Utility/LinearMath.h"
@@ -29,6 +30,9 @@ namespace Tracer
 		renderer->SetCamera(mCamera.Position, normalize(mCamera.Target - mCamera.Position), mCamera.Up);
 
 		OrbitCameraController::HandleInput(mCamera, &mControlScheme, window);
+
+		// update GUI
+		GuiHelpers::CamNode = &mCamera;
 	}
 
 

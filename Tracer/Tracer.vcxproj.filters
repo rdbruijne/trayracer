@@ -35,6 +35,33 @@
     <ClCompile Include="App\OrbitCameraController.cpp">
       <Filter>App</Filter>
     </ClCompile>
+    <ClCompile Include="..\libraries\imgui\imgui.cpp">
+      <Filter>GUI\ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libraries\imgui\imgui_impl_glfw.cpp">
+      <Filter>GUI\ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libraries\imgui\imgui_widgets.cpp">
+      <Filter>GUI\ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libraries\imgui\imgui_impl_opengl3.cpp">
+      <Filter>GUI\ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libraries\imgui\imgui_draw.cpp">
+      <Filter>GUI\ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\GuiHelpers.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\GuiWindow.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\CameraWindow.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\DebugWindow.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">
@@ -57,6 +84,12 @@
     </Filter>
     <Filter Include="Utility">
       <UniqueIdentifier>{3794cf45-6236-4303-8a99-1586fc2ebcba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GUI">
+      <UniqueIdentifier>{124cb1e1-b40c-4768-8d39-01e31eb370aa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GUI\ImGUI">
+      <UniqueIdentifier>{3bed6e0a-c36c-42c8-b836-f224fe202670}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -113,6 +146,42 @@
     </ClInclude>
     <ClInclude Include="Utility\Declarations.h">
       <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libraries\imgui\imconfig.h">
+      <Filter>GUI\ImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libraries\imgui\imgui.h">
+      <Filter>GUI\ImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libraries\imgui\imgui_impl_glfw.h">
+      <Filter>GUI\ImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libraries\imgui\imgui_internal.h">
+      <Filter>GUI\ImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libraries\imgui\imstb_rectpack.h">
+      <Filter>GUI\ImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libraries\imgui\imstb_textedit.h">
+      <Filter>GUI\ImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libraries\imgui\imstb_truetype.h">
+      <Filter>GUI\ImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libraries\imgui\imgui_impl_opengl3.h">
+      <Filter>GUI\ImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\GuiHelpers.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\CameraWindow.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\GuiWindow.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\DebugWindow.h">
+      <Filter>GUI</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,5 +1,7 @@
 // Project
 #include "App/App.h"
+#include "GUI/GuiHelpers.h"
+#include "OpenGL/Input.h"
 #include "OpenGL/Window.h"
 #include "Optix/OptixHelpers.h"
 #include "Optix/Renderer.h"
@@ -28,6 +30,9 @@ int main(int argc, char** argv)
 	// create window
 	Tracer::Window* window = new Tracer::Window("Tracer", renderResolution);
 
+	// init GUI
+	Tracer::GuiHelpers::Init(window);
+
 	// create app
 	Tracer::App* app = new Tracer::App();
 	app->Init(renderer, window);
@@ -36,11 +41,16 @@ int main(int argc, char** argv)
 	Tracer::Stopwatch stopwatch;
 	int64_t elapsedNs = 0;
 
+	bool showGui = false;
+
 	// main loop
 	while (!window->IsClosed())
 	{
 		// user input
 		window->UpdateInput();
+
+		if(window->WasKeyPressed(Tracer::Input::Keys::Escape))
+			break;
 
 		// update the app
 		app->Tick(renderer, window, static_cast<float>(elapsedNs) * 1e-6f);
@@ -53,6 +63,13 @@ int main(int argc, char** argv)
 
 		// run window shaders
 		window->Display(pixels);
+
+		// display GUI
+		if(window->WasKeyPressed(Tracer::Input::Keys::F4))
+			showGui = !showGui;
+
+		if(showGui)
+			Tracer::GuiHelpers::Draw();
 
 		// swap buffers
 		window->SwapBuffers();
@@ -68,6 +85,8 @@ int main(int argc, char** argv)
 	// cleanup
 	app->DeInit(renderer, window);
 	delete app;
+
+	Tracer::GuiHelpers::DeInit();
 	delete window;
 
 	return 0;

@@ -30,6 +30,7 @@ namespace Tracer
 	}
 
 
+
 	bool OrbitCameraController::DollyCamera(CameraNode& node, float dolly)
 	{
 		if (dolly == 0)

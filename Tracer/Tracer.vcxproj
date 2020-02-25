@@ -106,11 +106,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\libraries\imgui\imgui.cpp" />
+    <ClCompile Include="..\libraries\imgui\imgui_draw.cpp" />
+    <ClCompile Include="..\libraries\imgui\imgui_impl_glfw.cpp" />
+    <ClCompile Include="..\libraries\imgui\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="..\libraries\imgui\imgui_widgets.cpp" />
     <ClCompile Include="App\App.cpp" />
     <ClCompile Include="App\ControlScheme.cpp" />
     <ClCompile Include="App\OrbitCameraController.cpp" />
     <ClCompile Include="CUDA\CudaBuffer.cpp" />
     <ClCompile Include="CUDA\CudaHelpers.cpp" />
+    <ClCompile Include="GUI\CameraWindow.cpp" />
+    <ClCompile Include="GUI\DebugWindow.cpp" />
+    <ClCompile Include="GUI\GuiHelpers.cpp" />
+    <ClCompile Include="GUI\GuiWindow.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="OpenGL\Window.cpp" />
     <ClCompile Include="Optix\OptixHelpers.cpp" />
@@ -120,6 +129,14 @@
     <ClCompile Include="Utility\Utility.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\libraries\imgui\imconfig.h" />
+    <ClInclude Include="..\libraries\imgui\imgui.h" />
+    <ClInclude Include="..\libraries\imgui\imgui_impl_glfw.h" />
+    <ClInclude Include="..\libraries\imgui\imgui_impl_opengl3.h" />
+    <ClInclude Include="..\libraries\imgui\imgui_internal.h" />
+    <ClInclude Include="..\libraries\imgui\imstb_rectpack.h" />
+    <ClInclude Include="..\libraries\imgui\imstb_textedit.h" />
+    <ClInclude Include="..\libraries\imgui\imstb_truetype.h" />
     <ClInclude Include="App\App.h" />
     <ClInclude Include="App\CameraNode.h" />
     <ClInclude Include="App\ControlScheme.h" />
@@ -127,6 +144,10 @@
     <ClInclude Include="Common\CommonStructs.h" />
     <ClInclude Include="CUDA\CudaBuffer.h" />
     <ClInclude Include="CUDA\CudaHelpers.h" />
+    <ClInclude Include="GUI\CameraWindow.h" />
+    <ClInclude Include="GUI\DebugWindow.h" />
+    <ClInclude Include="GUI\GuiHelpers.h" />
+    <ClInclude Include="GUI\GuiWindow.h" />
     <ClInclude Include="OpenGL\Input.h" />
     <ClInclude Include="OpenGL\Window.h" />
     <ClInclude Include="Optix\Optix7.h" />
