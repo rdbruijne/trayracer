@@ -23,6 +23,7 @@ namespace Tracer
 		{
 			return mNormals;
 		}
+
 		inline const std::vector<float3>& GetTexcoords() const
 		{
 			return mTexCoords;

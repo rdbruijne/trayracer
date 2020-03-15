@@ -29,6 +29,14 @@ struct alignas(16) LaunchParams
 
 
 
+struct TriangleMeshData
+{
+	float3 diffuse;
+	int dummy;
+};
+
+
+
 enum RayTypes
 {
 	RAY_TYPE_SURFACE = 0,

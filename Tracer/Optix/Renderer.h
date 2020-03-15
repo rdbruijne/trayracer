@@ -10,24 +10,20 @@
 
 namespace Tracer
 {
+	class Scene;
 	class Renderer
 	{
 	public:
 		explicit Renderer(const int2& resolution);
 		~Renderer();
 
+		void BuildScene(Scene* scene);
 		void RenderFrame();
 
 		void DownloadPixels(std::vector<uint32_t>& dstPixels);
 
 		void Resize(const int2& resolution);
-		void SetSceneRoot(OptixTraversableHandle sceneRoot);
 		void SetCamera(float3 cameraPos, float3 cameraForward, float3 cameraUp, float camFov);
-
-		inline OptixDeviceContext GetOptixDeviceContext() const
-		{
-			return mOptixContext;
-		}
 
 	private:
 		// Creation
@@ -37,54 +33,54 @@ namespace Tracer
 		void CreateMissPrograms();
 		void CreateHitgroupPrograms();
 		void CreatePipeline();
-		void BuildShaderBindingTable();
+
+		// scene building
+		void BuildGeometry(Scene* scene);
+		void BuildShaderBindingTable(Scene* scene);
 
 		// Render buffer
 		CudaBuffer mColorBuffer;
 
 		// Launch parameters
 		LaunchParams mLaunchParams;
-		// CUDA buffer for the launch parameters
-		CudaBuffer   mLaunchParamsBuffer;
+		CudaBuffer mLaunchParamsBuffer;
 
-		// CUDA device context
-		CUcontext      mCudaContext;
-		// CUDA stream
-		CUstream       mStream;
 		// CUDA device properties
+		CUcontext mCudaContext;
+		CUstream mStream;
 		cudaDeviceProp mDeviceProperties;
 
 		// OptiX module
-		OptixModule               mModule;
-		// Compile options for mModule
+		OptixModule mModule;
 		OptixModuleCompileOptions mModuleCompileOptions;
 
 		// OptiX pipeline
-		OptixPipeline               mPipeline;
-		// Compile options for mPipeline
+		OptixPipeline mPipeline;
 		OptixPipelineCompileOptions mPipelineCompileOptions;
-		// Link options for mPipeline
-		OptixPipelineLinkOptions    mPipelineLinkOptions;
+		OptixPipelineLinkOptions mPipelineLinkOptions;
 
 		// The OptiX device context
 		OptixDeviceContext mOptixContext;
 
 		// Ray generation programs
 		std::vector<OptixProgramGroup> mRayGenPrograms;
-		// CUDA buffer for mRayGenPrograms
 		CudaBuffer mRaygenRecordsBuffer;
 
 		// Miss programs
 		std::vector<OptixProgramGroup> mMissPrograms;
-		// CUDA buffer for mMissPrograms
 		CudaBuffer mMissRecordsBuffer;
 
 		// Hit programs
 		std::vector<OptixProgramGroup> mHitgroupPrograms;
-		// CUDA buffer for mHitgroupPrograms
 		CudaBuffer mHitgroupRecordsBuffer;
 
 		// Shader binding table
 		OptixShaderBindingTable mShaderBindingTable = {};
+
+		// Geometry
+		OptixTraversableHandle mSceneRoot = 0;
+		CudaBuffer mVertexBuffer;
+		CudaBuffer mIndexBuffer;
+		CudaBuffer mAccelBuffer;
 	};
 }

@@ -62,6 +62,15 @@
     <ClCompile Include="GUI\DebugWindow.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
+    <ClCompile Include="Resources\Material.cpp">
+      <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="Resources\Model.cpp">
+      <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="Resources\Scene.cpp">
+      <Filter>Resources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">
@@ -183,5 +192,16 @@
     <ClInclude Include="GUI\DebugWindow.h">
       <Filter>GUI</Filter>
     </ClInclude>
+    <ClInclude Include="Resources\Material.h">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="Resources\Scene.h">
+      <Filter>Resources</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Model.h">
+      <Filter>Resources</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -58,7 +58,7 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;GLEW_STATIC;__STDC_WANT_SECURE_LIB__=1;NOMINMAX;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <DisableSpecificWarnings>4100;4324;4365;4505;4514;4668;4710;4711;4774;4820;5039;5045;26812</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4100;4324;4365;4505;4514;4625;4626;4668;4710;4711;4774;4820;5039;5045;26812</DisableSpecificWarnings>
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)libraries;$(CUDA_PATH)\include</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
@@ -85,7 +85,7 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;GLEW_STATIC;__STDC_WANT_SECURE_LIB__=1;NOMINMAX;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <DisableSpecificWarnings>4100;4324;4365;4505;4514;4668;4710;4711;4774;4820;5039;5045;26812</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4100;4324;4365;4505;4514;4625;4626;4668;4710;4711;4774;4820;5039;5045;26812</DisableSpecificWarnings>
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)libraries;$(CUDA_PATH)\include</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
@@ -124,7 +124,10 @@
     <ClCompile Include="OpenGL\Window.cpp" />
     <ClCompile Include="Optix\OptixHelpers.cpp" />
     <ClCompile Include="Optix\Renderer.cpp" />
+    <ClCompile Include="Resources\Material.cpp" />
     <ClCompile Include="Resources\Mesh.cpp" />
+    <ClCompile Include="Resources\Model.cpp" />
+    <ClCompile Include="Resources\Scene.cpp" />
     <ClCompile Include="Utility\Stopwatch.cpp" />
     <ClCompile Include="Utility\Utility.cpp" />
   </ItemGroup>
@@ -153,12 +156,17 @@
     <ClInclude Include="Optix\Optix7.h" />
     <ClInclude Include="Optix\OptixHelpers.h" />
     <ClInclude Include="Optix\Renderer.h" />
+    <ClInclude Include="Resources\Material.h" />
     <ClInclude Include="Resources\Mesh.h" />
+    <ClInclude Include="Resources\Scene.h" />
     <ClInclude Include="Utility\Declarations.h" />
     <ClInclude Include="Utility\LinearMath.h" />
     <ClInclude Include="Utility\Stopwatch.h" />
     <ClInclude Include="Utility\Utility.h" />
     <ClInclude Include="Utility\WindowsLean.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Model.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

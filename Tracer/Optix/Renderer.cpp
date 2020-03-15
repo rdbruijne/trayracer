@@ -2,6 +2,7 @@
 
 // Project
 #include "Optix/OptixHelpers.h"
+#include "Resources/Scene.h"
 #include "Utility/LinearMath.h"
 #include "Utility/Utility.h"
 
@@ -34,7 +35,7 @@ namespace Tracer
 		struct alignas(OPTIX_SBT_RECORD_ALIGNMENT) HitgroupRecord
 		{
 			char header[OPTIX_SBT_RECORD_HEADER_SIZE] = {};
-			int objectID = 0;
+			TriangleMeshData meshData;
 		};
 
 
@@ -64,7 +65,7 @@ namespace Tracer
 		CreatePipeline();
 
 		// build shader binding table
-		BuildShaderBindingTable();
+		BuildShaderBindingTable(nullptr);
 
 		// resize buffer
 		Resize(resolution);
@@ -81,14 +82,25 @@ namespace Tracer
 
 
 
+	void Renderer::BuildScene(Scene* scene)
+	{
+		BuildGeometry(scene);
+		BuildShaderBindingTable(scene);
+	}
+
+
+
 	void Renderer::RenderFrame()
 	{
 		if(mLaunchParams.resolutionX == 0 || mLaunchParams.resolutionY == 0)
 			return;
 
-		mLaunchParamsBuffer.Upload(&mLaunchParams, 1);
+		// update launch params
+		mLaunchParams.sceneRoot = mSceneRoot;
 		mLaunchParams.frameID++;
+		mLaunchParamsBuffer.Upload(&mLaunchParams, 1);
 
+		// launch OptiX
 		OPTIX_CHECK(optixLaunch(mPipeline, mStream, mLaunchParamsBuffer.DevicePtr(), mLaunchParamsBuffer.Size(), &mShaderBindingTable,
 								static_cast<unsigned int>(mLaunchParams.resolutionX), static_cast<unsigned int>(mLaunchParams.resolutionY), 1));
 		CUDA_CHECK(cudaDeviceSynchronize());
@@ -113,13 +125,6 @@ namespace Tracer
 		mLaunchParams.resolutionX = resolution.x;
 		mLaunchParams.resolutionY = resolution.y;
 		mLaunchParams.colorBuffer = reinterpret_cast<uint32_t*>(mColorBuffer.DevicePtr());
-	}
-
-
-
-	void Renderer::SetSceneRoot(OptixTraversableHandle sceneRoot)
-	{
-		mLaunchParams.sceneRoot = sceneRoot;
 	}
 
 
@@ -278,7 +283,87 @@ namespace Tracer
 
 
 
-	void Renderer::BuildShaderBindingTable()
+	void Renderer::BuildGeometry(Scene* scene)
+	{
+		// #TODO(RJCDB): support empty scenes
+		assert(scene->mMeshes.size() != 0 && scene->mMaterials.size() != 0);
+
+		//--------------------------------
+		// Build input
+		//--------------------------------
+		OptixBuildInput buildInput = {};
+		buildInput.type = OPTIX_BUILD_INPUT_TYPE_TRIANGLES;
+
+		// vertices
+		mVertexBuffer.AllocAndUpload(scene->mMeshes[0]->GetVertices());
+		buildInput.triangleArray.vertexFormat        = OPTIX_VERTEX_FORMAT_FLOAT3;
+		buildInput.triangleArray.vertexStrideInBytes = sizeof(float3);
+		buildInput.triangleArray.numVertices         = static_cast<unsigned int>(scene->mMeshes[0]->GetVertices().size());
+		buildInput.triangleArray.vertexBuffers       = mVertexBuffer.DevicePtrPtr();
+
+		// indices
+		mIndexBuffer.AllocAndUpload(scene->mMeshes[0]->GetIndices());
+		buildInput.triangleArray.indexFormat        = OPTIX_INDICES_FORMAT_UNSIGNED_INT3;
+		buildInput.triangleArray.indexStrideInBytes = sizeof(uint3);
+		buildInput.triangleArray.numIndexTriplets   = static_cast<unsigned int>(scene->mMeshes[0]->GetIndices().size());
+		buildInput.triangleArray.indexBuffer        = mIndexBuffer.DevicePtr();
+
+		// other
+		const uint32_t buildFlags[] = { 0 };
+		buildInput.triangleArray.flags                       = buildFlags;
+		buildInput.triangleArray.numSbtRecords               = 1;
+		buildInput.triangleArray.sbtIndexOffsetBuffer        = 0;
+		buildInput.triangleArray.sbtIndexOffsetSizeInBytes   = 0;
+		buildInput.triangleArray.sbtIndexOffsetStrideInBytes = 0;
+
+		//--------------------------------
+		// Acceleration setup
+		//--------------------------------
+		OptixAccelBuildOptions accelOptions = {};
+		accelOptions.buildFlags            = OPTIX_BUILD_FLAG_ALLOW_COMPACTION;
+		accelOptions.motionOptions.numKeys = 1;
+		accelOptions.operation             = OPTIX_BUILD_OPERATION_BUILD;
+
+		OptixAccelBufferSizes accelBufferSizes = {};
+		OPTIX_CHECK(optixAccelComputeMemoryUsage(mOptixContext, &accelOptions, &buildInput, 1, &accelBufferSizes));
+
+		//--------------------------------
+		// Prepare for compacting
+		//--------------------------------
+		CudaBuffer compactedSizeBuffer(sizeof(uint64_t));
+
+		OptixAccelEmitDesc emitDesc;
+		emitDesc.type   = OPTIX_PROPERTY_TYPE_COMPACTED_SIZE;
+		emitDesc.result = compactedSizeBuffer.DevicePtr();
+
+		//--------------------------------
+		// Execute build
+		//--------------------------------
+		CudaBuffer tempBuffer(accelBufferSizes.tempSizeInBytes);
+		CudaBuffer outputBuffer(accelBufferSizes.outputSizeInBytes);
+		OPTIX_CHECK(optixAccelBuild(mOptixContext, nullptr,
+									&accelOptions,
+									&buildInput, 1,
+									tempBuffer.DevicePtr(), tempBuffer.Size(),
+									outputBuffer.DevicePtr(), outputBuffer.Size(),
+									&mSceneRoot,
+									&emitDesc, 1));
+		CUDA_CHECK(cudaDeviceSynchronize());
+
+		//--------------------------------
+		// Compact
+		//--------------------------------
+		uint64_t compactedSize = 0;
+		compactedSizeBuffer.Download(&compactedSize, 1);
+
+		mAccelBuffer.Alloc(compactedSize);
+		OPTIX_CHECK(optixAccelCompact(mOptixContext, nullptr, mSceneRoot, mAccelBuffer.DevicePtr(), mAccelBuffer.Size(), &mSceneRoot));
+		CUDA_CHECK(cudaDeviceSynchronize());
+	}
+
+
+
+	void Renderer::BuildShaderBindingTable(Scene* scene)
 	{
 		// raygen records
 		std::vector<RaygenRecord> raygenRecords;
@@ -309,16 +394,29 @@ namespace Tracer
 		mShaderBindingTable.missRecordCount         = static_cast<unsigned int>(missRecords.size());
 
 		// hitgroup records
-		const int numObjects = 1; // dummy object to prevent nullptr.
+		const size_t numObjects = scene ? scene->mMaterials.size() : 0;
 		std::vector<HitgroupRecord> hitgroupRecords;
-		hitgroupRecords.reserve(numObjects);
-		for(int i = 0; i < numObjects; i++)
+		if(numObjects == 0)
 		{
+			// dummy material
+			hitgroupRecords.reserve(1);
 			uint64_t objectType = 0;
 			HitgroupRecord r;
 			OPTIX_CHECK(optixSbtRecordPackHeader(mHitgroupPrograms[objectType], &r));
-			r.objectID = i;
+			r.meshData.diffuse = make_float3(.75f, 0, .75f);
 			hitgroupRecords.push_back(r);
+		}
+		else
+		{
+			hitgroupRecords.reserve(numObjects);
+			for(size_t i = 0; i < numObjects; i++)
+			{
+				uint64_t objectType = 0;
+				HitgroupRecord r;
+				OPTIX_CHECK(optixSbtRecordPackHeader(mHitgroupPrograms[objectType], &r));
+				r.meshData.diffuse = scene->mMaterials[i]->Diffuse;
+				hitgroupRecords.push_back(r);
+			}
 		}
 		mHitgroupRecordsBuffer.AllocAndUpload(hitgroupRecords);
 		mShaderBindingTable.hitgroupRecordBase          = mHitgroupRecordsBuffer.DevicePtr();

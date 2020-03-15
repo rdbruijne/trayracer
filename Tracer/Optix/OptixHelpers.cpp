@@ -9,7 +9,6 @@
 // C++
 #include <iostream>
 
-
 namespace Tracer
 {
 	bool InitOptix()

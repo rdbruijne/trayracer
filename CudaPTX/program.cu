@@ -105,8 +105,10 @@ extern "C" __global__ void __anyhit__radiance()
 extern "C" __global__ void __closesthit__radiance()
 {
 	const int primID = optixGetPrimitiveIndex();
+	const TriangleMeshData& meshData = *(const TriangleMeshData*)optixGetSbtDataPointer();
+
 	Payload* p = GetPayload();
-	p->color = IdToColor(primID);
+	p->color = meshData.diffuse;
 }
 
 
@@ -117,7 +119,8 @@ extern "C" __global__ void __closesthit__radiance()
 extern "C" __global__ void __miss__radiance()
 {
 	Payload* p = GetPayload();
-	p->color = make_float3(.25f, .5f, 1);
+	const float3 rayDir = optixGetWorldRayDirection();
+	p->color = (rayDir + make_float3(1, 1, 1)) * 0.5f;
 }
 
 

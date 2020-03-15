@@ -5,6 +5,7 @@
 #include "OpenGL/Window.h"
 #include "Optix/OptixHelpers.h"
 #include "Optix/Renderer.h"
+#include "Resources/Scene.h"
 #include "Utility/Stopwatch.h"
 #include "Utility/Utility.h"
 
@@ -54,6 +55,13 @@ int main(int argc, char** argv)
 
 		// update the app
 		app->Tick(renderer, window, static_cast<float>(elapsedNs) * 1e-6f);
+
+		// build the scene
+		if(app->GetScene()->IsDirty())
+		{
+			renderer->BuildScene(app->GetScene());
+			app->GetScene()->ResetDirtyFlag();
+		}
 
 		// run OptiX
 		renderer->RenderFrame();

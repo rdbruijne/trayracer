@@ -3,8 +3,8 @@
 // Project
 #include "App/OrbitCameraController.h"
 #include "Gui/GuiHelpers.h"
-#include "Optix/OptixHelpers.h"
 #include "Optix/Renderer.h"
+#include "Resources/Scene.h"
 #include "Utility/LinearMath.h"
 
 namespace Tracer
@@ -12,7 +12,6 @@ namespace Tracer
 	void App::Init(Renderer* renderer, Window* window)
 	{
 		CreateScene();
-		BuildScene(renderer);
 		mCamera = CameraNode(make_float3(-10, 10, -12), make_float3(0, 0, 0), make_float3(0, 1, 0), 90.f * DegToRad);
 	}
 
@@ -26,10 +25,8 @@ namespace Tracer
 
 	void App::Tick(Renderer* renderer, Window* window, float dt /*= 1.f / 60.f*/)
 	{
-		renderer->SetSceneRoot(mSceneRoot);
-		renderer->SetCamera(mCamera.Position, normalize(mCamera.Target - mCamera.Position), mCamera.Up, mCamera.Fov);
-
 		OrbitCameraController::HandleInput(mCamera, &mControlScheme, window);
+		renderer->SetCamera(mCamera.Position, normalize(mCamera.Target - mCamera.Position), mCamera.Up, mCamera.Fov);
 
 		// update GUI
 		GuiHelpers::CamNode = &mCamera;
@@ -39,6 +36,13 @@ namespace Tracer
 
 	void App::CreateScene()
 	{
+		mScene = std::make_unique<Scene>();
+
+		// material
+		mMaterial = std::make_shared<Material>();
+		mMaterial->Diffuse = make_float3(.25f, .75f, .25f);
+		mScene->AddMaterial(mMaterial);
+
 		// cube
 		mMesh = std::make_shared<Mesh>(
 			std::vector<float3>
@@ -69,82 +73,6 @@ namespace Tracer
 				make_uint3(1, 7, 3),
 				make_uint3(1, 5, 7)
 			});
-	}
-
-
-
-	void App::BuildScene(Renderer* renderer)
-	{
-		//--------------------------------
-		// Build input
-		//--------------------------------
-		OptixBuildInput buildInput = {};
-		buildInput.type = OPTIX_BUILD_INPUT_TYPE_TRIANGLES;
-
-		// vertices
-		mVertexBuffer.AllocAndUpload(mMesh->GetVertices());
-		buildInput.triangleArray.vertexFormat        = OPTIX_VERTEX_FORMAT_FLOAT3;
-		buildInput.triangleArray.vertexStrideInBytes = sizeof(float3);
-		buildInput.triangleArray.numVertices         = static_cast<unsigned int>(mMesh->GetVertices().size());
-		buildInput.triangleArray.vertexBuffers       = mVertexBuffer.DevicePtrPtr();
-
-		// indices
-		mIndexBuffer.AllocAndUpload(mMesh->GetIndices());
-		buildInput.triangleArray.indexFormat        = OPTIX_INDICES_FORMAT_UNSIGNED_INT3;
-		buildInput.triangleArray.indexStrideInBytes = sizeof(uint3);
-		buildInput.triangleArray.numIndexTriplets   = static_cast<unsigned int>(mMesh->GetIndices().size());
-		buildInput.triangleArray.indexBuffer        = mIndexBuffer.DevicePtr();
-
-		// other
-		const uint32_t buildFlags[] = { 0 };
-		buildInput.triangleArray.flags                       = buildFlags;
-		buildInput.triangleArray.numSbtRecords               = 1;
-		buildInput.triangleArray.sbtIndexOffsetBuffer        = 0;
-		buildInput.triangleArray.sbtIndexOffsetSizeInBytes   = 0;
-		buildInput.triangleArray.sbtIndexOffsetStrideInBytes = 0;
-
-		//--------------------------------
-		// Acceleration setup
-		//--------------------------------
-		OptixAccelBuildOptions accelOptions = {};
-		accelOptions.buildFlags            = OPTIX_BUILD_FLAG_ALLOW_COMPACTION;
-		accelOptions.motionOptions.numKeys = 1;
-		accelOptions.operation             = OPTIX_BUILD_OPERATION_BUILD;
-
-		OptixAccelBufferSizes accelBufferSizes = {};
-		OPTIX_CHECK(optixAccelComputeMemoryUsage(renderer->GetOptixDeviceContext(), &accelOptions, &buildInput, 1, &accelBufferSizes));
-
-		//--------------------------------
-		// Prepare for compacting
-		//--------------------------------
-		CudaBuffer compactedSizeBuffer(sizeof(uint64_t));
-
-		OptixAccelEmitDesc emitDesc;
-		emitDesc.type   = OPTIX_PROPERTY_TYPE_COMPACTED_SIZE;
-		emitDesc.result = compactedSizeBuffer.DevicePtr();
-
-		//--------------------------------
-		// Execute build
-		//--------------------------------
-		CudaBuffer tempBuffer(accelBufferSizes.tempSizeInBytes);
-		CudaBuffer outputBuffer(accelBufferSizes.outputSizeInBytes);
-		OPTIX_CHECK(optixAccelBuild(renderer->GetOptixDeviceContext(), nullptr,
-									&accelOptions,
-									&buildInput, 1,
-									tempBuffer.DevicePtr(), tempBuffer.Size(),
-									outputBuffer.DevicePtr(), outputBuffer.Size(),
-									&mSceneRoot,
-									&emitDesc, 1));
-		CUDA_CHECK(cudaDeviceSynchronize());
-
-		//--------------------------------
-		// Compact
-		//--------------------------------
-		uint64_t compactedSize = 0;
-		compactedSizeBuffer.Download(&compactedSize, 1);
-
-		mAccelBuffer.Alloc(compactedSize);
-		OPTIX_CHECK(optixAccelCompact(renderer->GetOptixDeviceContext(), nullptr, mSceneRoot, mAccelBuffer.DevicePtr(), mAccelBuffer.Size(), &mSceneRoot));
-		CUDA_CHECK(cudaDeviceSynchronize());
+		mScene->AddMesh(mMesh);
 	}
 }
