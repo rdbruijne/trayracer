@@ -94,6 +94,19 @@
   <ItemGroup>
     <CudaCompile Include="program.cu" />
   </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="Globals.h" />
+    <CudaCompile Include="Pipeline_AmbientOcclusion.h" />
+    <ClInclude Include="Pipeline_DiffuseFilter.h" />
+    <ClInclude Include="Pipeline_MaterialID.h" />
+    <ClInclude Include="Pipeline_ObjectID.h" />
+    <ClInclude Include="Pipeline_PathTracing.h" />
+    <ClInclude Include="Pipeline_ShadingNormal.h" />
+    <ClInclude Include="Pipeline_TextureCoordinate.h" />
+    <ClInclude Include="Pipeline_Wireframe.h" />
+    <ClInclude Include="Pipeline_ZDepth.h" />
+    <ClInclude Include="Helpers.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 10.2.targets" />

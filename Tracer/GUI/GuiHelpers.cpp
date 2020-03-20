@@ -6,6 +6,7 @@
 // GUI
 #include "GUI/CameraWindow.h"
 #include "GUI/DebugWindow.h"
+#include "GUI/RendererWindow.h"
 
 // ImGUI
 #include "imgui/imgui.h"
@@ -17,12 +18,6 @@
 
 namespace Tracer
 {
-	CameraNode* GuiHelpers::CamNode = nullptr;
-
-	std::vector<GuiWindow*> GuiHelpers::msWindows;
-
-
-
 	bool GuiHelpers::Init(Window* window)
 	{
 		// init ImGUI
@@ -47,6 +42,7 @@ namespace Tracer
 		// register child windows
 		msWindows.push_back(new CameraWindow());
 		msWindows.push_back(new DebugWindow());
+		msWindows.push_back(new RendererWindow());
 
 		return true;
 	}

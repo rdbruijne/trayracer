@@ -37,7 +37,7 @@ namespace Tracer
 		void SetResolution(const int2& resolution);
 
 		// Display
-		void Display(const std::vector<uint32_t>& pixels);
+		void Display(const std::vector<float4>& pixels);
 		void SwapBuffers();
 
 		// Input

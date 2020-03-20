@@ -13,6 +13,7 @@ namespace Tracer
 	{
 		CreateScene();
 		mCamera = CameraNode(make_float3(-10, 10, -12), make_float3(0, 0, 0), make_float3(0, 1, 0), 90.f * DegToRad);
+		renderer->SetCamera(mCamera.Position, normalize(mCamera.Target - mCamera.Position), mCamera.Up, mCamera.Fov);
 	}
 
 
@@ -25,11 +26,11 @@ namespace Tracer
 
 	void App::Tick(Renderer* renderer, Window* window, float dt /*= 1.f / 60.f*/)
 	{
-		OrbitCameraController::HandleInput(mCamera, &mControlScheme, window);
-		renderer->SetCamera(mCamera.Position, normalize(mCamera.Target - mCamera.Position), mCamera.Up, mCamera.Fov);
+		if(OrbitCameraController::HandleInput(mCamera, &mControlScheme, window))
+			renderer->SetCamera(mCamera.Position, normalize(mCamera.Target - mCamera.Position), mCamera.Up, mCamera.Fov);
 
 		// update GUI
-		GuiHelpers::CamNode = &mCamera;
+		GuiHelpers::camNode = &mCamera;
 	}
 
 

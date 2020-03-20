@@ -9,6 +9,9 @@
 #include "Utility/Stopwatch.h"
 #include "Utility/Utility.h"
 
+// magic_enum
+#include "magic_enum/magic_enum.hpp"
+
 // C++
 #include <iostream>
 
@@ -33,6 +36,7 @@ int main(int argc, char** argv)
 
 	// init GUI
 	Tracer::GuiHelpers::Init(window);
+	Tracer::GuiHelpers::renderer = renderer;
 
 	// create app
 	Tracer::App* app = new Tracer::App();
@@ -66,8 +70,15 @@ int main(int argc, char** argv)
 		// run OptiX
 		renderer->RenderFrame();
 
-		std::vector<uint32_t> pixels;
+		std::vector<float4> pixels;
 		renderer->DownloadPixels(pixels);
+
+		for(float4& p : pixels)
+		{
+			p.x /= p.w;
+			p.y /= p.w;
+			p.z /= p.w;
+		}
 
 		// run window shaders
 		window->Display(pixels);
@@ -83,7 +94,11 @@ int main(int argc, char** argv)
 		window->SwapBuffers();
 
 		// update the title bar
-		window->SetTitle(Tracer::format("Tracer - %.1f ms - %.1f FPS", static_cast<double>(elapsedNs) * 1e-3, 1e6f / elapsedNs));
+		window->SetTitle(Tracer::format("Tracer - %.1f ms - %.1f FPS - %s - %i samples",
+										static_cast<double>(elapsedNs) * 1e-3,
+										1e6f / elapsedNs,
+										std::string(magic_enum::enum_name(renderer->GetRenderMode())).c_str(),
+										renderer->SampleCount()));
 
 		// update timer
 		elapsedNs = stopwatch.GetElapsedTimeNS();

@@ -120,6 +120,7 @@
     <ClCompile Include="GUI\DebugWindow.cpp" />
     <ClCompile Include="GUI\GuiHelpers.cpp" />
     <ClCompile Include="GUI\GuiWindow.cpp" />
+    <ClCompile Include="GUI\RendererWindow.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="OpenGL\Window.cpp" />
     <ClCompile Include="Optix\OptixHelpers.cpp" />
@@ -151,6 +152,7 @@
     <ClInclude Include="GUI\DebugWindow.h" />
     <ClInclude Include="GUI\GuiHelpers.h" />
     <ClInclude Include="GUI\GuiWindow.h" />
+    <ClInclude Include="GUI\RendererWindow.h" />
     <ClInclude Include="OpenGL\Input.h" />
     <ClInclude Include="OpenGL\Window.h" />
     <ClInclude Include="Optix\Optix7.h" />

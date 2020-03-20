@@ -9,6 +9,15 @@
 // C++
 #include <stdint.h>
 
+enum RayTypes
+{
+	RayType_Surface = 0,
+
+	RayType_Count
+};
+
+
+
 struct alignas(16) LaunchParams
 {
 	float3 cameraPos;
@@ -18,29 +27,20 @@ struct alignas(16) LaunchParams
 	int32_t resolutionY;
 
 	float3 cameraUp;
-	int32_t frameID;
+	int32_t sampleCount;
 
 	float3 cameraForward;
 	float cameraFov;
 
 	OptixTraversableHandle sceneRoot;
-	uint32_t* colorBuffer;
+	float4* colorBuffer;
 };
 
 
 
-struct TriangleMeshData
+struct alignas(16) TriangleMeshData
 {
 	float3 diffuse;
-	int dummy;
-};
-
-
-
-enum RayTypes
-{
-	RAY_TYPE_SURFACE = 0,
-
-	RAY_TYPE_COUNT
+	uint32_t objectID;
 };
 

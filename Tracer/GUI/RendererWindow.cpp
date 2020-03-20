@@ -1,29 +1,50 @@
-#include "CameraWindow.h"
+#include "RendererWindow.h"
 
 // Project
-#include "App/CameraNode.h"
+#include "Optix/Renderer.h"
 #include "Gui/GuiHelpers.h"
 
 // ImGUI
 #include "imgui/imgui.h"
 
+// magic enum
+#include "magic_enum/magic_enum.hpp"
+
 namespace Tracer
 {
-	void CameraWindow::Draw()
+	void RendererWindow::Draw()
 	{
 		// get the camera
-		CameraNode* camNode = GuiHelpers::camNode;
+		Renderer* renderer = GuiHelpers::renderer;
 
-		ImGui::Begin("Camera", &mEnabled);
-		if(!camNode)
+		ImGui::Begin("Renderer", &mEnabled);
+		if(!renderer)
 		{
-			ImGui::Text("No camera node detected");
+			ImGui::Text("No renderer node detected");
 			ImGui::End();
 			return;
 		}
 
-		bool hasChanged = false;
+		//bool hasChanged = false;
 
+		// render mode
+		Renderer::RenderModes activeRenderMode = renderer->GetRenderMode();
+		const std::string rmName = std::string(magic_enum::enum_name(activeRenderMode).data());
+		if(ImGui::BeginCombo("Render Mode", rmName.c_str()))
+		{
+			for(size_t i = 0; i <magic_enum::enum_count<Renderer::RenderModes>(); i++)
+			{
+				const Renderer::RenderModes mode = static_cast<Renderer::RenderModes>(i);
+				const std::string itemName = std::string(magic_enum::enum_name(mode).data());
+				if(ImGui::Selectable(itemName.c_str(), mode == activeRenderMode))
+					renderer->SetRenderMode(mode);
+				if(mode == activeRenderMode)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
+
+#if false
 		// transformation
 		float camPos[] = { camNode->Position.x, camNode->Position.y, camNode->Position.z };
 		float camTarget[] = { camNode->Target.x, camNode->Target.y, camNode->Target.z };
@@ -44,6 +65,7 @@ namespace Tracer
 			camNode->Up = make_float3(camUp[0], camUp[1], camUp[2]);
 			camNode->Fov = camFov * DegToRad;
 		}
+#endif
 
 		ImGui::End();
 	}

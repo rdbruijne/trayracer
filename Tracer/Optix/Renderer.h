@@ -1,10 +1,16 @@
 #pragma once
 
+// https://forums.developer.nvidia.com/t/how-to-handle-multiple-ray-generators/83446
+
 // Project
 #include "CUDA/CudaBuffer.h"
 #include "Common/CommonStructs.h"
 
+// libraries
+#include "magic_enum/magic_enum.hpp"
+
 // C++
+#include <array>
 #include <string>
 #include <vector>
 
@@ -14,16 +20,34 @@ namespace Tracer
 	class Renderer
 	{
 	public:
+		enum RenderModes
+		{
+			AmbientOcclusion,
+			DiffuseFilter,
+			MaterialID,
+			ObjectID,
+			PathTracing,
+			ShadingNormal,
+			TextureCoordinate,
+			Wireframe,
+			ZDepth
+		};
+
 		explicit Renderer(const int2& resolution);
 		~Renderer();
 
 		void BuildScene(Scene* scene);
 		void RenderFrame();
 
-		void DownloadPixels(std::vector<uint32_t>& dstPixels);
+		void DownloadPixels(std::vector<float4>& dstPixels);
 
 		void Resize(const int2& resolution);
 		void SetCamera(float3 cameraPos, float3 cameraForward, float3 cameraUp, float camFov);
+
+		void SetRenderMode(RenderModes mode);
+		inline RenderModes GetRenderMode() const { return mRenderMode; }
+
+		inline int SampleCount() const { return mLaunchParams.sampleCount; }
 
 	private:
 		// Creation
@@ -36,7 +60,10 @@ namespace Tracer
 
 		// scene building
 		void BuildGeometry(Scene* scene);
-		void BuildShaderBindingTable(Scene* scene);
+		void BuildShaderBindingTables(Scene* scene);
+
+		// render mode
+		RenderModes mRenderMode = RenderModes::PathTracing;
 
 		// Render buffer
 		CudaBuffer mColorBuffer;
@@ -62,20 +89,20 @@ namespace Tracer
 		// The OptiX device context
 		OptixDeviceContext mOptixContext;
 
-		// Ray generation programs
-		std::vector<OptixProgramGroup> mRayGenPrograms;
-		CudaBuffer mRaygenRecordsBuffer;
+		// Render mode data
+		struct RenderModeConfig
+		{
+			std::vector<OptixProgramGroup> rayGenPrograms;
+			std::vector<OptixProgramGroup> missPrograms;
+			std::vector<OptixProgramGroup> hitgroupPrograms;
 
-		// Miss programs
-		std::vector<OptixProgramGroup> mMissPrograms;
-		CudaBuffer mMissRecordsBuffer;
+			CudaBuffer rayGenRecordsBuffer;
+			CudaBuffer missRecordsBuffer;
+			CudaBuffer hitRecordsBuffer;
 
-		// Hit programs
-		std::vector<OptixProgramGroup> mHitgroupPrograms;
-		CudaBuffer mHitgroupRecordsBuffer;
-
-		// Shader binding table
-		OptixShaderBindingTable mShaderBindingTable = {};
+			OptixShaderBindingTable shaderBindingTable;
+		};
+		std::array<RenderModeConfig, magic_enum::enum_count<RenderModes>()> mRenderModeConfigs;
 
 		// Geometry
 		OptixTraversableHandle mSceneRoot = 0;

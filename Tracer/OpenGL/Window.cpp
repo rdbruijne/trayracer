@@ -141,7 +141,7 @@ namespace Tracer
 
 
 
-	void Window::Display(const std::vector<uint32_t>& pixels)
+	void Window::Display(const std::vector<float4>& pixels)
 	{
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		glClearColor(0.2f, 0.2f, 0.2f, 1);
@@ -151,7 +151,7 @@ namespace Tracer
 		glBindTexture(GL_TEXTURE_2D, mGLTexture);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, mGLTexture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mResolution.x, mResolution.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mResolution.x, mResolution.y, 0, GL_RGBA, GL_FLOAT, pixels.data());
 		glBindTexture(GL_TEXTURE_2D, 0);
 
 		// draw a fullscreen quad

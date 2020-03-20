@@ -6,6 +6,7 @@ namespace Tracer
 {
 	struct CameraNode;
 	class GuiWindow;
+	class Renderer;
 	class Window;
 	class GuiHelpers
 	{
@@ -16,9 +17,10 @@ namespace Tracer
 		static void Draw();
 
 		// app data
-		static CameraNode* CamNode;
+		static inline CameraNode* camNode = nullptr;
+		static inline Renderer* renderer = nullptr;
 
 	private:
-		static std::vector<GuiWindow*> msWindows;
+		static inline std::vector<GuiWindow*> msWindows = {};
 	};
 }
