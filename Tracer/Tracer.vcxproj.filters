@@ -74,6 +74,9 @@
     <ClCompile Include="GUI\RendererWindow.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
+    <ClCompile Include="OpenGL\GLTexture.cpp">
+      <Filter>OpenGL</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">
@@ -203,6 +206,9 @@
     </ClInclude>
     <ClInclude Include="GUI\RendererWindow.h">
       <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenGL\GLTexture.h">
+      <Filter>OpenGL</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

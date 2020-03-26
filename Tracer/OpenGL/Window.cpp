@@ -1,6 +1,7 @@
 #include "Window.h"
 
 // Project
+#include "OpenGL/GLTexture.h"
 #include "Utility/LinearMath.h"
 #include "Utility/Utility.h"
 #include "Utility/WindowsLean.h"
@@ -70,21 +71,14 @@ namespace Tracer
 		glDepthMask(GL_FALSE);
 
 		// GL texture
-		glGenTextures(1, &mGLTexture);
-		glBindTexture(GL_TEXTURE_2D, mGLTexture);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glBindTexture(GL_TEXTURE_2D, 0);
+		mRenderTexture = new GLTexture(mResolution, GLTexture::Types::Float4);
 	}
 
 
 
 	Window::~Window()
 	{
-		if (mGLTexture)
-			glDeleteTextures(1, &mGLTexture);
+		delete mRenderTexture;
 
 		if (mHandle)
 			glfwDestroyWindow(mHandle);
@@ -147,12 +141,12 @@ namespace Tracer
 		glClearColor(0.2f, 0.2f, 0.2f, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+		glEnable(GL_TEXTURE_2D);
+
 		// copy render target result to OpenGL buffer
-		glBindTexture(GL_TEXTURE_2D, mGLTexture);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, mGLTexture);
+		mRenderTexture->Bind();
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mResolution.x, mResolution.y, 0, GL_RGBA, GL_FLOAT, pixels.data());
-		glBindTexture(GL_TEXTURE_2D, 0);
 
 		// draw a fullscreen quad
 		glDisable(GL_LIGHTING);
@@ -160,11 +154,6 @@ namespace Tracer
 
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
-
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, mGLTexture);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 		glDisable(GL_DEPTH_TEST);
 
@@ -189,6 +178,8 @@ namespace Tracer
 			glVertex3f(static_cast<float>(mResolution.x), 0.f, 0.f);
 		}
 		glEnd();
+
+		mRenderTexture->Unbind();
 	}
 
 

@@ -15,6 +15,7 @@ struct GLFWwindow;
 
 namespace Tracer
 {
+	class GLTexture;
 	class PostShader;
 	class Window
 	{
@@ -69,7 +70,7 @@ namespace Tracer
 		// Members
 		int2 mResolution = make_int2(0, 0);
 		GLFWwindow* mHandle = nullptr;
-		uint32_t mGLTexture = 0;
+		GLTexture* mRenderTexture = nullptr;
 
 		// Input
 		Input::State mPrevInputState = Input::State();
