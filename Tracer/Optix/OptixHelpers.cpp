@@ -2,11 +2,13 @@
 
 // Project
 #include "CUDA/CudaHelpers.h"
+#include "Utility/Utility.h"
 
 // OptiX
 #include "optix7/optix_function_table_definition.h"
 
 // C++
+#include <cassert>
 #include <iostream>
 
 namespace Tracer
@@ -32,6 +34,18 @@ namespace Tracer
 		}
 
 		return true;
+	}
+
+
+
+	void OptixCheck(OptixResult res, const char* file, int line)
+	{
+		assert(res == OPTIX_SUCCESS);
+		if(res != OPTIX_SUCCESS)
+		{
+			const std::string errorMessage = format("OptiX error at \"%s\" @ %i: %s", file, line, ToString(res).c_str());
+			throw std::runtime_error(errorMessage);
+		}
 	}
 
 

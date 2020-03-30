@@ -4,28 +4,17 @@
 #include "Optix/Optix7.h"
 
 // C++
-#include <cassert>
 #include <string>
-#include <sstream>
 
 
 
-#define OPTIX_CHECK(x)																											\
-	{																															\
-		OptixResult res = x;																									\
-		assert(res == OPTIX_SUCCESS);																							\
-		if(res != OPTIX_SUCCESS)																								\
-		{																														\
-			std::stringstream ss;																								\
-			ss << "OptiX call \"" << #x << "\"failed with error code " << res;													\
-			throw std::runtime_error(ss.str());																					\
-		}																														\
-	}
+#define OPTIX_CHECK(x) OptixCheck((x), __FILE__, __LINE__)
 
 
 
 namespace Tracer
 {
 	bool InitOptix();
+	void OptixCheck(OptixResult res, const char* file, int line);
 	std::string ToString(OptixResult optixResult);
 }

@@ -175,7 +175,7 @@ namespace Tracer
 		CUDA_CHECK(cudaGetDeviceProperties(&mDeviceProperties, deviceID));
 		printf("Running on %s\n", mDeviceProperties.name);
 
-		CU_CHECK(cuCtxGetCurrent(&mCudaContext));
+		CUDA_CHECK(cuCtxGetCurrent(&mCudaContext));
 
 		OPTIX_CHECK(optixDeviceContextCreate(mCudaContext, 0, &mOptixContext));
 		OPTIX_CHECK(optixDeviceContextSetLogCallback(mOptixContext, OptixLogCallback, nullptr, 4));
