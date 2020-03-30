@@ -13,7 +13,7 @@ namespace Tracer
 	void DebugWindow::Draw()
 	{
 		ImGui::Begin("Debug", &mEnabled);
-	
+
 		for(auto& kv : msMap)
 			ImGui::LabelText(kv.first.c_str(), kv.second.c_str());
 

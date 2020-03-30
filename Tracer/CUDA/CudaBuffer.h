@@ -46,7 +46,7 @@ namespace Tracer
 			Upload(static_cast<const TYPE*>(data.data()), data.size());
 		}
 
-		// inlines
+		// inline
 		inline CUdeviceptr DevicePtr() const
 		{
 			return reinterpret_cast<CUdeviceptr>(mPtr);

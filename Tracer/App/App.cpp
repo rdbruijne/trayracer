@@ -12,7 +12,7 @@ namespace Tracer
 	void App::Init(Renderer* renderer, Window* window)
 	{
 		CreateScene();
-		mCamera = CameraNode(make_float3(-10, 10, -12), make_float3(0, 0, 0), make_float3(0, 1, 0), 90.f * DegToRad);
+		mCamera = CameraNode(make_float3(-5, 5, -6), make_float3(0, 0, 0), make_float3(0, 1, 0), 90.f * DegToRad);
 		renderer->SetCamera(mCamera.Position, normalize(mCamera.Target - mCamera.Position), mCamera.Up, mCamera.Fov);
 	}
 
