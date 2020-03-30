@@ -29,7 +29,7 @@ int main(int argc, char** argv)
 	const int2 renderResolution = make_int2(1280, 720);
 
 	// create renderer
-	Tracer::Renderer* renderer = new Tracer::Renderer(renderResolution);
+	Tracer::Renderer* renderer = new Tracer::Renderer();
 
 	// create window
 	Tracer::Window* window = new Tracer::Window("Tracer", renderResolution);
@@ -68,17 +68,11 @@ int main(int argc, char** argv)
 		}
 
 		// run OptiX
-		renderer->RenderFrame();
+		renderer->RenderFrame(window->GetRenderTexture());
 
+		// download the pixels
 		std::vector<float4> pixels;
 		renderer->DownloadPixels(pixels);
-
-		for(float4& p : pixels)
-		{
-			p.x /= p.w;
-			p.y /= p.w;
-			p.z /= p.w;
-		}
 
 		// run window shaders
 		window->Display(pixels);

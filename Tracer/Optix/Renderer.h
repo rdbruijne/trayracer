@@ -1,7 +1,5 @@
 #pragma once
 
-// https://forums.developer.nvidia.com/t/how-to-handle-multiple-ray-generators/83446
-
 // Project
 #include "CUDA/CudaBuffer.h"
 #include "Common/CommonStructs.h"
@@ -16,6 +14,7 @@
 
 namespace Tracer
 {
+	class GLTexture;
 	class Scene;
 	class Renderer
 	{
@@ -33,15 +32,14 @@ namespace Tracer
 			ZDepth
 		};
 
-		explicit Renderer(const int2& resolution);
+		explicit Renderer();
 		~Renderer();
 
 		void BuildScene(Scene* scene);
-		void RenderFrame();
+		void RenderFrame(GLTexture* renderTexture);
 
 		void DownloadPixels(std::vector<float4>& dstPixels);
 
-		void Resize(const int2& resolution);
 		void SetCamera(float3 cameraPos, float3 cameraForward, float3 cameraUp, float camFov);
 
 		void SetRenderMode(RenderModes mode);

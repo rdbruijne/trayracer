@@ -77,6 +77,12 @@
     <ClCompile Include="OpenGL\GLTexture.cpp">
       <Filter>OpenGL</Filter>
     </ClCompile>
+    <ClCompile Include="OpenGL\Shader.cpp">
+      <Filter>OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenGL\GLHelpers.cpp">
+      <Filter>OpenGL</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">
@@ -208,6 +214,12 @@
       <Filter>GUI</Filter>
     </ClInclude>
     <ClInclude Include="OpenGL\GLTexture.h">
+      <Filter>OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenGL\Shader.h">
+      <Filter>OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenGL\GLHelpers.h">
       <Filter>OpenGL</Filter>
     </ClInclude>
   </ItemGroup>

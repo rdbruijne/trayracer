@@ -2,6 +2,7 @@
 
 // Project
 #include "OpenGL/GLTexture.h"
+#include "OpenGL/Shader.h"
 #include "Utility/LinearMath.h"
 #include "Utility/Utility.h"
 #include "Utility/WindowsLean.h"
@@ -70,6 +71,9 @@ namespace Tracer
 		glDisable(GL_DEPTH_TEST);
 		glDepthMask(GL_FALSE);
 
+		// init shader
+		mShader = new Shader("glsl/FullScreenQuad.vert", "glsl/FullScreenQuad.frag");
+
 		// GL texture
 		mRenderTexture = new GLTexture(mResolution, GLTexture::Types::Float4);
 	}
@@ -127,59 +131,47 @@ namespace Tracer
 
 
 
+	GLTexture* Window::GetRenderTexture()
+	{
+		return mRenderTexture;
+	}
+
+
+
+	const GLTexture* Window::GetRenderTexture() const
+	{
+		return mRenderTexture;
+	}
+
+
+
 	void Window::SetResolution(const int2& resolution)
 	{
-		// #TODO: window resizing
 		assert(false);
+		delete mRenderTexture;
+		mRenderTexture = new GLTexture(resolution, GLTexture::Types::Float4);
+
+		glfwSetWindowSize(mHandle, resolution.x, resolution.y);
 	}
 
 
 
 	void Window::Display(const std::vector<float4>& pixels)
 	{
-		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-		glClearColor(0.2f, 0.2f, 0.2f, 1);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-		glEnable(GL_TEXTURE_2D);
-
-		// copy render target result to OpenGL buffer
-		glActiveTexture(GL_TEXTURE0);
 		mRenderTexture->Bind();
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mResolution.x, mResolution.y, 0, GL_RGBA, GL_FLOAT, pixels.data());
+		mRenderTexture->Unbind();
 
-		// draw a fullscreen quad
+		glEnable(GL_TEXTURE_2D);
 		glDisable(GL_LIGHTING);
-		glColor3f(1, 1, 1);
-
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-
 		glDisable(GL_DEPTH_TEST);
 
-		glViewport(0, 0, mResolution.x, mResolution.y);
+		mShader->SetTexture(0, "convergeBuffer", mRenderTexture);
+		mShader->Bind();
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+		mShader->Unbind();
 
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		glOrtho(0.f, static_cast<float>(mResolution.x), static_cast<float>(mResolution.y), 0.f, -1.f, 1.f);
-
-		glBegin(GL_QUADS);
-		{
-			glTexCoord2f(0.f, 1.f);
-			glVertex3f(0.f, 0.f, 0.f);
-
-			glTexCoord2f(0.f, 0.f);
-			glVertex3f(0.f, static_cast<float>(mResolution.y), 0.f);
-
-			glTexCoord2f(1.f, 0.f);
-			glVertex3f(static_cast<float>(mResolution.x), static_cast<float>(mResolution.y), 0.f);
-
-			glTexCoord2f(1.f, 1.f);
-			glVertex3f(static_cast<float>(mResolution.x), 0.f, 0.f);
-		}
-		glEnd();
-
-		mRenderTexture->Unbind();
+		glFinish();
 	}
 
 

@@ -16,7 +16,7 @@ struct GLFWwindow;
 namespace Tracer
 {
 	class GLTexture;
-	class PostShader;
+	class Shader;
 	class Window
 	{
 	public:
@@ -37,8 +37,13 @@ namespace Tracer
 		int2 GetResolution() const;
 		void SetResolution(const int2& resolution);
 
+		// Render texture
+		GLTexture* GetRenderTexture();
+		const GLTexture* GetRenderTexture() const;
+
 		// Display
 		void Display(const std::vector<float4>& pixels);
+
 		void SwapBuffers();
 
 		// Input
@@ -71,6 +76,7 @@ namespace Tracer
 		int2 mResolution = make_int2(0, 0);
 		GLFWwindow* mHandle = nullptr;
 		GLTexture* mRenderTexture = nullptr;
+		Shader* mShader = nullptr;
 
 		// Input
 		Input::State mPrevInputState = Input::State();

@@ -32,6 +32,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 10.2.props" />
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
@@ -122,7 +123,9 @@
     <ClCompile Include="GUI\GuiWindow.cpp" />
     <ClCompile Include="GUI\RendererWindow.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="OpenGL\GLHelpers.cpp" />
     <ClCompile Include="OpenGL\GLTexture.cpp" />
+    <ClCompile Include="OpenGL\Shader.cpp" />
     <ClCompile Include="OpenGL\Window.cpp" />
     <ClCompile Include="Optix\OptixHelpers.cpp" />
     <ClCompile Include="Optix\Renderer.cpp" />
@@ -154,8 +157,10 @@
     <ClInclude Include="GUI\GuiHelpers.h" />
     <ClInclude Include="GUI\GuiWindow.h" />
     <ClInclude Include="GUI\RendererWindow.h" />
+    <ClInclude Include="OpenGL\GLHelpers.h" />
     <ClInclude Include="OpenGL\GLTexture.h" />
     <ClInclude Include="OpenGL\Input.h" />
+    <ClInclude Include="OpenGL\Shader.h" />
     <ClInclude Include="OpenGL\Window.h" />
     <ClInclude Include="Optix\Optix7.h" />
     <ClInclude Include="Optix\OptixHelpers.h" />

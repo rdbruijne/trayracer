@@ -1,6 +1,7 @@
 #include "Optix/Renderer.h"
 
 // Project
+#include "OpenGL/GLTexture.h"
 #include "Optix/OptixHelpers.h"
 #include "Resources/Scene.h"
 #include "Utility/LinearMath.h"
@@ -57,7 +58,7 @@ namespace Tracer
 
 
 
-	Renderer::Renderer(const int2& resolution)
+	Renderer::Renderer()
 	{
 		// create context
 		CreateContext();
@@ -76,9 +77,6 @@ namespace Tracer
 		// build shader binding table
 		BuildShaderBindingTables(nullptr);
 
-		// resize buffer
-		Resize(resolution);
-
 		// allocate launch params
 		mLaunchParamsBuffer.Alloc(sizeof(LaunchParams));
 	}
@@ -87,6 +85,7 @@ namespace Tracer
 
 	Renderer::~Renderer()
 	{
+		// #TODO(RJCDB): cleanup
 	}
 
 
@@ -99,10 +98,23 @@ namespace Tracer
 
 
 
-	void Renderer::RenderFrame()
+	void Renderer::RenderFrame(GLTexture* renderTexture)
 	{
-		if(mLaunchParams.resolutionX == 0 || mLaunchParams.resolutionY == 0)
+		const int2 texRes = renderTexture->GetResolution();
+		if(texRes.x == 0 || texRes.y == 0)
 			return;
+
+		if(mLaunchParams.resolutionX != texRes.x || mLaunchParams.resolutionY != texRes.y)
+		{
+			// resize buffer
+			mColorBuffer.Resize(sizeof(float4) * texRes.x * texRes.y);
+
+			// update launch params
+			mLaunchParams.sampleCount = 0;
+			mLaunchParams.resolutionX = texRes.x;
+			mLaunchParams.resolutionY = texRes.y;
+			mLaunchParams.colorBuffer = reinterpret_cast<float4*>(mColorBuffer.DevicePtr());
+		}
 
 		// update launch params
 		mLaunchParams.sceneRoot = mSceneRoot;
@@ -124,20 +136,6 @@ namespace Tracer
 	{
 		dstPixels.resize(static_cast<size_t>(mLaunchParams.resolutionX) * mLaunchParams.resolutionY);
 		mColorBuffer.Download(dstPixels.data(), static_cast<size_t>(mLaunchParams.resolutionX) * mLaunchParams.resolutionY);
-	}
-
-
-
-	void Renderer::Resize(const int2& resolution)
-	{
-		// resize buffer
-		mColorBuffer.Resize(sizeof(float4) * resolution.x * resolution.y);
-
-		// update launch params
-		mLaunchParams.sampleCount = 0;
-		mLaunchParams.resolutionX = resolution.x;
-		mLaunchParams.resolutionY = resolution.y;
-		mLaunchParams.colorBuffer = reinterpret_cast<float4*>(mColorBuffer.DevicePtr());
 	}
 
 
@@ -186,7 +184,7 @@ namespace Tracer
 	void Renderer::CreateModule()
 	{
 		// module compile options
-		mModuleCompileOptions.maxRegisterCount = 100;
+		mModuleCompileOptions.maxRegisterCount = OPTIX_COMPILE_DEFAULT_MAX_REGISTER_COUNT;
 #ifdef _DEBUG
 		mModuleCompileOptions.optLevel   = OPTIX_COMPILE_OPTIMIZATION_LEVEL_0;
 		mModuleCompileOptions.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_LINEINFO;
@@ -205,8 +203,9 @@ namespace Tracer
 		mPipelineCompileOptions.pipelineLaunchParamsVariableName = "optixLaunchParams";
 
 		// pipeline link options
-		mPipelineLinkOptions.overrideUsesMotionBlur = false;
 		mPipelineLinkOptions.maxTraceDepth          = 2;
+		mPipelineLinkOptions.debugLevel             = OPTIX_COMPILE_DEBUG_LEVEL_NONE;
+		mPipelineLinkOptions.overrideUsesMotionBlur = 0;
 
 		// load PTX
 		const std::string ptxCode = ReadFile("ptx/program.ptx");
