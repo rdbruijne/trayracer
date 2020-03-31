@@ -11,8 +11,8 @@ Personal path tracer project.
 # Third party libraries
 
 * [CUDA](https://developer.nvidia.com/cuda-toolkit)
-* [OpenGL](https://www.opengl.org/)
 * [GLFW](https://www.glfw.org/)
 * [ImGUI](https://github.com/ocornut/imgui)
 * [Magic Enum](https://github.com/Neargye/magic_enum)
+* [OpenGL](https://www.opengl.org/)
 * [OptiX](https://developer.nvidia.com/optix)
