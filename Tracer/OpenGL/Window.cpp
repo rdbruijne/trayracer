@@ -147,7 +147,6 @@ namespace Tracer
 
 	void Window::SetResolution(const int2& resolution)
 	{
-		assert(false);
 		delete mRenderTexture;
 		mRenderTexture = new GLTexture(resolution, GLTexture::Types::Float4);
 
@@ -156,12 +155,8 @@ namespace Tracer
 
 
 
-	void Window::Display(const std::vector<float4>& pixels)
+	void Window::Display()
 	{
-		mRenderTexture->Bind();
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mResolution.x, mResolution.y, 0, GL_RGBA, GL_FLOAT, pixels.data());
-		mRenderTexture->Unbind();
-
 		glEnable(GL_TEXTURE_2D);
 		glDisable(GL_LIGHTING);
 		glDisable(GL_DEPTH_TEST);

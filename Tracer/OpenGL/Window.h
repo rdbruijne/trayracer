@@ -42,8 +42,7 @@ namespace Tracer
 		const GLTexture* GetRenderTexture() const;
 
 		// Display
-		void Display(const std::vector<float4>& pixels);
-
+		void Display();
 		void SwapBuffers();
 
 		// Input

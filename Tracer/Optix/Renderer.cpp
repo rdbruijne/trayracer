@@ -7,6 +7,9 @@
 #include "Utility/LinearMath.h"
 #include "Utility/Utility.h"
 
+// CUDA
+#include <cuda_gl_interop.h>
+
 // C++
 #include <assert.h>
 
@@ -86,6 +89,8 @@ namespace Tracer
 	Renderer::~Renderer()
 	{
 		// #TODO(RJCDB): cleanup
+		if(mCudaGraphicsResource)
+			CUDA_CHECK(cudaGraphicsUnregisterResource(mCudaGraphicsResource));
 	}
 
 
@@ -124,6 +129,24 @@ namespace Tracer
 		OPTIX_CHECK(optixLaunch(mPipeline, mStream, mLaunchParamsBuffer.DevicePtr(), mLaunchParamsBuffer.Size(),
 								&mRenderModeConfigs[magic_enum::enum_integer(mRenderMode)].shaderBindingTable,
 								static_cast<unsigned int>(mLaunchParams.resolutionX), static_cast<unsigned int>(mLaunchParams.resolutionY), 1));
+		CUDA_CHECK(cudaDeviceSynchronize());
+
+		// update the target
+		if(mRenderTarget != renderTexture)
+		{
+			if(mCudaGraphicsResource)
+				CUDA_CHECK(cudaGraphicsUnregisterResource(mCudaGraphicsResource));
+
+			CUDA_CHECK(cudaGraphicsGLRegisterImage(&mCudaGraphicsResource, renderTexture->GetID(), GL_TEXTURE_2D, cudaGraphicsMapFlagsWriteDiscard));
+			mRenderTarget = renderTexture;
+		}
+
+		// copy to GL texture
+		cudaArray* cudaTexPtr = nullptr;
+		CUDA_CHECK(cudaGraphicsMapResources(1, &mCudaGraphicsResource, 0));
+		CUDA_CHECK(cudaGraphicsSubResourceGetMappedArray(&cudaTexPtr, mCudaGraphicsResource, 0, 0));
+		CUDA_CHECK(cudaMemcpy2DToArray(cudaTexPtr, 0, 0, mColorBuffer.Ptr(), texRes.x * sizeof(float4),texRes.x * sizeof(float4), texRes.y, cudaMemcpyDeviceToDevice));
+		CUDA_CHECK(cudaGraphicsUnmapResources(1, &mCudaGraphicsResource, 0));
 		CUDA_CHECK(cudaDeviceSynchronize());
 
 		// update sample count

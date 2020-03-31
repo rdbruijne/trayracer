@@ -65,6 +65,8 @@ namespace Tracer
 
 		// Render buffer
 		CudaBuffer mColorBuffer;
+		GLTexture* mRenderTarget = nullptr;
+		cudaGraphicsResource* mCudaGraphicsResource = nullptr;
 
 		// Launch parameters
 		LaunchParams mLaunchParams;

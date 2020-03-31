@@ -46,21 +46,15 @@ namespace Tracer
 			Upload(static_cast<const TYPE*>(data.data()), data.size());
 		}
 
-		// inline
-		inline CUdeviceptr DevicePtr() const
-		{
-			return reinterpret_cast<CUdeviceptr>(mPtr);
-		}
+		// members
+		inline size_t Size() const { return mSize; }
 
-		inline const CUdeviceptr* DevicePtrPtr() const
-		{
-			return reinterpret_cast<const CUdeviceptr*>(&mPtr);
-		}
+		inline void* Ptr() { return mPtr; }
+		inline const void* Ptr() const { return mPtr; }
 
-		inline size_t Size() const
-		{
-			return mSize;
-		}
+		inline CUdeviceptr DevicePtr() const { return reinterpret_cast<CUdeviceptr>(mPtr); }
+		inline const CUdeviceptr* DevicePtrPtr() const { return reinterpret_cast<const CUdeviceptr*>(&mPtr); }
+
 
 	private:
 		size_t mSize = 0;

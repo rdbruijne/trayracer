@@ -70,12 +70,8 @@ int main(int argc, char** argv)
 		// run OptiX
 		renderer->RenderFrame(window->GetRenderTexture());
 
-		// download the pixels
-		std::vector<float4> pixels;
-		renderer->DownloadPixels(pixels);
-
 		// run window shaders
-		window->Display(pixels);
+		window->Display();
 
 		// display GUI
 		if(window->WasKeyPressed(Tracer::Input::Keys::F4))
