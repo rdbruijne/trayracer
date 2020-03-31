@@ -1,4 +1,4 @@
-# Tracer
+# TrayRacer
 
 Personal path tracer project.
 
