@@ -54,7 +54,7 @@ namespace Tracer
 		std::string EntryName(Renderer::RenderModes renderMode, const std::string& entryPoint)
 		{
 			const std::string_view sv = magic_enum::enum_name(renderMode);
-			const std::string s(sv.data());
+			const std::string s(sv.data(), sv.size());
 			return entryPoint + s;
 		}
 	}
