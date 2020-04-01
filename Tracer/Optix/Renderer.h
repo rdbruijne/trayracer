@@ -106,8 +106,10 @@ namespace Tracer
 
 		// Geometry
 		OptixTraversableHandle mSceneRoot = 0;
-		CudaBuffer mVertexBuffer;
-		CudaBuffer mIndexBuffer;
+		std::vector<CudaBuffer> mVertexBuffers;
+		std::vector<CudaBuffer> mIndexBuffers;
 		CudaBuffer mAccelBuffer;
 	};
+
+	std::string ToString(Renderer::RenderModes renderMode);
 }

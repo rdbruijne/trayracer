@@ -53,9 +53,7 @@ namespace Tracer
 
 		std::string EntryName(Renderer::RenderModes renderMode, const std::string& entryPoint)
 		{
-			const std::string_view sv = magic_enum::enum_name(renderMode);
-			const std::string s(sv.data(), sv.size());
-			return entryPoint + s;
+			return entryPoint + ToString(renderMode);
 		}
 	}
 
@@ -360,36 +358,42 @@ namespace Tracer
 
 	void Renderer::BuildGeometry(Scene* scene)
 	{
-		// #TODO(RJCDB): support empty scenes
 		assert(scene->mMeshes.size() != 0 && scene->mMaterials.size() != 0);
 
 		//--------------------------------
 		// Build input
 		//--------------------------------
-		OptixBuildInput buildInput = {};
-		buildInput.type = OPTIX_BUILD_INPUT_TYPE_TRIANGLES;
+		std::vector<OptixBuildInput> buildInputs(scene->mMeshes.size());
 
-		// vertices
-		mVertexBuffer.AllocAndUpload(scene->mMeshes[0]->GetVertices());
-		buildInput.triangleArray.vertexFormat        = OPTIX_VERTEX_FORMAT_FLOAT3;
-		buildInput.triangleArray.vertexStrideInBytes = sizeof(float3);
-		buildInput.triangleArray.numVertices         = static_cast<unsigned int>(scene->mMeshes[0]->GetVertices().size());
-		buildInput.triangleArray.vertexBuffers       = mVertexBuffer.DevicePtrPtr();
+		mVertexBuffers.resize(scene->mMeshes.size());
+		mIndexBuffers.resize(scene->mMeshes.size());
+		for(size_t meshIx = 0; meshIx < scene->mMeshes.size(); meshIx++)
+		{
+			buildInputs[meshIx] = {};
+			buildInputs[meshIx].type = OPTIX_BUILD_INPUT_TYPE_TRIANGLES;
 
-		// indices
-		mIndexBuffer.AllocAndUpload(scene->mMeshes[0]->GetIndices());
-		buildInput.triangleArray.indexFormat        = OPTIX_INDICES_FORMAT_UNSIGNED_INT3;
-		buildInput.triangleArray.indexStrideInBytes = sizeof(uint3);
-		buildInput.triangleArray.numIndexTriplets   = static_cast<unsigned int>(scene->mMeshes[0]->GetIndices().size());
-		buildInput.triangleArray.indexBuffer        = mIndexBuffer.DevicePtr();
+			// vertices
+			mVertexBuffers[meshIx].AllocAndUpload(scene->mMeshes[meshIx]->GetVertices());
+			buildInputs[meshIx].triangleArray.vertexFormat        = OPTIX_VERTEX_FORMAT_FLOAT3;
+			buildInputs[meshIx].triangleArray.vertexStrideInBytes = sizeof(float3);
+			buildInputs[meshIx].triangleArray.numVertices         = static_cast<unsigned int>(scene->mMeshes[0]->GetVertices().size());
+			buildInputs[meshIx].triangleArray.vertexBuffers       = mVertexBuffers[meshIx].DevicePtrPtr();
 
-		// other
-		const uint32_t buildFlags[] = { 0 };
-		buildInput.triangleArray.flags                       = buildFlags;
-		buildInput.triangleArray.numSbtRecords               = 1;
-		buildInput.triangleArray.sbtIndexOffsetBuffer        = 0;
-		buildInput.triangleArray.sbtIndexOffsetSizeInBytes   = 0;
-		buildInput.triangleArray.sbtIndexOffsetStrideInBytes = 0;
+			// indices
+			mIndexBuffers[meshIx].AllocAndUpload(scene->mMeshes[meshIx]->GetIndices());
+			buildInputs[meshIx].triangleArray.indexFormat        = OPTIX_INDICES_FORMAT_UNSIGNED_INT3;
+			buildInputs[meshIx].triangleArray.indexStrideInBytes = sizeof(uint3);
+			buildInputs[meshIx].triangleArray.numIndexTriplets   = static_cast<unsigned int>(scene->mMeshes[0]->GetIndices().size());
+			buildInputs[meshIx].triangleArray.indexBuffer        = mIndexBuffers[meshIx].DevicePtr();
+
+			// other
+			const uint32_t buildFlags[] = { 0 };
+			buildInputs[meshIx].triangleArray.flags                       = buildFlags;
+			buildInputs[meshIx].triangleArray.numSbtRecords               = 1;
+			buildInputs[meshIx].triangleArray.sbtIndexOffsetBuffer        = 0;
+			buildInputs[meshIx].triangleArray.sbtIndexOffsetSizeInBytes   = 0;
+			buildInputs[meshIx].triangleArray.sbtIndexOffsetStrideInBytes = 0;
+		}
 
 		//--------------------------------
 		// Acceleration setup
@@ -400,7 +404,7 @@ namespace Tracer
 		accelOptions.operation             = OPTIX_BUILD_OPERATION_BUILD;
 
 		OptixAccelBufferSizes accelBufferSizes = {};
-		OPTIX_CHECK(optixAccelComputeMemoryUsage(mOptixContext, &accelOptions, &buildInput, 1, &accelBufferSizes));
+		OPTIX_CHECK(optixAccelComputeMemoryUsage(mOptixContext, &accelOptions, buildInputs.data(), static_cast<unsigned int>(buildInputs.size()), &accelBufferSizes));
 
 		//--------------------------------
 		// Prepare for compacting
@@ -418,7 +422,7 @@ namespace Tracer
 		CudaBuffer outputBuffer(accelBufferSizes.outputSizeInBytes);
 		OPTIX_CHECK(optixAccelBuild(mOptixContext, nullptr,
 									&accelOptions,
-									&buildInput, 1,
+									buildInputs.data(), static_cast<unsigned int>(buildInputs.size()),
 									tempBuffer.DevicePtr(), tempBuffer.Size(),
 									outputBuffer.DevicePtr(), outputBuffer.Size(),
 									&mSceneRoot,
@@ -476,9 +480,9 @@ namespace Tracer
 			config.shaderBindingTable.missRecordCount         = static_cast<unsigned int>(missRecords.size());
 
 			// hitgroup records
-			const size_t numObjects = scene ? scene->mMaterials.size() : 0;
+			const size_t matCount = scene ? scene->mMaterials.size() : 0;
 			std::vector<HitgroupRecord> hitgroupRecords;
-			if(numObjects == 0)
+			if(matCount == 0)
 			{
 				// dummy material
 				hitgroupRecords.reserve(1);
@@ -490,14 +494,14 @@ namespace Tracer
 			}
 			else
 			{
-				hitgroupRecords.reserve(numObjects);
-				for(size_t i = 0; i < numObjects; i++)
+				hitgroupRecords.reserve(matCount);
+				for(size_t matIx = 0; matIx < matCount; matIx++)
 				{
 					uint64_t objectType = 0;
 					HitgroupRecord r;
 					OPTIX_CHECK(optixSbtRecordPackHeader(config.hitgroupPrograms[objectType], &r));
-					r.meshData.diffuse = scene->mMaterials[i]->Diffuse;
-					r.meshData.objectID = static_cast<uint32_t>(i);
+					r.meshData.diffuse = scene->mMaterials[matIx]->Diffuse;
+					r.meshData.objectID = static_cast<uint32_t>(matIx);
 					hitgroupRecords.push_back(r);
 				}
 			}
@@ -508,5 +512,12 @@ namespace Tracer
 			config.shaderBindingTable.hitgroupRecordStrideInBytes = sizeof(HitgroupRecord);
 			config.shaderBindingTable.hitgroupRecordCount         = static_cast<unsigned int>(hitgroupRecords.size());
 		}
+	}
+
+
+
+	std::string ToString(Renderer::RenderModes renderMode)
+	{
+		return std::string(magic_enum::enum_name(renderMode));
 	}
 }

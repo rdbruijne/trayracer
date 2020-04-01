@@ -35,7 +35,7 @@ namespace Tracer
 		ControlScheme mControlScheme;
 
 		// objects
-		std::shared_ptr<Material> mMaterial = nullptr;
-		std::shared_ptr<Mesh> mMesh = nullptr;
+		std::vector<std::shared_ptr<Material>> mMaterials;
+		std::vector<std::shared_ptr<Mesh>> mMeshes;
 	};
 }

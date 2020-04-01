@@ -34,7 +34,7 @@ int main(int argc, char** argv)
 		Tracer::Renderer* renderer = new Tracer::Renderer();
 
 		// create window
-		Tracer::Window* window = new Tracer::Window("Tracer", renderResolution);
+		Tracer::Window* window = new Tracer::Window("TrayRacer", renderResolution);
 
 		// init GUI
 		Tracer::GuiHelpers::Init(window);
@@ -86,10 +86,10 @@ int main(int argc, char** argv)
 			window->SwapBuffers();
 
 			// update the title bar
-			window->SetTitle(Tracer::format("Tracer - %.1f ms - %.1f FPS - %s - %i samples",
+			window->SetTitle(Tracer::format("TrayRacer - %.1f ms - %.1f FPS - %s - %i samples",
 											static_cast<double>(elapsedNs) * 1e-3,
 											1e6f / elapsedNs,
-											std::string(magic_enum::enum_name(renderer->GetRenderMode())).c_str(),
+											ToString(renderer->GetRenderMode()).c_str(),
 											renderer->SampleCount()));
 
 			// update timer
