@@ -16,7 +16,7 @@ void __closesthit__ObjectID()
 {
 	const TriangleMeshData& meshData = *(const TriangleMeshData*)optixGetSbtDataPointer();
 	Payload* p = GetPayload();
-	p->color = IdToColor(meshData.objectID);
+	p->color = IdToColor(meshData.objectID + 1);
 }
 
 

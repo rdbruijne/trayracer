@@ -98,7 +98,6 @@
     <CudaCompile Include="Globals.h" />
     <CudaCompile Include="Pipeline_AmbientOcclusion.h" />
     <ClInclude Include="Pipeline_DiffuseFilter.h" />
-    <ClInclude Include="Pipeline_MaterialID.h" />
     <ClInclude Include="Pipeline_ObjectID.h" />
     <ClInclude Include="Pipeline_PathTracing.h" />
     <ClInclude Include="Pipeline_ShadingNormal.h" />

@@ -16,7 +16,7 @@ void __closesthit__ZDepth()
 {
 	Payload* p = GetPayload();
 	const float d = optixGetRayTmax();
-	p->color = make_float3(clamp(1.f / d, 0.f, 1.f));
+	p->color = make_float3(clamp(1.f / logf(d), 0.f, 1.f));
 }
 
 
