@@ -4,6 +4,7 @@
 #include "Resources/Material.h"
 #include "Resources/Mesh.h"
 #include "Resources/Model.h"
+#include "Resources/Texture.h"
 #include "Utility/Utility.h"
 
 // Assimp
@@ -15,15 +16,46 @@
 #include "assimp/postprocess.h"
 #pragma warning(pop)
 
+// FreeImage
+#include "FreeImage/FreeImage.h"
+
 // C++
 #include <cassert>
 #include <stdexcept>
+#include <map>
 
 namespace Tracer
 {
 	namespace
 	{
-		std::shared_ptr<Material> ImportMaterial(const std::string& importDir, const aiMaterial* aMat)
+		std::shared_ptr<Texture> ImportTexture(const std::string& importDir, const std::string& textureFile)
+		{
+			const std::string texPath = importDir + "/" + textureFile;
+
+			// load image
+			FREE_IMAGE_FORMAT fif = FreeImage_GetFileType(texPath.c_str(), 0);
+			if(fif == FIF_UNKNOWN)
+				fif = FreeImage_GetFIFFromFilename(texPath.c_str());
+			FIBITMAP* tmp = FreeImage_Load(fif, texPath.c_str());
+			FIBITMAP* dib = FreeImage_ConvertTo32Bits(tmp);
+			FreeImage_Unload(tmp);
+			const uint32_t w = FreeImage_GetWidth(dib);
+			const uint32_t h = FreeImage_GetHeight(dib);
+			std::vector<uint32_t> pixels(static_cast<size_t>(w) * h);
+			for(uint32_t y = 0; y < h; y++)
+			{
+				const uint8_t* line = FreeImage_GetScanLine(dib, y);
+				memcpy(pixels.data() + (static_cast<size_t>(y) * w), line, w * sizeof(uint32_t));
+			}
+			FreeImage_Unload(dib);
+
+			// create texture
+			return std::make_shared<Texture>(FileName(textureFile), make_uint2(w, h), pixels);
+		}
+
+
+
+		std::shared_ptr<Material> ImportMaterial(const std::string& importDir, std::map<std::string, std::shared_ptr<Texture>>& textures, const aiMaterial* aMat)
 		{
 			// name
 			aiString name;
@@ -55,7 +87,18 @@ namespace Tracer
 			}
 
 			// parse textures
-			// #TODO
+			aiString texPath;
+			if(aMat->GetTexture(aiTextureType_DIFFUSE, 0, &texPath) == aiReturn_SUCCESS)
+			{
+				std::string texPathStr = texPath.C_Str();
+				auto it = textures.find(texPathStr);
+				if(it != textures.end())
+					mat->mDiffuseMap = it->second;
+
+				auto tex = ImportTexture(importDir, texPathStr);
+				textures[texPathStr] = tex;
+				mat->mDiffuseMap = tex;
+			}
 
 			return mat;
 
@@ -66,19 +109,20 @@ namespace Tracer
 		std::shared_ptr<Mesh> ImportMesh(aiMesh* aMesh, const std::vector<std::shared_ptr<Material>>& materials)
 		{
 			// vertices
-			std::vector<float3> positions;
-			std::vector<float3> normals;
-			std::vector<float3> texcoords;
-
-			positions.reserve(aMesh->mNumVertices);
-			normals.reserve(aMesh->mNumVertices);
-			texcoords.reserve(aMesh->mNumVertices);
+			std::vector<float3> positions(aMesh->mNumVertices, make_float3(0, 0, 0));
+			std::vector<float3> normals(aMesh->mNumVertices, make_float3(0, 0, 0));
+			std::vector<float3> texcoords(aMesh->mNumVertices, make_float3(0, 0, 0));
 
 			for(unsigned int i = 0; i < aMesh->mNumVertices; i++)
 			{
-				positions.push_back(*reinterpret_cast<float3*>(aMesh->mVertices + i));
-				normals.push_back(*reinterpret_cast<float3*>(aMesh->mNormals + i));
-				texcoords.push_back(*reinterpret_cast<float3*>(aMesh->mTextureCoords[0] + i));
+				if(aMesh->mVertices)
+					positions[i] = *reinterpret_cast<float3*>(aMesh->mVertices + i);
+
+				if(aMesh->mNormals)
+					normals[i] = *reinterpret_cast<float3*>(aMesh->mNormals + i);
+
+				if(aMesh->mTextureCoords[0])
+					texcoords[i] = *reinterpret_cast<float3*>(aMesh->mTextureCoords[0] + i);
 			}
 
 			// indices
@@ -151,8 +195,9 @@ namespace Tracer
 			std::shared_ptr<Model> model = std::make_shared<Model>(FileName(filePath));
 
 			// import materials
+			std::map<std::string, std::shared_ptr<Texture>> textures;
 			for(uint32_t i = 0; i < aScene->mNumMaterials; i++)
-				model->AddMaterial(ImportMaterial(importDir, aScene->mMaterials[i]));
+				model->AddMaterial(ImportMaterial(importDir, textures, aScene->mMaterials[i]));
 
 			// import meshes
 			for(uint32_t i = 0; i < aScene->mNumMeshes; i++)

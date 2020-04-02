@@ -12,7 +12,7 @@ namespace Tracer
 {
 	void CudaCheck(CUresult res, const char* file, int line)
 	{
-		assert(res == CUDA_SUCCESS);
+		//assert(res == CUDA_SUCCESS);
 		if(res != CUDA_SUCCESS)
 		{
 			const std::string errorMessage = format("CUDA error in \"%s\" @ %d: %s (%d)", file, line, ToString(res).c_str(), res);
@@ -24,7 +24,7 @@ namespace Tracer
 
 	void CudaCheck(cudaError_t res, const char* file, int line)
 	{
-		assert(res == cudaSuccess);
+		//assert(res == cudaSuccess);
 		if(res != cudaSuccess)
 		{
 			const std::string errorMessage = format("CUDA error in \"%s\" @ %d: %s (%s)", file, line, cudaGetErrorName(res), cudaGetErrorString(res));

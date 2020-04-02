@@ -9,6 +9,7 @@
 
 // C++
 #include <array>
+#include <unordered_map>
 #include <string>
 #include <vector>
 
@@ -16,6 +17,7 @@ namespace Tracer
 {
 	class GLTexture;
 	class Scene;
+	class Texture;
 	class Renderer
 	{
 	public:
@@ -58,6 +60,7 @@ namespace Tracer
 		// scene building
 		void BuildGeometry(Scene* scene);
 		void BuildShaderBindingTables(Scene* scene);
+		void BuildTextures(Scene* scene);
 
 		// render mode
 		RenderModes mRenderMode = RenderModes::PathTracing;
@@ -104,11 +107,23 @@ namespace Tracer
 		std::array<RenderModeConfig, magic_enum::enum_count<RenderModes>()> mRenderModeConfigs;
 
 		// Geometry
-		OptixTraversableHandle mSceneRoot = 0;
 		std::vector<CudaBuffer> mVertexBuffers;
 		std::vector<CudaBuffer> mNormalBuffers;
 		std::vector<CudaBuffer> mTexcoordBuffers;
 		std::vector<CudaBuffer> mIndexBuffers;
+
+		// Textures
+		struct OptixTexture
+		{
+			OptixTexture() = default;
+			explicit OptixTexture(std::shared_ptr<Texture> srcTex);
+			cudaArray_t mArray = nullptr;
+			cudaTextureObject_t mObject = 0;
+		};
+		std::unordered_map<std::shared_ptr<Texture>, OptixTexture> mTextures;
+
+		// OptiX scene
+		OptixTraversableHandle mSceneRoot = 0;
 		CudaBuffer mAccelBuffer;
 	};
 

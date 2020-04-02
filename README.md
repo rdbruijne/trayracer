@@ -12,6 +12,7 @@ Personal path tracer project.
 
 * [Assimp](https://www.assimp.org/)
 * [CUDA](https://developer.nvidia.com/cuda-toolkit)
+* [FreeImage](http://freeimage.sourceforge.net/)
 * [GLFW](https://www.glfw.org/)
 * [ImGUI](https://github.com/ocornut/imgui)
 * [Magic Enum](https://github.com/Neargye/magic_enum)

@@ -17,6 +17,7 @@ namespace Tracer
 		size_t MaterialCount(bool includeModels = true) const;
 		size_t MeshCount(bool includeModels = true) const;
 		size_t ModelCount() const;
+		size_t TextureCount() const;
 
 		void AddMaterial(std::shared_ptr<Material> material);
 		void AddMesh(std::shared_ptr<Mesh> mesh);

@@ -18,6 +18,13 @@ enum RayTypes
 
 
 
+enum TexturesInMaterial
+{
+	Texture_DiffuseMap = 0x1
+};
+
+
+
 struct alignas(16) LaunchParams
 {
 	float3 cameraPos;
@@ -48,4 +55,8 @@ struct alignas(16) TriangleMeshData
 
 	uint32_t objectID;
 	float3 diffuse;
+
+	uint32_t textures;
+	uint32_t pad;
+	cudaTextureObject_t diffuseMap;
 };

@@ -2,6 +2,7 @@
 
 // Project
 #include "Resources/Model.h"
+#include "Resources/Material.h"
 
 // C++
 #include <numeric>
@@ -26,6 +27,17 @@ namespace Tracer
 	size_t Scene::ModelCount() const
 	{
 		return mModels.size();
+	}
+
+
+
+	size_t Scene::TextureCount() const
+	{
+		size_t cnt = 0;
+		for(auto mdl : mModels)
+			for(auto mat : mdl->Materials())
+				cnt += mat->TextureCount();
+		return cnt;
 	}
 
 

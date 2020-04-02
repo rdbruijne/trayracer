@@ -7,6 +7,7 @@
 #include "Resources/Material.h"
 #include "Resources/Mesh.h"
 #include "Resources/Model.h"
+#include "Resources/Texture.h"
 #include "Utility/LinearMath.h"
 #include "Utility/Utility.h"
 
@@ -99,6 +100,7 @@ namespace Tracer
 	void Renderer::BuildScene(Scene* scene)
 	{
 		BuildGeometry(scene);
+		BuildTextures(scene);
 		BuildShaderBindingTables(scene);
 	}
 
@@ -537,7 +539,15 @@ namespace Tracer
 						r.meshData.objectID = static_cast<uint32_t>(meshIx);
 
 						// material data
-						r.meshData.diffuse = mesh->Mat()->mDiffuse;
+						auto mat = mesh->Mat();
+						r.meshData.diffuse = mat->mDiffuse;
+
+						if(mat->mDiffuseMap)
+						{
+							r.meshData.textures |= Texture_DiffuseMap;
+							r.meshData.diffuseMap = mTextures[mat->mDiffuseMap].mObject;
+						}
+
 
 						hitgroupRecords.push_back(r);
 						meshIx++;
@@ -551,6 +561,64 @@ namespace Tracer
 			config.shaderBindingTable.hitgroupRecordStrideInBytes = sizeof(HitgroupRecord);
 			config.shaderBindingTable.hitgroupRecordCount         = static_cast<unsigned int>(hitgroupRecords.size());
 		}
+	}
+
+
+
+	void Renderer::BuildTextures(Scene* scene)
+	{
+		mTextures.clear();
+
+		if(!scene)
+			return;
+
+		for(auto& model : scene->Models())
+		{
+			for(auto& mesh : model->Meshes())
+			{
+				auto mat = mesh->Mat();
+				if(mat->mDiffuseMap)
+					mTextures[mat->mDiffuseMap] = OptixTexture(mat->mDiffuseMap);
+			}
+		}
+	}
+
+
+
+	Renderer::OptixTexture::OptixTexture(std::shared_ptr<Texture> srcTex)
+	{
+		// create channel descriptor
+		const uint32_t width = srcTex->mResolution.x;
+		const uint32_t height = srcTex->mResolution.y;
+		const uint32_t numComponents = 4;
+		const uint32_t pitch = width * numComponents * sizeof(uint8_t);
+		cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<uchar4>();
+
+		// upload pixels
+		CUDA_CHECK(cudaMallocArray(&mArray, &channelDesc, width, height));
+		CUDA_CHECK(cudaMemcpy2DToArray(mArray, 0, 0, srcTex->mPixels.data(), pitch, pitch, height, cudaMemcpyHostToDevice));
+
+		// resource descriptor
+		cudaResourceDesc resourceDesc = {};
+		resourceDesc.resType = cudaResourceTypeArray;
+		resourceDesc.res.array.array = mArray;
+
+		// texture descriptor
+		cudaTextureDesc texDesc     = {};
+		texDesc.addressMode[0]      = cudaAddressModeWrap;
+		texDesc.addressMode[1]      = cudaAddressModeWrap;
+		texDesc.filterMode          = cudaFilterModeLinear;
+		texDesc.readMode            = cudaReadModeNormalizedFloat;
+		texDesc.sRGB                = 0;
+		texDesc.borderColor[0]      = 1.0f;
+		texDesc.normalizedCoords    = 1;
+		texDesc.maxAnisotropy       = 1;
+		texDesc.mipmapFilterMode    = cudaFilterModePoint;
+		texDesc.minMipmapLevelClamp = 0;
+		texDesc.maxMipmapLevelClamp = 99;
+
+		// texture object
+		CUDA_CHECK(cudaCreateTextureObject(&mObject, &resourceDesc, &texDesc, nullptr));
 	}
 
 
