@@ -4,6 +4,9 @@
 #include "OpenGL/GLTexture.h"
 #include "Optix/OptixHelpers.h"
 #include "Resources/Scene.h"
+#include "Resources/Material.h"
+#include "Resources/Mesh.h"
+#include "Resources/Model.h"
 #include "Utility/LinearMath.h"
 #include "Utility/Utility.h"
 
@@ -234,9 +237,8 @@ namespace Tracer
 
 		char log[2048];
 		size_t sizeof_log = sizeof(log);
-		OPTIX_CHECK(optixModuleCreateFromPTX(mOptixContext, &mModuleCompileOptions, &mPipelineCompileOptions,
-											 ptxCode.c_str(), ptxCode.size(), log, &sizeof_log, &mModule));
-		if (sizeof_log > 1)
+		OPTIX_CHECK(optixModuleCreateFromPTX(mOptixContext, &mModuleCompileOptions, &mPipelineCompileOptions, ptxCode.c_str(), ptxCode.size(), log, &sizeof_log, &mModule));
+		if(sizeof_log > 1)
 			printf("%s\n", log);
 	}
 
@@ -259,7 +261,7 @@ namespace Tracer
 			char log[2048];
 			size_t sizeof_log = sizeof(log);
 			OPTIX_CHECK(optixProgramGroupCreate(mOptixContext, &desc, 1, &options, log, &sizeof_log, &mRenderModeConfigs[m].rayGenPrograms[0]));
-			if (sizeof_log > 1)
+			if(sizeof_log > 1)
 				printf("%s\n", log);
 		}
 	}
@@ -283,7 +285,7 @@ namespace Tracer
 			char log[2048];
 			size_t logLength = sizeof(log);
 			OPTIX_CHECK(optixProgramGroupCreate(mOptixContext, &desc, 1, &options, log, &logLength, &mRenderModeConfigs[m].missPrograms[0]));
-			if (logLength > 1)
+			if(logLength > 1)
 				printf("%s\n", log);
 		}
 	}
@@ -312,7 +314,7 @@ namespace Tracer
 			char log[2048];
 			size_t logLength = sizeof(log);
 			OPTIX_CHECK(optixProgramGroupCreate(mOptixContext, &desc, 1, &options, log, &logLength, &mRenderModeConfigs[m].hitgroupPrograms[0]));
-			if (logLength > 1)
+			if(logLength > 1)
 				printf("%s\n", log);
 		}
 	}
@@ -344,107 +346,128 @@ namespace Tracer
 		OPTIX_CHECK(optixPipelineCreate(mOptixContext, &mPipelineCompileOptions, &mPipelineLinkOptions,
 														 programGroups.data(), static_cast<unsigned int>(programGroups.size()),
 														 log, &logLength, &mPipeline));
-		if (logLength > 1)
+		if(logLength > 1)
 			printf("%s\n", log);
 
-		OPTIX_CHECK(optixPipelineSetStackSize(mPipeline,
-											  2 << 10, // directCallableStackSizeFromTraversal
-											  2 << 10, // directCallableStackSizeFromState
-											  2 << 10, // continuationStackSize
-											  3));      // maxTraversableGraphDepth
+		// set stack sizes
+		const uint32_t directCallableStackSizeFromTraversal = 2 << 10;
+		const uint32_t directCallableStackSizeFromState     = 2 << 10;
+		const uint32_t continuationStackSize                = 2 << 10;
+		const uint32_t maxTraversableGraphDepth             = 3;
+		OPTIX_CHECK(optixPipelineSetStackSize(mPipeline, directCallableStackSizeFromTraversal, directCallableStackSizeFromState, continuationStackSize, maxTraversableGraphDepth));
 	}
 
 
 
 	void Renderer::BuildGeometry(Scene* scene)
 	{
-		assert(scene->mMeshes.size() != 0 && scene->mMaterials.size() != 0);
-
-		//--------------------------------
-		// Build input
-		//--------------------------------
-		std::vector<OptixBuildInput> buildInputs(scene->mMeshes.size());
-
-		mVertexBuffers.resize(scene->mMeshes.size());
-		mIndexBuffers.resize(scene->mMeshes.size());
-		for(size_t meshIx = 0; meshIx < scene->mMeshes.size(); meshIx++)
+		std::vector<OptixBuildInput> buildInputs;
+		if(scene)
 		{
-			buildInputs[meshIx] = {};
-			buildInputs[meshIx].type = OPTIX_BUILD_INPUT_TYPE_TRIANGLES;
+			const size_t meshCount = scene->MeshCount();
 
-			// vertices
-			mVertexBuffers[meshIx].AllocAndUpload(scene->mMeshes[meshIx]->GetVertices());
-			buildInputs[meshIx].triangleArray.vertexFormat        = OPTIX_VERTEX_FORMAT_FLOAT3;
-			buildInputs[meshIx].triangleArray.vertexStrideInBytes = sizeof(float3);
-			buildInputs[meshIx].triangleArray.numVertices         = static_cast<unsigned int>(scene->mMeshes[0]->GetVertices().size());
-			buildInputs[meshIx].triangleArray.vertexBuffers       = mVertexBuffers[meshIx].DevicePtrPtr();
+			//--------------------------------
+			// Build input
+			//--------------------------------
+			buildInputs.resize(meshCount);
+			mVertexBuffers.resize(meshCount);
+			mNormalBuffers.resize(meshCount);
+			mTexcoordBuffers.resize(meshCount);
+			mIndexBuffers.resize(meshCount);
 
-			// indices
-			mIndexBuffers[meshIx].AllocAndUpload(scene->mMeshes[meshIx]->GetIndices());
-			buildInputs[meshIx].triangleArray.indexFormat        = OPTIX_INDICES_FORMAT_UNSIGNED_INT3;
-			buildInputs[meshIx].triangleArray.indexStrideInBytes = sizeof(uint3);
-			buildInputs[meshIx].triangleArray.numIndexTriplets   = static_cast<unsigned int>(scene->mMeshes[0]->GetIndices().size());
-			buildInputs[meshIx].triangleArray.indexBuffer        = mIndexBuffers[meshIx].DevicePtr();
+			size_t meshIx = 0;
+			for(auto& model : scene->Models())
+			{
+				for(auto& mesh : model->Meshes())
+				{
+					OptixBuildInput& bi = buildInputs[meshIx];
 
-			// other
-			const uint32_t buildFlags[] = { 0 };
-			buildInputs[meshIx].triangleArray.flags                       = buildFlags;
-			buildInputs[meshIx].triangleArray.numSbtRecords               = 1;
-			buildInputs[meshIx].triangleArray.sbtIndexOffsetBuffer        = 0;
-			buildInputs[meshIx].triangleArray.sbtIndexOffsetSizeInBytes   = 0;
-			buildInputs[meshIx].triangleArray.sbtIndexOffsetStrideInBytes = 0;
+					bi = {};
+					bi.type = OPTIX_BUILD_INPUT_TYPE_TRIANGLES;
+
+					// upload buffers
+					mVertexBuffers[meshIx].AllocAndUpload(mesh->Vertices());
+					mNormalBuffers[meshIx].AllocAndUpload(mesh->Normals());
+					mTexcoordBuffers[meshIx].AllocAndUpload(mesh->Texcoords());
+					mIndexBuffers[meshIx].AllocAndUpload(mesh->Indices());
+
+					// vertices
+					bi.triangleArray.vertexFormat        = OPTIX_VERTEX_FORMAT_FLOAT3;
+					bi.triangleArray.vertexStrideInBytes = sizeof(float3);
+					bi.triangleArray.numVertices         = static_cast<unsigned int>(mesh->Vertices().size());
+					bi.triangleArray.vertexBuffers       = mVertexBuffers[meshIx].DevicePtrPtr();
+
+					// indices
+					bi.triangleArray.indexFormat        = OPTIX_INDICES_FORMAT_UNSIGNED_INT3;
+					bi.triangleArray.indexStrideInBytes = sizeof(uint3);
+					bi.triangleArray.numIndexTriplets   = static_cast<unsigned int>(mesh->Indices().size());
+					bi.triangleArray.indexBuffer        = mIndexBuffers[meshIx].DevicePtr();
+
+					// other
+					const uint32_t buildFlags[] = { 0 };
+					bi.triangleArray.flags                       = buildFlags;
+					bi.triangleArray.numSbtRecords               = 1;
+					bi.triangleArray.sbtIndexOffsetBuffer        = 0;
+					bi.triangleArray.sbtIndexOffsetSizeInBytes   = 0;
+					bi.triangleArray.sbtIndexOffsetStrideInBytes = 0;
+
+					meshIx++;
+				}
+			}
 		}
 
-		//--------------------------------
-		// Acceleration setup
-		//--------------------------------
-		OptixAccelBuildOptions accelOptions = {};
-		accelOptions.buildFlags            = OPTIX_BUILD_FLAG_ALLOW_COMPACTION;
-		accelOptions.motionOptions.numKeys = 1;
-		accelOptions.operation             = OPTIX_BUILD_OPERATION_BUILD;
+		if(buildInputs.size() == 0)
+		{
+			mSceneRoot = 0;
+			mAccelBuffer.Free();
+		}
+		else
+		{
+			//--------------------------------
+			// Acceleration setup
+			//--------------------------------
+			OptixAccelBuildOptions accelOptions = {};
+			accelOptions.buildFlags            = OPTIX_BUILD_FLAG_ALLOW_COMPACTION;
+			accelOptions.motionOptions.numKeys = 1;
+			accelOptions.operation             = OPTIX_BUILD_OPERATION_BUILD;
 
-		OptixAccelBufferSizes accelBufferSizes = {};
-		OPTIX_CHECK(optixAccelComputeMemoryUsage(mOptixContext, &accelOptions, buildInputs.data(), static_cast<unsigned int>(buildInputs.size()), &accelBufferSizes));
+			OptixAccelBufferSizes accelBufferSizes = {};
+			OPTIX_CHECK(optixAccelComputeMemoryUsage(mOptixContext, &accelOptions, buildInputs.data(), static_cast<unsigned int>(buildInputs.size()), &accelBufferSizes));
 
-		//--------------------------------
-		// Prepare for compacting
-		//--------------------------------
-		CudaBuffer compactedSizeBuffer(sizeof(uint64_t));
+			//--------------------------------
+			// Prepare for compacting
+			//--------------------------------
+			CudaBuffer compactedSizeBuffer(sizeof(uint64_t));
 
-		OptixAccelEmitDesc emitDesc;
-		emitDesc.type   = OPTIX_PROPERTY_TYPE_COMPACTED_SIZE;
-		emitDesc.result = compactedSizeBuffer.DevicePtr();
+			OptixAccelEmitDesc emitDesc;
+			emitDesc.type   = OPTIX_PROPERTY_TYPE_COMPACTED_SIZE;
+			emitDesc.result = compactedSizeBuffer.DevicePtr();
 
-		//--------------------------------
-		// Execute build
-		//--------------------------------
-		CudaBuffer tempBuffer(accelBufferSizes.tempSizeInBytes);
-		CudaBuffer outputBuffer(accelBufferSizes.outputSizeInBytes);
-		OPTIX_CHECK(optixAccelBuild(mOptixContext, nullptr,
-									&accelOptions,
-									buildInputs.data(), static_cast<unsigned int>(buildInputs.size()),
-									tempBuffer.DevicePtr(), tempBuffer.Size(),
-									outputBuffer.DevicePtr(), outputBuffer.Size(),
-									&mSceneRoot,
-									&emitDesc, 1));
-		CUDA_CHECK(cudaDeviceSynchronize());
+			//--------------------------------
+			// Execute build
+			//--------------------------------
+			CudaBuffer tempBuffer(accelBufferSizes.tempSizeInBytes);
+			CudaBuffer outputBuffer(accelBufferSizes.outputSizeInBytes);
+			OPTIX_CHECK(optixAccelBuild(mOptixContext, nullptr, &accelOptions, buildInputs.data(), static_cast<unsigned int>(buildInputs.size()),
+										tempBuffer.DevicePtr(), tempBuffer.Size(), outputBuffer.DevicePtr(), outputBuffer.Size(), &mSceneRoot, &emitDesc, 1));
+			CUDA_CHECK(cudaDeviceSynchronize());
 
-		//--------------------------------
-		// Compact
-		//--------------------------------
-		uint64_t compactedSize = 0;
-		compactedSizeBuffer.Download(&compactedSize, 1);
+			//--------------------------------
+			// Compact
+			//--------------------------------
+			uint64_t compactedSize = 0;
+			compactedSizeBuffer.Download(&compactedSize, 1);
 
-		mAccelBuffer.Alloc(compactedSize);
-		OPTIX_CHECK(optixAccelCompact(mOptixContext, nullptr, mSceneRoot, mAccelBuffer.DevicePtr(), mAccelBuffer.Size(), &mSceneRoot));
-		CUDA_CHECK(cudaDeviceSynchronize());
+			mAccelBuffer.Alloc(compactedSize);
+			OPTIX_CHECK(optixAccelCompact(mOptixContext, nullptr, mSceneRoot, mAccelBuffer.DevicePtr(), mAccelBuffer.Size(), &mSceneRoot));
+			CUDA_CHECK(cudaDeviceSynchronize());
+		}
 	}
 
 
 
 	void Renderer::BuildShaderBindingTables(Scene* scene)
 	{
-		//for(size_t m = 0; m < magic_enum::enum_count<RenderModes>(); m++)
 		for(RenderModeConfig& config : mRenderModeConfigs)
 		{
 			// raygen records
@@ -480,9 +503,9 @@ namespace Tracer
 			config.shaderBindingTable.missRecordCount         = static_cast<unsigned int>(missRecords.size());
 
 			// hitgroup records
-			const size_t matCount = scene ? scene->mMaterials.size() : 0;
 			std::vector<HitgroupRecord> hitgroupRecords;
-			if(matCount == 0)
+			const size_t meshCount = scene ? scene->MeshCount() : 0;
+			if(meshCount == 0)
 			{
 				// dummy material
 				hitgroupRecords.reserve(1);
@@ -494,15 +517,31 @@ namespace Tracer
 			}
 			else
 			{
-				hitgroupRecords.reserve(matCount);
-				for(size_t matIx = 0; matIx < matCount; matIx++)
+				hitgroupRecords.reserve(meshCount);
+				size_t meshIx = 0;
+				for(auto& model : scene->Models())
 				{
-					uint64_t objectType = 0;
-					HitgroupRecord r;
-					OPTIX_CHECK(optixSbtRecordPackHeader(config.hitgroupPrograms[objectType], &r));
-					r.meshData.diffuse = scene->mMaterials[matIx]->Diffuse;
-					r.meshData.objectID = static_cast<uint32_t>(matIx);
-					hitgroupRecords.push_back(r);
+					for(auto& mesh : model->Meshes())
+					{
+						uint64_t objectType = 0;
+						HitgroupRecord r;
+						OPTIX_CHECK(optixSbtRecordPackHeader(config.hitgroupPrograms[objectType], &r));
+
+						// buffers
+						r.meshData.vertices  = reinterpret_cast<float3*>(mVertexBuffers[meshIx].DevicePtr());
+						r.meshData.normals   = reinterpret_cast<float3*>(mNormalBuffers[meshIx].DevicePtr());
+						r.meshData.texcoords = reinterpret_cast<float3*>(mTexcoordBuffers[meshIx].DevicePtr());
+						r.meshData.indices   = reinterpret_cast<uint3*>(mIndexBuffers[meshIx].DevicePtr());
+
+						// general info
+						r.meshData.objectID = static_cast<uint32_t>(meshIx);
+
+						// material data
+						r.meshData.diffuse = mesh->Mat()->mDiffuse;
+
+						hitgroupRecords.push_back(r);
+						meshIx++;
+					}
 				}
 			}
 

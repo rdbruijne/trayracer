@@ -11,7 +11,7 @@ namespace Tracer
 	std::string ToUpper(const std::string& str);
 
 	// file paths
-	std::string GetFolder(const std::string& filePath);
+	std::string GetDirectory(const std::string& filePath);
 	std::string GetFileName(const std::string& filePath);
 	std::string GetFileExtension(const std::string& filePath);
 	std::string GetFileNameWithoutExtension(const std::string& filePath);

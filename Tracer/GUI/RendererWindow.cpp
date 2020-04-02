@@ -43,7 +43,7 @@ namespace Tracer
 			}
 			ImGui::EndCombo();
 		}
-		
+
 		ImGui::End();
 	}
 }

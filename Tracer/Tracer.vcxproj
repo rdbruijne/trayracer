@@ -133,6 +133,7 @@
     <ClCompile Include="Resources\Mesh.cpp" />
     <ClCompile Include="Resources\Model.cpp" />
     <ClCompile Include="Resources\Scene.cpp" />
+    <ClCompile Include="Utility\Importer.cpp" />
     <ClCompile Include="Utility\Stopwatch.cpp" />
     <ClCompile Include="Utility\Utility.cpp" />
   </ItemGroup>
@@ -169,6 +170,7 @@
     <ClInclude Include="Resources\Mesh.h" />
     <ClInclude Include="Resources\Scene.h" />
     <ClInclude Include="Utility\Declarations.h" />
+    <ClInclude Include="Utility\Importer.h" />
     <ClInclude Include="Utility\LinearMath.h" />
     <ClInclude Include="Utility\Stopwatch.h" />
     <ClInclude Include="Utility\Utility.h" />

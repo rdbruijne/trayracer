@@ -56,7 +56,7 @@ namespace Tracer
 
 
 
-	std::string GetFolder(const std::string& filePath)
+	std::string GetDirectory(const std::string& filePath)
 	{
 		std::string folderPath = filePath;
 		folderPath = folderPath.substr(0, folderPath.find_last_of('/'));

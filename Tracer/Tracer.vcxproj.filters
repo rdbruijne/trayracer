@@ -83,6 +83,9 @@
     <ClCompile Include="OpenGL\GLHelpers.cpp">
       <Filter>OpenGL</Filter>
     </ClCompile>
+    <ClCompile Include="Utility\Importer.cpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">
@@ -221,6 +224,9 @@
     </ClInclude>
     <ClInclude Include="OpenGL\GLHelpers.h">
       <Filter>OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\Importer.h">
+      <Filter>Utility</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

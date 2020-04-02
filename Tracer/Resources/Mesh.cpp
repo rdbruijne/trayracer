@@ -2,12 +2,18 @@
 
 namespace Tracer
 {
-	Mesh::Mesh(const std::vector<float3>& vertices, const std::vector<float3>& normals,
-			   const std::vector<float3>& texCoords, const std::vector<uint3>& indices) :
+	Mesh::Mesh(const std::string& name,
+			   const std::vector<float3>& vertices,
+			   const std::vector<float3>& normals,
+			   const std::vector<float3>& texCoords,
+			   const std::vector<uint3>& indices,
+			   std::shared_ptr<Material> material) :
+		mName(name),
 		mVertices(vertices),
 		mNormals(normals),
 		mTexCoords(texCoords),
-		mIndices(indices)
+		mIndices(indices),
+		mMaterial(material)
 	{
 	}
 }

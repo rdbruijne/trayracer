@@ -3,8 +3,6 @@
 // Project
 #include "App/CameraNode.h"
 #include "App/ControlScheme.h"
-#include "Resources/Material.h"
-#include "Resources/Mesh.h"
 
 // C++
 #include <memory>
@@ -33,9 +31,5 @@ namespace Tracer
 		// Camera
 		CameraNode mCamera;
 		ControlScheme mControlScheme;
-
-		// objects
-		std::vector<std::shared_ptr<Material>> mMaterials;
-		std::vector<std::shared_ptr<Mesh>> mMeshes;
 	};
 }

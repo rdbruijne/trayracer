@@ -1,11 +1,35 @@
 #include "Scene.h"
 
 // Project
-#include "Optix/OptixHelpers.h"
-#include "Optix/Renderer.h"
+#include "Resources/Model.h"
+
+// C++
+#include <numeric>
 
 namespace Tracer
 {
+
+	size_t Scene::MaterialCount(bool includeModels) const
+	{
+		return mMaterials.size() + std::accumulate(mModels.begin(), mModels.end(), 0ull, [](size_t a, auto& m) { return a + m->Materials().size(); });
+	}
+
+
+
+	size_t Scene::MeshCount(bool includeModels) const
+	{
+		return mMeshes.size() + std::accumulate(mModels.begin(), mModels.end(), 0ull, [](size_t a, auto& m) { return a + m->Meshes().size(); });
+	}
+
+
+
+	size_t Scene::ModelCount() const
+	{
+		return mModels.size();
+	}
+
+
+
 	void Scene::AddMaterial(std::shared_ptr<Material> material)
 	{
 		if(std::find(mMaterials.begin(), mMaterials.end(), material) == mMaterials.end())
@@ -22,6 +46,17 @@ namespace Tracer
 		if(std::find(mMeshes.begin(), mMeshes.end(), mesh) == mMeshes.end())
 		{
 			mMeshes.push_back(mesh);
+			mIsDirty = true;
+		}
+	}
+
+
+
+	void Scene::AddModel(std::shared_ptr<Model> model)
+	{
+		if(std::find(mModels.begin(), mModels.end(), model) == mModels.end())
+		{
+			mModels.push_back(model);
 			mIsDirty = true;
 		}
 	}

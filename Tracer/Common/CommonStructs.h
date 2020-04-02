@@ -40,7 +40,12 @@ struct alignas(16) LaunchParams
 
 struct alignas(16) TriangleMeshData
 {
-	float3 diffuse;
-	uint32_t objectID;
-};
+	float3* vertices;
+	float3* normals;
 
+	float3* texcoords;
+	uint3* indices;
+
+	uint32_t objectID;
+	float3 diffuse;
+};

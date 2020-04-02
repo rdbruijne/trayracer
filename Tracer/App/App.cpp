@@ -5,6 +5,7 @@
 #include "Gui/GuiHelpers.h"
 #include "Optix/Renderer.h"
 #include "Resources/Scene.h"
+#include "Utility/Importer.h"
 #include "Utility/LinearMath.h"
 
 namespace Tracer
@@ -38,53 +39,7 @@ namespace Tracer
 	void App::CreateScene()
 	{
 		mScene = std::make_unique<Scene>();
-
-		// materials
-		mMaterials.push_back(std::make_shared<Material>());
-		mMaterials.back()->Diffuse = make_float3(.25f, .75f, .25f);
-
-		mMaterials.push_back(std::make_shared<Material>());
-		mMaterials.back()->Diffuse = make_float3(.75f, .25f, .25f);
-
-		// cubes
-		for(int i = 0; i < 2; i++)
-		{
-			mMeshes.push_back(std::make_shared<Mesh>(
-				std::vector<float3>
-				{
-					make_float3(-0.5f + (2*i) - 1, -0.5f, -0.5f),
-					make_float3(-0.5f + (2*i) - 1, -0.5f,  0.5f),
-					make_float3(-0.5f + (2*i) - 1,  0.5f, -0.5f),
-					make_float3(-0.5f + (2*i) - 1,  0.5f,  0.5f),
-					make_float3( 0.5f + (2*i) - 1, -0.5f, -0.5f),
-					make_float3( 0.5f + (2*i) - 1, -0.5f,  0.5f),
-					make_float3( 0.5f + (2*i) - 1,  0.5f, -0.5f),
-					make_float3( 0.5f + (2*i) - 1,  0.5f,  0.5f)
-				},
-				std::vector<float3>(), // ignore normals
-				std::vector<float3>(), // ignore texcoords
-				std::vector<uint3>
-				{
-					make_uint3(0, 3, 2),
-					make_uint3(0, 1, 3),
-					make_uint3(4, 7, 5),
-					make_uint3(4, 6, 7),
-					make_uint3(0, 5, 1),
-					make_uint3(0, 4, 5),
-					make_uint3(2, 7, 6),
-					make_uint3(2, 3, 7),
-					make_uint3(0, 6, 4),
-					make_uint3(0, 2, 6),
-					make_uint3(1, 7, 3),
-					make_uint3(1, 5, 7)
-				}));
-		}
-
-		// add to the scene
-		for(auto& m : mMaterials)
-			mScene->AddMaterial(m);
-
-		for(auto& m : mMeshes)
-			mScene->AddMesh(m);
+		mScene->AddModel(ImportModel("models/toad/toad.obj"));
+		//mScene->AddModel(ImportModel("D:/3d_models/Scenes/sponza_crytek/Sponza_Crytek.obj"));
 	}
 }
