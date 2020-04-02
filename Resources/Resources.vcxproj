@@ -55,14 +55,16 @@
     <PreBuildEvent>
       <Message>Copy resources</Message>
       <Command>xcopy /r /d /i /s /y "$(ProjectDir)glsl" "$(OutDir)glsl"
-</Command>
+xcopy /r /d /i /s /y "$(ProjectDir)models" "$(OutDir)models"
+for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <PreBuildEvent>
       <Message>Copy resources</Message>
       <Command>xcopy /r /d /i /s /y "$(ProjectDir)glsl" "$(OutDir)glsl"
-</Command>
+xcopy /r /d /i /s /y "$(ProjectDir)models" "$(OutDir)models"
+for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
