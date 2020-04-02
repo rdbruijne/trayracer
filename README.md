@@ -10,6 +10,7 @@ Personal path tracer project.
 
 # Third party libraries
 
+* [Assimp](https://www.assimp.org/)
 * [CUDA](https://developer.nvidia.com/cuda-toolkit)
 * [GLFW](https://www.glfw.org/)
 * [ImGUI](https://github.com/ocornut/imgui)
