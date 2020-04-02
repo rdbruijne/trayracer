@@ -33,7 +33,7 @@ namespace Tracer
 
 	bool OrbitCameraController::DollyCamera(CameraNode& node, float dolly)
 	{
-		if (dolly == 0)
+		if(dolly == 0)
 			return false;
 
 		node.Position = node.Target + ((node.Position - node.Target) * expf(dolly));
@@ -44,7 +44,7 @@ namespace Tracer
 
 	bool OrbitCameraController::MoveCamera(CameraNode& node, const float3& move)
 	{
-		if (move.x == 0 && move.y == 0 && move.z == 0)
+		if(move.x == 0 && move.y == 0 && move.z == 0)
 			return false;
 
 		const float3 dir = node.Target - node.Position;
@@ -60,7 +60,7 @@ namespace Tracer
 
 	bool OrbitCameraController::OrbitCamera(CameraNode& node, const float2& orbit)
 	{
-		if (orbit.x == 0 || orbit.y == 0)
+		if(orbit.x == 0 || orbit.y == 0)
 			return false;
 
 		float3 dir = node.Target - node.Position;
@@ -75,7 +75,7 @@ namespace Tracer
 		constexpr float minDot = 1e-3f;
 		float y = orbit.y;
 		float dotUp = dot(cachedUp, up);
-		if (dot(sPrevUp, up) < minDot)
+		if(dot(sPrevUp, up) < minDot)
 		{
 			sPrevUp = cachedUp;
 			if(dotUp < minDot)
@@ -104,7 +104,7 @@ namespace Tracer
 
 	bool OrbitCameraController::PanCamera(CameraNode& node, const float2& pan)
 	{
-		if (pan.x == 0 && pan.y == 0)
+		if(pan.x == 0 && pan.y == 0)
 			return false;
 
 		const float3 dir = node.Target - node.Position;
@@ -122,7 +122,7 @@ namespace Tracer
 
 	bool OrbitCameraController::RotateCamera(CameraNode& node, float tilt, float pan, float roll)
 	{
-		if (tilt == 0 && pan == 0 && roll == 0)
+		if(tilt == 0 && pan == 0 && roll == 0)
 			return false;
 
 		float3 dir = node.Target - node.Position;
@@ -141,7 +141,7 @@ namespace Tracer
 		node.Target = node.Position + dir;
 
 		// only update up vector when rolling
-		if (roll != 0)
+		if(roll != 0)
 			node.Up = sPrevUp;
 
 		return true;
@@ -155,13 +155,13 @@ namespace Tracer
 		float3 up = node.Up - dir * dot(node.Up, dir);
 
 		// up is parallel to dir
-		if (dot(up, up) < (Epsilon * Epsilon))
+		if(dot(up, up) < (Epsilon * Epsilon))
 		{
 			// try old up
 			up = sPrevUp - dir * dot(sPrevUp, dir);
 
 			// up is still parallel to dir
-			if (dot(up, up) < (Epsilon * Epsilon))
+			if(dot(up, up) < (Epsilon * Epsilon))
 			{
 				up = SmallestAxis(dir);
 				up = up - dir * dot(up, dir);

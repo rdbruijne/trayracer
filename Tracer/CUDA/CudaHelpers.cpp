@@ -4,16 +4,16 @@
 #include "Utility/Utility.h"
 
 // C++
-#include <stdexcept>
 #include <cassert>
 #include <sstream>
+#include <stdexcept>
 
 namespace Tracer
 {
 	void CudaCheck(CUresult res, const char* file, int line)
 	{
 		assert(res == CUDA_SUCCESS);
-		if (res != CUDA_SUCCESS)
+		if(res != CUDA_SUCCESS)
 		{
 			const std::string errorMessage = format("CUDA error in \"%s\" @ %d: %s (%d)", file, line, ToString(res).c_str(), res);
 			throw std::runtime_error(errorMessage);
@@ -25,7 +25,7 @@ namespace Tracer
 	void CudaCheck(cudaError_t res, const char* file, int line)
 	{
 		assert(res == cudaSuccess);
-		if (res != cudaSuccess)
+		if(res != cudaSuccess)
 		{
 			const std::string errorMessage = format("CUDA error in \"%s\" @ %d: %s (%s)", file, line, cudaGetErrorName(res), cudaGetErrorString(res));
 			throw std::runtime_error(errorMessage);

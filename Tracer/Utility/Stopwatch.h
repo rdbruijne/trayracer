@@ -12,8 +12,8 @@ namespace Tracer
 		Stopwatch();
 
 		void Reset();
-		int64_t GetElapsedTimeNS() const;
-		std::string GetElapsedTimeAsString() const;
+		int64_t ElapsedNS() const;
+		std::string ElapsedString() const;
 
 	private:
 		std::chrono::high_resolution_clock::time_point mTimePoint = std::chrono::high_resolution_clock::time_point();

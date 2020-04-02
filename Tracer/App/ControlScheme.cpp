@@ -62,7 +62,7 @@ namespace Tracer
 #if 0
 			return window->GetCursorDelta() * Scalar;
 #else
-			const float2 delta = window->GetCursorDelta();
+			const float2 delta = window->CursorDelta();
 			return delta * Scalar;
 #endif
 		}

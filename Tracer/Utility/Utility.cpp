@@ -26,7 +26,7 @@ namespace Tracer
 			va_start(ap, fmt);
 			final_n = vsnprintf_s(formatted.get(), n - 1, n - 2, fmt, ap);
 			va_end(ap);
-		} while (final_n < 0);
+		} while(final_n < 0);
 		return std::string(formatted.get());
 	}
 
@@ -56,7 +56,7 @@ namespace Tracer
 
 
 
-	std::string GetDirectory(const std::string& filePath)
+	std::string Directory(const std::string& filePath)
 	{
 		std::string folderPath = filePath;
 		folderPath = folderPath.substr(0, folderPath.find_last_of('/'));
@@ -66,15 +66,15 @@ namespace Tracer
 
 
 
-	std::string GetFileName(const std::string& filePath)
+	std::string FileName(const std::string& filePath)
 	{
 		std::string fileName = filePath;
 		size_t i = fileName.find_last_of('/');
-		if (i != std::string::npos)
+		if(i != std::string::npos)
 			fileName = fileName.substr(i + 1);
 
 		i = fileName.find_last_of('\\');
-		if (i != std::string::npos)
+		if(i != std::string::npos)
 			fileName = fileName.substr(i + 1);
 
 		return fileName;
@@ -82,18 +82,18 @@ namespace Tracer
 
 
 
-	std::string GetFileExtension(const std::string& filePath)
+	std::string FileExtension(const std::string& filePath)
 	{
-		const std::string fileName = GetFileName(filePath);
+		const std::string fileName = FileName(filePath);
 		const size_t dotIx = fileName.find_last_of('.');
 		return dotIx == std::string::npos ? "" : fileName.substr(dotIx);
 	}
 
 
 
-	std::string GetFileNameWithoutExtension(const std::string& filePath)
+	std::string FileNameWithoutExtension(const std::string& filePath)
 	{
-		const std::string fileName = GetFileName(filePath);
+		const std::string fileName = FileName(filePath);
 		return fileName.substr(0, fileName.find_last_of('.'));
 	}
 
@@ -103,7 +103,7 @@ namespace Tracer
 	{
 		std::ifstream fileStream(filePath);
 		assert(fileStream.is_open());
-		if (!fileStream.is_open())
+		if(!fileStream.is_open())
 			return "";
 
 		fileStream.seekg(0, std::ios::end);

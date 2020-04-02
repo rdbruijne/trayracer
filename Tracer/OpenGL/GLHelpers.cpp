@@ -56,7 +56,7 @@ namespace Tracer
 	{
 		GLenum error = glGetError();
 		assert(error == GL_NO_ERROR);
-		if (error != GL_NO_ERROR)
+		if(error != GL_NO_ERROR)
 		{
 			const std::string errorMessage = format("GL error in \"%s\" @ %d: %s (%#x)", file, line, GlErrorToString(error).c_str(), error);
 			throw std::runtime_error(errorMessage);

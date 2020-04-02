@@ -104,7 +104,7 @@ namespace Tracer
 		const aiScene* aScene = nullptr;
 		try
 		{
-			const std::string importDir = GetDirectory(filePath);
+			const std::string importDir = Directory(filePath);
 
 			// Assimp flags
 			const unsigned int importFlags =
@@ -148,7 +148,7 @@ namespace Tracer
 				throw std::runtime_error("Assimp failed to parse the file");
 
 			// create model
-			std::shared_ptr<Model> model = std::make_shared<Model>(GetFileName(filePath));
+			std::shared_ptr<Model> model = std::make_shared<Model>(FileName(filePath));
 
 			// import materials
 			for(uint32_t i = 0; i < aScene->mNumMaterials; i++)

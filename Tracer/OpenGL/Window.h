@@ -30,16 +30,16 @@ namespace Tracer
 		void SetTitle(const std::string& title);
 
 		// Resolution
-		int2 GetPosition() const;
+		int2 Position() const;
 		void SetPosition(const int2& position);
 
 		// Position
-		int2 GetResolution() const;
+		int2 Resolution() const;
 		void SetResolution(const int2& resolution);
 
 		// Render texture
-		GLTexture* GetRenderTexture();
-		const GLTexture* GetRenderTexture() const;
+		GLTexture* RenderTexture();
+		const GLTexture* RenderTexture() const;
 
 		// Display
 		void Display();
@@ -50,14 +50,14 @@ namespace Tracer
 		bool IsKeyDown(Input::Keys key) const;
 		bool WasKeyPressed(Input::Keys key) const;
 		bool IsCursorWithinWindow() const;
-		float2 GetCursorPos() const;
-		float2 GetScroll() const;
-		float2 GetCursorDelta() const;
-		float2 GetScrollDelta() const;
+		float2 CursorPos() const;
+		float2 Scroll() const;
+		float2 CursorDelta() const;
+		float2 ScrollDelta() const;
 
 		// GL
-		GLFWwindow* GetGlfwWindow() { return mHandle; }
-		const GLFWwindow* GetGlfwWindow() const { return mHandle; }
+		GLFWwindow* GlfwWindow() { return mHandle; }
+		const GLFWwindow* GlfwWindow() const { return mHandle; }
 
 	private:
 		// GLFW Input callbacks

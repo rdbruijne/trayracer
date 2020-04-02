@@ -51,7 +51,7 @@ int main(int argc, char** argv)
 		bool showGui = false;
 
 		// main loop
-		while (!window->IsClosed())
+		while(!window->IsClosed())
 		{
 			// user input
 			window->UpdateInput();
@@ -70,7 +70,7 @@ int main(int argc, char** argv)
 			}
 
 			// run OptiX
-			renderer->RenderFrame(window->GetRenderTexture());
+			renderer->RenderFrame(window->RenderTexture());
 
 			// run window shaders
 			window->Display();
@@ -89,11 +89,11 @@ int main(int argc, char** argv)
 			window->SetTitle(Tracer::format("TrayRacer - %.1f ms - %.1f FPS - %s - %i samples",
 											static_cast<double>(elapsedNs) * 1e-3,
 											1e6f / elapsedNs,
-											ToString(renderer->GetRenderMode()).c_str(),
+											ToString(renderer->RenderMode()).c_str(),
 											renderer->SampleCount()));
 
 			// update timer
-			elapsedNs = stopwatch.GetElapsedTimeNS();
+			elapsedNs = stopwatch.ElapsedNS();
 			stopwatch.Reset();
 		}
 
@@ -107,6 +107,7 @@ int main(int argc, char** argv)
 	catch(const std::exception& e)
 	{
 		std::cerr << e.what() << std::endl;
+		assert(false);
 	}
 
 	return 0;

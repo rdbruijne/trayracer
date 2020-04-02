@@ -106,7 +106,7 @@ namespace Tracer
 
 
 
-	int2 Window::GetPosition() const
+	int2 Window::Position() const
 	{
 		int2 position;
 		glfwGetWindowSize(mHandle, &position.x, &position.y);
@@ -122,7 +122,7 @@ namespace Tracer
 
 
 
-	int2 Window::GetResolution() const
+	int2 Window::Resolution() const
 	{
 		int2 resolution;
 		glfwGetWindowSize(mHandle, &resolution.x, &resolution.y);
@@ -131,14 +131,14 @@ namespace Tracer
 
 
 
-	GLTexture* Window::GetRenderTexture()
+	GLTexture* Window::RenderTexture()
 	{
 		return mRenderTexture;
 	}
 
 
 
-	const GLTexture* Window::GetRenderTexture() const
+	const GLTexture* Window::RenderTexture() const
 	{
 		return mRenderTexture;
 	}
@@ -161,7 +161,7 @@ namespace Tracer
 		glDisable(GL_LIGHTING);
 		glDisable(GL_DEPTH_TEST);
 
-		mShader->SetTexture(0, "convergeBuffer", mRenderTexture);
+		mShader->Set(0, "convergeBuffer", mRenderTexture);
 		mShader->Bind();
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		mShader->Unbind();
@@ -232,28 +232,28 @@ namespace Tracer
 
 
 
-	float2 Window::GetCursorPos() const
+	float2 Window::CursorPos() const
 	{
 		return mCurInputState.MousePos;
 	}
 
 
 
-	float2 Window::GetScroll() const
+	float2 Window::Scroll() const
 	{
 		return mCurInputState.MouseScroll;
 	}
 
 
 
-	float2 Window::GetCursorDelta() const
+	float2 Window::CursorDelta() const
 	{
 		return mCurInputState.MousePos - mPrevInputState.MousePos;
 	}
 
 
 
-	float2 Window::GetScrollDelta() const
+	float2 Window::ScrollDelta() const
 	{
 		return mCurInputState.MouseScroll - mPrevInputState.MouseScroll;
 	}

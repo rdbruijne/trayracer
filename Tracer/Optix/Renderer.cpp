@@ -106,7 +106,7 @@ namespace Tracer
 
 	void Renderer::RenderFrame(GLTexture* renderTexture)
 	{
-		const int2 texRes = renderTexture->GetResolution();
+		const int2 texRes = renderTexture->Resolution();
 		if(texRes.x == 0 || texRes.y == 0)
 			return;
 
@@ -138,7 +138,7 @@ namespace Tracer
 			if(mCudaGraphicsResource)
 				CUDA_CHECK(cudaGraphicsUnregisterResource(mCudaGraphicsResource));
 
-			CUDA_CHECK(cudaGraphicsGLRegisterImage(&mCudaGraphicsResource, renderTexture->GetID(), GL_TEXTURE_2D, cudaGraphicsMapFlagsWriteDiscard));
+			CUDA_CHECK(cudaGraphicsGLRegisterImage(&mCudaGraphicsResource, renderTexture->ID(), GL_TEXTURE_2D, cudaGraphicsMapFlagsWriteDiscard));
 			mRenderTarget = renderTexture;
 		}
 

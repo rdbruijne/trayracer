@@ -31,7 +31,7 @@ namespace Tracer
 		ImGuiIO& io = ImGui::GetIO();
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 		ImGui::StyleColorsDark();
-		ImGui_ImplGlfw_InitForOpenGL(window->GetGlfwWindow(), true);
+		ImGui_ImplGlfw_InitForOpenGL(window->GlfwWindow(), true);
 		ImGui_ImplOpenGL3_Init("#version 130");
 
 		// #TODO(RJCDB): DPI Scaling

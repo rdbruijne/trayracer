@@ -28,7 +28,7 @@ namespace Tracer
 		//bool hasChanged = false;
 
 		// render mode
-		Renderer::RenderModes activeRenderMode = renderer->GetRenderMode();
+		Renderer::RenderModes activeRenderMode = renderer->RenderMode();
 		const std::string rmName = ToString(activeRenderMode);
 		if(ImGui::BeginCombo("Render Mode", rmName.c_str()))
 		{

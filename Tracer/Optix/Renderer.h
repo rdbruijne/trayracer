@@ -23,7 +23,6 @@ namespace Tracer
 		{
 			AmbientOcclusion,
 			DiffuseFilter,
-			MaterialID,
 			ObjectID,
 			PathTracing,
 			ShadingNormal,
@@ -43,7 +42,7 @@ namespace Tracer
 		void SetCamera(float3 cameraPos, float3 cameraForward, float3 cameraUp, float camFov);
 
 		void SetRenderMode(RenderModes mode);
-		inline RenderModes GetRenderMode() const { return mRenderMode; }
+		inline RenderModes RenderMode() const { return mRenderMode; }
 
 		inline int SampleCount() const { return mLaunchParams.sampleCount; }
 

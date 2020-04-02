@@ -23,9 +23,9 @@ namespace Tracer
 		void Bind();
 		void Unbind();
 
-		inline uint32_t GetID() const { return mId; }
-		inline Types GetType() const { return mType; }
-		inline int2 GetResolution() const { return mResolution; }
+		inline uint32_t ID() const { return mId; }
+		inline Types Type() const { return mType; }
+		inline int2 Resolution() const { return mResolution; }
 
 	private:
 		uint32_t mId = 0;

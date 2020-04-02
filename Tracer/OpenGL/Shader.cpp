@@ -21,7 +21,7 @@ namespace Tracer
 		{
 			GLint result = 0;
 			glGetShaderiv(shaderID, GL_COMPILE_STATUS, &result);
-			if (result != GL_TRUE)
+			if(result != GL_TRUE)
 			{
 				char infoLog[GL_INFO_LOG_LENGTH] = {};
 				GLsizei logLength = 0;
@@ -38,7 +38,7 @@ namespace Tracer
 		{
 			GLint result = 0;
 			glGetProgramiv(programID, GL_LINK_STATUS, &result);
-			if (result != GL_TRUE)
+			if(result != GL_TRUE)
 			{
 				char infoLog[GL_INFO_LOG_LENGTH] = {};
 				GLsizei logLength = 0;
@@ -91,7 +91,7 @@ namespace Tracer
 
 		// load fragment shader
 		const std::string fragCode = ReadFile(mFragmentFile);
-		if (fragCode.empty())
+		if(fragCode.empty())
 			throw std::runtime_error(format("File \"%s\" not found or empty.", mFragmentFile.c_str()));
 
 		// compile vertex shader
@@ -138,14 +138,14 @@ namespace Tracer
 
 
 
-	void Shader::SetFloat(const std::string& name, float v)
+	void Shader::Set(const std::string& name, float v)
 	{
 		glUniform1f(glGetUniformLocation(mShaderID, name.c_str()), v);
 	}
 
 
 
-	void Shader::SetTexture(uint32_t slot, const std::string& name, GLTexture* tex)
+	void Shader::Set(uint32_t slot, const std::string& name, GLTexture* tex)
 	{
 		glActiveTexture(GL_TEXTURE0 + slot);
 		tex->Bind();
