@@ -9,9 +9,6 @@
 #include "Utility/Stopwatch.h"
 #include "Utility/Utility.h"
 
-// magic_enum
-#include "magic_enum/magic_enum.hpp"
-
 // C++
 #include <iostream>
 
