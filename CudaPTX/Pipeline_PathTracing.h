@@ -21,9 +21,16 @@ void __closesthit__PathTracing()
 {
 	IntersectionAttributes attrib = GetIntersectionAttributes();
 
-	// basic NdotL
-	const float3 L = normalize(make_float3(1, 1, 1));
-	const float ndotl = fabsf(dot(attrib.shadingNormal, L));
+	// emissive
+	float3 em = attrib.meshData->emissive;
+	if(em.x > 0 || em.y > 0 || em.z > 0)
+	{
+		Payload* p = GetPayload();
+		p->dst = optixGetRayTmax();
+		p->status = RS_Emissive;
+		WriteResult(p->throughput * em);
+		return;
+	}
 
 	// diffuse
 	float3 diff = attrib.meshData->diffuse;
@@ -35,7 +42,10 @@ void __closesthit__PathTracing()
 
 	// set payload
 	Payload* p = GetPayload();
-	p->throughput = diff * (.2f + .8f * ndotl);
+	p->throughput *= diff;
+	p->dst = optixGetRayTmax();
+	p->rayOrigin = optixGetWorldRayOrigin() + optixGetRayTmax() * optixGetWorldRayDirection();
+	p->rayDir = SampleCosineHemisphere(attrib.shadingNormal, rnd(p->seed), rnd(p->seed));
 }
 
 
@@ -46,7 +56,7 @@ void __miss__PathTracing()
 	Payload* p = GetPayload();
 	p->dst = optixGetRayTmax();
 	p->status = RS_Sky;
-	WriteResult(make_float3(0));
+	WriteResult(p->throughput);
 }
 
 
@@ -74,11 +84,20 @@ void __raygen__PathTracing()
 	uint32_t u0, u1;
 	PackPointer(&payload, u0, u1);
 
-	// trace the ray
+	float3 rayOrigin = optixLaunchParams.cameraPos;
 	float3 rayDir = SampleRay(make_float2(ix, iy), make_float2(optixLaunchParams.resolutionX, optixLaunchParams.resolutionY), make_float2(rnd(seed), rnd(seed)));
-	optixTrace(optixLaunchParams.sceneRoot, optixLaunchParams.cameraPos, rayDir, 0.f, 1e20f, 0.f, OptixVisibilityMask(255),
-			   OPTIX_RAY_FLAG_DISABLE_ANYHIT, RayType_Surface, RayType_Count, RayType_Surface, u0, u1);
 
-	if(payload.status == RS_Active)
-		WriteResult(payload.throughput);
+	while(payload.depth < optixLaunchParams.maxDepth)
+	{
+		// trace the ray
+		optixTrace(optixLaunchParams.sceneRoot, rayOrigin, rayDir, optixLaunchParams.epsilon, 1e20f, 0.f, OptixVisibilityMask(255),
+				OPTIX_RAY_FLAG_DISABLE_ANYHIT, RayType_Surface, RayType_Count, RayType_Surface, u0, u1);
+
+		if(payload.status != RS_Active)
+			break;
+
+		rayOrigin = payload.rayOrigin;
+		rayDir = payload.rayDir;
+		payload.depth++;
+	}
 }

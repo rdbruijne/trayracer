@@ -43,6 +43,11 @@ namespace Tracer
 
 		// kernel settings
 		ImGui::BeginGroup();
+		int maxDepth = renderer->MaxDepth();
+		if(ImGui::SliderInt("Max depth", &maxDepth, 0, 16))
+			renderer->SetMaxDepth(maxDepth);
+
+		ImGui::BeginGroup();
 		float aoDist = renderer->AODist();
 		if(ImGui::SliderFloat("AO Dist", &aoDist, 0.f, 1e4f, "%.3f", 10.f))
 			renderer->SetAODist(aoDist);

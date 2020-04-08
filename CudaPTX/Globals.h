@@ -23,10 +23,12 @@ struct Payload
 	float3 throughput;
 	int depth;
 
-	int seed;
-	RayStatus status;
-	float dst;
-	int padding;
+	float3 rayOrigin;
+	uint32_t seed;
 
-	int4 kernelData; // kernel specific info
+	float3 rayDir;
+	float dst;
+
+	int3 kernelData; // kernel specific info
+	RayStatus status;
 };

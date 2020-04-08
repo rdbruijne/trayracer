@@ -86,6 +86,7 @@ namespace Tracer
 		mLaunchParamsBuffer.Alloc(sizeof(LaunchParams));
 
 		// set launch param constants
+		mLaunchParams.maxDepth = 2;
 		mLaunchParams.epsilon = Epsilon;
 		mLaunchParams.aoDist = 10.f;
 		mLaunchParams.zDepthMaX = 10.f;
@@ -552,6 +553,7 @@ namespace Tracer
 						// material data
 						auto mat = mesh->Mat();
 						r.meshData.diffuse = mat->mDiffuse;
+						r.meshData.emissive = mat->mEmissive;
 
 						if(mat->mDiffuseMap)
 						{

@@ -24,6 +24,7 @@ namespace Tracer
 
 		// material properties
 		float3 mDiffuse = make_float3(.5f, .5f, .5f);
+		float3 mEmissive = make_float3(0, 0, 0);
 
 		// textures
 		std::shared_ptr<Texture> mDiffuseMap = nullptr;

@@ -143,7 +143,7 @@ namespace Tracer
 
 
 
-	std::shared_ptr<Tracer::Model> ImportModel(const std::string& filePath)
+	std::shared_ptr<Model> ImportModel(const std::string& filePath)
 	{
 		const aiScene* aScene = nullptr;
 		try

@@ -42,10 +42,10 @@ struct alignas(16) LaunchParams
 	OptixTraversableHandle sceneRoot;
 	float4* colorBuffer;
 
+	int maxDepth;
 	float epsilon;
 	float aoDist;
 	float zDepthMaX;
-	float padding;
 };
 
 
@@ -64,4 +64,7 @@ struct alignas(16) TriangleMeshData
 	uint32_t textures;
 	uint32_t pad;
 	cudaTextureObject_t diffuseMap;
+
+	float3 emissive;
+	float pad2;
 };

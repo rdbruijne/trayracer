@@ -13,7 +13,7 @@ namespace Tracer
 	//
 	// extra constants
 	//
-	constexpr float Epsilon  = 1e-4f;
+	constexpr float Epsilon  = 1e-3f;
 	constexpr float DegToRad = 3.14159265359f / 180.f;
 	constexpr float RadToDeg = 180.f / 3.14159265359f;
 

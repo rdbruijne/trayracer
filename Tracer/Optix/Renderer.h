@@ -52,6 +52,16 @@ namespace Tracer
 		inline int SampleCount() const { return mLaunchParams.sampleCount; }
 
 		// kernel settings
+		inline int MaxDepth() const { return mLaunchParams.maxDepth; }
+		inline void SetMaxDepth(int maxDepth)
+		{
+			if(maxDepth != mLaunchParams.maxDepth)
+			{
+				mLaunchParams.maxDepth = maxDepth;
+				mLaunchParams.sampleCount = 0;
+			}
+		}
+
 		inline float AODist() const { return mLaunchParams.aoDist; }
 		inline void SetAODist(float aoDist)
 		{
