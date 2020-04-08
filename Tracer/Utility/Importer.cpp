@@ -200,13 +200,24 @@ namespace Tracer
 				model->AddMaterial(ImportMaterial(importDir, textures, aScene->mMaterials[i]));
 
 			// import meshes
+			uint32_t polyCount = 0;
 			for(uint32_t i = 0; i < aScene->mNumMeshes; i++)
+			{
 				model->AddMesh(ImportMesh(aScene->mMeshes[i], model->Materials()));
+				polyCount += aScene->mMeshes[i]->mNumFaces;
+			}
 
 			// parse graph
 			//ParseNode(...);
 
 			aiReleaseImport(aScene);
+
+			printf("Imported \"%s\":\n", filePath.c_str());
+			printf("  Meshes   : %d\n", aScene->mNumMeshes);
+			printf("  Materials: %d\n", aScene->mNumMaterials);
+			printf("  Textures : %d\n", aScene->mNumTextures);
+			printf("  Polygons : %d\n", polyCount);
+
 
 			return model;
 		}
