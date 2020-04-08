@@ -3,10 +3,15 @@
 // Project
 #include "Helpers.h"
 
+// CUDA
+#include "CUDA/random.h"
+
+
+
 extern "C" __global__
 void __anyhit__PathTracing()
 {
-	Generic_AnyHit();
+	optixTerminateRay();
 }
 
 
@@ -14,44 +19,23 @@ void __anyhit__PathTracing()
 extern "C" __global__
 void __closesthit__PathTracing()
 {
-	const TriangleMeshData& meshData = *(const TriangleMeshData*)optixGetSbtDataPointer();
-
-	// get intersection info
-	const int primID = optixGetPrimitiveIndex();
-	const float2 uv = optixGetTriangleBarycentrics();
-	const float w = 1.f - (uv.x + uv.y);
-
-	const float3 D = optixGetWorldRayDirection();
-
-	const uint3 index = meshData.indices[primID];
-
-	// calculate normal at intersection point
-	const float3& N0 = meshData.normals[index.x];
-	const float3& N1 = meshData.normals[index.y];
-	const float3& N2 = meshData.normals[index.z];
-	const float3 N = normalize((w * N0) + (uv.x * N1) + (uv.y * N2));
-
-	// calculate texcoord at intersection point
-	const float3& texcoord0 = meshData.texcoords[index.x];
-	const float3& texcoord1 = meshData.texcoords[index.y];
-	const float3& texcoord2 = meshData.texcoords[index.z];
-	const float3 texcoord = (w * texcoord0) + (uv.x * texcoord1) + (uv.y * texcoord2);
+	IntersectionAttributes attrib = GetIntersectionAttributes();
 
 	// basic NdotL
 	const float3 L = normalize(make_float3(1, 1, 1));
-	const float ndotl = fabsf(dot(N, L));
+	const float ndotl = fabsf(dot(attrib.shadingNormal, L));
 
 	// diffuse
-	float3 diff = meshData.diffuse;
-	if(meshData.textures & Texture_DiffuseMap)
+	float3 diff = attrib.meshData->diffuse;
+	if(attrib.meshData->textures & Texture_DiffuseMap)
 	{
-		const float4 diffMap = tex2D<float4>(meshData.diffuseMap, texcoord.x, texcoord.y);
+		const float4 diffMap = tex2D<float4>(attrib.meshData->diffuseMap, attrib.texcoord.x, attrib.texcoord.y);
 		diff *= make_float3(diffMap.z, diffMap.y, diffMap.x);
 	}
 
 	// set payload
 	Payload* p = GetPayload();
-	p->color = diff * (.2f + .8f * ndotl);
+	p->throughput = diff * (.2f + .8f * ndotl);
 }
 
 
@@ -59,7 +43,10 @@ void __closesthit__PathTracing()
 extern "C" __global__
 void __miss__PathTracing()
 {
-	Generic_Miss();
+	Payload* p = GetPayload();
+	p->dst = optixGetRayTmax();
+	p->status = RS_Sky;
+	WriteResult(make_float3(0));
 }
 
 
@@ -67,5 +54,31 @@ void __miss__PathTracing()
 extern "C" __global__
 void __raygen__PathTracing()
 {
-	Generic_RayGen();
+	InitializeFilm();
+
+	// get the current pixel index
+	const int ix = optixGetLaunchIndex().x;
+	const int iy = optixGetLaunchIndex().y;
+
+	// set the seed
+	uint32_t seed = tea<2>(ix + (optixLaunchParams.resolutionX * iy), optixLaunchParams.sampleCount);
+
+	// setup payload
+	Payload payload;
+	payload.throughput = make_float3(1);
+	payload.depth = 0;
+	payload.seed = seed;
+	payload.status = RS_Active;
+
+	// encode payload pointer
+	uint32_t u0, u1;
+	PackPointer(&payload, u0, u1);
+
+	// trace the ray
+	float3 rayDir = SampleRay(make_float2(ix, iy), make_float2(optixLaunchParams.resolutionX, optixLaunchParams.resolutionY), make_float2(rnd(seed), rnd(seed)));
+	optixTrace(optixLaunchParams.sceneRoot, optixLaunchParams.cameraPos, rayDir, 0.f, 1e20f, 0.f, OptixVisibilityMask(255),
+			   OPTIX_RAY_FLAG_DISABLE_ANYHIT, RayType_Surface, RayType_Count, RayType_Surface, u0, u1);
+
+	if(payload.status == RS_Active)
+		WriteResult(payload.throughput);
 }

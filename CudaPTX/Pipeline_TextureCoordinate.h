@@ -3,10 +3,15 @@
 // Project
 #include "Helpers.h"
 
+// CUDA
+#include "CUDA/random.h"
+
+
+
 extern "C" __global__
 void __anyhit__TextureCoordinate()
 {
-	Generic_AnyHit();
+	optixTerminateRay();
 }
 
 
@@ -18,20 +23,11 @@ void __closesthit__TextureCoordinate()
 
 	// get intersection info
 	const int primID = optixGetPrimitiveIndex();
-	const float2 uv = optixGetTriangleBarycentrics();
-	const float w = 1.f - (uv.x + uv.y);
-
 	const uint3 index = meshData.indices[primID];
+	const float2 barycentrics = optixGetTriangleBarycentrics();
+	const float3 texcoord = Barycentric(barycentrics, meshData.texcoords[index.x], meshData.texcoords[index.y], meshData.texcoords[index.z]);
 
-	// calculate texcoord at intersection point
-	const float3& texcoord0 = meshData.texcoords[index.x];
-	const float3& texcoord1 = meshData.texcoords[index.y];
-	const float3& texcoord2 = meshData.texcoords[index.z];
-	const float3 texcoord = (w * texcoord0) + (uv.x * texcoord1) + (uv.y * texcoord2);
-
-	// set payload
-	Payload* p = GetPayload();
-	p->color = make_float3(texcoord.x, texcoord.y, 0);
+	WriteResult(make_float3(texcoord.x, texcoord.y, 0));
 }
 
 
@@ -39,7 +35,7 @@ void __closesthit__TextureCoordinate()
 extern "C" __global__
 void __miss__TextureCoordinate()
 {
-	Generic_Miss();
+	WriteResult(make_float3(0));
 }
 
 
@@ -47,5 +43,17 @@ void __miss__TextureCoordinate()
 extern "C" __global__
 void __raygen__TextureCoordinate()
 {
-	Generic_RayGen();
+	InitializeFilm();
+
+	// get the current pixel index
+	const int ix = optixGetLaunchIndex().x;
+	const int iy = optixGetLaunchIndex().y;
+
+	// set the seed
+	uint32_t seed = tea<2>(ix + (optixLaunchParams.resolutionX * iy), optixLaunchParams.sampleCount);
+
+	// trace the ray
+	float3 rayDir = SampleRay(make_float2(ix, iy), make_float2(optixLaunchParams.resolutionX, optixLaunchParams.resolutionY), make_float2(rnd(seed), rnd(seed)));
+	optixTrace(optixLaunchParams.sceneRoot, optixLaunchParams.cameraPos, rayDir, 0.f, 1e20f, 0.f, OptixVisibilityMask(255),
+			   OPTIX_RAY_FLAG_DISABLE_ANYHIT, RayType_Surface, RayType_Count, RayType_Surface);
 }

@@ -15,3 +15,4 @@
 
 // CUDA
 #include "CUDA/helper_math.h"
+#include "CUDA/random.h"

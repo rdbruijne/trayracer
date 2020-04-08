@@ -3,20 +3,15 @@
 // Project
 #include "Helpers.h"
 
-// OptiX
-#include "optix7/optix_device.h"
-
-struct Payload_Wireframe
-{
-	int primitveID;
-};
+// CUDA
+#include "CUDA/random.h"
 
 
 
 extern "C" __global__
 void __anyhit__Wireframe()
 {
-	Generic_AnyHit();
+	optixTerminateRay();
 }
 
 
@@ -24,8 +19,8 @@ void __anyhit__Wireframe()
 extern "C" __global__
 void __closesthit__Wireframe()
 {
-	Payload_Wireframe* p = reinterpret_cast<Payload_Wireframe*>(UnpackPointer(optixGetPayload_0(), optixGetPayload_1()));
-	p->primitveID = optixGetPrimitiveIndex();
+	Payload* p = GetPayload();
+	p->kernelData.x = optixGetPrimitiveIndex();
 }
 
 
@@ -33,8 +28,9 @@ void __closesthit__Wireframe()
 extern "C" __global__
 void __miss__Wireframe()
 {
-	Payload_Wireframe* p = reinterpret_cast<Payload_Wireframe*>(UnpackPointer(optixGetPayload_0(), optixGetPayload_1()));
-	p->primitveID = -1;
+	Payload* p = GetPayload();
+	p->status = RS_Sky;
+	p->kernelData.x = -1;
 }
 
 
@@ -48,37 +44,34 @@ void __raygen__Wireframe()
 	const int ix = optixGetLaunchIndex().x;
 	const int iy = optixGetLaunchIndex().y;
 
-	int seed = ix + (optixLaunchParams.resolutionX * iy) + optixLaunchParams.sampleCount;
+	// set the seed
+	uint32_t seed = tea<2>(ix + (optixLaunchParams.resolutionX * iy), optixLaunchParams.sampleCount);
+
+	// setup payload
+	Payload payload;
+	payload.throughput = make_float3(1);
+	payload.depth = 0;
+	payload.seed = seed;
+	payload.status = RS_Active;
 
 	// encode payload pointer
-	Payload_Wireframe payload = {};
 	uint32_t u0, u1;
 	PackPointer(&payload, u0, u1);
 
-	constexpr int wireframeRayCount = 3;
+	// fire several rays, check if their object indices match
 	int primId = -1;
+	constexpr int wireframeRayCount = 3;
 	for(int i = 0; i < wireframeRayCount; i++)
 	{
-		// ray direction
-		float3 rayDir = SampleRay(make_float2(ix, iy), make_float2(optixLaunchParams.resolutionX, optixLaunchParams.resolutionY), make_float2(frand(seed), frand(seed)));
-
 		// trace the ray
-		optixTrace(optixLaunchParams.sceneRoot,
-				   optixLaunchParams.cameraPos,
-				   rayDir,
-				   0.f,
-				   1e20f,
-				   0.f,
-				   OptixVisibilityMask(255),
-				   OPTIX_RAY_FLAG_DISABLE_ANYHIT,
-				   RayType_Surface,
-				   RayType_Count,
-				   RayType_Surface,
-				   u0, u1);
+		const float3 rayDir = SampleRay(make_float2(ix, iy), make_float2(optixLaunchParams.resolutionX, optixLaunchParams.resolutionY), make_float2(rnd(seed), rnd(seed)));
+		optixTrace(optixLaunchParams.sceneRoot, optixLaunchParams.cameraPos, rayDir, 0.f, 1e20f, 0.f, OptixVisibilityMask(255),
+				   OPTIX_RAY_FLAG_DISABLE_ANYHIT, RayType_Surface, RayType_Count, RayType_Surface, u0, u1);
 
+		// check the primitive ID
 		if(i == 0)
-			primId = payload.primitveID;
-		else if(primId != payload.primitveID)
+			primId = payload.kernelData.x;
+		else if(primId != payload.kernelData.x)
 			return;
 	}
 

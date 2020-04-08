@@ -3,10 +3,15 @@
 // Project
 #include "Helpers.h"
 
+// CUDA
+#include "CUDA/random.h"
+
+
+
 extern "C" __global__
 void __anyhit__AmbientOcclusion()
 {
-	Generic_AnyHit();
+	optixTerminateRay();
 }
 
 
@@ -14,7 +19,20 @@ void __anyhit__AmbientOcclusion()
 extern "C" __global__
 void __closesthit__AmbientOcclusion()
 {
-	Generic_ClosestHit();
+	const TriangleMeshData& meshData = *(const TriangleMeshData*)optixGetSbtDataPointer();
+
+	// get intersection info
+	const int primID = optixGetPrimitiveIndex();
+	const uint3 index = meshData.indices[primID];
+	const float2 barycentrics = optixGetTriangleBarycentrics();
+	const float3 N = normalize(Barycentric(barycentrics, meshData.normals[index.x], meshData.normals[index.y], meshData.normals[index.z]));
+
+	// set payload
+	Payload* p = GetPayload();
+	p->dst = optixGetRayTmax();
+	p->kernelData.x = float_as_int(N.x);
+	p->kernelData.y = float_as_int(N.y);
+	p->kernelData.z = float_as_int(N.z);
 }
 
 
@@ -22,7 +40,9 @@ void __closesthit__AmbientOcclusion()
 extern "C" __global__
 void __miss__AmbientOcclusion()
 {
-	Generic_Miss();
+	Payload* p = GetPayload();
+	p->dst = optixGetRayTmax();
+	p->status = RS_Sky;
 }
 
 
@@ -30,5 +50,48 @@ void __miss__AmbientOcclusion()
 extern "C" __global__
 void __raygen__AmbientOcclusion()
 {
-	Generic_RayGen();
+	InitializeFilm();
+
+	// get the current pixel index
+	const int ix = optixGetLaunchIndex().x;
+	const int iy = optixGetLaunchIndex().y;
+
+	// set the seed
+	uint32_t seed = tea<2>(ix + (optixLaunchParams.resolutionX * iy), optixLaunchParams.sampleCount);
+
+	// setup payload
+	Payload payload;
+	payload.throughput = make_float3(1);
+	payload.depth = 0;
+	payload.seed = seed;
+	payload.status = RS_Active;
+
+	// encode payload pointer
+	uint32_t u0, u1;
+	PackPointer(&payload, u0, u1);
+
+	// trace the ray
+	float3 rayDir = SampleRay(make_float2(ix, iy), make_float2(optixLaunchParams.resolutionX, optixLaunchParams.resolutionY), make_float2(rnd(seed), rnd(seed)));
+	optixTrace(optixLaunchParams.sceneRoot, optixLaunchParams.cameraPos, rayDir, 0.f, 1e20f, 0.f, OptixVisibilityMask(255),
+			   OPTIX_RAY_FLAG_DISABLE_ANYHIT, RayType_Surface, RayType_Count, RayType_Surface, u0, u1);
+
+	if(payload.status == RS_Active)
+	{
+		// sample hemisphere
+		const float3 normal = make_float3(int_as_float(payload.kernelData.x), int_as_float(payload.kernelData.y), int_as_float(payload.kernelData.z));
+		const float3 p = SampleCosineHemisphere(normal, rnd(seed), rnd(seed));
+
+		float3 rayOrigin = optixLaunchParams.cameraPos + (rayDir * payload.dst);
+		rayDir = p;
+
+		// trace the bounce ray
+		payload.depth++;
+		optixTrace(optixLaunchParams.sceneRoot, rayOrigin, rayDir, optixLaunchParams.epsilon, 1e20f, 0.f, OptixVisibilityMask(255),
+				   OPTIX_RAY_FLAG_DISABLE_ANYHIT, RayType_Surface, RayType_Count, RayType_Surface, u0, u1);
+
+		if(payload.dst > optixLaunchParams.aoDist)
+			WriteResult(make_float3(1));
+		else
+			WriteResult(make_float3(payload.dst / optixLaunchParams.aoDist));
+	}
 }

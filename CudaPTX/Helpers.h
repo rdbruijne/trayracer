@@ -13,30 +13,36 @@
 
 
 //------------------------------------------------------------------------------------------------------------------------------
-// RNG
+// Math constants
 //------------------------------------------------------------------------------------------------------------------------------
-// generate a random number (0, 1)
-static __device__
-float frand(int& seed)
-{
-	// http://www.iquilezles.org/www/articles/sfrand/sfrand.htm
-	union
-	{
-		float fres;
-		unsigned int ires;
-	};
+constexpr float M_E        = 2.71828182845904523536;    // e
+constexpr float M_LOG2E    = 1.44269504088896340736f;   // log2(e)
+constexpr float M_LOG10E   = 0.434294481903251827651f;  // log10(e)
+constexpr float M_LN2      = 0.693147180559945309417f;  // ln(2)
+constexpr float M_LN10     = 2.30258509299404568402f;   // ln(10)
+constexpr float M_PI       = 3.14159265358979323846f;   // pi
+constexpr float M_PI_2     = 1.57079632679489661923f;   // pi/2
+constexpr float M_PI_4     = 0.785398163397448309616f;  // pi/4
+constexpr float M_1_PI     = 0.318309886183790671538f;  // 1/pi
+constexpr float M_2_PI     = 0.636619772367581343076f;  // 2/pi
+constexpr float M_2_SQRTPI = 1.12837916709551257390f;   // 2/sqrt(pi)
+constexpr float M_SQRT2    = 1.41421356237309504880f;   // sqrt(2)
+constexpr float M_SQRT1_2  = 0.707106781186547524401f;  // 1/sqrt(2)
 
-	seed *= 16807;
-	ires = ((((unsigned int)seed)>>9 ) | 0x3f800000);
-	return fres - 1.0f;
-}
 
+
+//------------------------------------------------------------------------------------------------------------------------------
+// math functions
+//------------------------------------------------------------------------------------------------------------------------------
+static __device__ inline float2 operator -(const float2& a) { return make_float2(-a.x, -a.y); }
+static __device__ inline float3 operator -(const float3& a) { return make_float3(-a.x, -a.y, -a.z); }
+static __device__ inline float4 operator -(const float4& a) { return make_float4(-a.x, -a.y, -a.z, -a.w); }
 
 
 //------------------------------------------------------------------------------------------------------------------------------
 // Payload
 //------------------------------------------------------------------------------------------------------------------------------
-// Pack a pointer into 2 unsigned integers.
+// Pack a pointer into 2 unsigned integers
 static __device__
 void PackPointer(void* ptr, uint32_t& u1, uint32_t& u2)
 {
@@ -47,7 +53,7 @@ void PackPointer(void* ptr, uint32_t& u1, uint32_t& u2)
 
 
 
-// Unpack a pointer from 2 unsigned integers.
+// Unpack a pointer from 2 unsigned integers
 static __device__
 void* UnpackPointer(uint32_t u1, uint32_t u2)
 {
@@ -56,7 +62,7 @@ void* UnpackPointer(uint32_t u1, uint32_t u2)
 
 
 
-// Get ray payload.
+// Get ray payload
 static __device__
 Payload* GetPayload()
 {
@@ -68,7 +74,7 @@ Payload* GetPayload()
 //------------------------------------------------------------------------------------------------------------------------------
 // Colors
 //------------------------------------------------------------------------------------------------------------------------------
-// Convert an object ID to a color.
+// Convert an object ID to a color
 static __device__
 float3 IdToColor(uint32_t id)
 {
@@ -83,6 +89,107 @@ float3 IdToColor(uint32_t id)
 	}
 
 	return make_float3(c[0] * (1.f / 255.f), c[1] * (1.f / 255.f), c[2] * (1.f / 255.f));
+}
+
+
+
+//------------------------------------------------------------------------------------------------------------------------------
+// Intersection
+//------------------------------------------------------------------------------------------------------------------------------
+static __device__
+float2 Barycentric(float2 bc, const float2& v0, const float2& v1, const float2& v2)
+{
+	return v0 + ((v1 - v0) * bc.x) + ((v2 - v0) * bc.y);
+}
+
+
+
+static __device__
+float3 Barycentric(float2 bc, const float3& v0, const float3& v1, const float3& v2)
+{
+	return v0 + ((v1 - v0) * bc.x) + ((v2 - v0) * bc.y);
+}
+
+
+
+struct IntersectionAttributes
+{
+	float3 geometricNormal;
+	int primitiveIndex;
+
+	float3 shadingNormal;
+	int padding0;
+
+	float3 texcoord;
+	int padding1;
+
+	float3 tangent;
+	int padding2;
+
+	float3 bitangent;
+	int padding3;
+
+	const TriangleMeshData* meshData;
+	int2 padding4;
+};
+
+
+
+static __device__
+IntersectionAttributes GetIntersectionAttributes()
+{
+	IntersectionAttributes attrib = {};
+
+	// get mesh data
+	attrib.meshData = (const TriangleMeshData*)optixGetSbtDataPointer();
+
+	// get optix info
+	const int primID = optixGetPrimitiveIndex();
+	const float2 barycentrics = optixGetTriangleBarycentrics();
+	const uint3 index = attrib.meshData->indices[primID];
+
+	// set simple data
+	attrib.primitiveIndex = optixGetPrimitiveIndex();
+	attrib.shadingNormal = normalize(Barycentric(barycentrics, attrib.meshData->normals[index.x], attrib.meshData->normals[index.y], attrib.meshData->normals[index.z]));
+
+	const float3 texcoord0 = attrib.meshData->texcoords[index.x];
+	const float3 texcoord1 = attrib.meshData->texcoords[index.y];
+	const float3 texcoord2 = attrib.meshData->texcoords[index.z];
+	attrib.texcoord = Barycentric(barycentrics, texcoord0, texcoord1, texcoord2);
+
+	// calculate geometric normal
+	const float3 v0 = attrib.meshData->vertices[index.x];
+	const float3 v1 = attrib.meshData->vertices[index.y];
+	const float3 v2 = attrib.meshData->vertices[index.z];
+
+	const float3 e1 = v1 - v0;
+	const float3 e2 = v2 - v0;
+	const float3 N = cross(e1, e2);
+	attrib.geometricNormal = normalize(N);
+
+	// calculate tangents
+	const float s1 = texcoord1.x - texcoord0.x;
+	const float t1 = texcoord1.y - texcoord0.y;
+
+	const float s2 = texcoord2.x - texcoord0.x;
+	const float t2 = texcoord2.y - texcoord0.y;
+
+	float r = (s1 * t2) - (s2 * t1);
+
+	if(fabsf(r) < 1e-4f)
+	{
+		attrib.bitangent = normalize(cross(attrib.shadingNormal, e1));
+		attrib.tangent = normalize(cross(attrib.shadingNormal, attrib.bitangent));
+	}
+	else
+	{
+		r = 1.f / r;
+		const float3 t = make_float3((s1 * e2.x - s2 * e1.x) * r, (s1 * e2.y - s2 * e1.y) * r, (s1 * e2.z - s2 * e1.z) * r);
+		attrib.bitangent = normalize(t - attrib.shadingNormal * dot(attrib.shadingNormal, t));
+		attrib.tangent = normalize(cross(attrib.shadingNormal, attrib.bitangent));
+	}
+
+	return attrib;
 }
 
 
@@ -134,64 +241,53 @@ void WriteResult(float3 result)
 
 
 //------------------------------------------------------------------------------------------------------------------------------
-// Generic programs
+// Orthonormal base
 //------------------------------------------------------------------------------------------------------------------------------
 static __device__
-void Generic_AnyHit()
+void ONB(const float3 normal, float3& tangent, float3& bitangent)
 {
-	optixTerminateRay();
+	if(fabsf(normal.x) > fabsf(normal.y))
+	{
+		bitangent.x = -normal.y;
+		bitangent.y =  normal.x;
+		bitangent.z =  0;
+	}
+	else
+	{
+		bitangent.x =  0;
+		bitangent.y = -normal.z;
+		bitangent.z = normal.y;
+	}
+
+	bitangent = normalize(bitangent);
+	tangent = cross(bitangent, normal);
+}
+
+
+
+//------------------------------------------------------------------------------------------------------------------------------
+// Sampling
+//------------------------------------------------------------------------------------------------------------------------------
+static __device__
+float3 SampleCosineHemisphere(float u, float v)
+{
+	// uniform sample disk
+	const float r = sqrtf(u);
+	const float phi = 2.f * M_PI * v;
+	const float x = r * cosf(phi);
+	const float y = r * sinf(phi);
+	const float z = sqrtf(fmaxf(0.f, 1.f - x*x - y*y));
+	return make_float3(x, y, z);
 }
 
 
 
 static __device__
-void Generic_ClosestHit()
+float3 SampleCosineHemisphere(const float3& normal, float u, float v)
 {
-	const TriangleMeshData& meshData = *(const TriangleMeshData*)optixGetSbtDataPointer();
-	Payload* p = GetPayload();
-	p->color = meshData.diffuse;
-}
+	float3 tangent, bitangent;
+	ONB(normal, tangent, bitangent);
 
-
-
-static __device__
-void Generic_Miss()
-{
-	WriteResult(make_float3(0));
-}
-
-
-
-static __device__
-void Generic_RayGen()
-{
-	InitializeFilm();
-
-	// get the current pixel index
-	const int ix = optixGetLaunchIndex().x;
-	const int iy = optixGetLaunchIndex().y;
-
-	int seed = ix + (optixLaunchParams.resolutionX * iy) + optixLaunchParams.sampleCount;
-
-	// encode payload pointer
-	Payload payload = {};
-	uint32_t u0, u1;
-	PackPointer(&payload, u0, u1);
-
-	// trace the ray
-	float3 rayDir = SampleRay(make_float2(ix, iy), make_float2(optixLaunchParams.resolutionX, optixLaunchParams.resolutionY), make_float2(frand(seed), frand(seed)));
-	optixTrace(optixLaunchParams.sceneRoot,
-			   optixLaunchParams.cameraPos,
-			   rayDir,
-			   0.f,
-			   1e20f,
-			   0.f,
-			   OptixVisibilityMask(255),
-			   OPTIX_RAY_FLAG_DISABLE_ANYHIT,
-			   RayType_Surface,
-			   RayType_Count,
-			   RayType_Surface,
-			   u0, u1);
-
-	WriteResult(payload.color);
+	const float3 f = SampleCosineHemisphere(u, v);
+	return f.x*tangent + f.y*bitangent + f.z*normal;
 }

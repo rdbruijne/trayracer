@@ -3,10 +3,15 @@
 // Project
 #include "Helpers.h"
 
+// CUDA
+#include "CUDA/random.h"
+
+
+
 extern "C" __global__
 void __anyhit__ShadingNormal()
 {
-	Generic_AnyHit();
+	optixTerminateRay();
 }
 
 
@@ -18,20 +23,11 @@ void __closesthit__ShadingNormal()
 
 	// get intersection info
 	const int primID = optixGetPrimitiveIndex();
-	const float2 uv = optixGetTriangleBarycentrics();
-	const float3 D = optixGetWorldRayDirection();
-
 	const uint3 index = meshData.indices[primID];
+	const float2 barycentrics = optixGetTriangleBarycentrics();
+	const float3 N = normalize(Barycentric(barycentrics, meshData.normals[index.x], meshData.normals[index.y], meshData.normals[index.z]));
 
-	// calculate normal at intersection point
-	const float3& N0 = meshData.normals[index.x];
-	const float3& N1 = meshData.normals[index.y];
-	const float3& N2 = meshData.normals[index.z];
-	const float3 N = normalize(((1.f - uv.x - uv.y) * N0) + (uv.x * N1) + (uv.y * N2));
-
-	// set payload
-	Payload* p = GetPayload();
-	p->color = (N + make_float3(1)) * 0.5f;
+	WriteResult((N + make_float3(1)) * 0.5f);
 }
 
 
@@ -39,8 +35,6 @@ void __closesthit__ShadingNormal()
 extern "C" __global__
 void __miss__ShadingNormal()
 {
-	Payload* p = GetPayload();
-	p->color = make_float3(0);
 }
 
 
@@ -48,5 +42,17 @@ void __miss__ShadingNormal()
 extern "C" __global__
 void __raygen__ShadingNormal()
 {
-	Generic_RayGen();
+	InitializeFilm();
+
+	// get the current pixel index
+	const int ix = optixGetLaunchIndex().x;
+	const int iy = optixGetLaunchIndex().y;
+
+	// set the seed
+	uint32_t seed = tea<2>(ix + (optixLaunchParams.resolutionX * iy), optixLaunchParams.sampleCount);
+
+	// trace the ray
+	float3 rayDir = SampleRay(make_float2(ix, iy), make_float2(optixLaunchParams.resolutionX, optixLaunchParams.resolutionY), make_float2(rnd(seed), rnd(seed)));
+	optixTrace(optixLaunchParams.sceneRoot, optixLaunchParams.cameraPos, rayDir, 0.f, 1e20f, 0.f, OptixVisibilityMask(255),
+			   OPTIX_RAY_FLAG_DISABLE_ANYHIT, RayType_Surface, RayType_Count, RayType_Surface);
 }
