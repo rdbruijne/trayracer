@@ -84,6 +84,11 @@ namespace Tracer
 
 		// allocate launch params
 		mLaunchParamsBuffer.Alloc(sizeof(LaunchParams));
+
+		// set launch param constants
+		mLaunchParams.epsilon = Epsilon;
+		mLaunchParams.aoDist = 10.f;
+		mLaunchParams.zDepthMaX = 10.f;
 	}
 
 
@@ -124,8 +129,14 @@ namespace Tracer
 			mLaunchParams.colorBuffer = reinterpret_cast<float4*>(mColorBuffer.DevicePtr());
 		}
 
-		// update launch params
-		mLaunchParams.sceneRoot = mSceneRoot;
+		// update scene root
+		if(mLaunchParams.sceneRoot != mSceneRoot)
+		{
+			mLaunchParams.sampleCount = 0;
+			mLaunchParams.sceneRoot = mSceneRoot;
+		}
+
+		// upload launch params
 		mLaunchParamsBuffer.Upload(&mLaunchParams, 1);
 
 		// launch OptiX

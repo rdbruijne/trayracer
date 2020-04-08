@@ -5,7 +5,10 @@
 #include "Common/CommonStructs.h"
 
 // libraries
+#pragma warning(push)
+#pragma warning(disable: 5027)
 #include "magic_enum/magic_enum.hpp"
+#pragma warning(pop)
 
 // C++
 #include <array>
@@ -47,6 +50,27 @@ namespace Tracer
 		inline RenderModes RenderMode() const { return mRenderMode; }
 
 		inline int SampleCount() const { return mLaunchParams.sampleCount; }
+
+		// kernel settings
+		inline float AODist() const { return mLaunchParams.aoDist; }
+		inline void SetAODist(float aoDist)
+		{
+			if(aoDist != mLaunchParams.aoDist)
+			{
+				mLaunchParams.aoDist = aoDist;
+				mLaunchParams.sampleCount = 0;
+			}
+		}
+
+		inline float ZDepthMax() const { return mLaunchParams.zDepthMaX; }
+		inline void SetZDepthMax(float zDepthMax)
+		{
+			if(zDepthMax != mLaunchParams.zDepthMaX)
+			{
+				mLaunchParams.zDepthMaX = zDepthMax;
+				mLaunchParams.sampleCount = 0;
+			}
+		}
 
 	private:
 		// Creation

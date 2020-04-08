@@ -7,9 +7,6 @@
 // ImGUI
 #include "imgui/imgui.h"
 
-// magic enum
-#include "magic_enum/magic_enum.hpp"
-
 namespace Tracer
 {
 	void RendererWindow::Draw()
@@ -43,6 +40,17 @@ namespace Tracer
 			}
 			ImGui::EndCombo();
 		}
+
+		// kernel settings
+		ImGui::BeginGroup();
+		float aoDist = renderer->AODist();
+		if(ImGui::SliderFloat("AO Dist", &aoDist, 0.f, 1e4f, "%.3f", 10.f))
+			renderer->SetAODist(aoDist);
+
+		float zDepthMax = renderer->ZDepthMax();
+		if(ImGui::SliderFloat("Z-Depth max", &zDepthMax, 0.f, 1e4f, "%.3f", 10.f))
+			renderer->SetZDepthMax(zDepthMax);
+		ImGui::EndGroup();
 
 		ImGui::End();
 	}
