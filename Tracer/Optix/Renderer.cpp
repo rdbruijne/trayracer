@@ -69,10 +69,16 @@ namespace Tracer
 
 	Renderer::Renderer()
 	{
-		// prepare renderer
+		// create context
 		CreateContext();
+
+		// create module
 		CreateModule();
-		CreateConfigs();
+
+		// create programs
+		CreatePrograms();
+
+		// create pipeline
 		CreatePipeline();
 
 		// build shader binding table
@@ -82,9 +88,9 @@ namespace Tracer
 		mLaunchParamsBuffer.Alloc(sizeof(LaunchParams));
 
 		// set launch param constants
-		mLaunchParams.maxDepth = 4;
-		mLaunchParams.epsilon = Epsilon;
-		mLaunchParams.aoDist = 10.f;
+		mLaunchParams.maxDepth  = 2;
+		mLaunchParams.epsilon   = Epsilon;
+		mLaunchParams.aoDist    = 10.f;
 		mLaunchParams.zDepthMaX = 10.f;
 	}
 
@@ -281,7 +287,7 @@ namespace Tracer
 
 
 
-	void Renderer::CreateConfigs()
+	void Renderer::CreatePrograms()
 	{
 		// raygen
 		auto CreateRaygenProgram = [this](const std::string& name) -> std::vector<OptixProgramGroup>

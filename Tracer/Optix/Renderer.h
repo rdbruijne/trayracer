@@ -89,7 +89,7 @@ namespace Tracer
 		// Creation
 		void CreateContext();
 		void CreateModule();
-		void CreateConfigs();
+		void CreatePrograms();
 		void CreatePipeline();
 
 		// scene building
