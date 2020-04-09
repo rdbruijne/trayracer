@@ -5,6 +5,7 @@
 #include "Pipeline_DiffuseFilter.h"
 #include "Pipeline_ObjectID.h"
 #include "Pipeline_PathTracing.h"
+#include "Pipeline_RayPick.h"
 #include "Pipeline_ShadingNormal.h"
 #include "Pipeline_TextureCoordinate.h"
 #include "Pipeline_Wireframe.h"

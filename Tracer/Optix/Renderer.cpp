@@ -21,6 +21,10 @@ namespace Tracer
 {
 	namespace
 	{
+		constexpr size_t RayPickConfigIx = magic_enum::enum_count<Renderer::RenderModes>();
+
+
+
 		// Raygen program Shader Binding Table record
 		struct alignas(OPTIX_SBT_RECORD_ALIGNMENT) RaygenRecord
 		{
@@ -65,18 +69,10 @@ namespace Tracer
 
 	Renderer::Renderer()
 	{
-		// create context
+		// prepare renderer
 		CreateContext();
-
-		// create module
 		CreateModule();
-
-		// create programs
-		CreateRaygenPrograms();
-		CreateMissPrograms();
-		CreateHitgroupPrograms();
-
-		// create pipeline
+		CreateConfigs();
 		CreatePipeline();
 
 		// build shader binding table
@@ -86,7 +82,7 @@ namespace Tracer
 		mLaunchParamsBuffer.Alloc(sizeof(LaunchParams));
 
 		// set launch param constants
-		mLaunchParams.maxDepth = 2;
+		mLaunchParams.maxDepth = 4;
 		mLaunchParams.epsilon = Epsilon;
 		mLaunchParams.aoDist = 10.f;
 		mLaunchParams.zDepthMaX = 10.f;
@@ -202,6 +198,33 @@ namespace Tracer
 
 
 
+	RayPickResult Renderer::PickRay(uint2 pixelIndex)
+	{
+		// allocate result buffer
+		CudaBuffer resultBuffer;
+		resultBuffer.Alloc(sizeof(RayPickResult));
+
+		// set ray pick specific launch param options
+		mLaunchParams.rayPickPixelIndex = pixelIndex;
+		mLaunchParams.rayPickResult     = reinterpret_cast<RayPickResult*>(resultBuffer.DevicePtr());
+
+		// upload launch params
+		mLaunchParamsBuffer.Upload(&mLaunchParams, 1);
+
+		// launch the kernel
+		OPTIX_CHECK(optixLaunch(mPipeline, mStream, mLaunchParamsBuffer.DevicePtr(), mLaunchParamsBuffer.Size(),
+								&mRenderModeConfigs[RayPickConfigIx].shaderBindingTable, 1, 1, 1));
+		CUDA_CHECK(cudaDeviceSynchronize());
+
+		// read the raypick result
+		RayPickResult result;
+		resultBuffer.Download(&result, 1);
+
+		return result;
+	}
+
+
+
 	void Renderer::CreateContext()
 	{
 		const int deviceID = 0;
@@ -258,13 +281,12 @@ namespace Tracer
 
 
 
-	void Renderer::CreateRaygenPrograms()
+	void Renderer::CreateConfigs()
 	{
-		for(size_t m = 0; m < magic_enum::enum_count<RenderModes>(); m++)
+		// raygen
+		auto CreateRaygenProgram = [this](const std::string& name) -> std::vector<OptixProgramGroup>
 		{
-			mRenderModeConfigs[m].rayGenPrograms.resize(1);
-
-			const std::string entryName = EntryName(static_cast<RenderModes>(m), "__raygen__");
+			const std::string entryName = "__raygen__" + name;
 
 			OptixProgramGroupOptions options = {};
 			OptixProgramGroupDesc desc       = {};
@@ -273,22 +295,19 @@ namespace Tracer
 			desc.raygen.entryFunctionName    = entryName.c_str();
 
 			char log[2048];
-			size_t sizeof_log = sizeof(log);
-			OPTIX_CHECK(optixProgramGroupCreate(mOptixContext, &desc, 1, &options, log, &sizeof_log, &mRenderModeConfigs[m].rayGenPrograms[0]));
-			if(sizeof_log > 1)
+			size_t logLength = sizeof(log);
+			std::vector<OptixProgramGroup> programs(1);
+			OPTIX_CHECK(optixProgramGroupCreate(mOptixContext, &desc, static_cast<unsigned int>(programs.size()), &options, log, &logLength, programs.data()));
+			if(logLength > 1)
 				printf("%s\n", log);
-		}
-	}
 
+			return programs;
+		};
 
-
-	void Renderer::CreateMissPrograms()
-	{
-		for(size_t m = 0; m < magic_enum::enum_count<RenderModes>(); m++)
+		// miss
+		auto CreateMissProgram = [this](const std::string& name) -> std::vector<OptixProgramGroup>
 		{
-			mRenderModeConfigs[m].missPrograms.resize(1);
-
-			const std::string entryName = EntryName(static_cast<RenderModes>(m), "__miss__");
+			const std::string entryName = "__miss__" + name;
 
 			OptixProgramGroupOptions options = {};
 			OptixProgramGroupDesc desc       = {};
@@ -298,22 +317,19 @@ namespace Tracer
 
 			char log[2048];
 			size_t logLength = sizeof(log);
-			OPTIX_CHECK(optixProgramGroupCreate(mOptixContext, &desc, 1, &options, log, &logLength, &mRenderModeConfigs[m].missPrograms[0]));
+			std::vector<OptixProgramGroup> programs(1);
+			OPTIX_CHECK(optixProgramGroupCreate(mOptixContext, &desc, static_cast<unsigned int>(programs.size()), &options, log, &logLength, programs.data()));
 			if(logLength > 1)
 				printf("%s\n", log);
-		}
-	}
 
+			return programs;
+		};
 
-
-	void Renderer::CreateHitgroupPrograms()
-	{
-		for(size_t m = 0; m < magic_enum::enum_count<RenderModes>(); m++)
+		// hit
+		auto CreateHitProgram = [this](const std::string& name) -> std::vector<OptixProgramGroup>
 		{
-			mRenderModeConfigs[m].hitgroupPrograms.resize(1);
-
-			const std::string ahEntryName = EntryName(static_cast<RenderModes>(m), "__anyhit__");
-			const std::string chEntryName = EntryName(static_cast<RenderModes>(m), "__closesthit__");
+			const std::string ahEntryName = "__anyhit__" + name;
+			const std::string chEntryName = "__closesthit__" + name;
 
 			OptixProgramGroupOptions options  = {};
 			OptixProgramGroupDesc desc        = {};
@@ -323,14 +339,30 @@ namespace Tracer
 			desc.hitgroup.moduleAH            = mModule;
 			desc.hitgroup.entryFunctionNameAH = ahEntryName.c_str();
 
-			mRenderModeConfigs[m].hitgroupPrograms.resize(1);
-
 			char log[2048];
 			size_t logLength = sizeof(log);
-			OPTIX_CHECK(optixProgramGroupCreate(mOptixContext, &desc, 1, &options, log, &logLength, &mRenderModeConfigs[m].hitgroupPrograms[0]));
+			std::vector<OptixProgramGroup> programs(1);
+			OPTIX_CHECK(optixProgramGroupCreate(mOptixContext, &desc, static_cast<unsigned int>(programs.size()), &options, log, &logLength, programs.data()));
 			if(logLength > 1)
 				printf("%s\n", log);
+
+			return programs;
+		};
+
+		// configs for rendermodes
+		for(size_t m = 0; m < magic_enum::enum_count<RenderModes>(); m++)
+		{
+			const std::string modeName = ToString(static_cast<RenderModes>(m));
+			mRenderModeConfigs[m].rayGenPrograms   = CreateRaygenProgram(modeName);
+			mRenderModeConfigs[m].missPrograms     = CreateMissProgram(modeName);
+			mRenderModeConfigs[m].hitgroupPrograms = CreateHitProgram(modeName);
 		}
+
+		// ray pick
+		const std::string rayPickName = "RayPick";
+		mRenderModeConfigs[RayPickConfigIx].rayGenPrograms   = CreateRaygenProgram(rayPickName);
+		mRenderModeConfigs[RayPickConfigIx].missPrograms     = CreateMissProgram(rayPickName);
+		mRenderModeConfigs[RayPickConfigIx].hitgroupPrograms = CreateHitProgram(rayPickName);
 	}
 
 

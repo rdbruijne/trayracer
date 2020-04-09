@@ -4,7 +4,7 @@
 #include "CUDA/CudaBuffer.h"
 #include "Common/CommonStructs.h"
 
-// libraries
+// Magic Enum
 #pragma warning(push)
 #pragma warning(disable: 5027)
 #include "magic_enum/magic_enum.hpp"
@@ -51,6 +51,9 @@ namespace Tracer
 
 		inline int SampleCount() const { return mLaunchParams.sampleCount; }
 
+		// ray picking
+		RayPickResult PickRay(uint2 pixelIndex);
+
 		// kernel settings
 		inline int MaxDepth() const { return mLaunchParams.maxDepth; }
 		inline void SetMaxDepth(int maxDepth)
@@ -86,9 +89,7 @@ namespace Tracer
 		// Creation
 		void CreateContext();
 		void CreateModule();
-		void CreateRaygenPrograms();
-		void CreateMissPrograms();
-		void CreateHitgroupPrograms();
+		void CreateConfigs();
 		void CreatePipeline();
 
 		// scene building
@@ -138,7 +139,7 @@ namespace Tracer
 
 			OptixShaderBindingTable shaderBindingTable;
 		};
-		std::array<RenderModeConfig, magic_enum::enum_count<RenderModes>()> mRenderModeConfigs;
+		std::array<RenderModeConfig, magic_enum::enum_count<RenderModes>() + 1> mRenderModeConfigs;
 
 		// Geometry
 		std::vector<CudaBuffer> mVertexBuffers;

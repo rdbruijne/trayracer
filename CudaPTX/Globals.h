@@ -32,3 +32,13 @@ struct Payload
 	int3 kernelData; // kernel specific info
 	RayStatus status;
 };
+
+
+
+struct PayloadRayPick
+{
+	float dst;
+	int objectID;
+	int materialID;
+	int pad1;
+};

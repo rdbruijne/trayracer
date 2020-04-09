@@ -100,6 +100,7 @@
     <ClInclude Include="Pipeline_DiffuseFilter.h" />
     <ClInclude Include="Pipeline_ObjectID.h" />
     <ClInclude Include="Pipeline_PathTracing.h" />
+    <ClInclude Include="Pipeline_RayPick.h" />
     <ClInclude Include="Pipeline_ShadingNormal.h" />
     <ClInclude Include="Pipeline_TextureCoordinate.h" />
     <ClInclude Include="Pipeline_Wireframe.h" />

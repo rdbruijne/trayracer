@@ -25,6 +25,18 @@ enum TexturesInMaterial
 
 
 
+struct alignas(16) RayPickResult
+{
+	float3 rayOrigin;
+	uint32_t objectID;
+
+	float3 rayDir;
+	float dst;
+};
+
+
+
+
 struct alignas(16) LaunchParams
 {
 	float3 cameraPos;
@@ -34,10 +46,10 @@ struct alignas(16) LaunchParams
 	int32_t resolutionY;
 
 	float3 cameraUp;
-	int32_t sampleCount;
+	float cameraFov;
 
 	float3 cameraForward;
-	float cameraFov;
+	int32_t sampleCount;
 
 	OptixTraversableHandle sceneRoot;
 	float4* colorBuffer;
@@ -46,6 +58,10 @@ struct alignas(16) LaunchParams
 	float epsilon;
 	float aoDist;
 	float zDepthMaX;
+
+	// ray pick
+	uint2 rayPickPixelIndex;
+	RayPickResult* rayPickResult;
 };
 
 
