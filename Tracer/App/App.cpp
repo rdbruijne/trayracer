@@ -13,7 +13,7 @@ namespace Tracer
 	void App::Init(Renderer* renderer, Window* window)
 	{
 		CreateScene();
-		mCamera = CameraNode(make_float3(-5, 5, -6), make_float3(0, 0, 0), make_float3(0, 1, 0), 90.f * DegToRad);
+
 		renderer->SetCamera(mCamera.Position, normalize(mCamera.Target - mCamera.Position), mCamera.Up, mCamera.Fov);
 	}
 
@@ -48,7 +48,13 @@ namespace Tracer
 	void App::CreateScene()
 	{
 		mScene = std::make_unique<Scene>();
+
+		// toad
 		mScene->AddModel(ImportModel("models/toad/toad.obj"));
-		//mScene->AddModel(ImportModel("D:/3d_models/Scenes/sponza_crytek/Sponza_Crytek.obj"));
+		mCamera = CameraNode(make_float3(-5, 5, -6), make_float3(0, 0, 0), make_float3(0, 1, 0), 90.f * DegToRad);
+
+		// sponza
+		//mScene->AddModel(ImportModel("models/sponza/sponza.obj"));
+		//mCamera = CameraNode(make_float3(-1350, 150, 0), make_float3(0, 125, 0), make_float3(0, 1, 0), 90.f * DegToRad);
 	}
 }
