@@ -51,10 +51,10 @@ void __raygen__RayPick()
 	PackPointer(&payload, u0, u1);
 
 	// trace the ray
-	float3 rayDir = SampleRay(make_float2(optixLaunchParams.rayPickPixelIndex.x, optixLaunchParams.rayPickPixelIndex.y),
-							  make_float2(optixLaunchParams.resolutionX, optixLaunchParams.resolutionY),
-							  make_float2(0, 0));
-	optixTrace(optixLaunchParams.sceneRoot, optixLaunchParams.cameraPos, rayDir, optixLaunchParams.epsilon, 1e20f, 0.f, OptixVisibilityMask(255),
+	const float3 rayDir = SampleRay(make_float2(optixLaunchParams.rayPickPixelIndex.x, optixLaunchParams.resolutionY - optixLaunchParams.rayPickPixelIndex.y),
+									make_float2(optixLaunchParams.resolutionX, optixLaunchParams.resolutionY),
+									make_float2(0, 0));
+	optixTrace(optixLaunchParams.sceneRoot, optixLaunchParams.cameraPos, rayDir, optixLaunchParams.epsilon * 10.f, 1e20f, 0.f, OptixVisibilityMask(255),
 			   OPTIX_RAY_FLAG_DISABLE_ANYHIT, RayType_Surface, RayType_Count, RayType_Surface, u0, u1);
 
 	RayPickResult& r = *optixLaunchParams.rayPickResult;
