@@ -8,20 +8,24 @@
 
 namespace Tracer
 {
-	std::map<std::string, std::string> DebugWindow::msMap;
+	DebugWindow* const DebugWindow::Get()
+	{
+		static DebugWindow inst;
+		return &inst;
+	}
 
 
 
 	void DebugWindow::Set(const std::string& name, const std::string& data)
 	{
-		msMap[name] = data;
+		mMap[name] = data;
 	}
 
 
 
 	void DebugWindow::Unset(const std::string& name)
 	{
-		msMap.erase(name);
+		mMap.erase(name);
 	}
 
 
@@ -41,7 +45,7 @@ namespace Tracer
 		ImGui::Separator();
 
 		// data
-		for(auto& kv : msMap)
+		for(auto& kv : mMap)
 		{
 			ImGui::Text(kv.first.c_str());
 			ImGui::NextColumn();

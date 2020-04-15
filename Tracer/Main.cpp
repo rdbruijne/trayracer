@@ -22,7 +22,7 @@ namespace
 {
 	struct WindowRegistration
 	{
-		std::shared_ptr<Tracer::GuiWindow> window;
+		Tracer::GuiWindow* window;
 		Tracer::Input::Keys toggleKey;
 	};
 }
@@ -53,17 +53,12 @@ int main(int argc, char** argv)
 		// init GUI
 		Tracer::GuiHelpers::Init(window);
 
-		auto cameraWindow = std::make_shared<Tracer::CameraWindow>();
-		auto debugWindow = std::make_shared<Tracer::DebugWindow>();
-		auto rendererWindow = std::make_shared<Tracer::RendererWindow>();
-		auto statWindow = std::make_shared<Tracer::StatWindow>();
-
 		std::vector<WindowRegistration> guiWindows =
 		{
-			{ statWindow, Tracer::Input::Keys::F1 },
-			{ rendererWindow, Tracer::Input::Keys::F2 },
-			{ cameraWindow, Tracer::Input::Keys::F3 },
-			{ debugWindow, Tracer::Input::Keys::F10 }
+			{ Tracer::StatWindow::Get(),     Tracer::Input::Keys::F1 },
+			{ Tracer::RendererWindow::Get(), Tracer::Input::Keys::F2 },
+			{ Tracer::CameraWindow::Get(),   Tracer::Input::Keys::F3 },
+			{ Tracer::DebugWindow::Get(),    Tracer::Input::Keys::F10 }
 		};
 
 		// create app
@@ -100,11 +95,10 @@ int main(int argc, char** argv)
 			window->Display();
 
 			// update GUI
-			cameraWindow->mCamNode = app->GetCameraNode();
-			rendererWindow->mRenderer = renderer;
-
-			statWindow->mFrameTimeNs = elapsedNs;
-			statWindow->mRenderer = renderer;
+			Tracer::CameraWindow::Get()->mCamNode = app->GetCameraNode();
+			Tracer::RendererWindow::Get()->mRenderer = renderer;
+			Tracer::StatWindow::Get()->mFrameTimeNs = elapsedNs;
+			Tracer::StatWindow::Get()->mRenderer = renderer;
 
 			// toggle GUI
 			bool anyGuiWindow = false;

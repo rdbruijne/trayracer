@@ -9,6 +9,14 @@
 
 namespace Tracer
 {
+	StatWindow* const StatWindow::Get()
+	{
+		static StatWindow inst;
+		return &inst;
+	}
+
+
+
 	void StatWindow::DrawImpl()
 	{
 		ImGui::Begin("Statistics", &mEnabled);

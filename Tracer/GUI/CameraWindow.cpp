@@ -9,6 +9,14 @@
 
 namespace Tracer
 {
+	CameraWindow* const CameraWindow::Get()
+	{
+		static CameraWindow inst;
+		return &inst;
+	}
+
+
+
 	void CameraWindow::DrawImpl()
 	{
 		ImGui::Begin("Camera", &mEnabled);

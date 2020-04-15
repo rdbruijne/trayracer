@@ -9,6 +9,8 @@ namespace Tracer
 	class RendererWindow : public GuiWindow
 	{
 	public:
+		static RendererWindow* const Get();
+
 		Renderer* mRenderer = nullptr;
 
 	private:

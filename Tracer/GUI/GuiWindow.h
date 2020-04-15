@@ -5,7 +5,7 @@ namespace Tracer
 	class GuiWindow
 	{
 	public:
-		virtual ~GuiWindow() {}
+		virtual ~GuiWindow() = default;
 
 		void Enable(bool enable = true) { mEnabled = enable; }
 		bool IsEnabled() const { return mEnabled; }

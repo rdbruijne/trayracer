@@ -9,6 +9,8 @@ namespace Tracer
 	class CameraWindow : public GuiWindow
 	{
 	public:
+		static CameraWindow* const Get();
+
 		CameraNode* mCamNode = nullptr;
 
 	private:

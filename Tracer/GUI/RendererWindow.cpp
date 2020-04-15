@@ -15,6 +15,14 @@
 
 namespace Tracer
 {
+	RendererWindow* const RendererWindow::Get()
+	{
+		static RendererWindow inst;
+		return &inst;
+	}
+
+
+
 	void RendererWindow::DrawImpl()
 	{
 		ImGui::Begin("Renderer", &mEnabled);
