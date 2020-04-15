@@ -3,8 +3,8 @@
 #include "Common/CommonStructs.h"
 
 // Launch parameters
-extern "C" __constant__
-LaunchParams optixLaunchParams;
+__constant__
+static LaunchParams optixLaunchParams;
 
 
 
