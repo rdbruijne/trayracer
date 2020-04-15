@@ -18,10 +18,12 @@ namespace Tracer
 	public:
 		void Init(Renderer* renderer, Window* window);
 		void DeInit(Renderer* renderer, Window* window);
-		void Tick(Renderer* renderer, Window* window, float dt = 1.f / 60.f);
+		void Tick(Renderer* renderer, Window* window, float dt);
 
 		Scene* GetScene() { return mScene.get(); }
 		Scene* GetScene() const { return mScene.get(); }
+
+		CameraNode* GetCameraNode() { return &mCamera; }
 
 	private:
 		void CreateScene();

@@ -5,9 +5,13 @@
 
 namespace Tracer
 {
+	struct CameraNode;
 	class CameraWindow : public GuiWindow
 	{
 	public:
-		void Draw() override;
+		CameraNode* mCamNode = nullptr;
+
+	private:
+		void DrawImpl() final;
 	};
 }

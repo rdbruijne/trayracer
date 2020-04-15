@@ -122,6 +122,7 @@
     <ClCompile Include="GUI\GuiHelpers.cpp" />
     <ClCompile Include="GUI\GuiWindow.cpp" />
     <ClCompile Include="GUI\RendererWindow.cpp" />
+    <ClCompile Include="GUI\StatWindow.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="OpenGL\GLHelpers.cpp" />
     <ClCompile Include="OpenGL\GLTexture.cpp" />
@@ -159,6 +160,7 @@
     <ClInclude Include="GUI\GuiHelpers.h" />
     <ClInclude Include="GUI\GuiWindow.h" />
     <ClInclude Include="GUI\RendererWindow.h" />
+    <ClInclude Include="GUI\StatWindow.h" />
     <ClInclude Include="OpenGL\GLHelpers.h" />
     <ClInclude Include="OpenGL\GLTexture.h" />
     <ClInclude Include="OpenGL\Input.h" />

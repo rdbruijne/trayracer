@@ -3,11 +3,6 @@
 // project
 #include "OpenGL/Window.h"
 
-// GUI
-#include "GUI/CameraWindow.h"
-#include "GUI/DebugWindow.h"
-#include "GUI/RendererWindow.h"
-
 // ImGUI
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
@@ -30,6 +25,10 @@ namespace Tracer
 
 		ImGuiIO& io = ImGui::GetIO();
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+		io.WantCaptureMouse = true;
+		io.WantCaptureKeyboard = true;
+		io.WantSetMousePos = true;
+
 		ImGui::StyleColorsDark();
 		ImGui_ImplGlfw_InitForOpenGL(window->GlfwWindow(), true);
 		ImGui_ImplOpenGL3_Init("#version 130");
@@ -39,11 +38,6 @@ namespace Tracer
 		//guiStyle.ScaleAllSizes();
 		//GetDpiForMonitor(nullptr, MDT_EFFECTIVE_DPI,
 
-		// register child windows
-		msWindows.push_back(new CameraWindow());
-		msWindows.push_back(new DebugWindow());
-		msWindows.push_back(new RendererWindow());
-
 		return true;
 	}
 
@@ -51,11 +45,6 @@ namespace Tracer
 
 	void GuiHelpers::DeInit()
 	{
-		// destroy child windows
-		for(GuiWindow* w : msWindows)
-			delete w;
-		msWindows.clear();
-
 		ImGui_ImplOpenGL3_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
@@ -63,22 +52,18 @@ namespace Tracer
 
 
 
-	void GuiHelpers::Draw()
+	void GuiHelpers::BeginFrame()
 	{
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-
-		// draw child windows
-		for(GuiWindow* w : msWindows)
-		{
-			//if(w->IsEnabled())
-				w->Draw();
-		}
-
-		ImGui::Render();
-
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	}
 
+
+
+	void GuiHelpers::EndFrame()
+	{
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	}
 }

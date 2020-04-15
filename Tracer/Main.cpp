@@ -9,8 +9,25 @@
 #include "Utility/Stopwatch.h"
 #include "Utility/Utility.h"
 
+// GUI windows
+#include "GUI/CameraWindow.h"
+#include "GUI/DebugWindow.h"
+#include "GUI/RendererWindow.h"
+#include "GUI/StatWindow.h"
+
 // C++
 #include <iostream>
+
+namespace
+{
+	struct WindowRegistration
+	{
+		std::shared_ptr<Tracer::GuiWindow> window;
+		Tracer::Input::Keys toggleKey;
+	};
+}
+
+
 
 int main(int argc, char** argv)
 {
@@ -25,7 +42,7 @@ int main(int argc, char** argv)
 		}
 		printf("Successfully initialized OptiX.\n");
 
-		const int2 renderResolution = make_int2(1280, 720);
+		const int2 renderResolution = make_int2(1920, 1080);
 
 		// create renderer
 		Tracer::Renderer* renderer = new Tracer::Renderer();
@@ -35,7 +52,19 @@ int main(int argc, char** argv)
 
 		// init GUI
 		Tracer::GuiHelpers::Init(window);
-		Tracer::GuiHelpers::renderer = renderer;
+
+		auto cameraWindow = std::make_shared<Tracer::CameraWindow>();
+		auto debugWindow = std::make_shared<Tracer::DebugWindow>();
+		auto rendererWindow = std::make_shared<Tracer::RendererWindow>();
+		auto statWindow = std::make_shared<Tracer::StatWindow>();
+
+		std::vector<WindowRegistration> guiWindows =
+		{
+			{ statWindow, Tracer::Input::Keys::F1 },
+			{ rendererWindow, Tracer::Input::Keys::F2 },
+			{ cameraWindow, Tracer::Input::Keys::F3 },
+			{ debugWindow, Tracer::Input::Keys::F10 }
+		};
 
 		// create app
 		Tracer::App* app = new Tracer::App();
@@ -44,8 +73,6 @@ int main(int argc, char** argv)
 		// timer
 		Tracer::Stopwatch stopwatch;
 		int64_t elapsedNs = 0;
-
-		bool showGui = false;
 
 		// main loop
 		while(!window->IsClosed())
@@ -72,22 +99,33 @@ int main(int argc, char** argv)
 			// run window shaders
 			window->Display();
 
-			// display GUI
-			if(window->WasKeyPressed(Tracer::Input::Keys::F4))
-				showGui = !showGui;
+			// update GUI
+			cameraWindow->mCamNode = app->GetCameraNode();
+			rendererWindow->mRenderer = renderer;
 
-			if(showGui)
-				Tracer::GuiHelpers::Draw();
+			statWindow->mFrameTimeNs = elapsedNs;
+			statWindow->mRenderer = renderer;
+
+			// toggle GUI
+			bool anyGuiWindow = false;
+			for(auto& w : guiWindows)
+			{
+				if(window->WasKeyPressed(w.toggleKey))
+					w.window->Enable(!w.window->IsEnabled());
+				anyGuiWindow = anyGuiWindow || w.window->IsEnabled();
+			}
+
+			// display GUI
+			if(anyGuiWindow)
+			{
+				Tracer::GuiHelpers::BeginFrame();
+				for(auto& w : guiWindows)
+					w.window->Draw();
+				Tracer::GuiHelpers::EndFrame();
+			}
 
 			// swap buffers
 			window->SwapBuffers();
-
-			// update the title bar
-			window->SetTitle(Tracer::format("TrayRacer - %.1f ms - %.1f FPS - %s - %i samples",
-											static_cast<double>(elapsedNs) * 1e-3,
-											1e6f / elapsedNs,
-											ToString(renderer->RenderMode()).c_str(),
-											renderer->SampleCount()));
 
 			// update timer
 			elapsedNs = stopwatch.ElapsedNS();
@@ -99,6 +137,7 @@ int main(int argc, char** argv)
 		delete app;
 
 		Tracer::GuiHelpers::DeInit();
+		delete renderer;
 		delete window;
 	}
 	catch(const std::exception& e)

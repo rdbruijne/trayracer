@@ -1,5 +1,9 @@
 #pragma once
 
+// Project
+#include "OpenGL/Input.h"
+
+// C++
 #include <vector>
 
 namespace Tracer
@@ -14,13 +18,7 @@ namespace Tracer
 		static bool Init(Window* window);
 		static void DeInit();
 
-		static void Draw();
-
-		// app data
-		static inline CameraNode* camNode = nullptr;
-		static inline Renderer* renderer = nullptr;
-
-	private:
-		static inline std::vector<GuiWindow*> msWindows = {};
+		static void BeginFrame();
+		static void EndFrame();
 	};
 }

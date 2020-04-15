@@ -98,7 +98,7 @@ namespace Tracer
 
 	Renderer::~Renderer()
 	{
-		// #TODO(RJCDB): cleanup
+		// #TODO(RJCDB): proper cleanup
 		if(mCudaGraphicsResource)
 			CUDA_CHECK(cudaGraphicsUnregisterResource(mCudaGraphicsResource));
 	}

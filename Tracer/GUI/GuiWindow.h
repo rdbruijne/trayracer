@@ -6,11 +6,19 @@ namespace Tracer
 	{
 	public:
 		virtual ~GuiWindow() {}
+
+		void Enable(bool enable = true) { mEnabled = enable; }
 		bool IsEnabled() const { return mEnabled; }
 
-		virtual void Draw() = 0;
+		void Draw()
+		{
+			if(mEnabled)
+				DrawImpl();
+		}
 
 	protected:
-		bool mEnabled = true;
+		virtual void DrawImpl() = 0;
+
+		bool mEnabled = false;
 	};
 }

@@ -25,7 +25,7 @@ namespace Tracer
 
 
 
-	void App::Tick(Renderer* renderer, Window* window, float dt /*= 1.f / 60.f*/)
+	void App::Tick(Renderer* renderer, Window* window, float dt)
 	{
 		if(OrbitCameraController::HandleInput(mCamera, &mControlScheme, window))
 			renderer->SetCamera(mCamera.Position, normalize(mCamera.Target - mCamera.Position), mCamera.Up, mCamera.Fov);

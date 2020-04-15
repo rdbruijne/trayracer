@@ -4,58 +4,56 @@
 #include "Optix/Renderer.h"
 #include "Gui/GuiHelpers.h"
 
+// Magic Enum
+#pragma warning(push)
+#pragma warning(disable: 5027)
+#include "magic_enum/magic_enum.hpp"
+#pragma warning(pop)
+
 // ImGUI
 #include "imgui/imgui.h"
 
 namespace Tracer
 {
-	void RendererWindow::Draw()
+	void RendererWindow::DrawImpl()
 	{
-		// get the camera
-		Renderer* renderer = GuiHelpers::renderer;
-
 		ImGui::Begin("Renderer", &mEnabled);
-		if(!renderer)
+		if(!mRenderer)
 		{
 			ImGui::Text("No renderer node detected");
-			ImGui::End();
-			return;
 		}
-
-		//bool hasChanged = false;
-
-		// render mode
-		Renderer::RenderModes activeRenderMode = renderer->RenderMode();
-		const std::string rmName = ToString(activeRenderMode);
-		if(ImGui::BeginCombo("Render Mode", rmName.c_str()))
+		else
 		{
-			for(size_t i = 0; i <magic_enum::enum_count<Renderer::RenderModes>(); i++)
+			// render mode
+			Renderer::RenderModes activeRenderMode = mRenderer->RenderMode();
+			const std::string rmName = ToString(activeRenderMode);
+			if(ImGui::BeginCombo("Render Mode", rmName.c_str()))
 			{
-				const Renderer::RenderModes mode = static_cast<Renderer::RenderModes>(i);
-				const std::string itemName = ToString(mode);
-				if(ImGui::Selectable(itemName.c_str(), mode == activeRenderMode))
-					renderer->SetRenderMode(mode);
-				if(mode == activeRenderMode)
-					ImGui::SetItemDefaultFocus();
+				for(size_t i = 0; i <magic_enum::enum_count<Renderer::RenderModes>(); i++)
+				{
+					const Renderer::RenderModes mode = static_cast<Renderer::RenderModes>(i);
+					const std::string itemName = ToString(mode);
+					if(ImGui::Selectable(itemName.c_str(), mode == activeRenderMode))
+						mRenderer->SetRenderMode(mode);
+					if(mode == activeRenderMode)
+						ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
 			}
-			ImGui::EndCombo();
+
+			// kernel settings
+			int maxDepth = mRenderer->MaxDepth();
+			if(ImGui::SliderInt("Max depth", &maxDepth, 0, 16))
+				mRenderer->SetMaxDepth(maxDepth);
+
+			float aoDist = mRenderer->AODist();
+			if(ImGui::SliderFloat("AO Dist", &aoDist, 0.f, 1e4f, "%.3f", 10.f))
+				mRenderer->SetAODist(aoDist);
+
+			float zDepthMax = mRenderer->ZDepthMax();
+			if(ImGui::SliderFloat("Z-Depth max", &zDepthMax, 0.f, 1e4f, "%.3f", 10.f))
+				mRenderer->SetZDepthMax(zDepthMax);
 		}
-
-		// kernel settings
-		ImGui::BeginGroup();
-		int maxDepth = renderer->MaxDepth();
-		if(ImGui::SliderInt("Max depth", &maxDepth, 0, 16))
-			renderer->SetMaxDepth(maxDepth);
-
-		ImGui::BeginGroup();
-		float aoDist = renderer->AODist();
-		if(ImGui::SliderFloat("AO Dist", &aoDist, 0.f, 1e4f, "%.3f", 10.f))
-			renderer->SetAODist(aoDist);
-
-		float zDepthMax = renderer->ZDepthMax();
-		if(ImGui::SliderFloat("Z-Depth max", &zDepthMax, 0.f, 1e4f, "%.3f", 10.f))
-			renderer->SetZDepthMax(zDepthMax);
-		ImGui::EndGroup();
 
 		ImGui::End();
 	}
