@@ -193,11 +193,14 @@ namespace Tracer
 
 	bool Window::IsKeyDown(Input::Keys key) const
 	{
-		if(key < Input::Keys::_LastKeyboard)
+		if(key < Input::KeyData::LastKeyboard)
 			return mCurInputState.Keyboard[static_cast<size_t>(key)];
 
-		if(key >= Input::Keys::_FirstMouse && key <= Input::Keys::_LastMouse)
-			return mCurInputState.Mouse[static_cast<size_t>(key) - static_cast<size_t>(Input::Keys::_FirstMouse)];
+		if(key >= Input::KeyData::FirstMouse && key <= Input::KeyData::LastMouse)
+			return mCurInputState.Mouse[static_cast<size_t>(key) - static_cast<size_t>(Input::KeyData::FirstMouse)];
+
+		if(key >= Input::KeyData::FirstSpecial && key <= Input::KeyData::LastSpecial)
+			return false;
 
 		assert(false);
 		return false;
@@ -207,17 +210,20 @@ namespace Tracer
 
 	bool Window::WasKeyPressed(Input::Keys key) const
 	{
-		if(key < Input::Keys::_LastKeyboard)
+		if(key < Input::KeyData::LastKeyboard)
 		{
 			const size_t keyIx = static_cast<size_t>(key);
 			return mPrevInputState.Keyboard[keyIx] && !mCurInputState.Keyboard[keyIx];
 		}
 
-		if(key >= Input::Keys::_FirstMouse && key <= Input::Keys::_LastMouse)
+		if(key >= Input::KeyData::FirstMouse && key <= Input::KeyData::LastMouse)
 		{
-			const size_t keyIx = static_cast<size_t>(key) - static_cast<size_t>(Input::Keys::_FirstMouse);
+			const size_t keyIx = static_cast<size_t>(key) - static_cast<size_t>(Input::KeyData::FirstMouse);
 			return mPrevInputState.Mouse[keyIx] && !mCurInputState.Mouse[keyIx];
 		}
+
+		if(key >= Input::KeyData::FirstSpecial && key <= Input::KeyData::LastSpecial)
+			return false;
 
 		assert(false);
 		return false;
@@ -273,7 +279,7 @@ namespace Tracer
 	void Window::KeyCallback(GLFWwindow* handle, int key, int scancode, int action, int mods) noexcept
 	{
 		Window* const window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(handle));
-		if(key < static_cast<int>(Input::Keys::_KeyboardCount))
+		if(key < static_cast<int>(Input::KeyData::KeyboardCount))
 			window->mNextInputState.Keyboard[static_cast<size_t>(key)] = (action == GLFW_PRESS || action == GLFW_REPEAT);
 	}
 
@@ -296,7 +302,7 @@ namespace Tracer
 	void Window::MouseButtonCallback(GLFWwindow* handle, int button, int action, int mods) noexcept
 	{
 		Window* const window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(handle));
-		if(button < static_cast<int>(Input::Keys::_MouseCount))
+		if(button < static_cast<int>(Input::KeyData::MouseCount))
 			window->mNextInputState.Mouse[static_cast<size_t>(button)] = (action == GLFW_PRESS);
 	}
 

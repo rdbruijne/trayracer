@@ -11,7 +11,7 @@ namespace Tracer
 {
 	namespace Input
 	{
-		// GLFW_KEY_(...)
+		// key codes (GLFW_KEY_<...>)
 		enum class Keys : uint32_t
 		{
 			Unknown         = 0,
@@ -137,24 +137,19 @@ namespace Tracer
 			RightAlt        = 346,
 			RightSuper      = 347,
 			Menu            = 348,
-			Last            = Menu,
 
 			// Mouse
 			Mouse_Left,
 			Mouse_Right,
 			Mouse_Middle,
 
-			// Helpers
-			_Count,
-			_LastKeyboard  = Last,
-			_KeyboardCount = _LastKeyboard,
-			_FirstMouse    = Mouse_Left,
-			_LastMouse     = Mouse_Middle,
-			_MouseCount    = _LastMouse - _FirstMouse + 1
+			// cannot be queried
+			Mouse_Scroll
 		};
 
 
 
+		// modifiers
 		enum class ModifierKeys : uint32_t
 		{
 			None  = 0x0,
@@ -166,11 +161,57 @@ namespace Tracer
 
 
 
+		// keys helpers
+		enum class KeyData : std::underlying_type_t<Keys>
+		{
+			// keyboard
+			FirstKeyboard = 0,
+			LastKeyboard  = Keys::Menu,
+			KeyboardCount = LastKeyboard - FirstKeyboard + 1,
+
+			// mouse
+			FirstMouse    = Keys::Mouse_Left,
+			LastMouse     = Keys::Mouse_Middle,
+			MouseCount    = LastMouse - FirstMouse + 1,
+
+			// special
+			FirstSpecial  = Keys::Mouse_Scroll,
+			LastSpecial   = Keys::Mouse_Scroll,
+			SpecialCount  = LastSpecial - FirstSpecial + 1,
+
+			// Total
+			Count         = LastMouse,
+		};
+
+
+
+		inline bool operator < (Keys key, KeyData data)
+		{
+			return std::underlying_type_t<Keys>(key) < std::underlying_type_t<KeyData>(data);
+		}
+
+		inline bool operator > (Keys key, KeyData data)
+		{
+			return std::underlying_type_t<Keys>(key) > std::underlying_type_t<KeyData>(data);
+		}
+
+		inline bool operator <= (Keys key, KeyData data)
+		{
+			return std::underlying_type_t<Keys>(key) <= std::underlying_type_t<KeyData>(data);
+		}
+
+		inline bool operator >= (Keys key, KeyData data)
+		{
+			return std::underlying_type_t<Keys>(key) >= std::underlying_type_t<KeyData>(data);
+		}
+
+
+
 		class State
 		{
 		public:
-			std::array<bool, static_cast<size_t>(Keys::_LastKeyboard)> Keyboard = {};
-			std::array<bool, static_cast<size_t>(Keys::_MouseCount)> Mouse = {};
+			std::array<bool, static_cast<size_t>(KeyData::KeyboardCount)> Keyboard = {};
+			std::array<bool, static_cast<size_t>(KeyData::MouseCount)> Mouse = {};
 			float2 MousePos = make_float2(0, 0);
 			float2 MouseScroll = make_float2(0, 0);
 			bool MouseIsWithinWindow = true;

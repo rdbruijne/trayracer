@@ -17,7 +17,7 @@ namespace Tracer
 		const float2 camOrbit  = scheme->OrbitCameraOrbit.HandleInput(window);
 		const float2 camRotate = scheme->OrbitCameraRotate.HandleInput(window);
 		const float2 camRoll   = scheme->OrbitCameraRoll.HandleInput(window);
-		const float2 camDolly  = scheme->OrbitCameraDolly.HandleInput(window);
+		const float2 camDolly  = scheme->OrbitCameraDolly.HandleInput(window) + scheme->OrbitCameraDollyAlt.HandleInput(window);
 
 		// apply inputs
 		bool hasChanged = false;
@@ -25,8 +25,32 @@ namespace Tracer
 		hasChanged = PanCamera(node, camMove * make_float2(-1, 1)) || hasChanged;
 		hasChanged = DollyCamera(node, camDolly.y) || hasChanged;
 		hasChanged = RotateCamera(node, camRotate.y, camRotate.x, 0) || hasChanged;
-		RecalculateUpVector(node);
+		sPrevUp = RecalculateUpVector(node, sPrevUp);
 		return hasChanged;
+	}
+
+
+
+	float3 OrbitCameraController::RecalculateUpVector(CameraNode& node, const float3& prevUp)
+	{
+		const float3 dir = normalize(node.Target - node.Position);
+		float3 up = node.Up - dir * dot(node.Up, dir);
+
+		// up is parallel to dir
+		if(dot(up, up) < (Epsilon * Epsilon))
+		{
+			// try old up
+			up = prevUp - dir * dot(prevUp, dir);
+
+			// up is still parallel to dir
+			if(dot(up, up) < (Epsilon * Epsilon))
+			{
+				up = SmallestAxis(dir);
+				up = up - dir * dot(up, dir);
+			}
+		}
+
+		return normalize(up);
 	}
 
 
@@ -145,29 +169,5 @@ namespace Tracer
 			node.Up = sPrevUp;
 
 		return true;
-	}
-
-
-
-	void OrbitCameraController::RecalculateUpVector(CameraNode& node)
-	{
-		const float3 dir = normalize(node.Target - node.Position);
-		float3 up = node.Up - dir * dot(node.Up, dir);
-
-		// up is parallel to dir
-		if(dot(up, up) < (Epsilon * Epsilon))
-		{
-			// try old up
-			up = sPrevUp - dir * dot(sPrevUp, dir);
-
-			// up is still parallel to dir
-			if(dot(up, up) < (Epsilon * Epsilon))
-			{
-				up = SmallestAxis(dir);
-				up = up - dir * dot(up, dir);
-			}
-		}
-
-		sPrevUp = normalize(up);
 	}
 }

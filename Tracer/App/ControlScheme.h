@@ -21,9 +21,11 @@ namespace Tracer
 			// mouse events will be based on scroll/move, keyboard will be 0 or 1 (-1 when inverted)
 			float2 HandleInput(Window* window);
 
-			Input::Keys Key = Input::Keys::Unknown;
-			Input::ModifierKeys Modifiers = Input::ModifierKeys::None;
-			float Scalar = 1.f;
+		private:
+			Input::Keys mKey = Input::Keys::Unknown;
+			Input::ModifierKeys mModifiers = Input::ModifierKeys::None;
+
+			float mScalar = 1.f;
 		};
 
 		// Entries
@@ -32,5 +34,6 @@ namespace Tracer
 		Entry OrbitCameraRotate;
 		Entry OrbitCameraRoll;
 		Entry OrbitCameraDolly;
+		Entry OrbitCameraDollyAlt;
 	};
 }

@@ -28,19 +28,20 @@ namespace Tracer
 	ControlScheme::ControlScheme()
 	{
 		// load defaults
-		OrbitCameraMove   = Entry(Input::Keys::Mouse_Right, .05f);
-		OrbitCameraOrbit  = Entry(Input::Keys::Mouse_Left, .005f);
-		OrbitCameraRotate = Entry(Input::Keys::Mouse_Left, Input::ModifierKeys::Alt, .005f);
-		OrbitCameraRoll   = Entry(Input::Keys::Mouse_Right, Input::ModifierKeys::Alt, .01f);
-		OrbitCameraDolly  = Entry(Input::Keys::Mouse_Middle, .01f);
+		OrbitCameraMove     = Entry(Input::Keys::Mouse_Middle, .05f);
+		OrbitCameraOrbit    = Entry(Input::Keys::Mouse_Left, .005f);
+		OrbitCameraRotate   = Entry(Input::Keys::Mouse_Left, Input::ModifierKeys::Alt, .005f);
+		OrbitCameraRoll     = Entry(Input::Keys::Mouse_Right, Input::ModifierKeys::Alt, .01f);
+		OrbitCameraDolly    = Entry(Input::Keys::Mouse_Right, .01f);
+		OrbitCameraDollyAlt = Entry(Input::Keys::Mouse_Scroll, -.1f);
 	}
 
 
 
 	ControlScheme::Entry::Entry(Input::Keys key, Input::ModifierKeys modifiers, float scalar) :
-		Key(key),
-		Modifiers(modifiers),
-		Scalar(scalar)
+		mKey(key),
+		mModifiers(modifiers),
+		mScalar(scalar)
 	{
 	}
 
@@ -48,26 +49,23 @@ namespace Tracer
 
 	float2 ControlScheme::Entry::HandleInput(Window* window)
 	{
+		// handle scrollwheel
+		if(mKey == Input::Keys::Mouse_Scroll)
+			return window->ScrollDelta() * mScalar;
+
 		// check key
-		if(!window->IsKeyDown(Key))
+		if(!window->IsKeyDown(mKey))
 			return make_float2(0, 0);
 
 		// check modifier keys
-		if(!CheckModifier(Modifiers, window))
+		if(!CheckModifier(mModifiers, window))
 			return make_float2(0, 0);
 
 		// return scroll if the key is a mouse button
-		if(Key >= Input::Keys::_FirstMouse && Key <= Input::Keys::_LastMouse)
-		{
-#if 0
-			return window->GetCursorDelta() * Scalar;
-#else
-			const float2 delta = window->CursorDelta();
-			return delta * Scalar;
-#endif
-		}
+		if(mKey >= Input::KeyData::FirstMouse && mKey <= Input::KeyData::LastMouse)
+			return window->CursorDelta() * mScalar;
 
 		// return keyboard result
-		return make_float2(Scalar, Scalar);
+		return make_float2(mScalar, mScalar);
 	}
 }

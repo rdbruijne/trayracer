@@ -12,6 +12,7 @@ namespace Tracer
 	{
 	public:
 		static bool HandleInput(CameraNode& node, ControlScheme* scheme, Window* window);
+		static float3 RecalculateUpVector(CameraNode& node, const float3& prevUp);
 
 	private:
 		static bool DollyCamera(CameraNode& node, float strafe);
@@ -20,7 +21,6 @@ namespace Tracer
 		static bool PanCamera(CameraNode& node, const float2& pan);
 		static bool RotateCamera(CameraNode& node, float tilt, float pan, float roll);
 
-		static void RecalculateUpVector(CameraNode& node);
 
 		static float3 sPrevUp;
 	};
