@@ -95,8 +95,8 @@
     <CudaCompile Include="program.cu" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="Globals.h" />
-    <CudaCompile Include="Pipeline_AmbientOcclusion.h" />
+    <ClInclude Include="Globals.h" />
+    <ClInclude Include="Pipeline_AmbientOcclusion.h" />
     <ClInclude Include="Pipeline_DiffuseFilter.h" />
     <ClInclude Include="Pipeline_ObjectID.h" />
     <ClInclude Include="Pipeline_PathTracing.h" />
