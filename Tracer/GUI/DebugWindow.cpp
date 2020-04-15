@@ -30,8 +30,24 @@ namespace Tracer
 	{
 		ImGui::Begin("Debug", &mEnabled);
 
+		ImGui::Columns(2);
+
+		// table header
+		ImGui::Separator();
+		ImGui::Text("Data");
+		ImGui::NextColumn();
+		ImGui::Text("Value");
+		ImGui::NextColumn();
+		ImGui::Separator();
+
+		// data
 		for(auto& kv : msMap)
-			ImGui::LabelText(kv.first.c_str(), kv.second.c_str());
+		{
+			ImGui::Text(kv.first.c_str());
+			ImGui::NextColumn();
+			ImGui::Text(kv.second.c_str());
+			ImGui::NextColumn();
+		}
 
 		ImGui::End();
 	}

@@ -21,6 +21,7 @@ namespace Tracer
 		{
 			ImGui::Columns(2);
 
+			// table header
 			ImGui::Separator();
 			ImGui::Text("Stat");
 			ImGui::NextColumn();
