@@ -2,7 +2,7 @@
 
 // Project
 #include "App/OrbitCameraController.h"
-#include "Gui/GuiHelpers.h"
+#include "OpenGL/Window.h"
 #include "Optix/Renderer.h"
 #include "Resources/Scene.h"
 #include "Utility/Importer.h"
@@ -27,11 +27,20 @@ namespace Tracer
 
 	void App::Tick(Renderer* renderer, Window* window, float dt)
 	{
+		// handle camera controller
 		if(OrbitCameraController::HandleInput(mCamera, &mControlScheme, window))
 			renderer->SetCamera(mCamera.Position, normalize(mCamera.Target - mCamera.Position), mCamera.Up, mCamera.Fov);
 
-		// update GUI
-		GuiHelpers::camNode = &mCamera;
+		// camera target picker
+		if(window->IsKeyDown(Input::Keys::T) && window->WasKeyPressed(Input::Keys::Mouse_Left))
+		{
+			const float2 cursorPos = window->CursorPos();
+			const uint2 cursorPosU2 = make_uint2(static_cast<uint32_t>(cursorPos.x), static_cast<uint32_t>(cursorPos.y));
+			const RayPickResult result = renderer->PickRay(cursorPosU2);
+
+			mCamera.Target = mCamera.Position + result.rayDir * result.dst;
+			renderer->SetCamera(mCamera.Position, normalize(mCamera.Target - mCamera.Position), mCamera.Up, mCamera.Fov);
+		}
 	}
 
 
