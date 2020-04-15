@@ -1,0 +1,3 @@
+[submodule "Resources/models"]
+	path = Resources/models
+	url = https://github.com/rdbruijne/models.git
