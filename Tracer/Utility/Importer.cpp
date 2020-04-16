@@ -9,9 +9,9 @@
 
 // Assimp
 #pragma warning(push)
-#pragma warning(disable: 4061 4619)
-#include "assimp/cimport.h"
-#include "assimp/config.h"
+#pragma warning(disable: 4061 4619 26451 26495)
+#include "assimp/Importer.hpp"
+#include "assimp/DefaultLogger.hpp"
 #include "assimp/scene.h"
 #include "assimp/postprocess.h"
 #pragma warning(pop)
@@ -28,6 +28,18 @@ namespace Tracer
 {
 	namespace
 	{
+		// stream to attach to assimp logger
+		class ImportLogStream : public Assimp::LogStream
+		{
+		public:
+			void write(const char* message)
+			{
+				printf("[ASSIMP] %s", message);
+			}
+		};
+
+
+
 		std::shared_ptr<Texture> ImportTexture(const std::string& importDir, const std::string& textureFile)
 		{
 			const std::string texPath = importDir + "/" + textureFile;
@@ -145,51 +157,68 @@ namespace Tracer
 
 	std::shared_ptr<Model> ImportModel(const std::string& filePath)
 	{
-		const aiScene* aScene = nullptr;
 		try
 		{
 			const std::string importDir = Directory(filePath);
 
-			// Assimp flags
-			const unsigned int importFlags =
-				//aiProcess_CalcTangentSpace         |
-				aiProcess_JoinIdenticalVertices    |
-				//aiProcess_MakeLeftHanded           |
-				aiProcess_Triangulate              |
-				//aiProcess_RemoveComponent          |
-				//aiProcess_GenNormals               |
-				aiProcess_GenSmoothNormals         |
-				//aiProcess_SplitLargeMeshes         |
-				aiProcess_PreTransformVertices     |
-				aiProcess_LimitBoneWeights         |
-				aiProcess_ValidateDataStructure    |
-				//aiProcess_ImproveCacheLocality     |
+			// attach log stream
+			static Assimp::Logger* defaultLogger = nullptr;
+			if(!defaultLogger)
+			{
+				defaultLogger = Assimp::DefaultLogger::create();
+				//defaultLogger->setLogSeverity(Assimp::Logger::VERBOSE);
+				defaultLogger->attachStream(new ImportLogStream(), Assimp::Logger::Debugging | Assimp::Logger::Info | Assimp::Logger::Err | Assimp::Logger::Warn);
+			}
+
+			// Importer
+			Assimp::Importer importer;
+
+			// import flags
+			constexpr uint32_t importFlags =
+				aiProcess_CalcTangentSpace |
+				aiProcess_JoinIdenticalVertices |
+				//aiProcess_MakeLeftHanded |
+				aiProcess_Triangulate |
+				//aiProcess_RemoveComponent |
+				//aiProcess_GenNormals |
+				aiProcess_GenSmoothNormals |
+				//aiProcess_SplitLargeMeshes |
+				aiProcess_PreTransformVertices |
+				aiProcess_LimitBoneWeights |
+				aiProcess_ValidateDataStructure |
+				aiProcess_ImproveCacheLocality |
 				aiProcess_RemoveRedundantMaterials |
-				aiProcess_FixInfacingNormals       |
-				aiProcess_SortByPType              |
-				aiProcess_FindDegenerates          |
-				aiProcess_FindInvalidData          |
-				aiProcess_GenUVCoords              |
-				//aiProcess_TransformUVCoords        |
-				//aiProcess_FindInstances            |
-				aiProcess_OptimizeMeshes           |
-				//aiProcess_OptimizeGraph            |
-				//aiProcess_FlipUVs                  |
-				//aiProcess_FlipWindingOrder         |
-				//aiProcess_SplitByBoneCount         |
-				//aiProcess_Debone                   |
-				0;
+				aiProcess_FixInfacingNormals |
+				aiProcess_PopulateArmatureData |
+				aiProcess_SortByPType |
+				aiProcess_FindDegenerates |
+				aiProcess_FindInvalidData |
+				aiProcess_GenUVCoords |
+				//aiProcess_TransformUVCoords |
+				//aiProcess_FindInstances |
+				aiProcess_OptimizeMeshes |
+				//aiProcess_OptimizeGraph |
+				//aiProcess_FlipUVs |
+				//aiProcess_FlipWindingOrder |
+				//aiProcess_SplitByBoneCount |
+				//aiProcess_Debone |
+				//aiProcess_GlobalScale |
+				//aiProcess_EmbedTextures |
+				//aiProcess_ForceGenNormals |
+				aiProcess_GenBoundingBoxes |
+				0u;
+			if(!importer.ValidateFlags(importFlags))
+				throw std::runtime_error(importer.GetErrorString());
 
 			// assimp properties
-			aiPropertyStore* aProperties = aiCreatePropertyStore();
-			aiSetImportPropertyInteger(aProperties, AI_CONFIG_PP_SBP_REMOVE, aiPrimitiveType_LINE | aiPrimitiveType_POINT);
-			aiSetImportPropertyInteger(aProperties, AI_CONFIG_FAVOUR_SPEED, 1);
-			aiSetImportPropertyInteger(aProperties, AI_CONFIG_PP_LBW_MAX_WEIGHTS, 4);
+			importer.SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE, aiPrimitiveType_LINE | aiPrimitiveType_POINT);
+			importer.SetPropertyInteger(AI_CONFIG_FAVOUR_SPEED, 1);
+			importer.SetPropertyInteger(AI_CONFIG_PP_LBW_MAX_WEIGHTS, 4);
 
-			// import the scene
-			aScene = aiImportFileExWithProperties(filePath.c_str(), importFlags, nullptr, aProperties);
+			// read the file
+			const aiScene* aScene = importer.ReadFile(filePath.c_str(), importFlags);
 			if(!aScene)
-				throw std::runtime_error("Assimp failed to parse the file");
+				throw std::runtime_error(importer.GetErrorString());
 
 			// create model
 			std::shared_ptr<Model> model = std::make_shared<Model>(FileName(filePath));
@@ -210,22 +239,16 @@ namespace Tracer
 			// parse graph
 			//ParseNode(...);
 
-			aiReleaseImport(aScene);
-
 			printf("Imported \"%s\":\n", filePath.c_str());
 			printf("  Meshes   : %d\n", aScene->mNumMeshes);
 			printf("  Materials: %d\n", aScene->mNumMaterials);
 			printf("  Textures : %d\n", aScene->mNumTextures);
 			printf("  Polygons : %d\n", polyCount);
 
-
 			return model;
 		}
 		catch(const std::exception& e)
 		{
-			if(aScene)
-				aiReleaseImport(aScene);
-
 			printf("Failed to import \"%s\": %s\n", filePath.c_str(), e.what());
 		}
 
