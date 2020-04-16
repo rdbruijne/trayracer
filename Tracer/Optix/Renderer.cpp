@@ -233,7 +233,7 @@ namespace Tracer
 
 	void Renderer::CreateContext()
 	{
-		const int deviceID = 0;
+		constexpr int deviceID = 0;
 		CUDA_CHECK(cudaSetDevice(deviceID));
 		CUDA_CHECK(cudaStreamCreate(&mStream));
 
@@ -402,10 +402,10 @@ namespace Tracer
 			printf("%s\n", log);
 
 		// set stack sizes
-		const uint32_t directCallableStackSizeFromTraversal = 2 << 10;
-		const uint32_t directCallableStackSizeFromState     = 2 << 10;
-		const uint32_t continuationStackSize                = 2 << 10;
-		const uint32_t maxTraversableGraphDepth             = 3;
+		constexpr uint32_t directCallableStackSizeFromTraversal = 2 << 10;
+		constexpr uint32_t directCallableStackSizeFromState     = 2 << 10;
+		constexpr uint32_t continuationStackSize                = 2 << 10;
+		constexpr uint32_t maxTraversableGraphDepth             = 3;
 		OPTIX_CHECK(optixPipelineSetStackSize(mPipeline, directCallableStackSizeFromTraversal, directCallableStackSizeFromState, continuationStackSize, maxTraversableGraphDepth));
 	}
 
@@ -456,7 +456,7 @@ namespace Tracer
 					bi.triangleArray.indexBuffer        = mIndexBuffers[meshIx].DevicePtr();
 
 					// other
-					const uint32_t buildFlags[] = { 0 };
+					constexpr uint32_t buildFlags[] = { 0 };
 					bi.triangleArray.flags                       = buildFlags;
 					bi.triangleArray.numSbtRecords               = 1;
 					bi.triangleArray.sbtIndexOffsetBuffer        = 0;
@@ -639,10 +639,10 @@ namespace Tracer
 	Renderer::OptixTexture::OptixTexture(std::shared_ptr<Texture> srcTex)
 	{
 		// create channel descriptor
-		const uint32_t width = srcTex->mResolution.x;
+		constexpr uint32_t numComponents = 4;
+		const uint32_t width  = srcTex->mResolution.x;
 		const uint32_t height = srcTex->mResolution.y;
-		const uint32_t numComponents = 4;
-		const uint32_t pitch = width * numComponents * sizeof(uint8_t);
+		const uint32_t pitch  = width * numComponents * sizeof(uint8_t);
 		cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<uchar4>();
 
 		// upload pixels
