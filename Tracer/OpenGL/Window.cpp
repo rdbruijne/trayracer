@@ -12,12 +12,15 @@
 #include "glfw/glfw3.h"
 #include "glfw/glfw3native.h"
 
+// ImGUI
+#include "imgui/imgui.h"
+
 // C++
 #include <assert.h>
 
 namespace Tracer
 {
-	Window::Window(const std::string& title, const int2& resolution, bool fullscreen /*= false*/) :
+	Window::Window(const std::string& title, const int2& resolution, bool fullscreen) :
 		mResolution(resolution)
 	{
 		glfwSetErrorCallback(ErrorCallback);
@@ -278,6 +281,9 @@ namespace Tracer
 
 	void Window::KeyCallback(GLFWwindow* handle, int key, int scancode, int action, int mods) noexcept
 	{
+		if(ImGui::GetIO().WantCaptureKeyboard)
+			return;
+
 		Window* const window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(handle));
 		if(key < static_cast<int>(Input::KeyData::KeyboardCount))
 			window->mNextInputState.Keyboard[static_cast<size_t>(key)] = (action == GLFW_PRESS || action == GLFW_REPEAT);
@@ -301,6 +307,9 @@ namespace Tracer
 
 	void Window::MouseButtonCallback(GLFWwindow* handle, int button, int action, int mods) noexcept
 	{
+		if(ImGui::GetIO().WantCaptureMouse)
+			return;
+
 		Window* const window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(handle));
 		if(button < static_cast<int>(Input::KeyData::MouseCount))
 			window->mNextInputState.Mouse[static_cast<size_t>(button)] = (action == GLFW_PRESS);
@@ -310,6 +319,9 @@ namespace Tracer
 
 	void Window::CursorPosCallback(GLFWwindow* handle, double xPos, double yPos) noexcept
 	{
+		if(ImGui::GetIO().WantCaptureMouse)
+			return;
+
 		Window* const window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(handle));
 		window->mNextInputState.MousePos = make_float2(static_cast<float>(xPos), static_cast<float>(yPos));
 	}
@@ -318,6 +330,9 @@ namespace Tracer
 
 	void Window::CursorEnterCallback(GLFWwindow* handle, int entered) noexcept
 	{
+		//if(ImGui::GetIO().WantCaptureMouse)
+		//	return;
+
 		Window* const window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(handle));
 		window->mNextInputState.MouseIsWithinWindow = !entered;
 	}
@@ -326,6 +341,9 @@ namespace Tracer
 
 	void Window::ScrollCallback(GLFWwindow* handle, double xOffset, double yOffset) noexcept
 	{
+		if(ImGui::GetIO().WantCaptureMouse)
+			return;
+
 		Window* const window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(handle));
 		window->mNextInputState.MouseScroll += make_float2(static_cast<float>(xOffset), static_cast<float>(yOffset));
 	}

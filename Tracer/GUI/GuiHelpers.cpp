@@ -25,9 +25,6 @@ namespace Tracer
 
 		ImGuiIO& io = ImGui::GetIO();
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-		io.WantCaptureMouse = true;
-		io.WantCaptureKeyboard = true;
-		io.WantSetMousePos = true;
 
 		ImGui::StyleColorsDark();
 		ImGui_ImplGlfw_InitForOpenGL(window->GlfwWindow(), true);
