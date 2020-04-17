@@ -54,6 +54,13 @@ namespace Tracer
 		// ray picking
 		RayPickResult PickRay(uint2 pixelIndex);
 
+		// denoising
+		inline bool DenoisingEnabled() const { return mDenoisingEnabled; }
+		inline void SetDenoiserEnabled(bool enabled) { mDenoisingEnabled = enabled; }
+
+		inline int32_t DenoiserSampleTreshold() const { return mDenoiserSampleTreshold; }
+		inline void SetDenoiserSampleTreshold(uint32_t treshold) { mDenoiserSampleTreshold = treshold; }
+
 		// kernel settings
 		inline int MaxDepth() const { return mLaunchParams.maxDepth; }
 		inline void SetMaxDepth(int maxDepth)
@@ -86,11 +93,15 @@ namespace Tracer
 		}
 
 	private:
+		void Resize(const int2& resolution);
+		bool ShouldDenoise() const;
+
 		// Creation
 		void CreateContext();
 		void CreateModule();
 		void CreatePrograms();
 		void CreatePipeline();
+		void CreateDenoiser();
 
 		// scene building
 		void BuildGeometry(Scene* scene);
@@ -104,6 +115,16 @@ namespace Tracer
 		CudaBuffer mColorBuffer;
 		GLTexture* mRenderTarget = nullptr;
 		cudaGraphicsResource* mCudaGraphicsResource = nullptr;
+
+		// Denoiser
+		OptixDenoiser mDenoiser;
+		CudaBuffer mDenoiserScratch;
+		CudaBuffer mDenoiserState;
+		CudaBuffer mDenoisedBuffer;
+
+		bool mDenoisingEnabled = false;
+		bool mDenoisedFrame = false;
+		int32_t mDenoiserSampleTreshold = 10;
 
 		// Launch parameters
 		LaunchParams mLaunchParams;

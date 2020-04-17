@@ -50,6 +50,9 @@ namespace Tracer
 			}
 
 			// kernel settings
+			ImGui::Spacing();
+			ImGui::Text("Settings");
+
 			int maxDepth = mRenderer->MaxDepth();
 			if(ImGui::SliderInt("Max depth", &maxDepth, 0, 16))
 				mRenderer->SetMaxDepth(maxDepth);
@@ -61,6 +64,18 @@ namespace Tracer
 			float zDepthMax = mRenderer->ZDepthMax();
 			if(ImGui::SliderFloat("Z-Depth max", &zDepthMax, 0.f, 1e4f, "%.3f", 10.f))
 				mRenderer->SetZDepthMax(zDepthMax);
+
+			// denoiser
+			ImGui::Spacing();
+			ImGui::Text("Denoiser");
+
+			bool denoising = mRenderer->DenoisingEnabled();
+			if(ImGui::Checkbox("Enabled", &denoising))
+				mRenderer->SetDenoiserEnabled(denoising);
+
+			int32_t denoiserSampleTreshold = mRenderer->DenoiserSampleTreshold();
+			if(ImGui::SliderInt("Sample treshold", &denoiserSampleTreshold, 0, 100))
+				mRenderer->SetDenoiserSampleTreshold(denoiserSampleTreshold);
 		}
 
 		ImGui::End();

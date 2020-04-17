@@ -69,17 +69,12 @@ namespace Tracer
 
 	Renderer::Renderer()
 	{
-		// create context
+		// create OptiX content
 		CreateContext();
-
-		// create module
 		CreateModule();
-
-		// create programs
 		CreatePrograms();
-
-		// create pipeline
 		CreatePipeline();
+		CreateDenoiser();
 
 		// build shader binding table
 		BuildShaderBindingTables(nullptr);
@@ -121,16 +116,7 @@ namespace Tracer
 			return;
 
 		if(mLaunchParams.resolutionX != texRes.x || mLaunchParams.resolutionY != texRes.y)
-		{
-			// resize buffer
-			mColorBuffer.Resize(sizeof(float4) * texRes.x * texRes.y);
-
-			// update launch params
-			mLaunchParams.sampleCount = 0;
-			mLaunchParams.resolutionX = texRes.x;
-			mLaunchParams.resolutionY = texRes.y;
-			mLaunchParams.colorBuffer = reinterpret_cast<float4*>(mColorBuffer.DevicePtr());
-		}
+			Resize(texRes);
 
 		// update scene root
 		if(mLaunchParams.sceneRoot != mSceneRoot)
@@ -148,6 +134,45 @@ namespace Tracer
 								static_cast<unsigned int>(mLaunchParams.resolutionX), static_cast<unsigned int>(mLaunchParams.resolutionY), 1));
 		CUDA_CHECK(cudaDeviceSynchronize());
 
+		// run denoiser
+		if(ShouldDenoise())
+		{
+			// input
+			OptixImage2D inputLayer;
+			inputLayer.data = mColorBuffer.DevicePtr();
+			inputLayer.width = mLaunchParams.resolutionX;
+			inputLayer.height = mLaunchParams.resolutionY;
+			inputLayer.rowStrideInBytes = mLaunchParams.resolutionX * sizeof(float4);
+			inputLayer.pixelStrideInBytes = sizeof(float4);
+			inputLayer.format = OPTIX_PIXEL_FORMAT_FLOAT4;
+
+			// output
+			OptixImage2D outputLayer;
+			outputLayer.data = mDenoisedBuffer.DevicePtr();
+			outputLayer.width = mLaunchParams.resolutionX;
+			outputLayer.height = mLaunchParams.resolutionY;
+			outputLayer.rowStrideInBytes = mLaunchParams.resolutionX * sizeof(float4);
+			outputLayer.pixelStrideInBytes = sizeof(float4);
+			outputLayer.format = OPTIX_PIXEL_FORMAT_FLOAT4;
+
+			// denoise
+			OptixDenoiserParams denoiserParams;
+			denoiserParams.denoiseAlpha = 1;
+			denoiserParams.hdrIntensity = 0;
+			denoiserParams.blendFactor  = 1.f / (mLaunchParams.sampleCount + 1);
+
+			OPTIX_CHECK(optixDenoiserInvoke(mDenoiser, 0, &denoiserParams, mDenoiserState.DevicePtr(), mDenoiserState.Size(),
+											&inputLayer, 1, 0, 0, &outputLayer,
+											mDenoiserScratch.DevicePtr(), mDenoiserScratch.Size()));
+
+			mDenoisedFrame = true;
+		}
+		else
+		{
+			CUDA_CHECK(cudaMemcpy(mDenoisedBuffer.Ptr(), mColorBuffer.Ptr(), mColorBuffer.Size(), cudaMemcpyDeviceToDevice));
+			mDenoisedFrame = false;
+		}
+
 		// update the target
 		if(mRenderTarget != renderTexture)
 		{
@@ -162,7 +187,7 @@ namespace Tracer
 		cudaArray* cudaTexPtr = nullptr;
 		CUDA_CHECK(cudaGraphicsMapResources(1, &mCudaGraphicsResource, 0));
 		CUDA_CHECK(cudaGraphicsSubResourceGetMappedArray(&cudaTexPtr, mCudaGraphicsResource, 0, 0));
-		CUDA_CHECK(cudaMemcpy2DToArray(cudaTexPtr, 0, 0, mColorBuffer.Ptr(), texRes.x * sizeof(float4),texRes.x * sizeof(float4), texRes.y, cudaMemcpyDeviceToDevice));
+		CUDA_CHECK(cudaMemcpy2DToArray(cudaTexPtr, 0, 0, mDenoisedBuffer.Ptr(), texRes.x * sizeof(float4), texRes.x * sizeof(float4), texRes.y, cudaMemcpyDeviceToDevice));
 		CUDA_CHECK(cudaGraphicsUnmapResources(1, &mCudaGraphicsResource, 0));
 		CUDA_CHECK(cudaDeviceSynchronize());
 
@@ -175,7 +200,10 @@ namespace Tracer
 	void Renderer::DownloadPixels(std::vector<float4>& dstPixels)
 	{
 		dstPixels.resize(static_cast<size_t>(mLaunchParams.resolutionX) * mLaunchParams.resolutionY);
-		mColorBuffer.Download(dstPixels.data(), static_cast<size_t>(mLaunchParams.resolutionX) * mLaunchParams.resolutionY);
+		if(mDenoisedFrame)
+			mDenoisedBuffer.Download(dstPixels.data(), static_cast<size_t>(mLaunchParams.resolutionX) * mLaunchParams.resolutionY);
+		else
+			mColorBuffer.Download(dstPixels.data(), static_cast<size_t>(mLaunchParams.resolutionX) * mLaunchParams.resolutionY);
 	}
 
 
@@ -227,6 +255,36 @@ namespace Tracer
 		resultBuffer.Download(&result, 1);
 
 		return result;
+	}
+
+
+
+	void Renderer::Resize(const int2& resolution)
+	{
+		// resize buffers
+		mColorBuffer.Resize(sizeof(float4) * resolution.x * resolution.y);
+		mDenoisedBuffer.Resize(sizeof(float4) * resolution.x * resolution.y);
+
+		// update launch params
+		mLaunchParams.sampleCount = 0;
+		mLaunchParams.resolutionX = resolution.x;
+		mLaunchParams.resolutionY = resolution.y;
+		mLaunchParams.colorBuffer = reinterpret_cast<float4*>(mColorBuffer.DevicePtr());
+
+		// allocate denoiser memory
+		OptixDenoiserSizes denoiserReturnSizes;
+		OPTIX_CHECK(optixDenoiserComputeMemoryResources(mDenoiser, resolution.x, resolution.y, &denoiserReturnSizes));
+		mDenoiserScratch.Resize(denoiserReturnSizes.recommendedScratchSizeInBytes);
+		mDenoiserState.Resize(denoiserReturnSizes.stateSizeInBytes);
+		OPTIX_CHECK(optixDenoiserSetup(mDenoiser, 0, resolution.x, resolution.y, mDenoiserState.DevicePtr(), mDenoiserState.Size(), mDenoiserScratch.DevicePtr(), mDenoiserScratch.Size()));
+	}
+
+
+
+	bool Renderer::ShouldDenoise() const
+	{
+		return mDenoisingEnabled && (mLaunchParams.sampleCount >= mDenoiserSampleTreshold) &&
+			((mRenderMode == RenderModes::AmbientOcclusion) || (mRenderMode == RenderModes::PathTracing));
 	}
 
 
@@ -407,6 +465,19 @@ namespace Tracer
 		constexpr uint32_t continuationStackSize                = 2 << 10;
 		constexpr uint32_t maxTraversableGraphDepth             = 3;
 		OPTIX_CHECK(optixPipelineSetStackSize(mPipeline, directCallableStackSizeFromTraversal, directCallableStackSizeFromState, continuationStackSize, maxTraversableGraphDepth));
+	}
+
+
+
+	void Renderer::CreateDenoiser()
+	{
+		// create denoiser
+		OptixDenoiserOptions denoiserOptions;
+		denoiserOptions.inputKind   = OPTIX_DENOISER_INPUT_RGB;
+		denoiserOptions.pixelFormat = OPTIX_PIXEL_FORMAT_FLOAT4;
+
+		OPTIX_CHECK(optixDenoiserCreate(mOptixContext, &denoiserOptions, &mDenoiser));
+		OPTIX_CHECK(optixDenoiserSetModel(mDenoiser, OPTIX_DENOISER_MODEL_KIND_LDR, nullptr, 0));
 	}
 
 

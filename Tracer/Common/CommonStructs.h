@@ -54,6 +54,7 @@ struct alignas(16) LaunchParams
 	OptixTraversableHandle sceneRoot;
 	float4* colorBuffer;
 
+	// render settings
 	int maxDepth;
 	float epsilon;
 	float aoDist;
