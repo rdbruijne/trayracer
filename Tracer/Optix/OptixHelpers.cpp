@@ -24,6 +24,12 @@ namespace Tracer
 			return false;
 		}
 		printf("Found %i CUDA capable devices.\n", numDevices);
+		for (int i = 0; i < numDevices; i++)
+		{
+			char name[1024] = {};
+			CUDA_CHECK(cuDeviceGetName(name, 1023, i));
+			printf("  %2i: %s\n", i, name);
+		}
 
 		// init OptiX
 		const OptixResult res = optixInit();
@@ -40,7 +46,7 @@ namespace Tracer
 
 	void OptixCheck(OptixResult res, const char* file, int line)
 	{
-		assert(res == OPTIX_SUCCESS);
+		//assert(res == OPTIX_SUCCESS);
 		if(res != OPTIX_SUCCESS)
 		{
 			const std::string errorMessage = format("OptiX error at \"%s\" @ %i: %s", file, line, ToString(res).c_str());
