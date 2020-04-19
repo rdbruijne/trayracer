@@ -35,8 +35,8 @@ namespace Tracer
 		if(window->IsKeyDown(Input::Keys::T) && window->WasKeyPressed(Input::Keys::Mouse_Left))
 		{
 			const float2 cursorPos = window->CursorPos();
-			const uint2 cursorPosU2 = make_uint2(static_cast<uint32_t>(cursorPos.x), static_cast<uint32_t>(cursorPos.y));
-			const RayPickResult result = renderer->PickRay(cursorPosU2);
+			const int2 cursorPosI2 = make_int2(static_cast<int32_t>(cursorPos.x), static_cast<int32_t>(cursorPos.y));
+			const RayPickResult result = renderer->PickRay(cursorPosI2);
 
 			mCamera.Target = mCamera.Position + result.rayDir * result.dst;
 			renderer->SetCamera(mCamera.Position, normalize(mCamera.Target - mCamera.Position), mCamera.Up, mCamera.Fov);

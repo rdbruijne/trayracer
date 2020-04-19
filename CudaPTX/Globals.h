@@ -38,7 +38,7 @@ struct Payload
 struct PayloadRayPick
 {
 	float dst;
-	int objectID;
-	int materialID;
-	int pad1;
+	uint32_t objectID;
+	uint32_t materialID;
+	uint32_t pad1;
 };

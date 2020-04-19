@@ -34,8 +34,8 @@ void __miss__RayPick()
 {
 	PayloadRayPick* p = (PayloadRayPick*)GetPayload();
 	p->dst = optixGetRayTmax();
-	p->objectID = -1;
-	p->materialID = -1;
+	p->objectID = ~0;
+	p->materialID = ~0;
 }
 
 

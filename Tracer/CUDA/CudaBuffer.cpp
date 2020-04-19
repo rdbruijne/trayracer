@@ -8,7 +8,6 @@
 
 namespace Tracer
 {
-
 	CudaBuffer::CudaBuffer(size_t size)
 	{
 		Alloc(size);

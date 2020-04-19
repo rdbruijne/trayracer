@@ -61,7 +61,7 @@ struct alignas(16) LaunchParams
 	float zDepthMaX;
 
 	// ray pick
-	uint2 rayPickPixelIndex;
+	int2 rayPickPixelIndex;
 	RayPickResult* rayPickResult;
 };
 

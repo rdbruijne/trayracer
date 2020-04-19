@@ -52,7 +52,7 @@ namespace Tracer
 		inline int SampleCount() const { return mLaunchParams.sampleCount; }
 
 		// ray picking
-		RayPickResult PickRay(uint2 pixelIndex);
+		RayPickResult PickRay(int2 pixelIndex);
 
 		// denoising
 		inline bool DenoisingEnabled() const { return mDenoisingEnabled; }

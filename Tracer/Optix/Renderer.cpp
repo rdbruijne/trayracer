@@ -232,7 +232,7 @@ namespace Tracer
 
 
 
-	RayPickResult Renderer::PickRay(uint2 pixelIndex)
+	RayPickResult Renderer::PickRay(int2 pixelIndex)
 	{
 		// allocate result buffer
 		CudaBuffer resultBuffer;
@@ -312,7 +312,7 @@ namespace Tracer
 		mModuleCompileOptions.maxRegisterCount = OPTIX_COMPILE_DEFAULT_MAX_REGISTER_COUNT;
 #ifdef _DEBUG
 		mModuleCompileOptions.optLevel   = OPTIX_COMPILE_OPTIMIZATION_LEVEL_0;
-		mModuleCompileOptions.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_LINEINFO;
+		mModuleCompileOptions.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_FULL;
 #else
 		mModuleCompileOptions.optLevel   = OPTIX_COMPILE_OPTIMIZATION_LEVEL_3;
 		mModuleCompileOptions.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_NONE;
