@@ -27,7 +27,7 @@ namespace Tracer
 
 		// init GLFW
 		if(glfwInit() != GLFW_TRUE)
-			exit(EXIT_FAILURE);
+			throw std::runtime_error("Failed to init glfw");
 
 		// create window
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
@@ -36,7 +36,7 @@ namespace Tracer
 		if(!mHandle)
 		{
 			glfwTerminate();
-			exit(EXIT_FAILURE);
+			throw std::runtime_error("Failed to create glfw window");
 		}
 
 		// user pointer setup
@@ -58,7 +58,8 @@ namespace Tracer
 
 		// init GL
 		const GLenum glewResult = glewInit();
-		assert(glewResult == GLEW_OK);
+		if(glewResult != GLEW_OK)
+			throw std::runtime_error("Failed to init glew");
 
 		// viewport
 		glMatrixMode(GL_PROJECTION);

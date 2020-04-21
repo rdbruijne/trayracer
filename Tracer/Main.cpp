@@ -37,8 +37,7 @@ int main(int argc, char** argv)
 		const bool initOptix = Tracer::InitOptix();
 		if(!initOptix)
 		{
-			printf("Failed to init OptiX.\n");
-			return -1;
+			throw std::runtime_error("Failed to init OptiX.");
 		}
 		printf("Successfully initialized OptiX.\n");
 
