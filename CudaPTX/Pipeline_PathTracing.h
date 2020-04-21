@@ -44,8 +44,8 @@ void __closesthit__PathTracing()
 	Payload* p = GetPayload();
 	p->throughput *= diff;
 	p->dst = optixGetRayTmax();
-	p->rayOrigin = optixGetWorldRayOrigin() + optixGetRayTmax() * optixGetWorldRayDirection();
-	p->rayDir = SampleCosineHemisphere(attrib.shadingNormal, rnd(p->seed), rnd(p->seed));
+	p->O = optixGetWorldRayOrigin() + optixGetRayTmax() * optixGetWorldRayDirection();
+	p->D = SampleCosineHemisphere(attrib.shadingNormal, rnd(p->seed), rnd(p->seed));
 }
 
 
@@ -84,20 +84,21 @@ void __raygen__PathTracing()
 	uint32_t u0, u1;
 	PackPointer(&payload, u0, u1);
 
-	float3 rayOrigin = optixLaunchParams.cameraPos;
-	float3 rayDir = SampleRay(make_float2(ix, iy), make_float2(optixLaunchParams.resolutionX, optixLaunchParams.resolutionY), make_float2(rnd(seed), rnd(seed)));
+	// generate ray
+	float3 O, D;
+	GenerateCameraRay(O, D, make_int2(ix, iy), seed);
 
 	while(payload.depth < optixLaunchParams.maxDepth)
 	{
 		// trace the ray
-		optixTrace(optixLaunchParams.sceneRoot, rayOrigin, rayDir, optixLaunchParams.epsilon, 1e20f, 0.f, OptixVisibilityMask(255),
+		optixTrace(optixLaunchParams.sceneRoot, O, D, optixLaunchParams.epsilon, 1e20f, 0.f, OptixVisibilityMask(255),
 				OPTIX_RAY_FLAG_DISABLE_ANYHIT, RayType_Surface, RayType_Count, RayType_Surface, u0, u1);
 
 		if(payload.status != RS_Active)
 			break;
 
-		rayOrigin = payload.rayOrigin;
-		rayDir = payload.rayDir;
+		O = payload.O;
+		D = payload.D;
 		payload.depth++;
 	}
 }

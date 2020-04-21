@@ -9,6 +9,7 @@
 
 // CUDA
 #include "CUDA/helper_math.h"
+#include "CUDA/random.h"
 
 
 
@@ -198,18 +199,23 @@ IntersectionAttributes GetIntersectionAttributes()
 // Ray
 //------------------------------------------------------------------------------------------------------------------------------
 static __device__
-float3 SampleRay(float2 index, float2 dimensions, float2 jitter)
+inline void GenerateCameraRay(float3& O, float3& D, int2 pixelIndex, uint32_t& seed)
 {
-	// screen plane position
-	const float2 screen = (index + jitter) / dimensions;
+	const float2 index = make_float2(pixelIndex);
+	const float2 res = make_float2(optixLaunchParams.resolutionX, optixLaunchParams.resolutionY);
+	const float2 jitter = make_float2(rnd(seed), rnd(seed));
 
-	// ray direction
-	const float aspect = dimensions.x / dimensions.y;
-	const float3 rayDir = normalize(optixLaunchParams.cameraForward +
-								((screen.x - 0.5f) * optixLaunchParams.cameraSide * aspect) +
-								((screen.y - 0.5f) * optixLaunchParams.cameraUp));
+	const float aspect = res.x / res.y;
+	float2 screen = (((index + jitter) / res) * 2.0f) - make_float2(1, 1);
+	screen.y /= aspect;
 
-	return rayDir;
+	const float tanFov2 = tanf(optixLaunchParams.cameraFov / 2.0f); // #TODO: move to CPU
+	const float2 lensCoord = tanFov2 * screen;
+
+	O = optixLaunchParams.cameraPos;
+	D = normalize(optixLaunchParams.cameraForward +
+				  (lensCoord.x * optixLaunchParams.cameraSide) +
+				  (lensCoord.y * optixLaunchParams.cameraUp));
 }
 
 
@@ -234,7 +240,7 @@ static __device__
 void WriteResult(float3 result)
 {
 	// write color to the buffer
-	const uint32_t fbIndex = optixGetLaunchIndex().x + optixGetLaunchIndex().y * optixLaunchParams.resolutionX;
+	const uint32_t fbIndex = optixGetLaunchIndex().x + (optixGetLaunchIndex().y * optixLaunchParams.resolutionX);
 	optixLaunchParams.colorBuffer[fbIndex] += make_float4(result, 0);
 }
 

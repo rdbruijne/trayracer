@@ -50,16 +50,20 @@ void __raygen__RayPick()
 	uint32_t u0, u1;
 	PackPointer(&payload, u0, u1);
 
+	// generate ray
+	uint32_t seed = 0;
+	const int ix = optixLaunchParams.rayPickPixelIndex.x;
+	const int iy = optixLaunchParams.resolutionY - optixLaunchParams.rayPickPixelIndex.y;
+	float3 O, D;
+	GenerateCameraRay(O, D, make_int2(ix, iy), seed);
+
 	// trace the ray
-	const float3 rayDir = SampleRay(make_float2(optixLaunchParams.rayPickPixelIndex.x, optixLaunchParams.resolutionY - optixLaunchParams.rayPickPixelIndex.y),
-									make_float2(optixLaunchParams.resolutionX, optixLaunchParams.resolutionY),
-									make_float2(0, 0));
-	optixTrace(optixLaunchParams.sceneRoot, optixLaunchParams.cameraPos, rayDir, optixLaunchParams.epsilon * 10.f, 1e20f, 0.f, OptixVisibilityMask(255),
+	optixTrace(optixLaunchParams.sceneRoot, O, D, optixLaunchParams.epsilon, 1e20f, 0.f, OptixVisibilityMask(255),
 			   OPTIX_RAY_FLAG_DISABLE_ANYHIT, RayType_Surface, RayType_Count, RayType_Surface, u0, u1);
 
 	RayPickResult& r = *optixLaunchParams.rayPickResult;
 	r.rayOrigin = optixLaunchParams.cameraPos;
 	r.objectID  = payload.objectID;
-	r.rayDir    = rayDir;
+	r.rayDir    = D;
 	r.dst       = payload.dst;
 }

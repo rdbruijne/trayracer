@@ -70,9 +70,12 @@ void __raygen__AmbientOcclusion()
 	uint32_t u0, u1;
 	PackPointer(&payload, u0, u1);
 
+	// generate ray
+	float3 O, D;
+	GenerateCameraRay(O, D, make_int2(ix, iy), seed);
+
 	// trace the ray
-	float3 rayDir = SampleRay(make_float2(ix, iy), make_float2(optixLaunchParams.resolutionX, optixLaunchParams.resolutionY), make_float2(rnd(seed), rnd(seed)));
-	optixTrace(optixLaunchParams.sceneRoot, optixLaunchParams.cameraPos, rayDir, 0.f, 1e20f, 0.f, OptixVisibilityMask(255),
+	optixTrace(optixLaunchParams.sceneRoot, O, D, optixLaunchParams.epsilon, 1e20f, 0.f, OptixVisibilityMask(255),
 			   OPTIX_RAY_FLAG_DISABLE_ANYHIT, RayType_Surface, RayType_Count, RayType_Surface, u0, u1);
 
 	if(payload.status == RS_Active)
@@ -81,12 +84,12 @@ void __raygen__AmbientOcclusion()
 		const float3 normal = make_float3(int_as_float(payload.kernelData.x), int_as_float(payload.kernelData.y), int_as_float(payload.kernelData.z));
 		const float3 p = SampleCosineHemisphere(normal, rnd(seed), rnd(seed));
 
-		float3 rayOrigin = optixLaunchParams.cameraPos + (rayDir * payload.dst);
-		rayDir = p;
+		O = optixLaunchParams.cameraPos + (D * payload.dst);
+		D = p;
 
 		// trace the bounce ray
 		payload.depth++;
-		optixTrace(optixLaunchParams.sceneRoot, rayOrigin, rayDir, optixLaunchParams.epsilon, 1e20f, 0.f, OptixVisibilityMask(255),
+		optixTrace(optixLaunchParams.sceneRoot, O, D, optixLaunchParams.epsilon, 1e20f, 0.f, OptixVisibilityMask(255),
 				   OPTIX_RAY_FLAG_DISABLE_ANYHIT, RayType_Surface, RayType_Count, RayType_Surface, u0, u1);
 
 		if(payload.dst > optixLaunchParams.aoDist)
