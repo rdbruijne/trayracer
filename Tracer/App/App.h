@@ -1,8 +1,8 @@
 #pragma once
 
 // Project
-#include "App/CameraNode.h"
 #include "App/ControlScheme.h"
+#include "Resources/CameraNode.h"
 
 // C++
 #include <memory>

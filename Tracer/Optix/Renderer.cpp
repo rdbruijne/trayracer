@@ -3,6 +3,7 @@
 // Project
 #include "OpenGL/GLTexture.h"
 #include "Optix/OptixHelpers.h"
+#include "Resources/CameraNode.h"
 #include "Resources/Scene.h"
 #include "Resources/Material.h"
 #include "Resources/Mesh.h"
@@ -208,7 +209,18 @@ namespace Tracer
 
 
 
-	void Renderer::SetCamera(float3 cameraPos, float3 cameraForward, float3 cameraUp, float camFov)
+	void Renderer::SetCamera(CameraNode& camNode)
+	{
+		if(camNode.HasChanged())
+		{
+			SetCamera(camNode.Position(), normalize(camNode.Target() - camNode.Position()), camNode.Up(), camNode.Fov());
+			camNode.ClearHasChanged();
+		}
+	}
+
+
+
+	void Renderer::SetCamera(const float3& cameraPos, const float3& cameraForward, const float3& cameraUp, float camFov)
 	{
 		mLaunchParams.cameraFov     = camFov;
 		mLaunchParams.cameraPos     = cameraPos;

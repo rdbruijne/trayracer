@@ -5,7 +5,7 @@
 
 namespace Tracer
 {
-	struct CameraNode;
+	class CameraNode;
 	class CameraWindow : public GuiWindow
 	{
 	public:

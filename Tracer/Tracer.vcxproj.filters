@@ -92,6 +92,9 @@
     <ClCompile Include="GUI\StatWindow.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
+    <ClCompile Include="Resources\CameraNode.cpp">
+      <Filter>Resources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">
@@ -171,9 +174,6 @@
     <ClInclude Include="OpenGL\Input.h">
       <Filter>OpenGL</Filter>
     </ClInclude>
-    <ClInclude Include="App\CameraNode.h">
-      <Filter>App</Filter>
-    </ClInclude>
     <ClInclude Include="Utility\Declarations.h">
       <Filter>Utility</Filter>
     </ClInclude>
@@ -239,6 +239,9 @@
     </ClInclude>
     <ClInclude Include="GUI\StatWindow.h">
       <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Resources\CameraNode.h">
+      <Filter>Resources</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

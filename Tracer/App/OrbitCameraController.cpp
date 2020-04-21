@@ -1,8 +1,8 @@
 #include "App/OrbitCameraController.h"
 
 // Project
-#include "App/CameraNode.h"
 #include "App/ControlScheme.h"
+#include "Resources/CameraNode.h"
 
 namespace Tracer
 {
@@ -33,8 +33,8 @@ namespace Tracer
 
 	float3 OrbitCameraController::RecalculateUpVector(CameraNode& node, const float3& prevUp)
 	{
-		const float3 dir = normalize(node.Target - node.Position);
-		float3 up = node.Up - dir * dot(node.Up, dir);
+		const float3 dir = normalize(node.Target() - node.Position());
+		float3 up = node.Up() - dir * dot(node.Up(), dir);
 
 		// up is parallel to dir
 		if(dot(up, up) < (Epsilon * Epsilon))
@@ -60,7 +60,7 @@ namespace Tracer
 		if(dolly == 0)
 			return false;
 
-		node.Position = node.Target + ((node.Position - node.Target) * expf(dolly));
+		node.SetPosition(node.Target() + ((node.Position() - node.Target()) * expf(dolly)));
 		return true;
 	}
 
@@ -71,11 +71,11 @@ namespace Tracer
 		if(move.x == 0 && move.y == 0 && move.z == 0)
 			return false;
 
-		const float3 dir = node.Target - node.Position;
+		const float3 dir = node.Target() - node.Position();
 		const float3 diff = ((normalize(cross(dir, sPrevUp)) * move.x) + (sPrevUp * move.y)) * length(dir) + (dir * move.z);
 
-		node.Position += diff;
-		node.Target += diff;
+		node.SetPosition(node.Position() + diff);
+		node.SetTarget(node.Target() + diff);
 
 		return true;
 	}
@@ -87,8 +87,8 @@ namespace Tracer
 		if(orbit.x == 0 || orbit.y == 0)
 			return false;
 
-		float3 dir = node.Target - node.Position;
-		const float3 up = normalize(node.Up);
+		float3 dir = node.Target() - node.Position();
+		const float3 up = normalize(node.Up());
 		const float3 side = normalize(cross(dir, sPrevUp));
 
 		// up/down
@@ -120,7 +120,7 @@ namespace Tracer
 		sPrevUp = RotateAroundAxis(sPrevUp, up, orbit.x);
 		dir = RotateAroundAxis(dir, up, orbit.x);
 
-		node.Position = node.Target - dir;
+		node.SetPosition(node.Target() - dir);
 		return true;
 	}
 
@@ -131,13 +131,13 @@ namespace Tracer
 		if(pan.x == 0 && pan.y == 0)
 			return false;
 
-		const float3 dir = node.Target - node.Position;
+		const float3 dir = node.Target() - node.Position();
 		const float3 side = normalize(cross(dir, sPrevUp));
 		const float dst = length(dir);
-		const float3 diff = ((side * dst * pan.x) + (sPrevUp * dst * pan.y)) * tan(node.Fov * DegToRad * .5f) * 2.8f;
+		const float3 diff = ((side * dst * pan.x) + (sPrevUp * dst * pan.y)) * tan(node.Fov() * DegToRad * .5f) * 2.8f;
 
-		node.Position += diff;
-		node.Target += diff;
+		node.SetPosition(node.Position() + diff);
+		node.SetTarget(node.Target() + diff);
 
 		return true;
 	}
@@ -149,7 +149,7 @@ namespace Tracer
 		if(tilt == 0 && pan == 0 && roll == 0)
 			return false;
 
-		float3 dir = node.Target - node.Position;
+		float3 dir = node.Target() - node.Position();
 		const float3 side = normalize(cross(dir, sPrevUp));
 
 		// tilt
@@ -162,11 +162,11 @@ namespace Tracer
 		// roll
 		sPrevUp = RotateAroundAxis(sPrevUp, normalize(dir), roll);
 
-		node.Target = node.Position + dir;
+		node.SetTarget(node.Position() + dir);
 
 		// only update up vector when rolling
 		if(roll != 0)
-			node.Up = sPrevUp;
+			node.SetUp(sPrevUp);
 
 		return true;
 	}

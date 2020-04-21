@@ -28,6 +28,18 @@ namespace Tracer
 
 
 
+	inline bool operator == (const float2& a, const float2& b) { return (a.x == b.x) && (a.y == b.y); }
+	inline bool operator == (const float3& a, const float3& b) { return (a.x == b.x) && (a.y == b.y) && (a.z == b.z); }
+	inline bool operator == (const float4& a, const float4& b) { return (a.x == b.x) && (a.y == b.y) && (a.z == b.z) && (a.w == b.w); }
+
+
+
+	inline bool operator != (const float2& a, const float2& b) { return !(a == b); }
+	inline bool operator != (const float3& a, const float3& b) { return !(a == b); }
+	inline bool operator != (const float4& a, const float4& b) { return !(a == b); }
+
+
+
 	//
 	// vector math
 	//

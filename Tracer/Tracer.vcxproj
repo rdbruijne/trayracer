@@ -130,6 +130,7 @@
     <ClCompile Include="OpenGL\Window.cpp" />
     <ClCompile Include="Optix\OptixHelpers.cpp" />
     <ClCompile Include="Optix\Renderer.cpp" />
+    <ClCompile Include="Resources\CameraNode.cpp" />
     <ClCompile Include="Resources\Material.cpp" />
     <ClCompile Include="Resources\Mesh.cpp" />
     <ClCompile Include="Resources\Model.cpp" />
@@ -149,7 +150,6 @@
     <ClInclude Include="..\libraries\imgui\imstb_textedit.h" />
     <ClInclude Include="..\libraries\imgui\imstb_truetype.h" />
     <ClInclude Include="App\App.h" />
-    <ClInclude Include="App\CameraNode.h" />
     <ClInclude Include="App\ControlScheme.h" />
     <ClInclude Include="App\OrbitCameraController.h" />
     <ClInclude Include="Common\CommonStructs.h" />
@@ -169,6 +169,7 @@
     <ClInclude Include="Optix\Optix7.h" />
     <ClInclude Include="Optix\OptixHelpers.h" />
     <ClInclude Include="Optix\Renderer.h" />
+    <ClInclude Include="Resources\CameraNode.h" />
     <ClInclude Include="Resources\Material.h" />
     <ClInclude Include="Resources\Mesh.h" />
     <ClInclude Include="Resources\Scene.h" />

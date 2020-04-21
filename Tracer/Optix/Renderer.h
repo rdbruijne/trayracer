@@ -18,6 +18,7 @@
 
 namespace Tracer
 {
+	class CameraNode;
 	class GLTexture;
 	class Scene;
 	class Texture;
@@ -44,7 +45,8 @@ namespace Tracer
 
 		void DownloadPixels(std::vector<float4>& dstPixels);
 
-		void SetCamera(float3 cameraPos, float3 cameraForward, float3 cameraUp, float camFov);
+		void SetCamera(CameraNode& camNode);
+		void SetCamera(const float3& cameraPos, const float3& cameraForward, const float3& cameraUp, float camFov);
 
 		void SetRenderMode(RenderModes mode);
 		inline RenderModes RenderMode() const { return mRenderMode; }

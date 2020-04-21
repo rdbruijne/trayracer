@@ -14,7 +14,7 @@ namespace Tracer
 	{
 		CreateScene();
 
-		renderer->SetCamera(mCamera.Position, normalize(mCamera.Target - mCamera.Position), mCamera.Up, mCamera.Fov);
+		renderer->SetCamera(mCamera);
 	}
 
 
@@ -28,8 +28,7 @@ namespace Tracer
 	void App::Tick(Renderer* renderer, Window* window, float dt)
 	{
 		// handle camera controller
-		if(OrbitCameraController::HandleInput(mCamera, &mControlScheme, window))
-			renderer->SetCamera(mCamera.Position, normalize(mCamera.Target - mCamera.Position), mCamera.Up, mCamera.Fov);
+		OrbitCameraController::HandleInput(mCamera, &mControlScheme, window);
 
 		// camera target picker
 		if(window->IsKeyDown(Input::Keys::T) && window->WasKeyPressed(Input::Keys::Mouse_Left))
@@ -38,9 +37,11 @@ namespace Tracer
 			const int2 cursorPosI2 = make_int2(static_cast<int32_t>(cursorPos.x), static_cast<int32_t>(cursorPos.y));
 			const RayPickResult result = renderer->PickRay(cursorPosI2);
 
-			mCamera.Target = mCamera.Position + result.rayDir * result.dst;
-			renderer->SetCamera(mCamera.Position, normalize(mCamera.Target - mCamera.Position), mCamera.Up, mCamera.Fov);
+			mCamera.SetTarget(mCamera.Position() + result.rayDir * result.dst);
 		}
+
+		// set the camera
+		renderer->SetCamera(mCamera);
 	}
 
 
