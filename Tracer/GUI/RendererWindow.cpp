@@ -1,7 +1,7 @@
 #include "RendererWindow.h"
 
 // Project
-#include "Optix/Renderer.h"
+#include "Renderer/Renderer.h"
 #include "Gui/GuiHelpers.h"
 
 // Magic Enum

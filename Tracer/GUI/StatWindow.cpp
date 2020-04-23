@@ -2,7 +2,7 @@
 
 // Project
 #include "Gui/GuiHelpers.h"
-#include "Optix/Renderer.h"
+#include "Renderer/Renderer.h"
 
 // ImGUI
 #include "imgui/imgui.h"

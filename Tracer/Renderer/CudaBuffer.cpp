@@ -1,7 +1,7 @@
-#include "CUDA/CudaBuffer.h"
+#include "CudaBuffer.h"
 
 // Project
-#include "CUDA/CudaHelpers.h"
+#include "Renderer/CudaHelpers.h"
 
 // C++
 #include <assert.h>

@@ -1,7 +1,7 @@
 #pragma once
 
 // Project
-#include "CUDA/CudaBuffer.h"
+#include "Renderer/CudaBuffer.h"
 #include "Common/CommonStructs.h"
 
 // Magic Enum

@@ -1,4 +1,4 @@
-#include "Optix/Renderer.h"
+#include "Renderer/Renderer.h"
 
 // Project
 #include "OpenGL/GLTexture.h"

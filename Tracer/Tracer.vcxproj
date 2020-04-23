@@ -115,8 +115,6 @@
     <ClCompile Include="App\App.cpp" />
     <ClCompile Include="App\ControlScheme.cpp" />
     <ClCompile Include="App\OrbitCameraController.cpp" />
-    <ClCompile Include="CUDA\CudaBuffer.cpp" />
-    <ClCompile Include="CUDA\CudaHelpers.cpp" />
     <ClCompile Include="GUI\CameraWindow.cpp" />
     <ClCompile Include="GUI\DebugWindow.cpp" />
     <ClCompile Include="GUI\GuiHelpers.cpp" />
@@ -128,7 +126,9 @@
     <ClCompile Include="OpenGL\GLTexture.cpp" />
     <ClCompile Include="OpenGL\Shader.cpp" />
     <ClCompile Include="OpenGL\Window.cpp" />
-    <ClCompile Include="Optix\Renderer.cpp" />
+    <ClCompile Include="Renderer\CudaBuffer.cpp" />
+    <ClCompile Include="Renderer\CudaHelpers.cpp" />
+    <ClCompile Include="Renderer\Renderer.cpp" />
     <ClCompile Include="Resources\CameraNode.cpp" />
     <ClCompile Include="Resources\Material.cpp" />
     <ClCompile Include="Resources\Mesh.cpp" />
@@ -152,8 +152,6 @@
     <ClInclude Include="App\ControlScheme.h" />
     <ClInclude Include="App\OrbitCameraController.h" />
     <ClInclude Include="Common\CommonStructs.h" />
-    <ClInclude Include="CUDA\CudaBuffer.h" />
-    <ClInclude Include="CUDA\CudaHelpers.h" />
     <ClInclude Include="GUI\CameraWindow.h" />
     <ClInclude Include="GUI\DebugWindow.h" />
     <ClInclude Include="GUI\GuiHelpers.h" />
@@ -165,7 +163,9 @@
     <ClInclude Include="OpenGL\Input.h" />
     <ClInclude Include="OpenGL\Shader.h" />
     <ClInclude Include="OpenGL\Window.h" />
-    <ClInclude Include="Optix\Renderer.h" />
+    <ClInclude Include="Renderer\CudaBuffer.h" />
+    <ClInclude Include="Renderer\CudaHelpers.h" />
+    <ClInclude Include="Renderer\Renderer.h" />
     <ClInclude Include="Resources\CameraNode.h" />
     <ClInclude Include="Resources\Material.h" />
     <ClInclude Include="Resources\Mesh.h" />

@@ -5,17 +5,8 @@
     <ClCompile Include="App\App.cpp">
       <Filter>App</Filter>
     </ClCompile>
-    <ClCompile Include="CUDA\CudaBuffer.cpp">
-      <Filter>CUDA</Filter>
-    </ClCompile>
-    <ClCompile Include="CUDA\CudaHelpers.cpp">
-      <Filter>CUDA</Filter>
-    </ClCompile>
     <ClCompile Include="OpenGL\Window.cpp">
       <Filter>OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="Optix\Renderer.cpp">
-      <Filter>Optix</Filter>
     </ClCompile>
     <ClCompile Include="Resources\Mesh.cpp">
       <Filter>Resources</Filter>
@@ -92,6 +83,15 @@
     <ClCompile Include="Resources\CameraNode.cpp">
       <Filter>Resources</Filter>
     </ClCompile>
+    <ClCompile Include="Renderer\CudaBuffer.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\CudaHelpers.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Renderer.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">
@@ -99,9 +99,6 @@
     </Filter>
     <Filter Include="Common">
       <UniqueIdentifier>{0f6ab266-204d-47f1-b0f1-f7dcd5e3215b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="CUDA">
-      <UniqueIdentifier>{9853ed54-2a6f-41d5-bf8b-a49f4134ae5f}</UniqueIdentifier>
     </Filter>
     <Filter Include="OpenGL">
       <UniqueIdentifier>{a462fed7-801a-4462-824d-bc872bee4365}</UniqueIdentifier>
@@ -121,6 +118,9 @@
     <Filter Include="GUI\ImGUI">
       <UniqueIdentifier>{3bed6e0a-c36c-42c8-b836-f224fe202670}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Renderer">
+      <UniqueIdentifier>{9853ed54-2a6f-41d5-bf8b-a49f4134ae5f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App\App.h">
@@ -129,17 +129,8 @@
     <ClInclude Include="Common\CommonStructs.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="CUDA\CudaBuffer.h">
-      <Filter>CUDA</Filter>
-    </ClInclude>
-    <ClInclude Include="CUDA\CudaHelpers.h">
-      <Filter>CUDA</Filter>
-    </ClInclude>
     <ClInclude Include="OpenGL\Window.h">
       <Filter>OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="Optix\Renderer.h">
-      <Filter>Optix</Filter>
     </ClInclude>
     <ClInclude Include="Resources\Mesh.h">
       <Filter>Resources</Filter>
@@ -230,6 +221,15 @@
     </ClInclude>
     <ClInclude Include="Resources\CameraNode.h">
       <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\CudaBuffer.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\CudaHelpers.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Renderer.h">
+      <Filter>Renderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

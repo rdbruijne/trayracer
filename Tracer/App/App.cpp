@@ -4,7 +4,7 @@
 #include "App/OrbitCameraController.h"
 #include "GUI/DebugWindow.h"
 #include "OpenGL/Window.h"
-#include "Optix/Renderer.h"
+#include "Renderer/Renderer.h"
 #include "Resources/Scene.h"
 #include "Utility/Importer.h"
 #include "Utility/LinearMath.h"

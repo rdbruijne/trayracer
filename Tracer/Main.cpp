@@ -3,7 +3,7 @@
 #include "GUI/GuiHelpers.h"
 #include "OpenGL/Input.h"
 #include "OpenGL/Window.h"
-#include "Optix/Renderer.h"
+#include "Renderer/Renderer.h"
 #include "Resources/Scene.h"
 #include "Utility/Stopwatch.h"
 #include "Utility/Utility.h"
