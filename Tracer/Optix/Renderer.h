@@ -64,35 +64,20 @@ namespace Tracer
 		inline void SetDenoiserSampleTreshold(uint32_t treshold) { mDenoiserSampleTreshold = treshold; }
 
 		// kernel settings
-		inline int MaxDepth() const { return mLaunchParams.maxDepth; }
-		inline void SetMaxDepth(int maxDepth)
-		{
-			if(maxDepth != mLaunchParams.maxDepth)
-			{
-				mLaunchParams.maxDepth = maxDepth;
-				mLaunchParams.sampleCount = 0;
-			}
+#define KERNEL_SETTING(t, n, f)								\
+		inline t f() const { return mLaunchParams.n; }		\
+		inline void Set##f(t n)								\
+		{													\
+			if(n != mLaunchParams.n)						\
+			{												\
+				mLaunchParams.n = n;						\
+				mLaunchParams.sampleCount = 0;				\
+			}												\
 		}
 
-		inline float AODist() const { return mLaunchParams.aoDist; }
-		inline void SetAODist(float aoDist)
-		{
-			if(aoDist != mLaunchParams.aoDist)
-			{
-				mLaunchParams.aoDist = aoDist;
-				mLaunchParams.sampleCount = 0;
-			}
-		}
-
-		inline float ZDepthMax() const { return mLaunchParams.zDepthMaX; }
-		inline void SetZDepthMax(float zDepthMax)
-		{
-			if(zDepthMax != mLaunchParams.zDepthMaX)
-			{
-				mLaunchParams.zDepthMaX = zDepthMax;
-				mLaunchParams.sampleCount = 0;
-			}
-		}
+		KERNEL_SETTING(int, maxDepth, MaxDepth)
+		KERNEL_SETTING(float, aoDist, AODist)
+		KERNEL_SETTING(float, zDepthMax, ZDepthMax)
 
 	private:
 		void Resize(const int2& resolution);

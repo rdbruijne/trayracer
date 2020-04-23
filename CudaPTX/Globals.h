@@ -4,7 +4,7 @@
 
 // Launch parameters
 __constant__
-static LaunchParams optixLaunchParams;
+static LaunchParams params;
 
 
 

@@ -57,7 +57,7 @@ void __raygen__AmbientOcclusion()
 	const int iy = optixGetLaunchIndex().y;
 
 	// set the seed
-	uint32_t seed = tea<2>(ix + (optixLaunchParams.resolutionX * iy), optixLaunchParams.sampleCount);
+	uint32_t seed = tea<2>(ix + (params.resX * iy), params.sampleCount);
 
 	// setup payload
 	Payload payload;
@@ -75,7 +75,7 @@ void __raygen__AmbientOcclusion()
 	GenerateCameraRay(O, D, make_int2(ix, iy), seed);
 
 	// trace the ray
-	optixTrace(optixLaunchParams.sceneRoot, O, D, optixLaunchParams.epsilon, 1e20f, 0.f, OptixVisibilityMask(255),
+	optixTrace(params.sceneRoot, O, D, params.epsilon, DST_MAX, 0.f, OptixVisibilityMask(255),
 			   OPTIX_RAY_FLAG_DISABLE_ANYHIT, RayType_Surface, RayType_Count, RayType_Surface, u0, u1);
 
 	if(payload.status == RS_Active)
@@ -84,17 +84,17 @@ void __raygen__AmbientOcclusion()
 		const float3 normal = make_float3(int_as_float(payload.kernelData.x), int_as_float(payload.kernelData.y), int_as_float(payload.kernelData.z));
 		const float3 p = SampleCosineHemisphere(normal, rnd(seed), rnd(seed));
 
-		O = optixLaunchParams.cameraPos + (D * payload.dst);
+		O = params.cameraPos + (D * payload.dst);
 		D = p;
 
 		// trace the bounce ray
 		payload.depth++;
-		optixTrace(optixLaunchParams.sceneRoot, O, D, optixLaunchParams.epsilon, 1e20f, 0.f, OptixVisibilityMask(255),
+		optixTrace(params.sceneRoot, O, D, params.epsilon, DST_MAX, 0.f, OptixVisibilityMask(255),
 				   OPTIX_RAY_FLAG_DISABLE_ANYHIT, RayType_Surface, RayType_Count, RayType_Surface, u0, u1);
 
-		if(payload.dst > optixLaunchParams.aoDist)
+		if(payload.dst > params.aoDist)
 			WriteResult(make_float3(1));
 		else
-			WriteResult(make_float3(payload.dst / optixLaunchParams.aoDist));
+			WriteResult(make_float3(payload.dst / params.aoDist));
 	}
 }

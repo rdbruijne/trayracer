@@ -45,7 +45,7 @@ void __raygen__Wireframe()
 	const int iy = optixGetLaunchIndex().y;
 
 	// set the seed
-	uint32_t seed = tea<2>(ix + (optixLaunchParams.resolutionX * iy), optixLaunchParams.sampleCount);
+	uint32_t seed = tea<2>(ix + (params.resX * iy), params.sampleCount);
 
 	// setup payload
 	Payload payload;
@@ -68,7 +68,7 @@ void __raygen__Wireframe()
 		GenerateCameraRay(O, D, make_int2(ix, iy), seed);
 
 		// trace the ray
-		optixTrace(optixLaunchParams.sceneRoot, O, D, optixLaunchParams.epsilon, 1e20f, 0.f, OptixVisibilityMask(255),
+		optixTrace(params.sceneRoot, O, D, params.epsilon, DST_MAX, 0.f, OptixVisibilityMask(255),
 				   OPTIX_RAY_FLAG_DISABLE_ANYHIT, RayType_Surface, RayType_Count, RayType_Surface, u0, u1);
 
 		// check the primitive ID

@@ -87,7 +87,7 @@ namespace Tracer
 		mLaunchParams.maxDepth  = 2;
 		mLaunchParams.epsilon   = Epsilon;
 		mLaunchParams.aoDist    = 10.f;
-		mLaunchParams.zDepthMaX = 10.f;
+		mLaunchParams.zDepthMax = 10.f;
 	}
 
 
@@ -116,7 +116,7 @@ namespace Tracer
 		if(texRes.x == 0 || texRes.y == 0)
 			return;
 
-		if(mLaunchParams.resolutionX != texRes.x || mLaunchParams.resolutionY != texRes.y)
+		if(mLaunchParams.resX != texRes.x || mLaunchParams.resY != texRes.y)
 			Resize(texRes);
 
 		// update scene root
@@ -132,7 +132,7 @@ namespace Tracer
 		// launch OptiX
 		OPTIX_CHECK(optixLaunch(mPipeline, mStream, mLaunchParamsBuffer.DevicePtr(), mLaunchParamsBuffer.Size(),
 								&mRenderModeConfigs[magic_enum::enum_integer(mRenderMode)].shaderBindingTable,
-								static_cast<unsigned int>(mLaunchParams.resolutionX), static_cast<unsigned int>(mLaunchParams.resolutionY), 1));
+								static_cast<unsigned int>(mLaunchParams.resX), static_cast<unsigned int>(mLaunchParams.resY), 1));
 		CUDA_CHECK(cudaDeviceSynchronize());
 
 		// run denoiser
@@ -141,18 +141,18 @@ namespace Tracer
 			// input
 			OptixImage2D inputLayer;
 			inputLayer.data = mColorBuffer.DevicePtr();
-			inputLayer.width = mLaunchParams.resolutionX;
-			inputLayer.height = mLaunchParams.resolutionY;
-			inputLayer.rowStrideInBytes = mLaunchParams.resolutionX * sizeof(float4);
+			inputLayer.width = mLaunchParams.resX;
+			inputLayer.height = mLaunchParams.resY;
+			inputLayer.rowStrideInBytes = mLaunchParams.resX * sizeof(float4);
 			inputLayer.pixelStrideInBytes = sizeof(float4);
 			inputLayer.format = OPTIX_PIXEL_FORMAT_FLOAT4;
 
 			// output
 			OptixImage2D outputLayer;
 			outputLayer.data = mDenoisedBuffer.DevicePtr();
-			outputLayer.width = mLaunchParams.resolutionX;
-			outputLayer.height = mLaunchParams.resolutionY;
-			outputLayer.rowStrideInBytes = mLaunchParams.resolutionX * sizeof(float4);
+			outputLayer.width = mLaunchParams.resX;
+			outputLayer.height = mLaunchParams.resY;
+			outputLayer.rowStrideInBytes = mLaunchParams.resX * sizeof(float4);
 			outputLayer.pixelStrideInBytes = sizeof(float4);
 			outputLayer.format = OPTIX_PIXEL_FORMAT_FLOAT4;
 
@@ -200,7 +200,7 @@ namespace Tracer
 
 	void Renderer::DownloadPixels(std::vector<float4>& dstPixels)
 	{
-		dstPixels.resize(static_cast<size_t>(mLaunchParams.resolutionX) * mLaunchParams.resolutionY);
+		dstPixels.resize(static_cast<size_t>(mLaunchParams.resX) * mLaunchParams.resY);
 		if(mDenoisedFrame)
 			mDenoisedBuffer.Download(dstPixels);
 		else
@@ -251,7 +251,7 @@ namespace Tracer
 		resultBuffer.Alloc(sizeof(RayPickResult));
 
 		// set ray pick specific launch param options
-		mLaunchParams.rayPickPixelIndex = pixelIndex;
+		mLaunchParams.rayPickPixel = pixelIndex;
 		mLaunchParams.rayPickResult     = reinterpret_cast<RayPickResult*>(resultBuffer.DevicePtr());
 
 		// upload launch params
@@ -279,8 +279,8 @@ namespace Tracer
 
 		// update launch params
 		mLaunchParams.sampleCount = 0;
-		mLaunchParams.resolutionX = resolution.x;
-		mLaunchParams.resolutionY = resolution.y;
+		mLaunchParams.resX = resolution.x;
+		mLaunchParams.resY = resolution.y;
 		mLaunchParams.colorBuffer = reinterpret_cast<float4*>(mColorBuffer.DevicePtr());
 
 		// allocate denoiser memory
@@ -337,7 +337,7 @@ namespace Tracer
 		mPipelineCompileOptions.numPayloadValues                 = 2;
 		mPipelineCompileOptions.numAttributeValues               = 2;
 		mPipelineCompileOptions.exceptionFlags                   = OPTIX_EXCEPTION_FLAG_NONE;
-		mPipelineCompileOptions.pipelineLaunchParamsVariableName = "optixLaunchParams";
+		mPipelineCompileOptions.pipelineLaunchParamsVariableName = "params";
 
 		// pipeline link options
 		mPipelineLinkOptions.maxTraceDepth          = 2;

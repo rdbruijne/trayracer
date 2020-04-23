@@ -174,9 +174,6 @@
     <ClInclude Include="OpenGL\Input.h">
       <Filter>OpenGL</Filter>
     </ClInclude>
-    <ClInclude Include="Utility\Declarations.h">
-      <Filter>Utility</Filter>
-    </ClInclude>
     <ClInclude Include="..\libraries\imgui\imconfig.h">
       <Filter>GUI\ImGUI</Filter>
     </ClInclude>

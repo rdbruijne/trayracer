@@ -174,7 +174,6 @@
     <ClInclude Include="Resources\Mesh.h" />
     <ClInclude Include="Resources\Scene.h" />
     <ClInclude Include="Resources\Texture.h" />
-    <ClInclude Include="Utility\Declarations.h" />
     <ClInclude Include="Utility\Importer.h" />
     <ClInclude Include="Utility\LinearMath.h" />
     <ClInclude Include="Utility\Stopwatch.h" />

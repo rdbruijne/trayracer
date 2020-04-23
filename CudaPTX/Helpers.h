@@ -30,6 +30,9 @@ constexpr float M_2_SQRTPI = 1.12837916709551257390f;   // 2/sqrt(pi)
 constexpr float M_SQRT2    = 1.41421356237309504880f;   // sqrt(2)
 constexpr float M_SQRT1_2  = 0.707106781186547524401f;  // 1/sqrt(2)
 
+// rendering
+constexpr float DST_MAX = 1e30f;
+
 
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -202,20 +205,20 @@ static __device__
 inline void GenerateCameraRay(float3& O, float3& D, int2 pixelIndex, uint32_t& seed)
 {
 	const float2 index = make_float2(pixelIndex);
-	const float2 res = make_float2(optixLaunchParams.resolutionX, optixLaunchParams.resolutionY);
+	const float2 res = make_float2(params.resX, params.resY);
 	const float2 jitter = make_float2(rnd(seed), rnd(seed));
 
 	const float aspect = res.x / res.y;
 	float2 screen = (((index + jitter) / res) * 2.0f) - make_float2(1, 1);
 	screen.y /= aspect;
 
-	const float tanFov2 = tanf(optixLaunchParams.cameraFov / 2.0f); // #TODO: move to CPU
+	const float tanFov2 = tanf(params.cameraFov / 2.0f); // #TODO: move to CPU
 	const float2 lensCoord = tanFov2 * screen;
 
-	O = optixLaunchParams.cameraPos;
-	D = normalize(optixLaunchParams.cameraForward +
-				  (lensCoord.x * optixLaunchParams.cameraSide) +
-				  (lensCoord.y * optixLaunchParams.cameraUp));
+	O = params.cameraPos;
+	D = normalize(params.cameraForward +
+				  (lensCoord.x * params.cameraSide) +
+				  (lensCoord.y * params.cameraUp));
 }
 
 
@@ -226,11 +229,11 @@ inline void GenerateCameraRay(float3& O, float3& D, int2 pixelIndex, uint32_t& s
 static __device__
 void InitializeFilm()
 {
-	const uint32_t fbIndex = optixGetLaunchIndex().x + optixGetLaunchIndex().y * optixLaunchParams.resolutionX;
-	if(optixLaunchParams.sampleCount == 0)
-		optixLaunchParams.colorBuffer[fbIndex] = make_float4(0, 0, 0, 1);
+	const uint32_t fbIndex = optixGetLaunchIndex().x + optixGetLaunchIndex().y * params.resX;
+	if(params.sampleCount == 0)
+		params.colorBuffer[fbIndex] = make_float4(0, 0, 0, 1);
 	else
-		optixLaunchParams.colorBuffer[fbIndex].w++;
+		params.colorBuffer[fbIndex].w++;
 
 }
 
@@ -240,8 +243,8 @@ static __device__
 void WriteResult(float3 result)
 {
 	// write color to the buffer
-	const uint32_t fbIndex = optixGetLaunchIndex().x + (optixGetLaunchIndex().y * optixLaunchParams.resolutionX);
-	optixLaunchParams.colorBuffer[fbIndex] += make_float4(result, 0);
+	const uint32_t fbIndex = optixGetLaunchIndex().x + (optixGetLaunchIndex().y * params.resX);
+	params.colorBuffer[fbIndex] += make_float4(result, 0);
 }
 
 

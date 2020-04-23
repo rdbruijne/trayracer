@@ -52,17 +52,17 @@ void __raygen__RayPick()
 
 	// generate ray
 	uint32_t seed = 0;
-	const int ix = optixLaunchParams.rayPickPixelIndex.x;
-	const int iy = optixLaunchParams.resolutionY - optixLaunchParams.rayPickPixelIndex.y;
+	const int ix = params.rayPickPixel.x;
+	const int iy = params.resY - params.rayPickPixel.y;
 	float3 O, D;
 	GenerateCameraRay(O, D, make_int2(ix, iy), seed);
 
 	// trace the ray
-	optixTrace(optixLaunchParams.sceneRoot, O, D, optixLaunchParams.epsilon, 1e20f, 0.f, OptixVisibilityMask(255),
+	optixTrace(params.sceneRoot, O, D, params.epsilon, DST_MAX, 0.f, OptixVisibilityMask(255),
 			   OPTIX_RAY_FLAG_DISABLE_ANYHIT, RayType_Surface, RayType_Count, RayType_Surface, u0, u1);
 
-	RayPickResult& r = *optixLaunchParams.rayPickResult;
-	r.rayOrigin = optixLaunchParams.cameraPos;
+	RayPickResult& r = *params.rayPickResult;
+	r.rayOrigin = params.cameraPos;
 	r.objectID  = payload.objectID;
 	r.rayDir    = D;
 	r.dst       = payload.dst;

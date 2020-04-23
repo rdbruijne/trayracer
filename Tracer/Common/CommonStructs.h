@@ -40,10 +40,10 @@ struct alignas(16) RayPickResult
 struct alignas(16) LaunchParams
 {
 	float3 cameraPos;
-	int32_t resolutionX;
+	int32_t resX;
 
 	float3 cameraSide;
-	int32_t resolutionY;
+	int32_t resY;
 
 	float3 cameraUp;
 	float cameraFov;
@@ -58,10 +58,10 @@ struct alignas(16) LaunchParams
 	int maxDepth;
 	float epsilon;
 	float aoDist;
-	float zDepthMaX;
+	float zDepthMax;
 
 	// ray pick
-	int2 rayPickPixelIndex;
+	int2 rayPickPixel;
 	RayPickResult* rayPickResult;
 };
 
