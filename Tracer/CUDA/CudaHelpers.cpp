@@ -34,7 +34,7 @@ namespace Tracer
 
 
 
-	std::string Tracer::ToString(CUresult cuResult)
+	std::string ToString(CUresult cuResult)
 	{
 		const char* errorName = nullptr;
 		cuGetErrorName(cuResult, &errorName);

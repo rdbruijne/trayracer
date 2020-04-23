@@ -1,7 +1,7 @@
 #pragma once
 
-// CUDA
-#include <vector_types.h>
+// Project
+#include "Utility/LinearMath.h"
 
 // C++
 #include <memory>

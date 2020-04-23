@@ -1,10 +1,10 @@
 #pragma once
 
-// Project
-#include "Optix/Optix7.h"
+// OptiX
+#include "optix7/optix.h"
 
 // CUDA
-#include <vector_types.h>
+#include <cuda_runtime.h>
 
 // C++
 #include <stdint.h>

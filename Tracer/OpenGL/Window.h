@@ -3,12 +3,8 @@
 // Project
 #include "OpenGL/Input.h"
 
-// OptiX
-#include "Optix/Optix7.h"
-
 // C++
 #include <string>
-#include <vector>
 
 // GLFW
 struct GLFWwindow;

@@ -12,8 +12,8 @@
 
 // C++
 #include <array>
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace Tracer

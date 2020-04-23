@@ -8,6 +8,7 @@ static LaunchParams params;
 
 
 
+// Ray status
 enum RayStatus : int
 {
 	RS_Active = 0,

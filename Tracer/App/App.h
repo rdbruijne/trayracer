@@ -6,7 +6,6 @@
 
 // C++
 #include <memory>
-#include <vector>
 
 namespace Tracer
 {
