@@ -2,11 +2,13 @@
 
 // Project
 #include "App/OrbitCameraController.h"
+#include "GUI/DebugWindow.h"
 #include "OpenGL/Window.h"
 #include "Optix/Renderer.h"
 #include "Resources/Scene.h"
 #include "Utility/Importer.h"
 #include "Utility/LinearMath.h"
+#include "Utility/Utility.h"
 
 namespace Tracer
 {
@@ -42,6 +44,21 @@ namespace Tracer
 
 		// set the camera
 		renderer->SetCamera(mCamera);
+
+		// debug raypick
+		DebugWindow* dw = DebugWindow::Get();
+		if(dw->IsEnabled())
+		{
+			const float2 cursorPos = window->CursorPos();
+			const int2 cursorPosI2 = make_int2(static_cast<int32_t>(cursorPos.x), static_cast<int32_t>(cursorPos.y));
+			const RayPickResult result = renderer->PickRay(cursorPosI2);
+
+			dw->Set("Pixel", format("%d  %d", cursorPosI2.x, cursorPosI2.y));
+			dw->Set("Ray origin", format("%.2f  %.2f  %.2f", result.rayOrigin.x, result.rayOrigin.y, result.rayOrigin.z));
+			dw->Set("Ray dir", format("%.2f  %.2f  %.2f", result.rayDir.x, result.rayDir.y, result.rayDir.z));
+			dw->Set("Dst", format("%f", result.dst));
+			dw->Set("Target", format("%d", result.objectID));
+		}
 	}
 
 
