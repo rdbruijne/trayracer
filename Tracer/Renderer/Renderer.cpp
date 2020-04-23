@@ -486,7 +486,7 @@ namespace Tracer
 		mPipelineLinkOptions.overrideUsesMotionBlur = 0;
 
 		// load PTX
-		const std::string ptxCode = ReadFile("ptx/program.ptx");
+		const std::string ptxCode = ReadFile("ptx/optix.ptx");
 		assert(!ptxCode.empty());
 
 		char log[2048];

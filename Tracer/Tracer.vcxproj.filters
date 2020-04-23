@@ -231,10 +231,45 @@
     <ClInclude Include="Renderer\Renderer.h">
       <Filter>Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="Optix\Helpers.h">
+      <Filter>Optix</Filter>
+    </ClInclude>
+    <ClInclude Include="Optix\Pipeline_AmbientOcclusion.h">
+      <Filter>Optix</Filter>
+    </ClInclude>
+    <ClInclude Include="Optix\Pipeline_DiffuseFilter.h">
+      <Filter>Optix</Filter>
+    </ClInclude>
+    <ClInclude Include="Optix\Pipeline_ObjectID.h">
+      <Filter>Optix</Filter>
+    </ClInclude>
+    <ClInclude Include="Optix\Pipeline_PathTracing.h">
+      <Filter>Optix</Filter>
+    </ClInclude>
+    <ClInclude Include="Optix\Pipeline_RayPick.h">
+      <Filter>Optix</Filter>
+    </ClInclude>
+    <ClInclude Include="Optix\Pipeline_ShadingNormal.h">
+      <Filter>Optix</Filter>
+    </ClInclude>
+    <ClInclude Include="Optix\Pipeline_TextureCoordinate.h">
+      <Filter>Optix</Filter>
+    </ClInclude>
+    <ClInclude Include="Optix\Pipeline_Wireframe.h">
+      <Filter>Optix</Filter>
+    </ClInclude>
+    <ClInclude Include="Optix\Pipeline_ZDepth.h">
+      <Filter>Optix</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Model.h">
       <Filter>Resources</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="Optix\optix.cu">
+      <Filter>Optix</Filter>
+    </CudaCompile>
   </ItemGroup>
 </Project>
