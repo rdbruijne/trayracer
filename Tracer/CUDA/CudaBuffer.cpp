@@ -33,8 +33,11 @@ namespace Tracer
 
 	void CudaBuffer::Resize(size_t size)
 	{
-		Free();
-		Alloc(size);
+		if(mSize != size)
+		{
+			Free();
+			Alloc(size);
+		}
 	}
 
 

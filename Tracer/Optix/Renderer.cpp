@@ -127,7 +127,7 @@ namespace Tracer
 		}
 
 		// upload launch params
-		mLaunchParamsBuffer.Upload(&mLaunchParams, 1);
+		mLaunchParamsBuffer.Upload(mLaunchParams);
 
 		// launch OptiX
 		OPTIX_CHECK(optixLaunch(mPipeline, mStream, mLaunchParamsBuffer.DevicePtr(), mLaunchParamsBuffer.Size(),
@@ -202,9 +202,9 @@ namespace Tracer
 	{
 		dstPixels.resize(static_cast<size_t>(mLaunchParams.resolutionX) * mLaunchParams.resolutionY);
 		if(mDenoisedFrame)
-			mDenoisedBuffer.Download(dstPixels.data(), static_cast<size_t>(mLaunchParams.resolutionX) * mLaunchParams.resolutionY);
+			mDenoisedBuffer.Download(dstPixels);
 		else
-			mColorBuffer.Download(dstPixels.data(), static_cast<size_t>(mLaunchParams.resolutionX) * mLaunchParams.resolutionY);
+			mColorBuffer.Download(dstPixels);
 	}
 
 
@@ -255,7 +255,7 @@ namespace Tracer
 		mLaunchParams.rayPickResult     = reinterpret_cast<RayPickResult*>(resultBuffer.DevicePtr());
 
 		// upload launch params
-		mLaunchParamsBuffer.Upload(&mLaunchParams, 1);
+		mLaunchParamsBuffer.Upload(mLaunchParams);
 
 		// launch the kernel
 		OPTIX_CHECK(optixLaunch(mPipeline, mStream, mLaunchParamsBuffer.DevicePtr(), mLaunchParamsBuffer.Size(),
@@ -264,7 +264,7 @@ namespace Tracer
 
 		// read the raypick result
 		RayPickResult result;
-		resultBuffer.Download(&result, 1);
+		resultBuffer.Download(result);
 
 		return result;
 	}
@@ -521,10 +521,10 @@ namespace Tracer
 					bi.type = OPTIX_BUILD_INPUT_TYPE_TRIANGLES;
 
 					// upload buffers
-					mVertexBuffers[meshIx].AllocAndUpload(mesh->Vertices());
-					mNormalBuffers[meshIx].AllocAndUpload(mesh->Normals());
-					mTexcoordBuffers[meshIx].AllocAndUpload(mesh->Texcoords());
-					mIndexBuffers[meshIx].AllocAndUpload(mesh->Indices());
+					mVertexBuffers[meshIx].Upload(mesh->Vertices(), true);
+					mNormalBuffers[meshIx].Upload(mesh->Normals(), true);
+					mTexcoordBuffers[meshIx].Upload(mesh->Texcoords(), true);
+					mIndexBuffers[meshIx].Upload(mesh->Indices(), true);
 
 					// vertices
 					bi.triangleArray.vertexFormat        = OPTIX_VERTEX_FORMAT_FLOAT3;
@@ -591,7 +591,7 @@ namespace Tracer
 			// Compact
 			//--------------------------------
 			uint64_t compactedSize = 0;
-			compactedSizeBuffer.Download(&compactedSize, 1);
+			compactedSizeBuffer.Download(compactedSize);
 
 			mAccelBuffer.Alloc(compactedSize);
 			OPTIX_CHECK(optixAccelCompact(mOptixContext, nullptr, mSceneRoot, mAccelBuffer.DevicePtr(), mAccelBuffer.Size(), &mSceneRoot));
@@ -616,8 +616,7 @@ namespace Tracer
 				raygenRecords.push_back(r);
 			}
 
-			config.rayGenRecordsBuffer.Free();
-			config.rayGenRecordsBuffer.AllocAndUpload(raygenRecords);
+			config.rayGenRecordsBuffer.Upload(raygenRecords, true);
 			config.shaderBindingTable.raygenRecord = config.rayGenRecordsBuffer.DevicePtr();
 
 			// miss records
@@ -631,8 +630,7 @@ namespace Tracer
 				missRecords.push_back(r);
 			}
 
-			config.missRecordsBuffer.Free();
-			config.missRecordsBuffer.AllocAndUpload(missRecords);
+			config.missRecordsBuffer.Upload(missRecords, true);
 			config.shaderBindingTable.missRecordBase          = config.missRecordsBuffer.DevicePtr();
 			config.shaderBindingTable.missRecordStrideInBytes = sizeof(MissRecord);
 			config.shaderBindingTable.missRecordCount         = static_cast<unsigned int>(missRecords.size());
@@ -689,8 +687,7 @@ namespace Tracer
 				}
 			}
 
-			config.hitRecordsBuffer.Free();
-			config.hitRecordsBuffer.AllocAndUpload(hitgroupRecords);
+			config.hitRecordsBuffer.Upload(hitgroupRecords, true);
 			config.shaderBindingTable.hitgroupRecordBase          = config.hitRecordsBuffer.DevicePtr();
 			config.shaderBindingTable.hitgroupRecordStrideInBytes = sizeof(HitgroupRecord);
 			config.shaderBindingTable.hitgroupRecordCount         = static_cast<unsigned int>(hitgroupRecords.size());
