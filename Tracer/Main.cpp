@@ -3,7 +3,6 @@
 #include "GUI/GuiHelpers.h"
 #include "OpenGL/Input.h"
 #include "OpenGL/Window.h"
-#include "Optix/OptixHelpers.h"
 #include "Optix/Renderer.h"
 #include "Resources/Scene.h"
 #include "Utility/Stopwatch.h"
@@ -33,14 +32,6 @@ int main(int argc, char** argv)
 {
 	try
 	{
-		// init OptiX
-		const bool initOptix = Tracer::InitOptix();
-		if(!initOptix)
-		{
-			throw std::runtime_error("Failed to init OptiX.");
-		}
-		printf("Successfully initialized OptiX.\n");
-
 		const int2 renderResolution = make_int2(1920, 1080);
 
 		// create renderer

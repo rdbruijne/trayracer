@@ -128,7 +128,6 @@
     <ClCompile Include="OpenGL\GLTexture.cpp" />
     <ClCompile Include="OpenGL\Shader.cpp" />
     <ClCompile Include="OpenGL\Window.cpp" />
-    <ClCompile Include="Optix\OptixHelpers.cpp" />
     <ClCompile Include="Optix\Renderer.cpp" />
     <ClCompile Include="Resources\CameraNode.cpp" />
     <ClCompile Include="Resources\Material.cpp" />
@@ -166,8 +165,6 @@
     <ClInclude Include="OpenGL\Input.h" />
     <ClInclude Include="OpenGL\Shader.h" />
     <ClInclude Include="OpenGL\Window.h" />
-    <ClInclude Include="Optix\Optix7.h" />
-    <ClInclude Include="Optix\OptixHelpers.h" />
     <ClInclude Include="Optix\Renderer.h" />
     <ClInclude Include="Resources\CameraNode.h" />
     <ClInclude Include="Resources\Material.h" />

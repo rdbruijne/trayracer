@@ -14,9 +14,6 @@
     <ClCompile Include="OpenGL\Window.cpp">
       <Filter>OpenGL</Filter>
     </ClCompile>
-    <ClCompile Include="Optix\OptixHelpers.cpp">
-      <Filter>Optix</Filter>
-    </ClCompile>
     <ClCompile Include="Optix\Renderer.cpp">
       <Filter>Optix</Filter>
     </ClCompile>
@@ -140,12 +137,6 @@
     </ClInclude>
     <ClInclude Include="OpenGL\Window.h">
       <Filter>OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="Optix\Optix7.h">
-      <Filter>Optix</Filter>
-    </ClInclude>
-    <ClInclude Include="Optix\OptixHelpers.h">
-      <Filter>Optix</Filter>
     </ClInclude>
     <ClInclude Include="Optix\Renderer.h">
       <Filter>Optix</Filter>

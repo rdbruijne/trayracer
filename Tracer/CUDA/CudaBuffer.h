@@ -2,7 +2,6 @@
 
 // Project
 #include "CUDA/CudaHelpers.h"
-#include "Optix/Optix7.h"
 
 // C++
 #include <assert.h>

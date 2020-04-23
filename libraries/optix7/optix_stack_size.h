@@ -33,7 +33,7 @@
 #ifndef __optix_optix_stack_size_h__
 #define __optix_optix_stack_size_h__
 
-#include <optix.h>
+#include "optix.h"
 
 #include <algorithm>
 #include <cstring>

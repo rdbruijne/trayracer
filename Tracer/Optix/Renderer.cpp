@@ -2,7 +2,6 @@
 
 // Project
 #include "OpenGL/GLTexture.h"
-#include "Optix/OptixHelpers.h"
 #include "Resources/CameraNode.h"
 #include "Resources/Scene.h"
 #include "Resources/Material.h"
@@ -12,11 +11,25 @@
 #include "Utility/LinearMath.h"
 #include "Utility/Utility.h"
 
+// OptiX
+#pragma warning(push)
+#pragma warning(disable: 4061 4365 5039 6011 6387 26451)
+#include "optix7/optix.h"
+#include "optix7/optix_stubs.h"
+#include "optix7/optix_function_table.h"
+#include "optix7/optix_function_table_definition.h"
+#include "optix7/optix_stack_size.h"
+#pragma warning(pop)
+
 // CUDA
 #include <cuda_gl_interop.h>
+#include <cuda_runtime.h>
 
 // C++
 #include <assert.h>
+#include <string>
+
+
 
 namespace Tracer
 {
@@ -63,6 +76,132 @@ namespace Tracer
 		std::string EntryName(Renderer::RenderModes renderMode, const std::string& entryPoint)
 		{
 			return entryPoint + ToString(renderMode);
+		}
+
+
+
+		std::string ToString(OptixResult optixResult)
+		{
+			switch(optixResult)
+			{
+			case OPTIX_SUCCESS:
+				return "OPTIX_SUCCESS";
+
+			case OPTIX_ERROR_INVALID_VALUE:
+				return "OPTIX_ERROR_INVALID_VALUE";
+
+			case OPTIX_ERROR_HOST_OUT_OF_MEMORY:
+				return "OPTIX_ERROR_HOST_OUT_OF_MEMORY";
+
+			case OPTIX_ERROR_INVALID_OPERATION:
+				return "OPTIX_ERROR_INVALID_OPERATION";
+
+			case OPTIX_ERROR_FILE_IO_ERROR:
+				return "OPTIX_ERROR_FILE_IO_ERROR";
+
+			case OPTIX_ERROR_INVALID_FILE_FORMAT:
+				return "OPTIX_ERROR_INVALID_FILE_FORMAT";
+
+			case OPTIX_ERROR_DISK_CACHE_INVALID_PATH:
+				return "OPTIX_ERROR_DISK_CACHE_INVALID_PATH";
+
+			case OPTIX_ERROR_DISK_CACHE_PERMISSION_ERROR:
+				return "OPTIX_ERROR_DISK_CACHE_PERMISSION_ERROR";
+
+			case OPTIX_ERROR_DISK_CACHE_DATABASE_ERROR:
+				return "OPTIX_ERROR_DISK_CACHE_DATABASE_ERROR";
+
+			case OPTIX_ERROR_DISK_CACHE_INVALID_DATA:
+				return "OPTIX_ERROR_DISK_CACHE_INVALID_DATA";
+
+			case OPTIX_ERROR_LAUNCH_FAILURE:
+				return "OPTIX_ERROR_LAUNCH_FAILURE";
+
+			case OPTIX_ERROR_INVALID_DEVICE_CONTEXT:
+				return "OPTIX_ERROR_INVALID_DEVICE_CONTEXT";
+
+			case OPTIX_ERROR_CUDA_NOT_INITIALIZED:
+				return "OPTIX_ERROR_CUDA_NOT_INITIALIZED";
+
+			case OPTIX_ERROR_INVALID_PTX:
+				return "OPTIX_ERROR_INVALID_PTX";
+
+			case OPTIX_ERROR_INVALID_LAUNCH_PARAMETER:
+				return "OPTIX_ERROR_INVALID_LAUNCH_PARAMETER";
+
+			case OPTIX_ERROR_INVALID_PAYLOAD_ACCESS:
+				return "OPTIX_ERROR_INVALID_PAYLOAD_ACCESS";
+
+			case OPTIX_ERROR_INVALID_ATTRIBUTE_ACCESS:
+				return "OPTIX_ERROR_INVALID_ATTRIBUTE_ACCESS";
+
+			case OPTIX_ERROR_INVALID_FUNCTION_USE:
+				return "OPTIX_ERROR_INVALID_FUNCTION_USE";
+
+			case OPTIX_ERROR_INVALID_FUNCTION_ARGUMENTS:
+				return "OPTIX_ERROR_INVALID_FUNCTION_ARGUMENTS";
+
+			case OPTIX_ERROR_PIPELINE_OUT_OF_CONSTANT_MEMORY:
+				return "OPTIX_ERROR_PIPELINE_OUT_OF_CONSTANT_MEMORY";
+
+			case OPTIX_ERROR_PIPELINE_LINK_ERROR:
+				return "OPTIX_ERROR_PIPELINE_LINK_ERROR";
+
+			case OPTIX_ERROR_INTERNAL_COMPILER_ERROR:
+				return "OPTIX_ERROR_INTERNAL_COMPILER_ERROR";
+
+			case OPTIX_ERROR_DENOISER_MODEL_NOT_SET:
+				return "OPTIX_ERROR_DENOISER_MODEL_NOT_SET";
+
+			case OPTIX_ERROR_DENOISER_NOT_INITIALIZED:
+				return "OPTIX_ERROR_DENOISER_NOT_INITIALIZED";
+
+			case OPTIX_ERROR_ACCEL_NOT_COMPATIBLE:
+				return "OPTIX_ERROR_ACCEL_NOT_COMPATIBLE";
+
+			case OPTIX_ERROR_NOT_SUPPORTED:
+				return "OPTIX_ERROR_NOT_SUPPORTED";
+
+			case OPTIX_ERROR_UNSUPPORTED_ABI_VERSION:
+				return "OPTIX_ERROR_UNSUPPORTED_ABI_VERSION";
+
+			case OPTIX_ERROR_FUNCTION_TABLE_SIZE_MISMATCH:
+				return "OPTIX_ERROR_FUNCTION_TABLE_SIZE_MISMATCH";
+
+			case OPTIX_ERROR_INVALID_ENTRY_FUNCTION_OPTIONS:
+				return "OPTIX_ERROR_INVALID_ENTRY_FUNCTION_OPTIONS";
+
+			case OPTIX_ERROR_LIBRARY_NOT_FOUND:
+				return "OPTIX_ERROR_LIBRARY_NOT_FOUND";
+
+			case OPTIX_ERROR_ENTRY_SYMBOL_NOT_FOUND:
+				return "OPTIX_ERROR_ENTRY_SYMBOL_NOT_FOUND";
+
+			case OPTIX_ERROR_CUDA_ERROR:
+				return "OPTIX_ERROR_CUDA_ERROR";
+
+			case OPTIX_ERROR_INTERNAL_ERROR:
+				return "OPTIX_ERROR_INTERNAL_ERROR";
+
+			case OPTIX_ERROR_UNKNOWN:
+				return "OPTIX_ERROR_UNKNOWN";
+
+			default:
+				return "Unknown OptiX error code!";
+			}
+		}
+
+
+
+#define OPTIX_CHECK(x) OptixCheck((x), __FILE__, __LINE__)
+		void OptixCheck(OptixResult res, const char* file, int line)
+		{
+			//assert(res == OPTIX_SUCCESS);
+			if(res != OPTIX_SUCCESS)
+			{
+				const std::string errorMessage = format("OptiX error at \"%s\" @ %i: %s", file, line, ToString(res).c_str());
+				throw std::runtime_error(errorMessage);
+			}
 		}
 	}
 
@@ -303,6 +442,8 @@ namespace Tracer
 
 	void Renderer::CreateContext()
 	{
+		OPTIX_CHECK(optixInit());
+
 		constexpr int deviceID = 0;
 		CUDA_CHECK(cudaSetDevice(deviceID));
 		CUDA_CHECK(cudaStreamCreate(&mStream));
@@ -472,11 +613,18 @@ namespace Tracer
 			printf("%s\n", log);
 
 		// set stack sizes
-		constexpr uint32_t directCallableStackSizeFromTraversal = 2 << 10;
-		constexpr uint32_t directCallableStackSizeFromState     = 2 << 10;
-		constexpr uint32_t continuationStackSize                = 2 << 10;
-		constexpr uint32_t maxTraversableGraphDepth             = 3;
-		OPTIX_CHECK(optixPipelineSetStackSize(mPipeline, directCallableStackSizeFromTraversal, directCallableStackSizeFromState, continuationStackSize, maxTraversableGraphDepth));
+		OptixStackSizes stackSizes = {};
+		for(auto& g : programGroups)
+			OPTIX_CHECK(optixUtilAccumulateStackSizes(g, &stackSizes));
+
+		uint32_t directCallableStackSizeFromTraversal = 2 << 10;
+		uint32_t directCallableStackSizeFromState     = 2 << 10;
+		uint32_t continuationStackSize                = 2 << 10;
+		uint32_t maxTraversableGraphDepth             = 3;
+		OPTIX_CHECK(optixUtilComputeStackSizes(&stackSizes, mLaunchParams.maxDepth, 0, 0, &directCallableStackSizeFromTraversal,
+											   &directCallableStackSizeFromState, &continuationStackSize));
+		OPTIX_CHECK(optixPipelineSetStackSize(mPipeline, directCallableStackSizeFromTraversal, directCallableStackSizeFromState,
+											  continuationStackSize, maxTraversableGraphDepth));
 	}
 
 
