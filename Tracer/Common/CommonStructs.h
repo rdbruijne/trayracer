@@ -3,6 +3,14 @@
 // OptiX
 #include "optix7/optix.h"
 
+#ifndef __CUDACC__
+// Magic Enum
+#pragma warning(push)
+#pragma warning(disable: 5027)
+#include "magic_enum/magic_enum.hpp"
+#pragma warning(pop)
+#endif
+
 // CUDA
 #include <cuda_runtime.h>
 
@@ -19,9 +27,41 @@ enum RayTypes
 
 
 
+enum RayGenModes : uint32_t
+{
+	RayGen_Primary,
+	RayGen_Secondary
+};
+
+
+
 enum TexturesInMaterial
 {
 	Texture_DiffuseMap = 0x1
+};
+
+
+
+enum class RenderModes : uint32_t
+{
+	AmbientOcclusion,
+	DiffuseFilter,
+	ObjectID,
+	PathTracing,
+	ShadingNormal,
+	TextureCoordinate,
+	Wireframe,
+	ZDepth
+};
+#ifndef __CUDACC__
+std::string ToString(RenderModes renderMode);
+#endif
+
+
+
+struct SbtData
+{
+	uint32_t objectID;
 };
 
 
@@ -32,14 +72,15 @@ struct alignas(16) RayPickResult
 	uint32_t objectID;
 
 	float3 rayDir;
-	float dst;
+	float tmax;
 };
-
 
 
 
 struct alignas(16) LaunchParams
 {
+
+	// Other
 	float3 cameraPos;
 	int32_t resX;
 
@@ -53,36 +94,66 @@ struct alignas(16) LaunchParams
 	int32_t sampleCount;
 
 	OptixTraversableHandle sceneRoot;
-	float4* colorBuffer;
-
-	// render settings
-	int maxDepth;
-	float epsilon;
-	float aoDist;
-	float zDepthMax;
+	float4* accumulator;
 
 	// ray pick
 	int2 rayPickPixel;
 	RayPickResult* rayPickResult;
+
+	// SPT
+	float4* pathStates;
+	uint4* hitData;
+
+	// settings
+	int rayGenMode;
+	int pad[2];
+
+	int maxDepth;
+	float epsilon;
+	float aoDist;
+	float zDepthMax;
 };
 
 
 
-struct alignas(16) TriangleMeshData
+struct Counters
+{
+	int32_t extendRays = 0;
+};
+
+
+
+struct alignas(16) CudaMeshData
 {
 	float3* vertices;
 	float3* normals;
 
-	float3* texcoords;
+	float2* texcoords;
 	uint3* indices;
 
 	uint32_t objectID;
-	float3 diffuse;
+	uint32_t pad[3];
+};
 
+
+
+/*struct CudaTexture
+{
+	uint32_t width;
+	uint32_t height;
+	float4* data;
+};*/
+
+
+
+struct CudaMatarial
+{
+	float3 diffuse;
 	uint32_t textures;
-	uint32_t pad;
-	cudaTextureObject_t diffuseMap;
 
 	float3 emissive;
-	float pad2;
+	int pad;
+
+	cudaTextureObject_t diffuseMap;
+	int64_t pad2;
 };

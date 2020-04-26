@@ -2,61 +2,14 @@
 
 // Project
 #include "Common/CommonStructs.h"
+#include "Common/CommonUtility.h"
 
-// OptiX
-#include "optix7/optix_device.h"
+// C++
+//#include <stdint.h>
 
 // CUDA
-#include "CUDA/helper_math.h"
-#include "CUDA/random.h"
-
-
-
-//------------------------------------------------------------------------------------------------------------------------------
-// Globals
-//------------------------------------------------------------------------------------------------------------------------------
-// Launch parameters
-__constant__
-static LaunchParams params;
-
-
-
-// Ray status
-enum RayStatus : int
-{
-	RS_Active = 0,
-	RS_Emissive,
-	RS_Sky
-};
-
-
-
-// Ray payload
-struct Payload
-{
-	float3 throughput;
-	int depth;
-
-	float3 O;
-	uint32_t seed;
-
-	float3 D;
-	float dst;
-
-	int3 kernelData; // kernel specific info
-	RayStatus status;
-};
-
-
-
-struct PayloadRayPick
-{
-	float dst;
-	uint32_t objectID;
-	uint32_t materialID;
-	uint32_t pad1;
-};
-
+//#include "CUDA/helper_math.h"
+//#include "CUDA/random.h"
 
 
 
@@ -64,7 +17,7 @@ struct PayloadRayPick
 // Cconstants
 //------------------------------------------------------------------------------------------------------------------------------
 // math
-constexpr float M_E        = 2.71828182845904523536;    // e
+constexpr float M_E        = 2.71828182845904523536f;   // e
 constexpr float M_LOG2E    = 1.44269504088896340736f;   // log2(e)
 constexpr float M_LOG10E   = 0.434294481903251827651f;  // log10(e)
 constexpr float M_LN2      = 0.693147180559945309417f;  // ln(2)
@@ -84,42 +37,74 @@ constexpr float DST_MAX = 1e30f;
 
 
 //------------------------------------------------------------------------------------------------------------------------------
-// math functions
+// Globals
 //------------------------------------------------------------------------------------------------------------------------------
+static __device__ Counters* counters;
+
+__constant__ CudaMatarial* materialData;
+__constant__ CudaMeshData* meshData;
+__constant__ LaunchParams* params;
+
+
+
+__host__ void SetCudaCounters(Counters* data)
+{
+	cudaMemcpyToSymbol(counters, &data, sizeof(void*));
+}
+
+
+
+__host__ void SetCudaMatarialData(CudaMatarial* data)
+{
+	cudaMemcpyToSymbol(materialData, &data, sizeof(void*));
+}
+
+
+
+__host__ void SetCudaMeshData(CudaMeshData* data)
+{
+	cudaMemcpyToSymbol(meshData, &data, sizeof(void*));
+}
+
+
+
+__host__ void SetCudaLaunchParams(LaunchParams* data)
+{
+	cudaMemcpyToSymbol(params, &data, sizeof(void*));
+}
+
+
+
+//------------------------------------------------------------------------------------------------------------------------------
+// Counters
+//------------------------------------------------------------------------------------------------------------------------------
+static __global__ void InitCudaCountersKernel()
+{
+	if(threadIdx.x == 0)
+	{
+		counters->extendRays = 0;
+	}
+}
+
+
+
+__host__ void InitCudaCounters()
+{
+	InitCudaCountersKernel<<<32, 1>>>();
+}
+
+
+
+
+//------------------------------------------------------------------------------------------------------------------------------
+// Math
+//------------------------------------------------------------------------------------------------------------------------------
+static __host__ inline uint32_t DivRoundUp(uint32_t a, uint32_t b) { return (a + b - 1) / b; }
+
 static __device__ inline float2 operator -(const float2& a) { return make_float2(-a.x, -a.y); }
 static __device__ inline float3 operator -(const float3& a) { return make_float3(-a.x, -a.y, -a.z); }
 static __device__ inline float4 operator -(const float4& a) { return make_float4(-a.x, -a.y, -a.z, -a.w); }
 
-
-//------------------------------------------------------------------------------------------------------------------------------
-// Payload
-//------------------------------------------------------------------------------------------------------------------------------
-// Pack a pointer into 2 unsigned integers
-static __device__
-void PackPointer(void* ptr, uint32_t& u1, uint32_t& u2)
-{
-	const uint64_t u = reinterpret_cast<uint64_t>(ptr);
-	u1 = u >> 32;
-	u2 = u & 0xFFFFFFFF;
-}
-
-
-
-// Unpack a pointer from 2 unsigned integers
-static __device__
-void* UnpackPointer(uint32_t u1, uint32_t u2)
-{
-	return reinterpret_cast<void*>((static_cast<uint64_t>(u1) << 32) | u2);
-}
-
-
-
-// Get ray payload
-static __device__
-Payload* GetPayload()
-{
-	return reinterpret_cast<Payload*>(UnpackPointer(optixGetPayload_0(), optixGetPayload_1()));
-}
 
 
 
@@ -128,7 +113,7 @@ Payload* GetPayload()
 //------------------------------------------------------------------------------------------------------------------------------
 // Convert an object ID to a color
 static __device__
-float3 IdToColor(uint32_t id)
+inline float3 IdToColor(uint32_t id)
 {
 	// https://stackoverflow.com/a/9044057
 	uint32_t c[3] = { 0, 0, 0 };
@@ -149,7 +134,7 @@ float3 IdToColor(uint32_t id)
 // Intersection
 //------------------------------------------------------------------------------------------------------------------------------
 static __device__
-float2 Barycentric(float2 bc, const float2& v0, const float2& v1, const float2& v2)
+inline float2 Barycentric(float2 bc, const float2& v0, const float2& v1, const float2& v2)
 {
 	return v0 + ((v1 - v0) * bc.x) + ((v2 - v0) * bc.y);
 }
@@ -157,7 +142,7 @@ float2 Barycentric(float2 bc, const float2& v0, const float2& v1, const float2& 
 
 
 static __device__
-float3 Barycentric(float2 bc, const float3& v0, const float3& v1, const float3& v2)
+inline float3 Barycentric(float2 bc, const float3& v0, const float3& v1, const float3& v2)
 {
 	return v0 + ((v1 - v0) * bc.x) + ((v2 - v0) * bc.y);
 }
@@ -167,52 +152,43 @@ float3 Barycentric(float2 bc, const float3& v0, const float3& v1, const float3& 
 struct IntersectionAttributes
 {
 	float3 geometricNormal;
-	int primitiveIndex;
+	float texcoordX;
 
 	float3 shadingNormal;
-	int padding0;
-
-	float3 texcoord;
-	int padding1;
+	float texcoordY;
 
 	float3 tangent;
-	int padding2;
+	float pad;
 
 	float3 bitangent;
-	int padding3;
-
-	const TriangleMeshData* meshData;
-	int2 padding4;
+	int pad2;
 };
 
 
 
 static __device__
-IntersectionAttributes GetIntersectionAttributes()
+inline IntersectionAttributes GetIntersectionAttributes(uint32_t instIx, uint32_t primIx, float2 bary)
 {
 	IntersectionAttributes attrib = {};
 
-	// get mesh data
-	attrib.meshData = (const TriangleMeshData*)optixGetSbtDataPointer();
-
 	// get optix info
-	const int primID = optixGetPrimitiveIndex();
-	const float2 barycentrics = optixGetTriangleBarycentrics();
-	const uint3 index = attrib.meshData->indices[primID];
+	const CudaMeshData& md = meshData[instIx];
+	const uint3 index = md.indices[primIx];
 
 	// set simple data
-	attrib.primitiveIndex = optixGetPrimitiveIndex();
-	attrib.shadingNormal = normalize(Barycentric(barycentrics, attrib.meshData->normals[index.x], attrib.meshData->normals[index.y], attrib.meshData->normals[index.z]));
+	attrib.shadingNormal = normalize(Barycentric(bary, md.normals[index.x], md.normals[index.y], md.normals[index.z]));
 
-	const float3 texcoord0 = attrib.meshData->texcoords[index.x];
-	const float3 texcoord1 = attrib.meshData->texcoords[index.y];
-	const float3 texcoord2 = attrib.meshData->texcoords[index.z];
-	attrib.texcoord = Barycentric(barycentrics, texcoord0, texcoord1, texcoord2);
+	const float2 texcoord0 = md.texcoords[index.x];
+	const float2 texcoord1 = md.texcoords[index.y];
+	const float2 texcoord2 = md.texcoords[index.z];
+	const float2 texcoord = Barycentric(bary, texcoord0, texcoord1, texcoord2);;
+	attrib.texcoordX = texcoord.x;
+	attrib.texcoordY = texcoord.y;
 
 	// calculate geometric normal
-	const float3 v0 = attrib.meshData->vertices[index.x];
-	const float3 v1 = attrib.meshData->vertices[index.y];
-	const float3 v2 = attrib.meshData->vertices[index.z];
+	const float3 v0 = md.vertices[index.x];
+	const float3 v1 = md.vertices[index.y];
+	const float3 v2 = md.vertices[index.z];
 
 	const float3 e1 = v1 - v0;
 	const float3 e2 = v2 - v0;
@@ -252,47 +228,8 @@ IntersectionAttributes GetIntersectionAttributes()
 static __device__
 inline void GenerateCameraRay(float3& O, float3& D, int2 pixelIndex, uint32_t& seed)
 {
-	const float2 index = make_float2(pixelIndex);
-	const float2 res = make_float2(params.resX, params.resY);
-	const float2 jitter = make_float2(rnd(seed), rnd(seed));
-
-	const float aspect = res.x / res.y;
-	float2 screen = (((index + jitter) / res) * 2.0f) - make_float2(1, 1);
-	screen.y /= aspect;
-
-	const float tanFov2 = tanf(params.cameraFov / 2.0f); // #TODO: move to CPU
-	const float2 lensCoord = tanFov2 * screen;
-
-	O = params.cameraPos;
-	D = normalize(params.cameraForward +
-				  (lensCoord.x * params.cameraSide) +
-				  (lensCoord.y * params.cameraUp));
-}
-
-
-
-//------------------------------------------------------------------------------------------------------------------------------
-// Film
-//------------------------------------------------------------------------------------------------------------------------------
-static __device__
-void InitializeFilm()
-{
-	const uint32_t fbIndex = optixGetLaunchIndex().x + optixGetLaunchIndex().y * params.resX;
-	if(params.sampleCount == 0)
-		params.colorBuffer[fbIndex] = make_float4(0, 0, 0, 1);
-	else
-		params.colorBuffer[fbIndex].w++;
-
-}
-
-
-
-static __device__
-void WriteResult(float3 result)
-{
-	// write color to the buffer
-	const uint32_t fbIndex = optixGetLaunchIndex().x + (optixGetLaunchIndex().y * params.resX);
-	params.colorBuffer[fbIndex] += make_float4(result, 0);
+	GenerateCameraRay(params->cameraPos, params->cameraForward, params->cameraSide, params->cameraUp, params->cameraFov,
+					   make_float2(params->resX, params->resY), O, D, pixelIndex, seed);
 }
 
 
@@ -301,7 +238,7 @@ void WriteResult(float3 result)
 // Orthonormal base
 //------------------------------------------------------------------------------------------------------------------------------
 static __device__
-void ONB(const float3 normal, float3& tangent, float3& bitangent)
+inline void ONB(const float3 normal, float3& tangent, float3& bitangent)
 {
 	if(fabsf(normal.x) > fabsf(normal.y))
 	{
@@ -326,7 +263,7 @@ void ONB(const float3 normal, float3& tangent, float3& bitangent)
 // Sampling
 //------------------------------------------------------------------------------------------------------------------------------
 static __device__
-float3 SampleCosineHemisphere(float u, float v)
+inline float3 SampleCosineHemisphere(float u, float v)
 {
 	// uniform sample disk
 	const float r = sqrtf(u);
@@ -340,7 +277,7 @@ float3 SampleCosineHemisphere(float u, float v)
 
 
 static __device__
-float3 SampleCosineHemisphere(const float3& normal, float u, float v)
+inline float3 SampleCosineHemisphere(const float3& normal, float u, float v)
 {
 	float3 tangent, bitangent;
 	ONB(normal, tangent, bitangent);

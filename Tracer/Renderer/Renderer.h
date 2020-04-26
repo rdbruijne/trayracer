@@ -25,18 +25,6 @@ namespace Tracer
 	class Renderer
 	{
 	public:
-		enum RenderModes
-		{
-			AmbientOcclusion,
-			DiffuseFilter,
-			ObjectID,
-			PathTracing,
-			ShadingNormal,
-			TextureCoordinate,
-			Wireframe,
-			ZDepth
-		};
-
 		explicit Renderer();
 		~Renderer();
 
@@ -103,6 +91,13 @@ namespace Tracer
 		GLTexture* mRenderTarget = nullptr;
 		cudaGraphicsResource* mCudaGraphicsResource = nullptr;
 
+		// SPT
+		CudaBuffer mPathStates;		// (O.xyz, pathIx)[], (D.xyz, meshIx)[], (throughput, ?)[]
+		CudaBuffer mHitData;		// (bary.x, bary.y), instIx, primIx, tmin
+		CudaBuffer mCudaMeshData;
+		CudaBuffer mCudaMaterialData;
+		CudaBuffer mCountersBuffer;
+
 		// Denoiser
 		OptixDenoiser mDenoiser;
 		CudaBuffer mDenoiserScratch;
@@ -147,7 +142,7 @@ namespace Tracer
 
 			OptixShaderBindingTable shaderBindingTable;
 		};
-		std::array<RenderModeConfig, magic_enum::enum_count<RenderModes>() + 1> mRenderModeConfigs;
+		std::vector<RenderModeConfig> mRenderModeConfigs;
 
 		// Geometry
 		std::vector<CudaBuffer> mVertexBuffers;
@@ -156,19 +151,18 @@ namespace Tracer
 		std::vector<CudaBuffer> mIndexBuffers;
 
 		// Textures
-		struct OptixTexture
+		struct CudaTexture
 		{
-			OptixTexture() = default;
-			explicit OptixTexture(std::shared_ptr<Texture> srcTex);
+			CudaTexture() = default;
+			~CudaTexture();
+			explicit CudaTexture(std::shared_ptr<Texture> srcTex);
 			cudaArray_t mArray = nullptr;
 			cudaTextureObject_t mObject = 0;
 		};
-		std::unordered_map<std::shared_ptr<Texture>, OptixTexture> mTextures;
+		std::unordered_map<std::shared_ptr<Texture>, std::shared_ptr<CudaTexture>> mTextures;
 
 		// OptiX scene
 		OptixTraversableHandle mSceneRoot = 0;
 		CudaBuffer mAccelBuffer;
 	};
-
-	std::string ToString(Renderer::RenderModes renderMode);
 }

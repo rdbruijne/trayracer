@@ -33,13 +33,13 @@ namespace Tracer
 		else
 		{
 			// render mode
-			Renderer::RenderModes activeRenderMode = mRenderer->RenderMode();
+			RenderModes activeRenderMode = mRenderer->RenderMode();
 			const std::string rmName = ToString(activeRenderMode);
 			if(ImGui::BeginCombo("Render Mode", rmName.c_str()))
 			{
-				for(size_t i = 0; i <magic_enum::enum_count<Renderer::RenderModes>(); i++)
+				for(size_t i = 0; i <magic_enum::enum_count<RenderModes>(); i++)
 				{
-					const Renderer::RenderModes mode = static_cast<Renderer::RenderModes>(i);
+					const RenderModes mode = static_cast<RenderModes>(i);
 					const std::string itemName = ToString(mode);
 					if(ImGui::Selectable(itemName.c_str(), mode == activeRenderMode))
 						mRenderer->SetRenderMode(mode);

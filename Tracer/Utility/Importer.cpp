@@ -123,7 +123,7 @@ namespace Tracer
 			// vertices
 			std::vector<float3> positions(aMesh->mNumVertices, make_float3(0, 0, 0));
 			std::vector<float3> normals(aMesh->mNumVertices, make_float3(0, 0, 0));
-			std::vector<float3> texcoords(aMesh->mNumVertices, make_float3(0, 0, 0));
+			std::vector<float2> texcoords(aMesh->mNumVertices, make_float2(0, 0));
 
 			for(unsigned int i = 0; i < aMesh->mNumVertices; i++)
 			{
@@ -134,7 +134,7 @@ namespace Tracer
 					normals[i] = *reinterpret_cast<float3*>(aMesh->mNormals + i);
 
 				if(aMesh->mTextureCoords[0])
-					texcoords[i] = *reinterpret_cast<float3*>(aMesh->mTextureCoords[0] + i);
+					texcoords[i] = *reinterpret_cast<float2*>(aMesh->mTextureCoords[0] + i);
 			}
 
 			// indices

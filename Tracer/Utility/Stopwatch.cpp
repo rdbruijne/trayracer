@@ -22,7 +22,7 @@ namespace Tracer
 	int64_t Stopwatch::ElapsedNS() const
 	{
 		const std::chrono::high_resolution_clock::time_point t = std::chrono::high_resolution_clock::now();
-		const int64_t elapsed = std::chrono::duration_cast<std::chrono::microseconds>(t - mTimePoint).count();
+		const int64_t elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(t - mTimePoint).count();
 		return elapsed;
 	}
 

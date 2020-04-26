@@ -33,7 +33,6 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
     <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 10.2.props" />
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 10.2.props" />
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
@@ -48,11 +47,13 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)bin\</OutDir>
     <IntDir>$(SolutionDir)build\$(ProjectName)_$(Platform)_$(Configuration)\</IntDir>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(CudaToolkitIncludeDir)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)bin\</OutDir>
     <IntDir>$(SolutionDir)build\$(ProjectName)_$(Platform)_$(Configuration)\</IntDir>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(CudaToolkitIncludeDir)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -73,18 +74,21 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>assimp-vc142-mt.lib;IrrXML.lib;zlibstatic.lib;FreeImage.lib;cuda.lib;cudart.lib;opengl32.lib;glew32s.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)libraries\assimp;$(SolutionDir)libraries\FreeImage;$(SolutionDir)libraries\GL;$(SolutionDir)libraries\glfw;$(CUDA_PATH)\lib\x64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>assimp-vc142-mt.lib;IrrXML.lib;zlibstatic.lib;FreeImage.lib;cuda.lib;cudart.lib;opengl32.lib;glew32s.lib;glfw3.lib;nvrtc.lib;cudart_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)libraries\assimp;$(SolutionDir)libraries\FreeImage;$(SolutionDir)libraries\GL;$(SolutionDir)libraries\glfw;$(CUDA_PATH)\lib\x64;$(CudaToolkitLibDir)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBCMT;MSVCRT</IgnoreSpecificDefaultLibraries>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
+      <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <CudaCompile>
-      <CompileOut>$(OutDir)ptx\%(Filename).ptx</CompileOut>
       <Include>$(ProjectDir);$(SolutionDir)libraries</Include>
-      <NvccCompilation>ptx</NvccCompilation>
       <TargetMachinePlatform>64</TargetMachinePlatform>
       <CodeGeneration>compute_61,sm_61</CodeGeneration>
+      <AdditionalCompilerOptions>/wd4505 /wd4514 /wd4668 /wd4820 /wd5039</AdditionalCompilerOptions>
+      <Keep>true</Keep>
+      <KeepDir>$(IntDir)</KeepDir>
+      <InterleaveSourceInPTX>true</InterleaveSourceInPTX>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -109,16 +113,19 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>assimp-vc142-mt.lib;IrrXML.lib;zlibstatic.lib;FreeImage.lib;cuda.lib;cudart.lib;opengl32.lib;glew32s.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)libraries\assimp;$(SolutionDir)libraries\FreeImage;$(SolutionDir)libraries\GL;$(SolutionDir)libraries\glfw;$(CUDA_PATH)\lib\x64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>assimp-vc142-mt.lib;IrrXML.lib;zlibstatic.lib;FreeImage.lib;cuda.lib;cudart.lib;opengl32.lib;glew32s.lib;glfw3.lib;nvrtc.lib;cudart_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)libraries\assimp;$(SolutionDir)libraries\FreeImage;$(SolutionDir)libraries\GL;$(SolutionDir)libraries\glfw;$(CUDA_PATH)\lib\x64;$(CudaToolkitLibDir)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBCMT</IgnoreSpecificDefaultLibraries>
+      <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <CudaCompile>
-      <CompileOut>$(OutDir)ptx\%(Filename).ptx</CompileOut>
       <Include>$(ProjectDir);$(SolutionDir)libraries</Include>
-      <NvccCompilation>ptx</NvccCompilation>
       <TargetMachinePlatform>64</TargetMachinePlatform>
       <CodeGeneration>compute_61,sm_61</CodeGeneration>
+      <AdditionalCompilerOptions>/wd4505 /wd4514 /wd4668 /wd4820 /wd5039</AdditionalCompilerOptions>
+      <Keep>true</Keep>
+      <KeepDir>$(IntDir)</KeepDir>
+      <InterleaveSourceInPTX>true</InterleaveSourceInPTX>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -130,6 +137,7 @@
     <ClCompile Include="App\App.cpp" />
     <ClCompile Include="App\ControlScheme.cpp" />
     <ClCompile Include="App\OrbitCameraController.cpp" />
+    <ClCompile Include="Common\CommonStructs.cpp" />
     <ClCompile Include="GUI\CameraWindow.cpp" />
     <ClCompile Include="GUI\DebugWindow.cpp" />
     <ClCompile Include="GUI\GuiHelpers.cpp" />
@@ -142,7 +150,7 @@
     <ClCompile Include="OpenGL\Shader.cpp" />
     <ClCompile Include="OpenGL\Window.cpp" />
     <ClCompile Include="Renderer\CudaBuffer.cpp" />
-    <ClCompile Include="Renderer\CudaHelpers.cpp" />
+    <ClCompile Include="Renderer\CudaError.cpp" />
     <ClCompile Include="Renderer\Renderer.cpp" />
     <ClCompile Include="Resources\CameraNode.cpp" />
     <ClCompile Include="Resources\Material.cpp" />
@@ -167,6 +175,10 @@
     <ClInclude Include="App\ControlScheme.h" />
     <ClInclude Include="App\OrbitCameraController.h" />
     <ClInclude Include="Common\CommonStructs.h" />
+    <ClInclude Include="Common\CommonUtility.h" />
+    <ClInclude Include="CUDA\CudaFwd.h" />
+    <ClInclude Include="CUDA\CudaUtility.h" />
+    <ClInclude Include="CUDA\Shade.h" />
     <ClInclude Include="GUI\CameraWindow.h" />
     <ClInclude Include="GUI\DebugWindow.h" />
     <ClInclude Include="GUI\GuiHelpers.h" />
@@ -178,48 +190,8 @@
     <ClInclude Include="OpenGL\Input.h" />
     <ClInclude Include="OpenGL\Shader.h" />
     <ClInclude Include="OpenGL\Window.h" />
-    <ClInclude Include="Optix\Helpers.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Optix\Pipeline_AmbientOcclusion.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Optix\Pipeline_DiffuseFilter.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Optix\Pipeline_ObjectID.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Optix\Pipeline_PathTracing.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Optix\Pipeline_RayPick.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Optix\Pipeline_ShadingNormal.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Optix\Pipeline_TextureCoordinate.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Optix\Pipeline_Wireframe.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="Optix\Pipeline_ZDepth.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClInclude>
     <ClInclude Include="Renderer\CudaBuffer.h" />
-    <ClInclude Include="Renderer\CudaHelpers.h" />
+    <ClInclude Include="Renderer\CudaError.h" />
     <ClInclude Include="Renderer\Renderer.h" />
     <ClInclude Include="Resources\CameraNode.h" />
     <ClInclude Include="Resources\Material.h" />
@@ -236,7 +208,13 @@
     <None Include="Resources\Model.h" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="Optix\optix.cu" />
+    <CudaCompile Include="CUDA\cuda.cu" />
+    <CudaCompile Include="Optix\optix.cu">
+      <CompileOut Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)ptx\%(Filename).ptx</CompileOut>
+      <NvccCompilation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ptx</NvccCompilation>
+      <CompileOut Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)ptx\%(Filename).ptx</CompileOut>
+      <NvccCompilation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ptx</NvccCompilation>
+    </CudaCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

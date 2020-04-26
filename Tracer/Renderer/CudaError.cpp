@@ -1,4 +1,4 @@
-#include "CudaHelpers.h"
+#include "CudaError.h"
 
 // Project
 #include "Utility/Utility.h"

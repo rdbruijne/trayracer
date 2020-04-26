@@ -51,6 +51,10 @@ int main(int argc, char** argv)
 			{ Tracer::DebugWindow::Get(),    Tracer::Input::Keys::F10 }
 		};
 
+		// default enabled windows
+		Tracer::StatWindow::Get()->SetEnabled(true);
+		Tracer::RendererWindow::Get()->SetEnabled(true);
+
 		// create app
 		Tracer::App* app = new Tracer::App();
 		app->Init(renderer, window);
@@ -69,7 +73,7 @@ int main(int argc, char** argv)
 				break;
 
 			// update the app
-			app->Tick(renderer, window, static_cast<float>(elapsedNs) * 1e-6f);
+			app->Tick(renderer, window, static_cast<float>(elapsedNs) * 1e-9f);
 
 			// build the scene
 			if(app->GetScene()->IsDirty())
@@ -95,7 +99,7 @@ int main(int argc, char** argv)
 			for(auto& w : guiWindows)
 			{
 				if(window->WasKeyPressed(w.toggleKey))
-					w.window->Enable(!w.window->IsEnabled());
+					w.window->SetEnabled(!w.window->IsEnabled());
 				anyGuiWindow = anyGuiWindow || w.window->IsEnabled();
 			}
 

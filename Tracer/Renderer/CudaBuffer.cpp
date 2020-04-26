@@ -1,8 +1,5 @@
 #include "CudaBuffer.h"
 
-// Project
-#include "Renderer/CudaHelpers.h"
-
 // C++
 #include <assert.h>
 

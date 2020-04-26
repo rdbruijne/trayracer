@@ -7,7 +7,7 @@ namespace Tracer
 	public:
 		virtual ~GuiWindow() = default;
 
-		void Enable(bool enable = true) { mEnabled = enable; }
+		void SetEnabled(bool enable) { mEnabled = enable; }
 		bool IsEnabled() const { return mEnabled; }
 
 		void Draw()

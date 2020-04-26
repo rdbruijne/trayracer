@@ -40,13 +40,13 @@ namespace Tracer
 			// frametime
 			ImGui::Text("Frame time");
 			ImGui::NextColumn();
-			ImGui::Text("%.1f ms", mFrameTimeNs * 1e-3);
+			ImGui::Text("%.1f ms", mFrameTimeNs * 1e-6);
 			ImGui::NextColumn();
 
 			// FPS
 			ImGui::Text("FPS");
 			ImGui::NextColumn();
-			ImGui::Text("%.1f", 1e6 / mFrameTimeNs);
+			ImGui::Text("%.1f", 1e9 / mFrameTimeNs);
 			ImGui::NextColumn();
 
 			// Sample count

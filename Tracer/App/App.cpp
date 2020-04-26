@@ -39,7 +39,7 @@ namespace Tracer
 			const int2 cursorPosI2 = make_int2(static_cast<int32_t>(cursorPos.x), static_cast<int32_t>(cursorPos.y));
 			const RayPickResult result = renderer->PickRay(cursorPosI2);
 
-			mCamera.SetTarget(mCamera.Position() + result.rayDir * result.dst);
+			mCamera.SetTarget(mCamera.Position() + result.rayDir * result.tmax);
 		}
 
 		// set the camera
@@ -56,7 +56,7 @@ namespace Tracer
 			dw->Set("Pixel", format("%d  %d", cursorPosI2.x, cursorPosI2.y));
 			dw->Set("Ray origin", format("%.2f  %.2f  %.2f", result.rayOrigin.x, result.rayOrigin.y, result.rayOrigin.z));
 			dw->Set("Ray dir", format("%.2f  %.2f  %.2f", result.rayDir.x, result.rayDir.y, result.rayDir.z));
-			dw->Set("Dst", format("%f", result.dst));
+			dw->Set("Dst", format("%f", result.tmax));
 			dw->Set("Target", format("%d", result.objectID));
 		}
 	}
@@ -68,11 +68,20 @@ namespace Tracer
 		mScene = std::make_unique<Scene>();
 
 		// toad
-		mScene->AddModel(ImportModel("models/toad/toad.obj"));
-		mCamera = CameraNode(make_float3(-5, 5, -6), make_float3(0, 0, 0), make_float3(0, 1, 0), 90.f * DegToRad);
+		//mScene->AddModel(ImportModel("models/plane/plane.obj"));
+		//mScene->AddModel(ImportModel("models/toad/toad.obj"));
+		//mCamera = CameraNode(make_float3(9, 2, 2), make_float3(0, 0, 0), make_float3(0, 1, 0), 90.f * DegToRad);
 
 		// sponza
-		//mScene->AddModel(ImportModel("models/sponza/sponza.obj"));
-		//mCamera = CameraNode(make_float3(-1350, 150, 0), make_float3(0, 125, 0), make_float3(0, 1, 0), 90.f * DegToRad);
+		mScene->AddModel(ImportModel("models/sponza/sponza.obj"));
+		mCamera = CameraNode(make_float3(-1350, 150, 0), make_float3(0, 125, 0), make_float3(0, 1, 0), 90.f * DegToRad);
+
+		// Pica (LightHouse2)
+		//mScene->AddModel(ImportModel("models/pica/scene.gltf"));
+		//mCamera = CameraNode(make_float3(-5, 5, -6), make_float3(0, 0, 0), make_float3(0, 1, 0), 90.f * DegToRad);
+
+		// thai statue
+		//mScene->AddModel(ImportModel("R:/3d_models/Statues/thai_statue/thai_statue.obj"));
+		//mCamera = CameraNode(make_float3(500, 100, 100), make_float3(0, 0, 0), make_float3(0, 1, 0), 90.f * DegToRad);
 	}
 }

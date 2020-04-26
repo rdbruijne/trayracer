@@ -11,6 +11,9 @@
 #include "Utility/LinearMath.h"
 #include "Utility/Utility.h"
 
+// SPT
+#include "CUDA/CudaFwd.h"
+
 // OptiX
 #pragma warning(push)
 #pragma warning(disable: 4061 4365 5039 6011 6387 26451)
@@ -29,13 +32,15 @@
 #include <assert.h>
 #include <string>
 
-
-
 namespace Tracer
 {
 	namespace
 	{
-		constexpr size_t RayPickConfigIx = magic_enum::enum_count<Renderer::RenderModes>();
+		enum class OptixRenderModes
+		{
+			SPT,
+			RayPick
+		};
 
 
 
@@ -61,7 +66,7 @@ namespace Tracer
 		struct alignas(OPTIX_SBT_RECORD_ALIGNMENT) HitgroupRecord
 		{
 			char header[OPTIX_SBT_RECORD_HEADER_SIZE] = {};
-			TriangleMeshData meshData;
+			SbtData data = {};
 		};
 
 
@@ -73,9 +78,9 @@ namespace Tracer
 
 
 
-		std::string EntryName(Renderer::RenderModes renderMode, const std::string& entryPoint)
+		std::string ToString(OptixRenderModes renderMode)
 		{
-			return entryPoint + ToString(renderMode);
+			return std::string(magic_enum::enum_name(renderMode));
 		}
 
 
@@ -223,10 +228,10 @@ namespace Tracer
 		mLaunchParamsBuffer.Alloc(sizeof(LaunchParams));
 
 		// set launch param constants
-		mLaunchParams.maxDepth  = 2;
+		mLaunchParams.maxDepth  = 16;
 		mLaunchParams.epsilon   = Epsilon;
-		mLaunchParams.aoDist    = 10.f;
-		mLaunchParams.zDepthMax = 10.f;
+		mLaunchParams.aoDist    = 1500.f;
+		mLaunchParams.zDepthMax = 1500.f;
 	}
 
 
@@ -265,14 +270,66 @@ namespace Tracer
 			mLaunchParams.sceneRoot = mSceneRoot;
 		}
 
-		// upload launch params
-		mLaunchParamsBuffer.Upload(mLaunchParams);
+		// prepare SPT buffers
+		if(mPathStates.Size() == 0)
+		{
+			mPathStates.Resize(sizeof(float4) * mLaunchParams.resX * mLaunchParams.resY * 3);
+			mHitData.Resize(sizeof(uint4) * mLaunchParams.resX * mLaunchParams.resY);
 
-		// launch OptiX
-		OPTIX_CHECK(optixLaunch(mPipeline, mStream, mLaunchParamsBuffer.DevicePtr(), mLaunchParamsBuffer.Size(),
-								&mRenderModeConfigs[magic_enum::enum_integer(mRenderMode)].shaderBindingTable,
-								static_cast<unsigned int>(mLaunchParams.resX), static_cast<unsigned int>(mLaunchParams.resY), 1));
-		CUDA_CHECK(cudaDeviceSynchronize());
+			mLaunchParams.pathStates = mPathStates.Ptr<float4>();
+			mLaunchParams.hitData = mHitData.Ptr<uint4>();
+		}
+
+		// update counters
+		Counters counters = {};
+		if(mCountersBuffer.Size() == 0)
+		{
+			mCountersBuffer.Upload(&counters, 1, true);
+			SetCudaCounters(mCountersBuffer.Ptr<Counters>());
+		}
+
+		// update launch params
+		mLaunchParams.rayGenMode = RayGen_Primary;
+		mLaunchParamsBuffer.Upload(&mLaunchParams);
+		SetCudaLaunchParams(mLaunchParamsBuffer.Ptr<LaunchParams>());
+
+		// loop
+		uint32_t pathCount = mLaunchParams.resX * mLaunchParams.resY;
+		const uint32_t stride = mLaunchParams.resX * mLaunchParams.resY;
+		for(int pathLength = 0; pathLength < mLaunchParams.maxDepth; pathLength++)
+		{
+			// launch OptiX
+			if(pathLength == 0)
+			{
+				// primary
+				InitCudaCounters();
+				OPTIX_CHECK(optixLaunch(mPipeline, mStream, mLaunchParamsBuffer.DevicePtr(), mLaunchParamsBuffer.Size(),
+										&mRenderModeConfigs[magic_enum::enum_integer(OptixRenderModes::SPT)].shaderBindingTable,
+										static_cast<unsigned int>(mLaunchParams.resX), static_cast<unsigned int>(mLaunchParams.resY), 1));
+			}
+			else if(pathCount > 0)
+			{
+				// bounce
+#if true
+				mLaunchParams.rayGenMode = RayGen_Secondary;
+				mLaunchParamsBuffer.Upload(&mLaunchParams);
+#else
+				const int rayGenMode = RayGen_Secondary;
+				cudaMemcpy(mLaunchParamsBuffer.Ptr<void>(), &rayGenMode, sizeof(int), cudaMemcpyHostToDevice);
+#endif
+				InitCudaCounters();
+				OPTIX_CHECK(optixLaunch(mPipeline, mStream, mLaunchParamsBuffer.DevicePtr(), mLaunchParamsBuffer.Size(),
+										&mRenderModeConfigs[magic_enum::enum_integer(OptixRenderModes::SPT)].shaderBindingTable,
+										pathCount, 1, 1));
+			}
+
+			Shade(mRenderMode, pathCount, mColorBuffer.Ptr<float4>(), mPathStates.Ptr<float4>(), mHitData.Ptr<uint4>(),
+					make_int2(mLaunchParams.resX, mLaunchParams.resY), stride, pathLength);
+			CUDA_CHECK(cudaDeviceSynchronize());
+
+			mCountersBuffer.Download(&counters, 1);
+			pathCount = counters.extendRays;
+		}
 
 		// run denoiser
 		if(ShouldDenoise())
@@ -391,19 +448,19 @@ namespace Tracer
 
 		// set ray pick specific launch param options
 		mLaunchParams.rayPickPixel = pixelIndex;
-		mLaunchParams.rayPickResult     = reinterpret_cast<RayPickResult*>(resultBuffer.DevicePtr());
+		mLaunchParams.rayPickResult = resultBuffer.Ptr<RayPickResult>();
 
 		// upload launch params
-		mLaunchParamsBuffer.Upload(mLaunchParams);
+		mLaunchParamsBuffer.Upload(&mLaunchParams);
 
 		// launch the kernel
 		OPTIX_CHECK(optixLaunch(mPipeline, mStream, mLaunchParamsBuffer.DevicePtr(), mLaunchParamsBuffer.Size(),
-								&mRenderModeConfigs[RayPickConfigIx].shaderBindingTable, 1, 1, 1));
+								&mRenderModeConfigs[magic_enum::enum_integer(OptixRenderModes::RayPick)].shaderBindingTable, 1, 1, 1));
 		CUDA_CHECK(cudaDeviceSynchronize());
 
 		// read the raypick result
 		RayPickResult result;
-		resultBuffer.Download(result);
+		resultBuffer.Download(&result);
 
 		return result;
 	}
@@ -420,7 +477,7 @@ namespace Tracer
 		mLaunchParams.sampleCount = 0;
 		mLaunchParams.resX = resolution.x;
 		mLaunchParams.resY = resolution.y;
-		mLaunchParams.colorBuffer = reinterpret_cast<float4*>(mColorBuffer.DevicePtr());
+		mLaunchParams.accumulator = mColorBuffer.Ptr<float4>();
 
 		// allocate denoiser memory
 		OptixDenoiserSizes denoiserReturnSizes;
@@ -475,7 +532,7 @@ namespace Tracer
 		mPipelineCompileOptions                                  = {};
 		mPipelineCompileOptions.traversableGraphFlags            = OPTIX_TRAVERSABLE_GRAPH_FLAG_ALLOW_ANY;
 		mPipelineCompileOptions.usesMotionBlur                   = false;
-		mPipelineCompileOptions.numPayloadValues                 = 2;
+		mPipelineCompileOptions.numPayloadValues                 = 4;
 		mPipelineCompileOptions.numAttributeValues               = 2;
 		mPipelineCompileOptions.exceptionFlags                   = OPTIX_EXCEPTION_FLAG_NONE;
 		mPipelineCompileOptions.pipelineLaunchParamsVariableName = "params";
@@ -567,19 +624,14 @@ namespace Tracer
 		};
 
 		// configs for rendermodes
-		for(size_t m = 0; m < magic_enum::enum_count<RenderModes>(); m++)
+		mRenderModeConfigs.resize(magic_enum::enum_count<OptixRenderModes>());
+		for(size_t m = 0; m < magic_enum::enum_count<OptixRenderModes>(); m++)
 		{
-			const std::string modeName = ToString(static_cast<RenderModes>(m));
+			const std::string modeName = ToString(static_cast<OptixRenderModes>(m));
 			mRenderModeConfigs[m].rayGenPrograms   = CreateRaygenProgram(modeName);
 			mRenderModeConfigs[m].missPrograms     = CreateMissProgram(modeName);
 			mRenderModeConfigs[m].hitgroupPrograms = CreateHitProgram(modeName);
 		}
-
-		// ray pick
-		const std::string rayPickName = "RayPick";
-		mRenderModeConfigs[RayPickConfigIx].rayGenPrograms   = CreateRaygenProgram(rayPickName);
-		mRenderModeConfigs[RayPickConfigIx].missPrograms     = CreateMissProgram(rayPickName);
-		mRenderModeConfigs[RayPickConfigIx].hitgroupPrograms = CreateHitProgram(rayPickName);
 	}
 
 
@@ -645,6 +697,8 @@ namespace Tracer
 	void Renderer::BuildGeometry(Scene* scene)
 	{
 		std::vector<OptixBuildInput> buildInputs;
+		std::vector<CudaMeshData> meshData;
+
 		if(scene)
 		{
 			const size_t meshCount = scene->MeshCount();
@@ -694,6 +748,14 @@ namespace Tracer
 					bi.triangleArray.sbtIndexOffsetSizeInBytes   = 0;
 					bi.triangleArray.sbtIndexOffsetStrideInBytes = 0;
 
+					// CUDA
+					CudaMeshData m;
+					m.vertices  = mVertexBuffers[meshIx].Ptr<float3>();
+					m.normals   = mNormalBuffers[meshIx].Ptr<float3>();
+					m.texcoords = mTexcoordBuffers[meshIx].Ptr<float2>();
+					m.indices   = mIndexBuffers[meshIx].Ptr<uint3>();
+					meshData.push_back(m);
+
 					meshIx++;
 				}
 			}
@@ -703,6 +765,7 @@ namespace Tracer
 		{
 			mSceneRoot = 0;
 			mAccelBuffer.Free();
+			mCudaMeshData.Free();
 		}
 		else
 		{
@@ -739,18 +802,26 @@ namespace Tracer
 			// Compact
 			//--------------------------------
 			uint64_t compactedSize = 0;
-			compactedSizeBuffer.Download(compactedSize);
+			compactedSizeBuffer.Download(&compactedSize);
 
 			mAccelBuffer.Alloc(compactedSize);
 			OPTIX_CHECK(optixAccelCompact(mOptixContext, nullptr, mSceneRoot, mAccelBuffer.DevicePtr(), mAccelBuffer.Size(), &mSceneRoot));
 			CUDA_CHECK(cudaDeviceSynchronize());
+
+			//--------------------------------
+			// CUDA mesh data
+			//--------------------------------
+			mCudaMeshData.Upload(meshData, true);
 		}
+
+		SetCudaMeshData(mCudaMeshData.Ptr<CudaMeshData>());
 	}
 
 
 
 	void Renderer::BuildShaderBindingTables(Scene* scene)
 	{
+		// Optix Info
 		for(RenderModeConfig& config : mRenderModeConfigs)
 		{
 			// raygen records
@@ -788,47 +859,24 @@ namespace Tracer
 			const size_t meshCount = scene ? scene->MeshCount() : 0;
 			if(meshCount == 0)
 			{
-				// dummy material
 				hitgroupRecords.reserve(1);
 				uint64_t objectType = 0;
 				HitgroupRecord r;
 				OPTIX_CHECK(optixSbtRecordPackHeader(config.hitgroupPrograms[objectType], &r));
-				r.meshData.diffuse = make_float3(.75f, 0, .75f);
 				hitgroupRecords.push_back(r);
 			}
 			else
 			{
 				hitgroupRecords.reserve(meshCount);
-				size_t meshIx = 0;
+				uint32_t meshIx = 0;
 				for(auto& model : scene->Models())
 				{
-					for(auto& mesh : model->Meshes())
+					for(size_t i = 0; i < model->Meshes().size(); i++)
 					{
 						uint64_t objectType = 0;
 						HitgroupRecord r;
 						OPTIX_CHECK(optixSbtRecordPackHeader(config.hitgroupPrograms[objectType], &r));
-
-						// buffers
-						r.meshData.vertices  = reinterpret_cast<float3*>(mVertexBuffers[meshIx].DevicePtr());
-						r.meshData.normals   = reinterpret_cast<float3*>(mNormalBuffers[meshIx].DevicePtr());
-						r.meshData.texcoords = reinterpret_cast<float3*>(mTexcoordBuffers[meshIx].DevicePtr());
-						r.meshData.indices   = reinterpret_cast<uint3*>(mIndexBuffers[meshIx].DevicePtr());
-
-						// general info
-						r.meshData.objectID = static_cast<uint32_t>(meshIx);
-
-						// material data
-						auto mat = mesh->Mat();
-						r.meshData.diffuse = mat->mDiffuse;
-						r.meshData.emissive = mat->mEmissive;
-
-						if(mat->mDiffuseMap)
-						{
-							r.meshData.textures |= Texture_DiffuseMap;
-							r.meshData.diffuseMap = mTextures[mat->mDiffuseMap].mObject;
-						}
-
-
+						r.data.objectID = meshIx;
 						hitgroupRecords.push_back(r);
 						meshIx++;
 					}
@@ -840,6 +888,39 @@ namespace Tracer
 			config.shaderBindingTable.hitgroupRecordStrideInBytes = sizeof(HitgroupRecord);
 			config.shaderBindingTable.hitgroupRecordCount         = static_cast<unsigned int>(hitgroupRecords.size());
 		}
+
+		// CUDA material data
+		const size_t meshCount = scene ? scene->MeshCount() : 0;
+		if(meshCount == 0)
+		{
+			mCudaMaterialData.Free();
+		}
+		else
+		{
+			size_t meshIx = 0;
+			std::vector<CudaMatarial> materialData;
+			for(auto& model : scene->Models())
+			{
+				for(auto& mesh : model->Meshes())
+				{
+					auto mat = mesh->Mat();
+					CudaMatarial m;
+
+					m.diffuse = mat->mDiffuse;
+					m.emissive = mat->mEmissive;
+
+					if(mat->mDiffuseMap)
+					{
+						m.textures |= Texture_DiffuseMap;
+						m.diffuseMap = mTextures[mat->mDiffuseMap]->mObject;
+					}
+					materialData.push_back(m);
+					meshIx++;
+				}
+			}
+			mCudaMaterialData.Upload(materialData, true);
+		}
+		SetCudaMatarialData(mCudaMaterialData.Ptr<CudaMatarial>());
 	}
 
 
@@ -857,14 +938,14 @@ namespace Tracer
 			{
 				auto mat = mesh->Mat();
 				if(mat->mDiffuseMap)
-					mTextures[mat->mDiffuseMap] = OptixTexture(mat->mDiffuseMap);
+					mTextures[mat->mDiffuseMap] = std::make_shared<CudaTexture>(mat->mDiffuseMap);
 			}
 		}
 	}
 
 
 
-	Renderer::OptixTexture::OptixTexture(std::shared_ptr<Texture> srcTex)
+	Renderer::CudaTexture::CudaTexture(std::shared_ptr<Texture> srcTex)
 	{
 		// create channel descriptor
 		constexpr uint32_t numComponents = 4;
@@ -902,8 +983,11 @@ namespace Tracer
 
 
 
-	std::string ToString(Renderer::RenderModes renderMode)
+	Renderer::CudaTexture::~CudaTexture()
 	{
-		return std::string(magic_enum::enum_name(renderMode));
+		if(mArray)
+			CUDA_CHECK(cudaFreeArray(mArray));
+		if(mObject)
+			CUDA_CHECK(cudaDestroyTextureObject(mObject));
 	}
 }

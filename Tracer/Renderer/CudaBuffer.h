@@ -1,7 +1,7 @@
 #pragma once
 
 // Project
-#include "Renderer/CudaHelpers.h"
+#include "Renderer/CudaError.h"
 
 // C++
 #include <assert.h>
@@ -23,21 +23,15 @@ namespace Tracer
 
 		// Upload
 		template<typename TYPE>
-		void Upload(const TYPE* data, size_t count, bool allowResize = false)
+		void Upload(const TYPE* data, size_t count = 1, bool allowResize = false)
 		{
 			const size_t size = count * sizeof(TYPE);
 			if(allowResize && (!mPtr || mSize != size))
 				Resize(size);
 
 			assert(mPtr != nullptr);
-			assert(mSize == sizeof(TYPE) * count);
+			assert(mSize == size);
 			CUDA_CHECK(cudaMemcpy(mPtr, static_cast<const void*>(data), size, cudaMemcpyHostToDevice));
-		}
-
-		template<typename TYPE>
-		void Upload(const TYPE& data, bool allowResize = false)
-		{
-			Upload(&data, 1, allowResize);
 		}
 
 		template<typename TYPE>
@@ -48,17 +42,11 @@ namespace Tracer
 
 		// Download
 		template<typename TYPE>
-		void Download(TYPE* data, size_t count) const
+		void Download(TYPE* data, size_t count = 1) const
 		{
 			assert(mPtr != nullptr);
 			assert(mSize == sizeof(TYPE) * count);
 			CUDA_CHECK(cudaMemcpy(static_cast<void*>(data), mPtr, sizeof(TYPE) * count, cudaMemcpyDeviceToHost));
-		}
-
-		template<typename TYPE>
-		void Download(TYPE& data) const
-		{
-			Download(&data, 1);
 		}
 
 		template<typename TYPE>
@@ -70,8 +58,10 @@ namespace Tracer
 		// members
 		inline size_t Size() const { return mSize; }
 
-		inline void* Ptr() { return mPtr; }
-		inline const void* Ptr() const { return mPtr; }
+		template<typename TYPE = void>
+		inline TYPE* Ptr() { return reinterpret_cast<TYPE*>(mPtr); }
+		template<typename TYPE = void>
+		inline const TYPE* Ptr() const { return reinterpret_cast<TYPE*>(mPtr); }
 
 		// device pointer shorthands
 		inline CUdeviceptr DevicePtr() const { return reinterpret_cast<CUdeviceptr>(mPtr); }

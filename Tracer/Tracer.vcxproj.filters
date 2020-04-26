@@ -86,11 +86,14 @@
     <ClCompile Include="Renderer\CudaBuffer.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer\CudaHelpers.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
     <ClCompile Include="Renderer\Renderer.cpp">
       <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\CudaError.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\CommonStructs.cpp">
+      <Filter>Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -120,6 +123,9 @@
     </Filter>
     <Filter Include="Renderer">
       <UniqueIdentifier>{9853ed54-2a6f-41d5-bf8b-a49f4134ae5f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CUDA">
+      <UniqueIdentifier>{f8167abd-e5a9-49fc-95c5-94113d5ae47e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -225,41 +231,23 @@
     <ClInclude Include="Renderer\CudaBuffer.h">
       <Filter>Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer\CudaHelpers.h">
-      <Filter>Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="Renderer\Renderer.h">
       <Filter>Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="Optix\Helpers.h">
-      <Filter>Optix</Filter>
+    <ClInclude Include="Renderer\CudaError.h">
+      <Filter>Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="Optix\Pipeline_AmbientOcclusion.h">
-      <Filter>Optix</Filter>
+    <ClInclude Include="CUDA\Shade.h">
+      <Filter>CUDA</Filter>
     </ClInclude>
-    <ClInclude Include="Optix\Pipeline_DiffuseFilter.h">
-      <Filter>Optix</Filter>
+    <ClInclude Include="CUDA\CudaUtility.h">
+      <Filter>CUDA</Filter>
     </ClInclude>
-    <ClInclude Include="Optix\Pipeline_ObjectID.h">
-      <Filter>Optix</Filter>
+    <ClInclude Include="CUDA\CudaFwd.h">
+      <Filter>CUDA</Filter>
     </ClInclude>
-    <ClInclude Include="Optix\Pipeline_PathTracing.h">
-      <Filter>Optix</Filter>
-    </ClInclude>
-    <ClInclude Include="Optix\Pipeline_RayPick.h">
-      <Filter>Optix</Filter>
-    </ClInclude>
-    <ClInclude Include="Optix\Pipeline_ShadingNormal.h">
-      <Filter>Optix</Filter>
-    </ClInclude>
-    <ClInclude Include="Optix\Pipeline_TextureCoordinate.h">
-      <Filter>Optix</Filter>
-    </ClInclude>
-    <ClInclude Include="Optix\Pipeline_Wireframe.h">
-      <Filter>Optix</Filter>
-    </ClInclude>
-    <ClInclude Include="Optix\Pipeline_ZDepth.h">
-      <Filter>Optix</Filter>
+    <ClInclude Include="Common\CommonUtility.h">
+      <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -270,6 +258,9 @@
   <ItemGroup>
     <CudaCompile Include="Optix\optix.cu">
       <Filter>Optix</Filter>
+    </CudaCompile>
+    <CudaCompile Include="CUDA\cuda.cu">
+      <Filter>CUDA</Filter>
     </CudaCompile>
   </ItemGroup>
 </Project>
