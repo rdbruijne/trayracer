@@ -12,7 +12,7 @@
 enum RayTypes
 {
 	RayType_Surface = 0,
-	RayType_Shadow,
+	//RayType_Shadow,
 
 	RayType_Count
 };
