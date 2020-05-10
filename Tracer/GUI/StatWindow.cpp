@@ -37,16 +37,22 @@ namespace Tracer
 			ImGui::NextColumn();
 			ImGui::Separator();
 
-			// frametime
-			ImGui::Text("Frame time");
-			ImGui::NextColumn();
-			ImGui::Text("%.1f ms", mFrameTimeNs * 1e-6);
-			ImGui::NextColumn();
-
 			// FPS
 			ImGui::Text("FPS");
 			ImGui::NextColumn();
-			ImGui::Text("%.1f", 1e9 / mFrameTimeNs);
+			ImGui::Text("%5.1f", 1e9 / mFrameTimeNs);
+			ImGui::NextColumn();
+
+			// frametime
+			ImGui::Text("Frame time");
+			ImGui::NextColumn();
+			ImGui::Text("%5.1f ms", mFrameTimeNs * 1e-6);
+			ImGui::NextColumn();
+
+			// build time
+			ImGui::Text("build time");
+			ImGui::NextColumn();
+			ImGui::Text("%5.1f ms", mBuildTimeNs * 1e-6);
 			ImGui::NextColumn();
 
 			// Sample count

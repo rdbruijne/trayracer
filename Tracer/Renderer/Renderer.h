@@ -52,20 +52,22 @@ namespace Tracer
 		inline void SetDenoiserSampleTreshold(uint32_t treshold) { mDenoiserSampleTreshold = treshold; }
 
 		// kernel settings
-#define KERNEL_SETTING(t, n, f)								\
-		inline t f() const { return mLaunchParams.n; }		\
-		inline void Set##f(t n)								\
-		{													\
-			if(n != mLaunchParams.n)						\
-			{												\
-				mLaunchParams.n = n;						\
-				mLaunchParams.sampleCount = 0;				\
-			}												\
+#define KERNEL_SETTING(type, name, func)						\
+		inline type func() const { return mLaunchParams.name; }	\
+		inline void Set##func(type name)						\
+		{														\
+			if(name != mLaunchParams.name)						\
+			{													\
+				mLaunchParams.name = name;						\
+				mLaunchParams.sampleCount = 0;					\
+			}													\
 		}
 
 		KERNEL_SETTING(int, maxDepth, MaxDepth)
 		KERNEL_SETTING(float, aoDist, AODist)
 		KERNEL_SETTING(float, zDepthMax, ZDepthMax)
+
+#undef KERNEL_SETTING
 
 	private:
 		void Resize(const int2& resolution);
@@ -73,15 +75,15 @@ namespace Tracer
 
 		// Creation
 		void CreateContext();
+		void CreateDenoiser();
 		void CreateModule();
 		void CreatePrograms();
 		void CreatePipeline();
-		void CreateDenoiser();
+		void CreateShaderBindingTables();
 
 		// scene building
 		void BuildGeometry(Scene* scene);
 		void BuildMaterials(Scene* scene);
-		void BuildShaderBindingTables(Scene* scene);
 		void BuildTextures(Scene* scene);
 
 		// render mode
@@ -94,10 +96,7 @@ namespace Tracer
 
 		// SPT
 		CudaBuffer mPathStates = {};		// (O.xyz, pathIx)[], (D.xyz, meshIx)[], (throughput, ?)[]
-		CudaBuffer mHitData = {};		// (bary.x, bary.y), instIx, primIx, tmin
-		CudaBuffer mCudaMeshData = {};
-		CudaBuffer mCudaMaterialData = {};
-		CudaBuffer mCudaMaterialOffsets = {};
+		CudaBuffer mHitData = {};			// (bary.x, bary.y), instIx, primIx, tmin
 		CudaBuffer mCountersBuffer = {};
 
 		// Denoiser
@@ -151,6 +150,13 @@ namespace Tracer
 		std::vector<CudaBuffer> mNormalBuffers;
 		std::vector<CudaBuffer> mTexcoordBuffers;
 		std::vector<CudaBuffer> mIndexBuffers;
+
+		// Meshes
+		CudaBuffer mCudaMeshData = {};
+
+		// Materials
+		CudaBuffer mCudaMaterialData = {};
+		CudaBuffer mCudaMaterialOffsets = {};
 
 		// Textures
 		struct CudaTexture

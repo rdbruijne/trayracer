@@ -76,11 +76,13 @@ int main(int argc, char** argv)
 			app->Tick(renderer, window, static_cast<float>(elapsedNs) * 1e-9f);
 
 			// build the scene
+			Tracer::Stopwatch buildTimer;
 			if(app->GetScene()->IsDirty())
 			{
 				renderer->BuildScene(app->GetScene());
 				app->GetScene()->MarkClean();
 			}
+			Tracer::StatWindow::Get()->mBuildTimeNs = buildTimer.ElapsedNS();
 
 			// run Optix
 			renderer->RenderFrame(window->RenderTexture());

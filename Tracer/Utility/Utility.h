@@ -26,4 +26,7 @@ namespace Tracer
 	std::string ReadFile(const std::string filePath);
 	void WriteFile(const std::string filePath, const std::string& text);
 	bool FileExists(const std::string& filePath);
+
+	// stringify
+	std::string TimeString(int64_t elapsedNs);
 }

@@ -20,6 +20,16 @@ namespace Tracer
 
 
 
+	uint32_t Model::AddMaterial(std::shared_ptr<Material> mat)
+	{
+		mMaterials.push_back(mat);
+		AddDependency(mat);
+		MarkDirty();
+		return static_cast<uint32_t>(mMaterials.size() - 1);
+	}
+
+
+
 	void Model::AddMesh(const std::vector<float3>& vertices, const std::vector<float3>& normals, const std::vector<float2>& texCoords,
 						const std::vector<uint3>& indices, uint32_t materialIndex)
 	{

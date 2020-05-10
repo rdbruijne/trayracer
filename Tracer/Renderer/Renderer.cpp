@@ -31,6 +31,7 @@
 
 // C++
 #include <assert.h>
+#include <set>
 #include <string>
 
 namespace Tracer
@@ -97,7 +98,7 @@ namespace Tracer
 		CreateDenoiser();
 
 		// build shader binding table
-		BuildShaderBindingTables(nullptr);
+		CreateShaderBindingTables();
 
 		// allocate launch params
 		mLaunchParamsBuffer.Alloc(sizeof(LaunchParams));
@@ -125,8 +126,8 @@ namespace Tracer
 		// #TODO: acync?
 		BuildTextures(scene);
 		BuildMaterials(scene);
-		BuildShaderBindingTables(scene);
 		BuildGeometry(scene);
+		mLaunchParams.sampleCount = 0;
 	}
 
 
@@ -388,6 +389,19 @@ namespace Tracer
 
 
 
+	void Renderer::CreateDenoiser()
+	{
+		// create denoiser
+		OptixDenoiserOptions denoiserOptions;
+		denoiserOptions.inputKind   = OPTIX_DENOISER_INPUT_RGB;
+		denoiserOptions.pixelFormat = OPTIX_PIXEL_FORMAT_FLOAT4;
+
+		OPTIX_CHECK(optixDenoiserCreate(mOptixContext, &denoiserOptions, &mDenoiser));
+		OPTIX_CHECK(optixDenoiserSetModel(mDenoiser, OPTIX_DENOISER_MODEL_KIND_LDR, nullptr, 0));
+	}
+
+
+
 	void Renderer::CreateModule()
 	{
 		// module compile options
@@ -519,15 +533,32 @@ namespace Tracer
 
 
 
-	void Renderer::CreateDenoiser()
+	void Renderer::CreateShaderBindingTables()
 	{
-		// create denoiser
-		OptixDenoiserOptions denoiserOptions;
-		denoiserOptions.inputKind   = OPTIX_DENOISER_INPUT_RGB;
-		denoiserOptions.pixelFormat = OPTIX_PIXEL_FORMAT_FLOAT4;
+		for(RenderModeConfig& config : mRenderModeConfigs)
+		{
+			// raygen records
+			RaygenRecord raygen = {};
+			OPTIX_CHECK(optixSbtRecordPackHeader(config.rayGenProgram, &raygen));
+			config.rayGenRecordsBuffer.Upload(&raygen, 1, true);
+			config.shaderBindingTable.raygenRecord = config.rayGenRecordsBuffer.DevicePtr();
 
-		OPTIX_CHECK(optixDenoiserCreate(mOptixContext, &denoiserOptions, &mDenoiser));
-		OPTIX_CHECK(optixDenoiserSetModel(mDenoiser, OPTIX_DENOISER_MODEL_KIND_LDR, nullptr, 0));
+			// miss records
+			MissRecord miss = {};
+			OPTIX_CHECK(optixSbtRecordPackHeader(config.missProgram, &miss));
+			config.missRecordsBuffer.Upload(&miss, 1, true);
+			config.shaderBindingTable.missRecordBase          = config.missRecordsBuffer.DevicePtr();
+			config.shaderBindingTable.missRecordStrideInBytes = sizeof(MissRecord);
+			config.shaderBindingTable.missRecordCount         = 1;
+
+			// hitgroup records
+			HitgroupRecord hit = {};
+			OPTIX_CHECK(optixSbtRecordPackHeader(config.hitgroupProgram, &hit));
+			config.hitRecordsBuffer.Upload(&hit, 1, true);
+			config.shaderBindingTable.hitgroupRecordBase          = config.hitRecordsBuffer.DevicePtr();
+			config.shaderBindingTable.hitgroupRecordStrideInBytes = sizeof(HitgroupRecord);
+			config.shaderBindingTable.hitgroupRecordCount         = 1;
+		}
 	}
 
 
@@ -542,18 +573,6 @@ namespace Tracer
 
 		if(scene)
 		{
-#if false
-			for(auto& model : scene->Models())
-			{
-				if(model->IsDirty())
-				{
-					model->Build(mOptixContext, nullptr);
-					model->MarkClean();
-				}
-				instances.push_back(model->InstanceData(instanceId++, make_float3x4()));
-				meshData.push_back(model->CudaMesh());
-			}
-#else
 			for(auto& inst : scene->Instances())
 			{
 				const auto& model = inst->GetModel();
@@ -563,12 +582,14 @@ namespace Tracer
 					model->MarkClean();
 				}
 				instances.push_back(model->InstanceData(instanceId++, inst->Transform()));
-				meshData.push_back(model->CudaMesh());
+				if(mCudaMeshData.Size() == 0)
+					meshData.push_back(model->CudaMesh());
+
+				inst->MarkClean();
 			}
-#endif
 		}
 
-		if(meshData.size() == 0)
+		if(mCudaMeshData.Size() == 0 && meshData.size() == 0)
 		{
 			mSceneRoot = 0;
 			mCudaMeshData.Free();
@@ -576,7 +597,8 @@ namespace Tracer
 		else
 		{
 			// CUDA mesh data
-			mCudaMeshData.Upload(meshData, true);
+			if(mCudaMeshData.Size() == 0)
+				mCudaMeshData.Upload(meshData, true);
 
 			// upload instances
 			mInstancesBuffer.Upload(instances, true);
@@ -613,6 +635,7 @@ namespace Tracer
 
 	void Renderer::BuildMaterials(Scene* scene)
 	{
+		// #TODO: only build dirty materials
 		const size_t modelCount = scene ? scene->MaterialCount() : 0;
 		if(modelCount == 0)
 		{
@@ -630,14 +653,16 @@ namespace Tracer
 				{
 					CudaMatarial m;
 
-					m.diffuse = mat->mDiffuse;
-					m.emissive = mat->mEmissive;
+					m.diffuse = mat->Diffuse();
+					m.emissive = mat->Emissive();
 
-					if(mat->mDiffuseMap)
+					if(mat->DiffuseMap())
 					{
 						m.textures |= Texture_DiffuseMap;
-						m.diffuseMap = mTextures[mat->mDiffuseMap]->mObject;
+						m.diffuseMap = mTextures[mat->DiffuseMap()]->mObject;
 					}
+
+					mat->MarkClean();
 					materialData.push_back(m);
 				}
 
@@ -653,51 +678,41 @@ namespace Tracer
 
 
 
-	void Renderer::BuildShaderBindingTables(Scene* scene)
-	{
-		for(RenderModeConfig& config : mRenderModeConfigs)
-		{
-			// raygen records
-			RaygenRecord raygen = {};
-			OPTIX_CHECK(optixSbtRecordPackHeader(config.rayGenProgram, &raygen));
-			config.rayGenRecordsBuffer.Upload(&raygen, 1, true);
-			config.shaderBindingTable.raygenRecord = config.rayGenRecordsBuffer.DevicePtr();
-
-			// miss records
-			MissRecord miss = {};
-			OPTIX_CHECK(optixSbtRecordPackHeader(config.missProgram, &miss));
-			config.missRecordsBuffer.Upload(&miss, 1, true);
-			config.shaderBindingTable.missRecordBase          = config.missRecordsBuffer.DevicePtr();
-			config.shaderBindingTable.missRecordStrideInBytes = sizeof(MissRecord);
-			config.shaderBindingTable.missRecordCount         = 1;
-
-			// hitgroup records
-			HitgroupRecord hit = {};
-			OPTIX_CHECK(optixSbtRecordPackHeader(config.hitgroupProgram, &hit));
-			config.hitRecordsBuffer.Upload(&hit, 1, true);
-			config.shaderBindingTable.hitgroupRecordBase          = config.hitRecordsBuffer.DevicePtr();
-			config.shaderBindingTable.hitgroupRecordStrideInBytes = sizeof(HitgroupRecord);
-			config.shaderBindingTable.hitgroupRecordCount         = 1;
-		}
-	}
-
-
-
 	void Renderer::BuildTextures(Scene* scene)
 	{
-		// #TODO: Only remove deleted textures
-		mTextures.clear();
-
 		if(!scene)
+		{
+			mTextures.clear();
 			return;
+		}
 
+		// gather textures
+		std::set<std::shared_ptr<Texture>> textures;
 		for(auto& model : scene->Models())
 		{
 			for(auto& mat : model->Materials())
 			{
-				if(mat->mDiffuseMap)
-					mTextures[mat->mDiffuseMap] = std::make_shared<CudaTexture>(mat->mDiffuseMap);
+				if(mat->DiffuseMap())
+					textures.insert(mat->DiffuseMap());
 			}
+		}
+
+		// remove removed textures
+		std::vector<std::shared_ptr<Texture>> texturesToRemove;
+		for(auto& t : mTextures)
+		{
+			if(textures.find(t.first) == textures.end())
+				texturesToRemove.push_back(t.first);
+		}
+		for(auto& t : texturesToRemove)
+			mTextures.erase(t);
+
+		// add new textures
+		for(auto& t : textures)
+		{
+			if(t->IsDirty() || mTextures.find(t) == mTextures.end())
+				mTextures[t] = std::make_shared<CudaTexture>(t);
+			t->MarkClean();
 		}
 	}
 
@@ -707,14 +722,14 @@ namespace Tracer
 	{
 		// create channel descriptor
 		constexpr uint32_t numComponents = 4;
-		const uint32_t width  = srcTex->mResolution.x;
-		const uint32_t height = srcTex->mResolution.y;
+		const uint32_t width  = srcTex->Resolution().x;
+		const uint32_t height = srcTex->Resolution().y;
 		const uint32_t pitch  = width * numComponents * sizeof(uint8_t);
 		cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<uchar4>();
 
 		// upload pixels
 		CUDA_CHECK(cudaMallocArray(&mArray, &channelDesc, width, height));
-		CUDA_CHECK(cudaMemcpy2DToArray(mArray, 0, 0, srcTex->mPixels.data(), pitch, pitch, height, cudaMemcpyHostToDevice));
+		CUDA_CHECK(cudaMemcpy2DToArray(mArray, 0, 0, srcTex->Pixels().data(), pitch, pitch, height, cudaMemcpyHostToDevice));
 
 		// resource descriptor
 		cudaResourceDesc resourceDesc = {};

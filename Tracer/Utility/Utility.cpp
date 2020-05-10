@@ -134,4 +134,25 @@ namespace Tracer
 		DWORD fileAttrib = GetFileAttributesA(filePath.c_str());
 		return (fileAttrib != INVALID_FILE_ATTRIBUTES && !(fileAttrib & FILE_ATTRIBUTE_DIRECTORY));
 	}
+
+
+
+	std::string TimeString(int64_t elapsedNs)
+	{
+		if(elapsedNs < 1'000)
+			return format("%lld ns", elapsedNs);
+		if(elapsedNs < 1'000'000)
+			return format("%lld.%01lld us", elapsedNs / 1'000, (elapsedNs / 100) % 10);
+		if(elapsedNs < 1'000'000'000)
+			return format("%lld.%01lld ms", elapsedNs / 1'000'000, (elapsedNs / 100'000) % 10);
+		if(elapsedNs < 60'000'000'000)
+			return format("%lld.%01lld s", elapsedNs / 1'000'000'000, (elapsedNs / 100'000'000) % 10);
+
+		// (hh:)mm:ss format
+		const int64_t t2 = elapsedNs / 1'000'000'000;
+		if(t2 < 3600)
+			return format("%02lld:%02lld", t2 / 60, t2 % 60);
+		return format("%lld:%02lld:%02lld", t2 / 3600, (t2 % 3600) / 60, t2 % 60);
+	}
+
 }

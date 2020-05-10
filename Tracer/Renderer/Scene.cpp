@@ -2,6 +2,7 @@
 
 // Project
 #include "Resources/Model.h"
+#include "Resources/Instance.h"
 #include "Resources/Material.h"
 
 namespace Tracer
@@ -11,6 +12,8 @@ namespace Tracer
 	{
 		return mInstances.size();
 	}
+
+
 
 	size_t Scene::MaterialCount() const
 	{
@@ -25,17 +28,6 @@ namespace Tracer
 	size_t Scene::ModelCount() const
 	{
 		return mModels.size();
-	}
-
-
-
-	size_t Scene::TextureCount() const
-	{
-		size_t texCount = 0;
-		for(auto model : mModels)
-			for(auto mat : model->Materials())
-				texCount += mat->TextureCount();
-		return texCount;
 	}
 
 
@@ -62,4 +54,19 @@ namespace Tracer
 			MarkDirty();
 		}
 	}
+
+
+
+	bool Scene::IsDirty() const
+	{
+		if(mIsDirty)
+			return true;
+
+		for(auto& i : mInstances)
+			if(i->IsDirty())
+				return true;
+
+		return false;
+	}
+
 }

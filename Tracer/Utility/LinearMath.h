@@ -8,6 +8,10 @@
 #include "CUDA/helper_math.h"
 #pragma warning(pop)
 
+// C++
+#define _USE_MATH_DEFINES
+#include <cmath>
+
 namespace Tracer
 {
 	//

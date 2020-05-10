@@ -98,6 +98,7 @@
     <ClCompile Include="Renderer\Scene.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="Resources\Resource.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">

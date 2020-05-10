@@ -1,7 +1,9 @@
 #pragma once
 
 // C++
+#include <memory>
 #include <string>
+#include <vector>
 
 namespace Tracer
 {
@@ -14,12 +16,17 @@ namespace Tracer
 
 		const std::string& Name() const { return mName; }
 
-		inline bool IsDirty() const { return mIsDirty; }
+		bool IsDirty() const;
 		inline void MarkDirty() { mIsDirty = true; }
 		inline void MarkClean() { mIsDirty = false; }
+
+		void AddDependency(std::shared_ptr<Resource> dependency);
+		void RemoveDependency(std::shared_ptr<Resource> dependency);
 
 	protected:
 		std::string mName = "";
 		bool mIsDirty = true;
+
+		std::vector<std::weak_ptr<Resource>> mDependencies;
 	};
 }

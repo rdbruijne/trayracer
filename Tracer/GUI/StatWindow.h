@@ -15,6 +15,7 @@ namespace Tracer
 		static StatWindow* const Get();
 
 		int64_t mFrameTimeNs = 0;
+		int64_t mBuildTimeNs = 0;
 		Renderer* mRenderer = nullptr;
 
 	private:

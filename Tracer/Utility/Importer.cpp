@@ -90,7 +90,7 @@ namespace Tracer
 				// diffuse
 				if(propName == "diffuse" && aProp->mDataLength == 3 * sizeof(float))
 				{
-					mat->mDiffuse = *reinterpret_cast<float3*>(aProp->mData);
+					mat->SetDiffuse(*reinterpret_cast<float3*>(aProp->mData));
 					continue;
 				}
 
@@ -104,11 +104,11 @@ namespace Tracer
 				std::string texPathStr = texPath.C_Str();
 				auto it = textures.find(texPathStr);
 				if(it != textures.end())
-					mat->mDiffuseMap = it->second;
+					mat->SetDiffuseMap(it->second);
 
 				auto tex = ImportTexture(importDir, texPathStr);
 				textures[texPathStr] = tex;
-				mat->mDiffuseMap = tex;
+				mat->SetDiffuseMap(tex);
 			}
 
 			return mat;

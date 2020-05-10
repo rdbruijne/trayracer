@@ -158,6 +158,7 @@
     <ClCompile Include="Resources\Instance.cpp" />
     <ClCompile Include="Resources\Material.cpp" />
     <ClCompile Include="Resources\Model.cpp" />
+    <ClCompile Include="Resources\Resource.cpp" />
     <ClCompile Include="Resources\Texture.cpp" />
     <ClCompile Include="Utility\Importer.cpp" />
     <ClCompile Include="Utility\Stopwatch.cpp" />

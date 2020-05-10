@@ -17,12 +17,11 @@ namespace Tracer
 		size_t InstanceCount() const;
 		size_t MaterialCount() const;
 		size_t ModelCount() const;
-		size_t TextureCount() const;
 
 		void AddModel(std::shared_ptr<Model> model);
 		void AddInstance(std::shared_ptr<Instance> instance);
 
-		inline bool IsDirty() const { return mIsDirty; }
+		bool IsDirty() const;
 		inline void MarkClean() { mIsDirty = false; }
 		inline void MarkDirty() { mIsDirty = true; }
 

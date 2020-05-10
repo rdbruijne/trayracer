@@ -25,12 +25,7 @@ namespace Tracer
 
 		// materials
 		const std::vector<std::shared_ptr<Material>>& Materials() const { return mMaterials; }
-		uint32_t AddMaterial(std::shared_ptr<Material> mat)
-		{
-			mMaterials.push_back(mat);
-			MarkDirty();
-			return static_cast<uint32_t>(mMaterials.size() - 1);
-		}
+		uint32_t AddMaterial(std::shared_ptr<Material> mat);
 
 		// meshes
 		void AddMesh(const std::vector<float3>& vertices, const std::vector<float3>& normals, const std::vector<float2>& texCoords,
