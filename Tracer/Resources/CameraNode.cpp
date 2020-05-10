@@ -3,6 +3,7 @@
 namespace Tracer
 {
 	CameraNode::CameraNode(const float3& position, const float3& target, const float3& up, const float fov) :
+		Resource(""),
 		mPosition(position),
 		mTarget(target),
 		mUp(up),
@@ -15,7 +16,7 @@ namespace Tracer
 		if(mPosition != position)
 		{
 			mPosition = position;
-			mHasChanged = true;
+			MarkDirty();
 		}
 	}
 
@@ -24,7 +25,7 @@ namespace Tracer
 		if(mTarget != target)
 		{
 			mTarget = target;
-			mHasChanged = true;
+			MarkDirty();
 		}
 	}
 
@@ -33,7 +34,7 @@ namespace Tracer
 		if(mUp != up)
 		{
 			mUp = up;
-			mHasChanged = true;
+			MarkDirty();
 		}
 	}
 
@@ -42,7 +43,7 @@ namespace Tracer
 		if(mFov != fov)
 		{
 			mFov = fov;
-			mHasChanged = true;
+			MarkDirty();
 		}
 	}
 }

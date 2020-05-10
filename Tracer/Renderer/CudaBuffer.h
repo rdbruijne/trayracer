@@ -2,6 +2,7 @@
 
 // Project
 #include "Renderer/CudaError.h"
+#include "Utility/Utility.h"
 
 // C++
 #include <assert.h>
@@ -12,6 +13,8 @@ namespace Tracer
 	class CudaBuffer
 	{
 	public:
+		NO_COPY_ALLOWED(CudaBuffer)
+
 		CudaBuffer() = default;
 		CudaBuffer(size_t size);
 		~CudaBuffer();

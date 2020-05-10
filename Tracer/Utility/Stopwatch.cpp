@@ -14,16 +14,14 @@ namespace Tracer
 
 	void Stopwatch::Reset()
 	{
-		mTimePoint = std::chrono::high_resolution_clock::now();
+		mTimePoint = clock::now();
 	}
 
 
 
 	int64_t Stopwatch::ElapsedNS() const
 	{
-		const std::chrono::high_resolution_clock::time_point t = std::chrono::high_resolution_clock::now();
-		const int64_t elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(t - mTimePoint).count();
-		return elapsed;
+		return std::chrono::duration_cast<std::chrono::nanoseconds>(clock::now() - mTimePoint).count();
 	}
 
 
@@ -32,15 +30,18 @@ namespace Tracer
 	{
 		const int64_t t = ElapsedNS();
 		if(t < 1'000)
-			return format("%d ns", t);
+			return format("%lld ns", t);
 		if(t < 1'000'000)
-			return format("%d.%01d us", t / 1'000, (t / 100) % 10);
+			return format("%lld.%01lld us", t / 1'000, (t / 100) % 10);
 		if(t < 1'000'000'000)
-			return format("%d.%01d ms", t / 1'000'000, (t / 100'000) % 10);
+			return format("%lld.%01lld ms", t / 1'000'000, (t / 100'000) % 10);
 		if(t < 60'000'000'000)
-			return format("%d.%01d s", t / 1'000'000'000, (t / 100'000'000) % 10);
+			return format("%lld.%01lld s", t / 1'000'000'000, (t / 100'000'000) % 10);
 
+		// (hh:)mm:ss format
 		const int64_t t2 = t / 1'000'000'000;
-		return format("%d:%d", t2 / 60, t2 % 60);
+		if(t2 < 3600)
+			return format("%02lld:%02lld", t2 / 60, t2 % 60);
+		return format("%lld:%02lld:%02lld", t2 / 3600, (t2 % 3600) / 60, t2 % 60);
 	}
 }

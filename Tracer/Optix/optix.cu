@@ -64,11 +64,7 @@ extern "C" __global__
 void __closesthit__RayPick()
 {
 	optixSetPayload_0(EncodeBarycentrics(optixGetTriangleBarycentrics()));
-#if false
 	optixSetPayload_1(optixGetInstanceIndex());
-#else
-	optixSetPayload_1(((const SbtData*)optixGetSbtDataPointer())->objectID);
-#endif
 	optixSetPayload_2(optixGetPrimitiveIndex());
 	optixSetPayload_3(__float_as_uint(optixGetRayTmax()));
 }
@@ -126,11 +122,7 @@ extern "C" __global__
 void __closesthit__SPT()
 {
 	optixSetPayload_0(EncodeBarycentrics(optixGetTriangleBarycentrics()));
-#if false
 	optixSetPayload_1(optixGetInstanceIndex());
-#else
-	optixSetPayload_1(((const SbtData*)optixGetSbtDataPointer())->objectID);
-#endif
 	optixSetPayload_2(optixGetPrimitiveIndex());
 	optixSetPayload_3(__float_as_uint(optixGetRayTmax()));
 }

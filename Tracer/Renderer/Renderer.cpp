@@ -2,19 +2,20 @@
 
 // Project
 #include "OpenGL/GLTexture.h"
+#include "Renderer/Scene.h"
 #include "Resources/CameraNode.h"
-#include "Resources/Scene.h"
+#include "Resources/Instance.h"
 #include "Resources/Material.h"
-#include "Resources/Mesh.h"
 #include "Resources/Model.h"
 #include "Resources/Texture.h"
+#include "Renderer/OptixError.h"
 #include "Utility/LinearMath.h"
 #include "Utility/Utility.h"
 
 // SPT
 #include "CUDA/CudaFwd.h"
 
-// OptiX
+// Optix
 #pragma warning(push)
 #pragma warning(disable: 4061 4365 5039 6011 6387 26451)
 #include "optix7/optix.h"
@@ -48,7 +49,7 @@ namespace Tracer
 		struct alignas(OPTIX_SBT_RECORD_ALIGNMENT) RaygenRecord
 		{
 			char header[OPTIX_SBT_RECORD_HEADER_SIZE] = {};
-			void* data = nullptr;
+			//void* data = nullptr;
 		};
 
 
@@ -57,7 +58,7 @@ namespace Tracer
 		struct alignas(OPTIX_SBT_RECORD_ALIGNMENT) MissRecord
 		{
 			char header[OPTIX_SBT_RECORD_HEADER_SIZE] = {};
-			void* data = nullptr;
+			//void* data = nullptr;
 		};
 
 
@@ -66,7 +67,7 @@ namespace Tracer
 		struct alignas(OPTIX_SBT_RECORD_ALIGNMENT) HitgroupRecord
 		{
 			char header[OPTIX_SBT_RECORD_HEADER_SIZE] = {};
-			SbtData data = {};
+			//void* data = nullptr;
 		};
 
 
@@ -82,139 +83,13 @@ namespace Tracer
 		{
 			return std::string(magic_enum::enum_name(renderMode));
 		}
-
-
-
-		std::string ToString(OptixResult optixResult)
-		{
-			switch(optixResult)
-			{
-			case OPTIX_SUCCESS:
-				return "OPTIX_SUCCESS";
-
-			case OPTIX_ERROR_INVALID_VALUE:
-				return "OPTIX_ERROR_INVALID_VALUE";
-
-			case OPTIX_ERROR_HOST_OUT_OF_MEMORY:
-				return "OPTIX_ERROR_HOST_OUT_OF_MEMORY";
-
-			case OPTIX_ERROR_INVALID_OPERATION:
-				return "OPTIX_ERROR_INVALID_OPERATION";
-
-			case OPTIX_ERROR_FILE_IO_ERROR:
-				return "OPTIX_ERROR_FILE_IO_ERROR";
-
-			case OPTIX_ERROR_INVALID_FILE_FORMAT:
-				return "OPTIX_ERROR_INVALID_FILE_FORMAT";
-
-			case OPTIX_ERROR_DISK_CACHE_INVALID_PATH:
-				return "OPTIX_ERROR_DISK_CACHE_INVALID_PATH";
-
-			case OPTIX_ERROR_DISK_CACHE_PERMISSION_ERROR:
-				return "OPTIX_ERROR_DISK_CACHE_PERMISSION_ERROR";
-
-			case OPTIX_ERROR_DISK_CACHE_DATABASE_ERROR:
-				return "OPTIX_ERROR_DISK_CACHE_DATABASE_ERROR";
-
-			case OPTIX_ERROR_DISK_CACHE_INVALID_DATA:
-				return "OPTIX_ERROR_DISK_CACHE_INVALID_DATA";
-
-			case OPTIX_ERROR_LAUNCH_FAILURE:
-				return "OPTIX_ERROR_LAUNCH_FAILURE";
-
-			case OPTIX_ERROR_INVALID_DEVICE_CONTEXT:
-				return "OPTIX_ERROR_INVALID_DEVICE_CONTEXT";
-
-			case OPTIX_ERROR_CUDA_NOT_INITIALIZED:
-				return "OPTIX_ERROR_CUDA_NOT_INITIALIZED";
-
-			case OPTIX_ERROR_INVALID_PTX:
-				return "OPTIX_ERROR_INVALID_PTX";
-
-			case OPTIX_ERROR_INVALID_LAUNCH_PARAMETER:
-				return "OPTIX_ERROR_INVALID_LAUNCH_PARAMETER";
-
-			case OPTIX_ERROR_INVALID_PAYLOAD_ACCESS:
-				return "OPTIX_ERROR_INVALID_PAYLOAD_ACCESS";
-
-			case OPTIX_ERROR_INVALID_ATTRIBUTE_ACCESS:
-				return "OPTIX_ERROR_INVALID_ATTRIBUTE_ACCESS";
-
-			case OPTIX_ERROR_INVALID_FUNCTION_USE:
-				return "OPTIX_ERROR_INVALID_FUNCTION_USE";
-
-			case OPTIX_ERROR_INVALID_FUNCTION_ARGUMENTS:
-				return "OPTIX_ERROR_INVALID_FUNCTION_ARGUMENTS";
-
-			case OPTIX_ERROR_PIPELINE_OUT_OF_CONSTANT_MEMORY:
-				return "OPTIX_ERROR_PIPELINE_OUT_OF_CONSTANT_MEMORY";
-
-			case OPTIX_ERROR_PIPELINE_LINK_ERROR:
-				return "OPTIX_ERROR_PIPELINE_LINK_ERROR";
-
-			case OPTIX_ERROR_INTERNAL_COMPILER_ERROR:
-				return "OPTIX_ERROR_INTERNAL_COMPILER_ERROR";
-
-			case OPTIX_ERROR_DENOISER_MODEL_NOT_SET:
-				return "OPTIX_ERROR_DENOISER_MODEL_NOT_SET";
-
-			case OPTIX_ERROR_DENOISER_NOT_INITIALIZED:
-				return "OPTIX_ERROR_DENOISER_NOT_INITIALIZED";
-
-			case OPTIX_ERROR_ACCEL_NOT_COMPATIBLE:
-				return "OPTIX_ERROR_ACCEL_NOT_COMPATIBLE";
-
-			case OPTIX_ERROR_NOT_SUPPORTED:
-				return "OPTIX_ERROR_NOT_SUPPORTED";
-
-			case OPTIX_ERROR_UNSUPPORTED_ABI_VERSION:
-				return "OPTIX_ERROR_UNSUPPORTED_ABI_VERSION";
-
-			case OPTIX_ERROR_FUNCTION_TABLE_SIZE_MISMATCH:
-				return "OPTIX_ERROR_FUNCTION_TABLE_SIZE_MISMATCH";
-
-			case OPTIX_ERROR_INVALID_ENTRY_FUNCTION_OPTIONS:
-				return "OPTIX_ERROR_INVALID_ENTRY_FUNCTION_OPTIONS";
-
-			case OPTIX_ERROR_LIBRARY_NOT_FOUND:
-				return "OPTIX_ERROR_LIBRARY_NOT_FOUND";
-
-			case OPTIX_ERROR_ENTRY_SYMBOL_NOT_FOUND:
-				return "OPTIX_ERROR_ENTRY_SYMBOL_NOT_FOUND";
-
-			case OPTIX_ERROR_CUDA_ERROR:
-				return "OPTIX_ERROR_CUDA_ERROR";
-
-			case OPTIX_ERROR_INTERNAL_ERROR:
-				return "OPTIX_ERROR_INTERNAL_ERROR";
-
-			case OPTIX_ERROR_UNKNOWN:
-				return "OPTIX_ERROR_UNKNOWN";
-
-			default:
-				return "Unknown OptiX error code!";
-			}
-		}
-
-
-
-#define OPTIX_CHECK(x) OptixCheck((x), __FILE__, __LINE__)
-		void OptixCheck(OptixResult res, const char* file, int line)
-		{
-			//assert(res == OPTIX_SUCCESS);
-			if(res != OPTIX_SUCCESS)
-			{
-				const std::string errorMessage = format("OptiX error at \"%s\" @ %i: %s", file, line, ToString(res).c_str());
-				throw std::runtime_error(errorMessage);
-			}
-		}
 	}
 
 
 
 	Renderer::Renderer()
 	{
-		// create OptiX content
+		// create Optix content
 		CreateContext();
 		CreateModule();
 		CreatePrograms();
@@ -238,7 +113,7 @@ namespace Tracer
 
 	Renderer::~Renderer()
 	{
-		// #TODO(RJCDB): proper cleanup
+		// #TODO: proper cleanup
 		if(mCudaGraphicsResource)
 			CUDA_CHECK(cudaGraphicsUnregisterResource(mCudaGraphicsResource));
 	}
@@ -247,9 +122,11 @@ namespace Tracer
 
 	void Renderer::BuildScene(Scene* scene)
 	{
-		BuildGeometry(scene);
+		// #TODO: acync?
 		BuildTextures(scene);
+		BuildMaterials(scene);
 		BuildShaderBindingTables(scene);
+		BuildGeometry(scene);
 	}
 
 
@@ -298,7 +175,7 @@ namespace Tracer
 		const uint32_t stride = mLaunchParams.resX * mLaunchParams.resY;
 		for(int pathLength = 0; pathLength < mLaunchParams.maxDepth; pathLength++)
 		{
-			// launch OptiX
+			// launch Optix
 			if(pathLength == 0)
 			{
 				// primary
@@ -310,13 +187,8 @@ namespace Tracer
 			else if(pathCount > 0)
 			{
 				// bounce
-#if true
 				mLaunchParams.rayGenMode = RayGen_Secondary;
 				mLaunchParamsBuffer.Upload(&mLaunchParams);
-#else
-				const int rayGenMode = RayGen_Secondary;
-				cudaMemcpy(mLaunchParamsBuffer.Ptr<void>(), &rayGenMode, sizeof(int), cudaMemcpyHostToDevice);
-#endif
 				InitCudaCounters();
 				OPTIX_CHECK(optixLaunch(mPipeline, mStream, mLaunchParamsBuffer.DevicePtr(), mLaunchParamsBuffer.Size(),
 										&mRenderModeConfigs[magic_enum::enum_integer(OptixRenderModes::SPT)].shaderBindingTable,
@@ -407,10 +279,10 @@ namespace Tracer
 
 	void Renderer::SetCamera(CameraNode& camNode)
 	{
-		if(camNode.HasChanged())
+		if(camNode.IsDirty())
 		{
 			SetCamera(camNode.Position(), normalize(camNode.Target() - camNode.Position()), camNode.Up(), camNode.Fov());
-			camNode.ClearHasChanged();
+			camNode.MarkClean();
 		}
 	}
 
@@ -557,70 +429,15 @@ namespace Tracer
 
 	void Renderer::CreatePrograms()
 	{
-		// raygen
-		auto CreateRaygenProgram = [this](const std::string& name) -> std::vector<OptixProgramGroup>
+		auto CreateProgram = [this](const OptixProgramGroupOptions& options, const OptixProgramGroupDesc& desc) -> OptixProgramGroup
 		{
-			const std::string entryName = "__raygen__" + name;
-
-			OptixProgramGroupOptions options = {};
-			OptixProgramGroupDesc desc       = {};
-			desc.kind                        = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
-			desc.raygen.module               = mModule;
-			desc.raygen.entryFunctionName    = entryName.c_str();
-
 			char log[2048];
 			size_t logLength = sizeof(log);
-			std::vector<OptixProgramGroup> programs(1);
-			OPTIX_CHECK(optixProgramGroupCreate(mOptixContext, &desc, static_cast<unsigned int>(programs.size()), &options, log, &logLength, programs.data()));
+			OptixProgramGroup program {};
+			OPTIX_CHECK(optixProgramGroupCreate(mOptixContext, &desc, 1, &options, log, &logLength, &program));
 			if(logLength > 1)
 				printf("%s\n", log);
-
-			return programs;
-		};
-
-		// miss
-		auto CreateMissProgram = [this](const std::string& name) -> std::vector<OptixProgramGroup>
-		{
-			const std::string entryName = "__miss__" + name;
-
-			OptixProgramGroupOptions options = {};
-			OptixProgramGroupDesc desc       = {};
-			desc.kind                        = OPTIX_PROGRAM_GROUP_KIND_MISS;
-			desc.miss.module                 = mModule;
-			desc.miss.entryFunctionName      = entryName.c_str();
-
-			char log[2048];
-			size_t logLength = sizeof(log);
-			std::vector<OptixProgramGroup> programs(1);
-			OPTIX_CHECK(optixProgramGroupCreate(mOptixContext, &desc, static_cast<unsigned int>(programs.size()), &options, log, &logLength, programs.data()));
-			if(logLength > 1)
-				printf("%s\n", log);
-
-			return programs;
-		};
-
-		// hit
-		auto CreateHitProgram = [this](const std::string& name) -> std::vector<OptixProgramGroup>
-		{
-			const std::string ahEntryName = "__anyhit__" + name;
-			const std::string chEntryName = "__closesthit__" + name;
-
-			OptixProgramGroupOptions options  = {};
-			OptixProgramGroupDesc desc        = {};
-			desc.kind                         = OPTIX_PROGRAM_GROUP_KIND_HITGROUP;
-			desc.hitgroup.moduleCH            = mModule;
-			desc.hitgroup.entryFunctionNameCH = chEntryName.c_str();
-			desc.hitgroup.moduleAH            = mModule;
-			desc.hitgroup.entryFunctionNameAH = ahEntryName.c_str();
-
-			char log[2048];
-			size_t logLength = sizeof(log);
-			std::vector<OptixProgramGroup> programs(1);
-			OPTIX_CHECK(optixProgramGroupCreate(mOptixContext, &desc, static_cast<unsigned int>(programs.size()), &options, log, &logLength, programs.data()));
-			if(logLength > 1)
-				printf("%s\n", log);
-
-			return programs;
+			return program;
 		};
 
 		// configs for rendermodes
@@ -628,9 +445,35 @@ namespace Tracer
 		for(size_t m = 0; m < magic_enum::enum_count<OptixRenderModes>(); m++)
 		{
 			const std::string modeName = ToString(static_cast<OptixRenderModes>(m));
-			mRenderModeConfigs[m].rayGenPrograms   = CreateRaygenProgram(modeName);
-			mRenderModeConfigs[m].missPrograms     = CreateMissProgram(modeName);
-			mRenderModeConfigs[m].hitgroupPrograms = CreateHitProgram(modeName);
+
+			// entry names
+			const std::string raygenEntryName     = "__raygen__" + modeName;
+			const std::string missEntryName       = "__miss__" + modeName;
+			const std::string anyhitEntryName     = "__anyhit__" + modeName;
+			const std::string closesthitEntryName = "__closesthit__" + modeName;
+
+			// ray gen
+			OptixProgramGroupDesc raygenDesc      = {};
+			raygenDesc.kind                       = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
+			raygenDesc.raygen.module              = mModule;
+			raygenDesc.raygen.entryFunctionName   = raygenEntryName.c_str();
+			mRenderModeConfigs[m].rayGenProgram   = CreateProgram({}, raygenDesc);
+
+			// miss
+			OptixProgramGroupDesc missDesc        = {};
+			missDesc.kind                         = OPTIX_PROGRAM_GROUP_KIND_MISS;
+			missDesc.miss.module                  = mModule;
+			missDesc.miss.entryFunctionName       = missEntryName.c_str();
+			mRenderModeConfigs[m].missProgram     = CreateProgram({}, missDesc);
+
+			// hit
+			OptixProgramGroupDesc hitDesc         = {};
+			hitDesc.kind                          = OPTIX_PROGRAM_GROUP_KIND_HITGROUP;
+			hitDesc.hitgroup.moduleCH             = mModule;
+			hitDesc.hitgroup.entryFunctionNameCH  = closesthitEntryName.c_str();
+			hitDesc.hitgroup.moduleAH             = mModule;
+			hitDesc.hitgroup.entryFunctionNameAH  = anyhitEntryName.c_str();
+			mRenderModeConfigs[m].hitgroupProgram = CreateProgram({}, hitDesc);
 		}
 	}
 
@@ -639,21 +482,16 @@ namespace Tracer
 	void Renderer::CreatePipeline()
 	{
 		// count total number of programs
-		size_t programCount = 0;
-		for(RenderModeConfig& c : mRenderModeConfigs)
-			programCount += c.rayGenPrograms.size() + c.missPrograms.size() + c.hitgroupPrograms.size();
+		size_t programCount = mRenderModeConfigs.size() * 3;
 
 		// add programs
 		std::vector<OptixProgramGroup> programGroups;
 		programGroups.reserve(programCount);
 		for(RenderModeConfig& c : mRenderModeConfigs)
 		{
-			for(OptixProgramGroup& p : c.rayGenPrograms)
-				programGroups.push_back(p);
-			for(OptixProgramGroup& p : c.missPrograms)
-				programGroups.push_back(p);
-			for(OptixProgramGroup& p : c.hitgroupPrograms)
-				programGroups.push_back(p);
+			programGroups.push_back(c.rayGenProgram);
+			programGroups.push_back(c.missProgram);
+			programGroups.push_back(c.hitgroupProgram);
 		}
 
 		char log[2048];
@@ -699,119 +537,73 @@ namespace Tracer
 		std::vector<OptixBuildInput> buildInputs;
 		std::vector<CudaMeshData> meshData;
 
+		std::vector<OptixInstance> instances;
+		uint32_t instanceId = 0;
+
 		if(scene)
 		{
-			const size_t meshCount = scene->MeshCount();
-
-			//--------------------------------
-			// Build input
-			//--------------------------------
-			buildInputs.resize(meshCount);
-			mVertexBuffers.resize(meshCount);
-			mNormalBuffers.resize(meshCount);
-			mTexcoordBuffers.resize(meshCount);
-			mIndexBuffers.resize(meshCount);
-
-			size_t meshIx = 0;
+#if false
 			for(auto& model : scene->Models())
 			{
-				for(auto& mesh : model->Meshes())
+				if(model->IsDirty())
 				{
-					OptixBuildInput& bi = buildInputs[meshIx];
-
-					bi = {};
-					bi.type = OPTIX_BUILD_INPUT_TYPE_TRIANGLES;
-
-					// upload buffers
-					mVertexBuffers[meshIx].Upload(mesh->Vertices(), true);
-					mNormalBuffers[meshIx].Upload(mesh->Normals(), true);
-					mTexcoordBuffers[meshIx].Upload(mesh->Texcoords(), true);
-					mIndexBuffers[meshIx].Upload(mesh->Indices(), true);
-
-					// vertices
-					bi.triangleArray.vertexFormat        = OPTIX_VERTEX_FORMAT_FLOAT3;
-					bi.triangleArray.vertexStrideInBytes = sizeof(float3);
-					bi.triangleArray.numVertices         = static_cast<unsigned int>(mesh->Vertices().size());
-					bi.triangleArray.vertexBuffers       = mVertexBuffers[meshIx].DevicePtrPtr();
-
-					// indices
-					bi.triangleArray.indexFormat        = OPTIX_INDICES_FORMAT_UNSIGNED_INT3;
-					bi.triangleArray.indexStrideInBytes = sizeof(uint3);
-					bi.triangleArray.numIndexTriplets   = static_cast<unsigned int>(mesh->Indices().size());
-					bi.triangleArray.indexBuffer        = mIndexBuffers[meshIx].DevicePtr();
-
-					// other
-					constexpr uint32_t buildFlags[] = { 0 };
-					bi.triangleArray.flags                       = buildFlags;
-					bi.triangleArray.numSbtRecords               = 1;
-					bi.triangleArray.sbtIndexOffsetBuffer        = 0;
-					bi.triangleArray.sbtIndexOffsetSizeInBytes   = 0;
-					bi.triangleArray.sbtIndexOffsetStrideInBytes = 0;
-
-					// CUDA
-					CudaMeshData m;
-					m.vertices  = mVertexBuffers[meshIx].Ptr<float3>();
-					m.normals   = mNormalBuffers[meshIx].Ptr<float3>();
-					m.texcoords = mTexcoordBuffers[meshIx].Ptr<float2>();
-					m.indices   = mIndexBuffers[meshIx].Ptr<uint3>();
-					meshData.push_back(m);
-
-					meshIx++;
+					model->Build(mOptixContext, nullptr);
+					model->MarkClean();
 				}
+				instances.push_back(model->InstanceData(instanceId++, make_float3x4()));
+				meshData.push_back(model->CudaMesh());
 			}
+#else
+			for(auto& inst : scene->Instances())
+			{
+				const auto& model = inst->GetModel();
+				if(model->IsDirty())
+				{
+					model->Build(mOptixContext, nullptr);
+					model->MarkClean();
+				}
+				instances.push_back(model->InstanceData(instanceId++, inst->Transform()));
+				meshData.push_back(model->CudaMesh());
+			}
+#endif
 		}
 
-		if(buildInputs.size() == 0)
+		if(meshData.size() == 0)
 		{
 			mSceneRoot = 0;
-			mAccelBuffer.Free();
 			mCudaMeshData.Free();
 		}
 		else
 		{
-			//--------------------------------
+			// CUDA mesh data
+			mCudaMeshData.Upload(meshData, true);
+
+			// upload instances
+			mInstancesBuffer.Upload(instances, true);
+
+			// build top-level
+			OptixBuildInput instanceBuildInput = {};
+			instanceBuildInput.type = OPTIX_BUILD_INPUT_TYPE_INSTANCES;
+			instanceBuildInput.instanceArray.instances    = mInstancesBuffer.DevicePtr();
+			instanceBuildInput.instanceArray.numInstances = static_cast<unsigned int>(instances.size());
+			buildInputs.push_back(instanceBuildInput);
+
 			// Acceleration setup
-			//--------------------------------
-			OptixAccelBuildOptions accelOptions = {};
-			accelOptions.buildFlags            = OPTIX_BUILD_FLAG_ALLOW_COMPACTION;
-			accelOptions.motionOptions.numKeys = 1;
-			accelOptions.operation             = OPTIX_BUILD_OPERATION_BUILD;
+			OptixAccelBuildOptions buildOptions = {};
+			buildOptions.buildFlags = OPTIX_BUILD_FLAG_NONE;
+			buildOptions.operation  = OPTIX_BUILD_OPERATION_BUILD;
 
 			OptixAccelBufferSizes accelBufferSizes = {};
-			OPTIX_CHECK(optixAccelComputeMemoryUsage(mOptixContext, &accelOptions, buildInputs.data(), static_cast<unsigned int>(buildInputs.size()), &accelBufferSizes));
+			OPTIX_CHECK(optixAccelComputeMemoryUsage(mOptixContext, &buildOptions, buildInputs.data(), static_cast<unsigned int>(buildInputs.size()), &accelBufferSizes));
 
-			//--------------------------------
-			// Prepare for compacting
-			//--------------------------------
-			CudaBuffer compactedSizeBuffer(sizeof(uint64_t));
-
-			OptixAccelEmitDesc emitDesc;
-			emitDesc.type   = OPTIX_PROPERTY_TYPE_COMPACTED_SIZE;
-			emitDesc.result = compactedSizeBuffer.DevicePtr();
-
-			//--------------------------------
 			// Execute build
-			//--------------------------------
 			CudaBuffer tempBuffer(accelBufferSizes.tempSizeInBytes);
-			CudaBuffer outputBuffer(accelBufferSizes.outputSizeInBytes);
-			OPTIX_CHECK(optixAccelBuild(mOptixContext, nullptr, &accelOptions, buildInputs.data(), static_cast<unsigned int>(buildInputs.size()),
-										tempBuffer.DevicePtr(), tempBuffer.Size(), outputBuffer.DevicePtr(), outputBuffer.Size(), &mSceneRoot, &emitDesc, 1));
+			static CudaBuffer outputBuffer;
+			outputBuffer.Resize(accelBufferSizes.outputSizeInBytes);
+			OPTIX_CHECK(optixAccelBuild(mOptixContext, nullptr, &buildOptions, buildInputs.data(), static_cast<unsigned int>(buildInputs.size()),
+										tempBuffer.DevicePtr(), tempBuffer.Size(), outputBuffer.DevicePtr(), outputBuffer.Size(), &mSceneRoot, nullptr, 0));
+
 			CUDA_CHECK(cudaDeviceSynchronize());
-
-			//--------------------------------
-			// Compact
-			//--------------------------------
-			uint64_t compactedSize = 0;
-			compactedSizeBuffer.Download(&compactedSize);
-
-			mAccelBuffer.Alloc(compactedSize);
-			OPTIX_CHECK(optixAccelCompact(mOptixContext, nullptr, mSceneRoot, mAccelBuffer.DevicePtr(), mAccelBuffer.Size(), &mSceneRoot));
-			CUDA_CHECK(cudaDeviceSynchronize());
-
-			//--------------------------------
-			// CUDA mesh data
-			//--------------------------------
-			mCudaMeshData.Upload(meshData, true);
 		}
 
 		SetCudaMeshData(mCudaMeshData.Ptr<CudaMeshData>());
@@ -819,91 +611,23 @@ namespace Tracer
 
 
 
-	void Renderer::BuildShaderBindingTables(Scene* scene)
+	void Renderer::BuildMaterials(Scene* scene)
 	{
-		// Optix Info
-		for(RenderModeConfig& config : mRenderModeConfigs)
+		const size_t modelCount = scene ? scene->MaterialCount() : 0;
+		if(modelCount == 0)
 		{
-			// raygen records
-			std::vector<RaygenRecord> raygenRecords;
-			raygenRecords.reserve(config.rayGenPrograms.size());
-			for(auto p : config.rayGenPrograms)
-			{
-				RaygenRecord r;
-				OPTIX_CHECK(optixSbtRecordPackHeader(p, &r));
-				r.data = nullptr;
-				raygenRecords.push_back(r);
-			}
-
-			config.rayGenRecordsBuffer.Upload(raygenRecords, true);
-			config.shaderBindingTable.raygenRecord = config.rayGenRecordsBuffer.DevicePtr();
-
-			// miss records
-			std::vector<MissRecord> missRecords;
-			missRecords.reserve(config.missPrograms.size());
-			for(auto p : config.missPrograms)
-			{
-				MissRecord r;
-				OPTIX_CHECK(optixSbtRecordPackHeader(p, &r));
-				r.data = nullptr;
-				missRecords.push_back(r);
-			}
-
-			config.missRecordsBuffer.Upload(missRecords, true);
-			config.shaderBindingTable.missRecordBase          = config.missRecordsBuffer.DevicePtr();
-			config.shaderBindingTable.missRecordStrideInBytes = sizeof(MissRecord);
-			config.shaderBindingTable.missRecordCount         = static_cast<unsigned int>(missRecords.size());
-
-			// hitgroup records
-			std::vector<HitgroupRecord> hitgroupRecords;
-			const size_t meshCount = scene ? scene->MeshCount() : 0;
-			if(meshCount == 0)
-			{
-				hitgroupRecords.reserve(1);
-				uint64_t objectType = 0;
-				HitgroupRecord r;
-				OPTIX_CHECK(optixSbtRecordPackHeader(config.hitgroupPrograms[objectType], &r));
-				hitgroupRecords.push_back(r);
-			}
-			else
-			{
-				hitgroupRecords.reserve(meshCount);
-				uint32_t meshIx = 0;
-				for(auto& model : scene->Models())
-				{
-					for(size_t i = 0; i < model->Meshes().size(); i++)
-					{
-						uint64_t objectType = 0;
-						HitgroupRecord r;
-						OPTIX_CHECK(optixSbtRecordPackHeader(config.hitgroupPrograms[objectType], &r));
-						r.data.objectID = meshIx;
-						hitgroupRecords.push_back(r);
-						meshIx++;
-					}
-				}
-			}
-
-			config.hitRecordsBuffer.Upload(hitgroupRecords, true);
-			config.shaderBindingTable.hitgroupRecordBase          = config.hitRecordsBuffer.DevicePtr();
-			config.shaderBindingTable.hitgroupRecordStrideInBytes = sizeof(HitgroupRecord);
-			config.shaderBindingTable.hitgroupRecordCount         = static_cast<unsigned int>(hitgroupRecords.size());
-		}
-
-		// CUDA material data
-		const size_t meshCount = scene ? scene->MeshCount() : 0;
-		if(meshCount == 0)
-		{
+			mCudaMaterialOffsets.Free();
 			mCudaMaterialData.Free();
 		}
 		else
 		{
-			size_t meshIx = 0;
 			std::vector<CudaMatarial> materialData;
+			std::vector<uint32_t> materialOffsets;
+			uint32_t lastOffset = 0;
 			for(auto& model : scene->Models())
 			{
-				for(auto& mesh : model->Meshes())
+				for(auto& mat : model->Materials())
 				{
-					auto mat = mesh->Mat();
 					CudaMatarial m;
 
 					m.diffuse = mat->mDiffuse;
@@ -915,18 +639,53 @@ namespace Tracer
 						m.diffuseMap = mTextures[mat->mDiffuseMap]->mObject;
 					}
 					materialData.push_back(m);
-					meshIx++;
 				}
+
+				materialOffsets.push_back(lastOffset);
+				lastOffset += static_cast<uint32_t>(model->Materials().size());
 			}
+			mCudaMaterialOffsets.Upload(materialOffsets, true);
 			mCudaMaterialData.Upload(materialData, true);
 		}
+		SetCudaMatarialOffsets(mCudaMaterialOffsets.Ptr<uint32_t>());
 		SetCudaMatarialData(mCudaMaterialData.Ptr<CudaMatarial>());
+	}
+
+
+
+	void Renderer::BuildShaderBindingTables(Scene* scene)
+	{
+		for(RenderModeConfig& config : mRenderModeConfigs)
+		{
+			// raygen records
+			RaygenRecord raygen = {};
+			OPTIX_CHECK(optixSbtRecordPackHeader(config.rayGenProgram, &raygen));
+			config.rayGenRecordsBuffer.Upload(&raygen, 1, true);
+			config.shaderBindingTable.raygenRecord = config.rayGenRecordsBuffer.DevicePtr();
+
+			// miss records
+			MissRecord miss = {};
+			OPTIX_CHECK(optixSbtRecordPackHeader(config.missProgram, &miss));
+			config.missRecordsBuffer.Upload(&miss, 1, true);
+			config.shaderBindingTable.missRecordBase          = config.missRecordsBuffer.DevicePtr();
+			config.shaderBindingTable.missRecordStrideInBytes = sizeof(MissRecord);
+			config.shaderBindingTable.missRecordCount         = 1;
+
+			// hitgroup records
+			HitgroupRecord hit = {};
+			OPTIX_CHECK(optixSbtRecordPackHeader(config.hitgroupProgram, &hit));
+			config.hitRecordsBuffer.Upload(&hit, 1, true);
+			config.shaderBindingTable.hitgroupRecordBase          = config.hitRecordsBuffer.DevicePtr();
+			config.shaderBindingTable.hitgroupRecordStrideInBytes = sizeof(HitgroupRecord);
+			config.shaderBindingTable.hitgroupRecordCount         = 1;
+		}
 	}
 
 
 
 	void Renderer::BuildTextures(Scene* scene)
 	{
+		// #TODO: Only remove deleted textures
 		mTextures.clear();
 
 		if(!scene)
@@ -934,9 +693,8 @@ namespace Tracer
 
 		for(auto& model : scene->Models())
 		{
-			for(auto& mesh : model->Meshes())
+			for(auto& mat : model->Materials())
 			{
-				auto mat = mesh->Mat();
 				if(mat->mDiffuseMap)
 					mTextures[mat->mDiffuseMap] = std::make_shared<CudaTexture>(mat->mDiffuseMap);
 			}

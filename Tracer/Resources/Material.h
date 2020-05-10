@@ -1,6 +1,7 @@
 #pragma once
 
 // Project
+#include "Resources/Resource.h"
 #include "Utility/LinearMath.h"
 
 // C++
@@ -10,7 +11,7 @@
 namespace Tracer
 {
 	class Texture;
-	class Material
+	class Material : public Resource
 	{
 	public:
 		explicit Material(const std::string& name);
@@ -19,8 +20,6 @@ namespace Tracer
 		{
 			return (mDiffuseMap ? 1 : 0);
 		}
-
-		std::string mName = "";
 
 		// material properties
 		float3 mDiffuse = make_float3(.5f, .5f, .5f);

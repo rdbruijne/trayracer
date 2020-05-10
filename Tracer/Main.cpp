@@ -4,7 +4,7 @@
 #include "OpenGL/Input.h"
 #include "OpenGL/Window.h"
 #include "Renderer/Renderer.h"
-#include "Resources/Scene.h"
+#include "Renderer/Scene.h"
 #include "Utility/Stopwatch.h"
 #include "Utility/Utility.h"
 
@@ -79,10 +79,10 @@ int main(int argc, char** argv)
 			if(app->GetScene()->IsDirty())
 			{
 				renderer->BuildScene(app->GetScene());
-				app->GetScene()->ResetDirtyFlag();
+				app->GetScene()->MarkClean();
 			}
 
-			// run OptiX
+			// run Optix
 			renderer->RenderFrame(window->RenderTexture());
 
 			// run window shaders

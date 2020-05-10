@@ -9,6 +9,7 @@
 __host__ void SetCudaCounters(Counters* data);
 __host__ void SetCudaMatarialData(CudaMatarial* data);
 __host__ void SetCudaMeshData(CudaMeshData* data);
+__host__ void SetCudaMatarialOffsets(uint32_t* data);
 __host__ void SetCudaLaunchParams(LaunchParams* data);
 
 __host__ void InitCudaCounters();

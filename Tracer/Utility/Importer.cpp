@@ -2,7 +2,6 @@
 
 // Project
 #include "Resources/Material.h"
-#include "Resources/Mesh.h"
 #include "Resources/Model.h"
 #include "Resources/Texture.h"
 #include "Utility/Utility.h"
@@ -118,7 +117,7 @@ namespace Tracer
 
 
 
-		std::shared_ptr<Mesh> ImportMesh(aiMesh* aMesh, const std::vector<std::shared_ptr<Material>>& materials)
+		void ImportMesh(std::shared_ptr<Model> model, aiMesh* aMesh, const std::vector<std::shared_ptr<Material>>& materials)
 		{
 			// vertices
 			std::vector<float3> positions(aMesh->mNumVertices, make_float3(0, 0, 0));
@@ -148,8 +147,8 @@ namespace Tracer
 				indices.push_back(make_uint3(f.mIndices[0], f.mIndices[1], f.mIndices[2]));
 			}
 
-			// create the mesh
-			return std::make_shared<Mesh>(aMesh->mName.C_Str(), positions, normals, texcoords, indices, materials[aMesh->mMaterialIndex]);
+			// add the mesh
+			model->AddMesh(positions, normals, texcoords, indices, aMesh->mMaterialIndex);
 		}
 	}
 
@@ -232,7 +231,7 @@ namespace Tracer
 			uint32_t polyCount = 0;
 			for(uint32_t i = 0; i < aScene->mNumMeshes; i++)
 			{
-				model->AddMesh(ImportMesh(aScene->mMeshes[i], model->Materials()));
+				ImportMesh(model, aScene->mMeshes[i], model->Materials());
 				polyCount += aScene->mMeshes[i]->mNumFaces;
 			}
 
@@ -241,8 +240,8 @@ namespace Tracer
 
 			printf("Imported \"%s\":\n", filePath.c_str());
 			printf("  Meshes   : %d\n", aScene->mNumMeshes);
-			printf("  Materials: %d\n", aScene->mNumMaterials);
-			printf("  Textures : %d\n", aScene->mNumTextures);
+			printf("  Materials: %zd\n", model->Materials().size());
+			printf("  Textures : %zd\n", textures.size());
 			printf("  Polygons : %d\n", polyCount);
 
 			return model;

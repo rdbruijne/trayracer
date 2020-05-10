@@ -16,6 +16,7 @@ namespace Tracer
 		std::string ElapsedString() const;
 
 	private:
-		std::chrono::high_resolution_clock::time_point mTimePoint = std::chrono::high_resolution_clock::time_point();
+		typedef std::chrono::steady_clock clock;
+		clock::time_point mTimePoint = clock::time_point();
 	};
 }

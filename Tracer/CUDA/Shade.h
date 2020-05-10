@@ -39,7 +39,6 @@ __global__ void ShadeKernel_AmbientOcclusion(uint32_t pathCount, float4* accumul
 	const uint32_t primIx = hd.z;
 	const float tmax = __uint_as_float(hd.w);
 
-	// didn't hit anything
 	if(pathLength == 0)
 	{
 		if(primIx == ~0)
@@ -84,9 +83,7 @@ __global__ void ShadeKernel_DiffuseFilter(uint32_t pathCount, float4* accumulato
 		return;
 
 	const IntersectionAttributes attrib = GetIntersectionAttributes(instIx, primIx, bary);
-
-	const uint32_t matIx = instIx;
-	const CudaMatarial& mat = materialData[matIx];
+	const CudaMatarial& mat = materialData[attrib.matIx];
 
 	// diffuse
 	float3 diff = mat.diffuse;
@@ -158,9 +155,7 @@ __global__ void ShadeKernel_PathTracing(uint32_t pathCount, float4* accumulator,
 	uint32_t seed = tea<2>(pathIx, params->sampleCount + pathLength + 1);
 
 	const IntersectionAttributes attrib = GetIntersectionAttributes(instIx, primIx, bary);
-
-	const uint32_t matIx = instIx;
-	const CudaMatarial& mat = materialData[matIx];
+	const CudaMatarial& mat = materialData[attrib.matIx];
 
 	// diffuse
 	float3 diff = mat.diffuse;

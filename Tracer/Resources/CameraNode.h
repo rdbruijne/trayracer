@@ -1,19 +1,16 @@
 #pragma once
 
 // Project
+#include "Resources/Resource.h"
 #include "Utility/LinearMath.h"
 
 namespace Tracer
 {
-	class CameraNode
+	class CameraNode : public Resource
 	{
 	public:
 		CameraNode() = default;
 		explicit CameraNode(const float3& position, const float3& target, const float3& up, const float fov);
-
-		// changed
-		inline void ClearHasChanged() { mHasChanged = false; }
-		inline bool HasChanged() const { return mHasChanged; }
 
 		// position
 		inline float3 Position() const { return mPosition; }
@@ -32,8 +29,6 @@ namespace Tracer
 		void SetFov(const float& fov);
 
 	private:
-		bool mHasChanged = true;
-
 		float3 mPosition = make_float3(0, 0, -1);
 		float3 mTarget = make_float3(0, 0, 0);
 		float3 mUp = make_float3(0, 1, 0);

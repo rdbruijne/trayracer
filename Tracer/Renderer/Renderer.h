@@ -80,71 +80,73 @@ namespace Tracer
 
 		// scene building
 		void BuildGeometry(Scene* scene);
+		void BuildMaterials(Scene* scene);
 		void BuildShaderBindingTables(Scene* scene);
 		void BuildTextures(Scene* scene);
 
 		// render mode
-		RenderModes mRenderMode = RenderModes::PathTracing;
+		RenderModes mRenderMode = RenderModes::DiffuseFilter;
 
 		// Render buffer
-		CudaBuffer mColorBuffer;
+		CudaBuffer mColorBuffer = {};
 		GLTexture* mRenderTarget = nullptr;
 		cudaGraphicsResource* mCudaGraphicsResource = nullptr;
 
 		// SPT
-		CudaBuffer mPathStates;		// (O.xyz, pathIx)[], (D.xyz, meshIx)[], (throughput, ?)[]
-		CudaBuffer mHitData;		// (bary.x, bary.y), instIx, primIx, tmin
-		CudaBuffer mCudaMeshData;
-		CudaBuffer mCudaMaterialData;
-		CudaBuffer mCountersBuffer;
+		CudaBuffer mPathStates = {};		// (O.xyz, pathIx)[], (D.xyz, meshIx)[], (throughput, ?)[]
+		CudaBuffer mHitData = {};		// (bary.x, bary.y), instIx, primIx, tmin
+		CudaBuffer mCudaMeshData = {};
+		CudaBuffer mCudaMaterialData = {};
+		CudaBuffer mCudaMaterialOffsets = {};
+		CudaBuffer mCountersBuffer = {};
 
 		// Denoiser
 		OptixDenoiser mDenoiser;
-		CudaBuffer mDenoiserScratch;
-		CudaBuffer mDenoiserState;
-		CudaBuffer mDenoisedBuffer;
+		CudaBuffer mDenoiserScratch = {};
+		CudaBuffer mDenoiserState = {};
+		CudaBuffer mDenoisedBuffer = {};
 
 		bool mDenoisingEnabled = false;
 		bool mDenoisedFrame = false;
 		int32_t mDenoiserSampleTreshold = 10;
 
 		// Launch parameters
-		LaunchParams mLaunchParams;
-		CudaBuffer mLaunchParamsBuffer;
+		LaunchParams mLaunchParams = {};
+		CudaBuffer mLaunchParamsBuffer = {};
 
 		// CUDA device properties
-		CUcontext mCudaContext;
-		CUstream mStream;
-		cudaDeviceProp mDeviceProperties;
+		CUcontext mCudaContext = nullptr;
+		CUstream mStream = nullptr;
+		cudaDeviceProp mDeviceProperties = {};
 
-		// OptiX module
-		OptixModule mModule;
-		OptixModuleCompileOptions mModuleCompileOptions;
+		// Optix module
+		OptixModule mModule = nullptr;
+		OptixModuleCompileOptions mModuleCompileOptions = {};
 
-		// OptiX pipeline
-		OptixPipeline mPipeline;
-		OptixPipelineCompileOptions mPipelineCompileOptions;
-		OptixPipelineLinkOptions mPipelineLinkOptions;
+		// Optix pipeline
+		OptixPipeline mPipeline = nullptr;
+		OptixPipelineCompileOptions mPipelineCompileOptions = {};
+		OptixPipelineLinkOptions mPipelineLinkOptions = {};
 
-		// The OptiX device context
-		OptixDeviceContext mOptixContext;
+		// Optix device context
+		OptixDeviceContext mOptixContext = nullptr;
 
 		// Render mode data
 		struct RenderModeConfig
 		{
-			std::vector<OptixProgramGroup> rayGenPrograms;
-			std::vector<OptixProgramGroup> missPrograms;
-			std::vector<OptixProgramGroup> hitgroupPrograms;
+			OptixProgramGroup rayGenProgram;
+			OptixProgramGroup missProgram;
+			OptixProgramGroup hitgroupProgram;
 
-			CudaBuffer rayGenRecordsBuffer;
-			CudaBuffer missRecordsBuffer;
-			CudaBuffer hitRecordsBuffer;
+			CudaBuffer rayGenRecordsBuffer = {};
+			CudaBuffer missRecordsBuffer = {};
+			CudaBuffer hitRecordsBuffer = {};
 
-			OptixShaderBindingTable shaderBindingTable;
+			OptixShaderBindingTable shaderBindingTable = {};
 		};
 		std::vector<RenderModeConfig> mRenderModeConfigs;
 
-		// Geometry
+		// Geometry #TODO: remove
 		std::vector<CudaBuffer> mVertexBuffers;
 		std::vector<CudaBuffer> mNormalBuffers;
 		std::vector<CudaBuffer> mTexcoordBuffers;
@@ -156,13 +158,14 @@ namespace Tracer
 			CudaTexture() = default;
 			~CudaTexture();
 			explicit CudaTexture(std::shared_ptr<Texture> srcTex);
+
 			cudaArray_t mArray = nullptr;
 			cudaTextureObject_t mObject = 0;
 		};
 		std::unordered_map<std::shared_ptr<Texture>, std::shared_ptr<CudaTexture>> mTextures;
 
-		// OptiX scene
+		// Optix scene
 		OptixTraversableHandle mSceneRoot = 0;
-		CudaBuffer mAccelBuffer;
+		CudaBuffer mInstancesBuffer = {};
 	};
 }

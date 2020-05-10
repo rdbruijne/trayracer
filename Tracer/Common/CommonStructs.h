@@ -1,6 +1,6 @@
 #pragma once
 
-// OptiX
+// Optix
 #include "optix7/optix.h"
 
 #ifndef __CUDACC__
@@ -56,13 +56,6 @@ enum class RenderModes : uint32_t
 #ifndef __CUDACC__
 std::string ToString(RenderModes renderMode);
 #endif
-
-
-
-struct SbtData
-{
-	uint32_t objectID;
-};
 
 
 
@@ -131,18 +124,10 @@ struct alignas(16) CudaMeshData
 	float2* texcoords;
 	uint3* indices;
 
+	uint32_t* matIndices;
 	uint32_t objectID;
-	uint32_t pad[3];
+	uint32_t pad;
 };
-
-
-
-/*struct CudaTexture
-{
-	uint32_t width;
-	uint32_t height;
-	float4* data;
-};*/
 
 
 

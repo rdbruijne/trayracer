@@ -44,6 +44,7 @@ static __device__ Counters* counters;
 __constant__ CudaMatarial* materialData;
 __constant__ CudaMeshData* meshData;
 __constant__ LaunchParams* params;
+__constant__ uint32_t* materialOffsets;
 
 
 
@@ -57,6 +58,13 @@ __host__ void SetCudaCounters(Counters* data)
 __host__ void SetCudaMatarialData(CudaMatarial* data)
 {
 	cudaMemcpyToSymbol(materialData, &data, sizeof(void*));
+}
+
+
+
+__host__ void SetCudaMatarialOffsets(uint32_t* data)
+{
+	cudaMemcpyToSymbol(materialOffsets, &data, sizeof(void*));
 }
 
 
@@ -158,7 +166,7 @@ struct IntersectionAttributes
 	float texcoordY;
 
 	float3 tangent;
-	float pad;
+	uint32_t matIx;
 
 	float3 bitangent;
 	int pad2;
@@ -174,6 +182,9 @@ inline IntersectionAttributes GetIntersectionAttributes(uint32_t instIx, uint32_
 	// get optix info
 	const CudaMeshData& md = meshData[instIx];
 	const uint3 index = md.indices[primIx];
+
+	// set material index
+	attrib.matIx = md.matIndices[primIx] + materialOffsets[instIx];
 
 	// set simple data
 	attrib.shadingNormal = normalize(Barycentric(bary, md.normals[index.x], md.normals[index.y], md.normals[index.z]));

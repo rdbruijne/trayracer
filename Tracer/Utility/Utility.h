@@ -3,6 +3,12 @@
 // c++
 #include <string>
 
+#define NO_COPY_ALLOWED(c)				\
+	c(const c&) = delete;				\
+	c& operator =(const c&) = delete;	\
+	c(c&& a) = default;					\
+	c& operator =(c&& a) = default;
+
 namespace Tracer
 {
 	// string manipulation

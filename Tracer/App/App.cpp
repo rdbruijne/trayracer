@@ -4,8 +4,10 @@
 #include "App/OrbitCameraController.h"
 #include "GUI/DebugWindow.h"
 #include "OpenGL/Window.h"
+#include "Renderer/Scene.h"
 #include "Renderer/Renderer.h"
-#include "Resources/Scene.h"
+#include "Resources/Instance.h"
+#include "Resources/Model.h"
 #include "Utility/Importer.h"
 #include "Utility/LinearMath.h"
 #include "Utility/Utility.h"
@@ -67,21 +69,66 @@ namespace Tracer
 	{
 		mScene = std::make_unique<Scene>();
 
-		// toad
-		//mScene->AddModel(ImportModel("models/plane/plane.obj"));
-		//mScene->AddModel(ImportModel("models/toad/toad.obj"));
-		//mCamera = CameraNode(make_float3(9, 2, 2), make_float3(0, 0, 0), make_float3(0, 1, 0), 90.f * DegToRad);
+		const int sceneIx = 2;
+		switch(sceneIx)
+		{
+		case 0:
+		{
+			// toad
+			auto toad = ImportModel("models/toad/toad.obj");
+			auto toadInst = std::make_shared<Instance>("toad", toad, translate_3x4(make_float3(0, 1.69f, 0)));
 
-		// sponza
-		mScene->AddModel(ImportModel("models/sponza/sponza.obj"));
-		mCamera = CameraNode(make_float3(-1350, 150, 0), make_float3(0, 125, 0), make_float3(0, 1, 0), 90.f * DegToRad);
+			mScene->AddModel(toad);
+			mScene->AddInstance(toadInst);
 
-		// Pica (LightHouse2)
-		//mScene->AddModel(ImportModel("models/pica/scene.gltf"));
-		//mCamera = CameraNode(make_float3(-5, 5, -6), make_float3(0, 0, 0), make_float3(0, 1, 0), 90.f * DegToRad);
+			// plane
+			auto plane = ImportModel("models/plane/plane.obj");
+			auto planeInst = std::make_shared<Instance>("plane", plane);
 
-		// thai statue
-		//mScene->AddModel(ImportModel("R:/3d_models/Statues/thai_statue/thai_statue.obj"));
-		//mCamera = CameraNode(make_float3(500, 100, 100), make_float3(0, 0, 0), make_float3(0, 1, 0), 90.f * DegToRad);
+			mScene->AddModel(plane);
+			mScene->AddInstance(planeInst);
+
+			mCamera = CameraNode(make_float3(9, 2, 2), make_float3(0, 0, 0), make_float3(0, 1, 0), 90.f * DegToRad);
+		}
+		break;
+
+		case 1:
+		{
+			// sponza
+			auto sponza = ImportModel("models/sponza/sponza.obj");
+			auto sponzaInst = std::make_shared<Instance>("sponza", sponza);
+
+			mScene->AddModel(sponza);
+			mScene->AddInstance(sponzaInst);
+
+			mCamera = CameraNode(make_float3(-1350, 150, 0), make_float3(0, 125, 0), make_float3(0, 1, 0), 90.f * DegToRad);
+		}
+		break;
+
+		case 2:
+		{
+			// toad
+			auto toad = ImportModel("models/toad/toad.obj");
+			auto toadInst = std::make_shared<Instance>("toad", toad, translate_3x4(make_float3(0, 1.69f, 0)) * scale_3x4(40) * rotate_y_3x4(3.14f));
+
+			mScene->AddModel(toad);
+			mScene->AddInstance(toadInst);
+
+			// sponza
+			auto sponza = ImportModel("models/sponza/sponza.obj");
+			auto sponzaInst = std::make_shared<Instance>("sponza", sponza);
+
+			mScene->AddModel(sponza);
+			mScene->AddInstance(sponzaInst);
+
+			//mCamera = CameraNode(make_float3(22, 0, 2), make_float3(0, 0, 0), make_float3(0, 1, 0), 90.f * DegToRad);
+			mCamera = CameraNode(make_float3(-1350, 150, 0), make_float3(0, 125, 0), make_float3(0, 1, 0), 90.f * DegToRad);
+		}
+		break;
+
+		default:
+			// no scene
+			break;
+		}
 	}
 }
