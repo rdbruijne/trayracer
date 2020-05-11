@@ -84,6 +84,15 @@ namespace Tracer
 		{
 			return std::string(magic_enum::enum_name(renderMode));
 		}
+
+
+
+		inline float Elapsed(cudaEvent_t start, cudaEvent_t end)
+		{
+			float elapsed = 0;
+			cudaEventElapsedTime(&elapsed, start, end);
+			return elapsed;
+		}
 	}
 
 
@@ -103,6 +112,16 @@ namespace Tracer
 		// allocate launch params
 		mLaunchParamsBuffer.Alloc(sizeof(LaunchParams));
 
+		// events
+		CUDA_CHECK(cudaEventCreate(&mRenderStart));
+		CUDA_CHECK(cudaEventCreate(&mRenderEnd));
+		CUDA_CHECK(cudaEventCreate(&mTraceStart));
+		CUDA_CHECK(cudaEventCreate(&mTraceEnd));
+		CUDA_CHECK(cudaEventCreate(&mShadeStart));
+		CUDA_CHECK(cudaEventCreate(&mShadeEnd));
+		CUDA_CHECK(cudaEventCreate(&mDenoiseStart));
+		CUDA_CHECK(cudaEventCreate(&mDenoiseEnd));
+
 		// set launch param constants
 		mLaunchParams.multiSample = 1;
 		mLaunchParams.maxDepth    = 16;
@@ -118,6 +137,16 @@ namespace Tracer
 		// #TODO: proper cleanup
 		if(mCudaGraphicsResource)
 			CUDA_CHECK(cudaGraphicsUnregisterResource(mCudaGraphicsResource));
+
+		// events
+		CUDA_CHECK(cudaEventDestroy(mRenderStart));
+		CUDA_CHECK(cudaEventDestroy(mRenderEnd));
+		CUDA_CHECK(cudaEventDestroy(mTraceStart));
+		CUDA_CHECK(cudaEventDestroy(mTraceEnd));
+		CUDA_CHECK(cudaEventDestroy(mShadeStart));
+		CUDA_CHECK(cudaEventDestroy(mShadeEnd));
+		CUDA_CHECK(cudaEventDestroy(mDenoiseStart));
+		CUDA_CHECK(cudaEventDestroy(mDenoiseEnd));
 	}
 
 
@@ -173,17 +202,23 @@ namespace Tracer
 
 		// loop
 		uint32_t pathCount = stride;
+		mRenderStats = {};
+
+		cudaEventRecord(mRenderStart, mStream);
 		for(int pathLength = 0; pathLength < mLaunchParams.maxDepth; pathLength++)
 		{
+			//mLastPathCount += pathCount;
+			mRenderStats.pathCount += pathCount;
+
 			// launch Optix
+			cudaEventRecord(mTraceStart, mStream);
 			if(pathLength == 0)
 			{
 				// primary
 				InitCudaCounters();
 				OPTIX_CHECK(optixLaunch(mPipeline, mStream, mLaunchParamsBuffer.DevicePtr(), mLaunchParamsBuffer.Size(),
 										&mRenderModeConfigs[magic_enum::enum_integer(OptixRenderModes::SPT)].shaderBindingTable,
-										static_cast<unsigned int>(mLaunchParams.resX),
-										static_cast<unsigned int>(mLaunchParams.resY),
+										static_cast<unsigned int>(mLaunchParams.resX), static_cast<unsigned int>(mLaunchParams.resY),
 										static_cast<unsigned int>(mLaunchParams.multiSample)));
 			}
 			else if(pathCount > 0)
@@ -196,18 +231,46 @@ namespace Tracer
 										&mRenderModeConfigs[magic_enum::enum_integer(OptixRenderModes::SPT)].shaderBindingTable,
 										pathCount, 1, 1));
 			}
+			cudaEventRecord(mTraceEnd, mStream);
 
+			// shade
+			cudaEventRecord(mShadeStart, mStream);
 			Shade(mRenderMode, pathCount, mColorBuffer.Ptr<float4>(), mPathStates.Ptr<float4>(), mHitData.Ptr<uint4>(),
 				  make_int2(mLaunchParams.resX, mLaunchParams.resY), stride, pathLength);
-			CUDA_CHECK(cudaDeviceSynchronize());
+			cudaEventRecord(mShadeEnd, mStream);
 
+			// update counters
 			mCountersBuffer.Download(&counters, 1);
 			pathCount = counters.extendRays;
+
+			// update stats
+			switch(pathLength)
+			{
+			case 0:
+				mRenderStats.primaryPathCount = pathCount;
+				mRenderStats.primaryPathTimeMs = Elapsed(mTraceStart, mTraceEnd);
+				break;
+
+			case 1:
+				mRenderStats.secondaryPathCount = pathCount;
+				mRenderStats.secondaryPathTimeMs = Elapsed(mTraceStart, mTraceEnd);
+				break;
+
+			default:
+				mRenderStats.deepPathCount += pathCount;
+				mRenderStats.deepPathTimeMs += Elapsed(mTraceStart, mTraceEnd);
+				break;
+			}
+
+			mRenderStats.shadeTimeMs += Elapsed(mShadeStart, mShadeEnd);
 		}
+		cudaEventRecord(mRenderEnd, mStream);
+		mRenderStats.renderTimeMs = Elapsed(mRenderStart, mRenderEnd);
 
 		// run denoiser
 		if(ShouldDenoise())
 		{
+			cudaEventRecord(mDenoiseStart, mStream);
 			// input
 			OptixImage2D inputLayer;
 			inputLayer.data = mColorBuffer.DevicePtr();
@@ -235,6 +298,8 @@ namespace Tracer
 			OPTIX_CHECK(optixDenoiserInvoke(mDenoiser, 0, &denoiserParams, mDenoiserState.DevicePtr(), mDenoiserState.Size(),
 											&inputLayer, 1, 0, 0, &outputLayer,
 											mDenoiserScratch.DevicePtr(), mDenoiserScratch.Size()));
+			cudaEventRecord(mDenoiseEnd, mStream);
+			mRenderStats.denoiseTimeMs = Elapsed(mDenoiseStart, mDenoiseEnd);
 
 			mDenoisedFrame = true;
 		}

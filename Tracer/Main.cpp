@@ -61,7 +61,7 @@ int main(int argc, char** argv)
 
 		// timer
 		Tracer::Stopwatch stopwatch;
-		int64_t elapsedNs = 0;
+		float frameTimeMs = 0;
 
 		// main loop
 		while(!window->IsClosed())
@@ -73,7 +73,7 @@ int main(int argc, char** argv)
 				break;
 
 			// update the app
-			app->Tick(renderer, window, static_cast<float>(elapsedNs) * 1e-9f);
+			app->Tick(renderer, window, frameTimeMs * 1e-3f);
 
 			// build the scene
 			Tracer::Stopwatch buildTimer;
@@ -82,7 +82,7 @@ int main(int argc, char** argv)
 				renderer->BuildScene(app->GetScene());
 				app->GetScene()->MarkClean();
 			}
-			Tracer::StatWindow::Get()->mBuildTimeNs = buildTimer.ElapsedNS();
+			Tracer::StatWindow::Get()->mBuildTimeMs = buildTimer.ElapsedMs();
 
 			// run Optix
 			renderer->RenderFrame(window->RenderTexture());
@@ -93,8 +93,8 @@ int main(int argc, char** argv)
 			// update GUI
 			Tracer::CameraWindow::Get()->mCamNode = app->GetCameraNode();
 			Tracer::RendererWindow::Get()->mRenderer = renderer;
-			Tracer::StatWindow::Get()->mFrameTimeNs = elapsedNs;
 			Tracer::RendererWindow::Get()->mWindow = window;
+			Tracer::StatWindow::Get()->mFrameTimeMs = frameTimeMs;
 			Tracer::StatWindow::Get()->mRenderer = renderer;
 
 			// toggle GUI
@@ -119,7 +119,7 @@ int main(int argc, char** argv)
 			window->SwapBuffers();
 
 			// update timer
-			elapsedNs = stopwatch.ElapsedNS();
+			frameTimeMs = stopwatch.ElapsedMs();
 			stopwatch.Reset();
 		}
 

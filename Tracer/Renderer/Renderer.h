@@ -41,6 +41,23 @@ namespace Tracer
 
 		inline int SampleCount() const { return mLaunchParams.sampleCount; }
 
+		struct RenderStats
+		{
+			uint64_t pathCount = 0;
+
+			uint64_t primaryPathCount = 0;
+			uint64_t secondaryPathCount = 0;
+			uint64_t deepPathCount = 0;
+
+			float renderTimeMs = 0;
+			float primaryPathTimeMs = 0;
+			float secondaryPathTimeMs = 0;
+			float deepPathTimeMs = 0;
+			float shadeTimeMs = 0;
+			float denoiseTimeMs = 0;
+		};
+		RenderStats Statistics() const { return mRenderStats; }
+
 		// ray picking
 		RayPickResult PickRay(int2 pixelIndex);
 
@@ -90,6 +107,17 @@ namespace Tracer
 
 		// render mode
 		RenderModes mRenderMode = RenderModes::DiffuseFilter;
+
+		// stats
+		RenderStats mRenderStats = {};
+		cudaEvent_t mRenderStart = nullptr;
+		cudaEvent_t mRenderEnd = nullptr;
+		cudaEvent_t mTraceStart = nullptr;
+		cudaEvent_t mTraceEnd = nullptr;
+		cudaEvent_t mShadeStart = nullptr;
+		cudaEvent_t mShadeEnd = nullptr;
+		cudaEvent_t mDenoiseStart = nullptr;
+		cudaEvent_t mDenoiseEnd = nullptr;
 
 		// Render buffer
 		CudaBuffer mColorBuffer = {};

@@ -19,7 +19,7 @@ namespace Tracer
 
 
 
-	int64_t Stopwatch::ElapsedNS() const
+	int64_t Stopwatch::ElapsedNs() const
 	{
 		return std::chrono::duration_cast<std::chrono::nanoseconds>(clock::now() - mTimePoint).count();
 	}
@@ -28,7 +28,7 @@ namespace Tracer
 
 	std::string Stopwatch::ElapsedString() const
 	{
-		const int64_t t = ElapsedNS();
+		const int64_t t = ElapsedNs();
 		if(t < 1'000)
 			return format("%lld ns", t);
 		if(t < 1'000'000)
