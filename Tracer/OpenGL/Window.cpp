@@ -165,8 +165,10 @@ namespace Tracer
 		glDisable(GL_LIGHTING);
 		glDisable(GL_DEPTH_TEST);
 
-		mShader->Set(0, "convergeBuffer", mRenderTexture);
 		mShader->Bind();
+		mShader->Set(0, "convergeBuffer", mRenderTexture);
+		mShader->Set("exposure", mShaderProperties.exposure);
+		mShader->Set("gamma",  mShaderProperties.gamma);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		mShader->Unbind();
 

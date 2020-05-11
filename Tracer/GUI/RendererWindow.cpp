@@ -1,8 +1,9 @@
 #include "RendererWindow.h"
 
 // Project
-#include "Renderer/Renderer.h"
 #include "Gui/GuiHelpers.h"
+#include "OpenGL/Window.h"
+#include "Renderer/Renderer.h"
 
 // Magic Enum
 #pragma warning(push)
@@ -68,6 +69,18 @@ namespace Tracer
 			float zDepthMax = mRenderer->ZDepthMax();
 			if(ImGui::SliderFloat("Z-Depth max", &zDepthMax, 0.f, 1e4f, "%.3f", 10.f))
 				mRenderer->SetZDepthMax(zDepthMax);
+
+			// post
+			if(mWindow)
+			{
+				ImGui::Spacing();
+				ImGui::Text("Post");
+
+				Window::ShaderProperties shaderProps = mWindow->PostShaderProperties();
+				ImGui::SliderFloat("Exposure", &shaderProps.exposure, 0.f, 100.f, "%.3f", 10.f);
+				ImGui::SliderFloat("Gamma", &shaderProps.gamma, 0.f, 4.f, "%.3f", 1.f);
+				mWindow->SetPostShaderProperties(shaderProps);
+			}
 
 			// denoiser
 			ImGui::Spacing();

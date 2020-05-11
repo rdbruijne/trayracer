@@ -51,6 +51,15 @@ namespace Tracer
 		float2 CursorDelta() const;
 		float2 ScrollDelta() const;
 
+		// post shader
+		struct ShaderProperties
+		{
+			float exposure = 1.f;
+			float gamma = 1.f;
+		};
+		ShaderProperties PostShaderProperties() const { return mShaderProperties; }
+		void SetPostShaderProperties(const ShaderProperties& properties) { mShaderProperties = properties; }
+
 		// GL
 		GLFWwindow* GlfwWindow() { return mHandle; }
 		const GLFWwindow* GlfwWindow() const { return mHandle; }
@@ -71,7 +80,10 @@ namespace Tracer
 		int2 mResolution = make_int2(0, 0);
 		GLFWwindow* mHandle = nullptr;
 		GLTexture* mRenderTexture = nullptr;
+
+		// post shader
 		Shader* mShader = nullptr;
+		ShaderProperties mShaderProperties;
 
 		// Input
 		Input::State mPrevInputState = Input::State();

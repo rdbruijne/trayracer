@@ -94,6 +94,7 @@ int main(int argc, char** argv)
 			Tracer::CameraWindow::Get()->mCamNode = app->GetCameraNode();
 			Tracer::RendererWindow::Get()->mRenderer = renderer;
 			Tracer::StatWindow::Get()->mFrameTimeNs = elapsedNs;
+			Tracer::RendererWindow::Get()->mWindow = window;
 			Tracer::StatWindow::Get()->mRenderer = renderer;
 
 			// toggle GUI
