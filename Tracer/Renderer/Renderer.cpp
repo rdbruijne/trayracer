@@ -260,6 +260,10 @@ namespace Tracer
 		}
 		else
 		{
+			// empty timing so that we can call "Elapsed"
+			mDenoiseTimeEvents.Start(mStream);
+			mDenoiseTimeEvents.End(mStream);
+
 			CUDA_CHECK(cudaMemcpy(mDenoisedBuffer.Ptr(), mColorBuffer.Ptr(), mColorBuffer.Size(), cudaMemcpyDeviceToDevice));
 			mDenoisedFrame = false;
 		}
@@ -290,6 +294,7 @@ namespace Tracer
 		for(int i = 0; i < mLaunchParams.maxDepth; i++)
 			mRenderStats.shadeTimeMs += mShadeTimeEvents[i].Elapsed();
 		mRenderStats.renderTimeMs = mRenderTimeEvents.Elapsed();
+		mRenderStats.denoiseTimeMs = mDenoiseTimeEvents.Elapsed();
 
 		// update sample count
 		mLaunchParams.sampleCount += mLaunchParams.multiSample;
@@ -436,7 +441,7 @@ namespace Tracer
 	{
 		// module compile options
 		mModuleCompileOptions.maxRegisterCount = OPTIX_COMPILE_DEFAULT_MAX_REGISTER_COUNT;
-#ifdef _DEBUG
+#if false
 		mModuleCompileOptions.optLevel   = OPTIX_COMPILE_OPTIMIZATION_LEVEL_0;
 		mModuleCompileOptions.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_FULL;
 #else
