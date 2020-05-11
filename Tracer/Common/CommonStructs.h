@@ -110,6 +110,8 @@ struct alignas(16) LaunchParams
 	float epsilon;
 	float aoDist;
 	float zDepthMax;
+
+	float3 skyColor;
 };
 
 

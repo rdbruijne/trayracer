@@ -18,7 +18,7 @@ static __device__ float2 DecodeBarycentrics(uint32_t barycentrics)
 
 static __device__ float3 SampleSky(const float3& O, const float3& D)
 {
-	return make_float3(1);
+	return params->skyColor;
 }
 
 

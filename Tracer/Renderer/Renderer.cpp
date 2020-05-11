@@ -123,11 +123,12 @@ namespace Tracer
 		CUDA_CHECK(cudaEventCreate(&mDenoiseEnd));
 
 		// set launch param constants
-		mLaunchParams.multiSample = 1;
-		mLaunchParams.maxDepth    = 16;
-		mLaunchParams.epsilon     = Epsilon;
-		mLaunchParams.aoDist      = 1500.f;
-		mLaunchParams.zDepthMax   = 1500.f;
+		mLaunchParams.multiSample  = 1;
+		mLaunchParams.maxDepth     = 16;
+		mLaunchParams.epsilon      = Epsilon;
+		mLaunchParams.aoDist       = 1500.f;
+		mLaunchParams.zDepthMax    = 1500.f;
+		mLaunchParams.skyColor     = make_float3(1);
 	}
 
 

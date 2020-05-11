@@ -70,6 +70,10 @@ namespace Tracer
 			if(ImGui::SliderFloat("Z-Depth max", &zDepthMax, 0.f, 1e4f, "%.3f", 10.f))
 				mRenderer->SetZDepthMax(zDepthMax);
 
+			float3 skyColor = mRenderer->SkyColor();
+			if(ImGui::ColorEdit3("Sky color", reinterpret_cast<float*>(&skyColor)))
+				mRenderer->SetSkyColor(skyColor);
+
 			// post
 			if(mWindow)
 			{

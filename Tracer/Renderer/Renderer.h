@@ -3,6 +3,7 @@
 // Project
 #include "Common/CommonStructs.h"
 #include "Renderer/CudaBuffer.h"
+#include "Utility/LinearMath.h"
 
 // Magic Enum
 #pragma warning(push)
@@ -85,6 +86,7 @@ namespace Tracer
 		KERNEL_SETTING(int, maxDepth, MaxDepth, true)
 		KERNEL_SETTING(float, aoDist, AODist, RenderMode() == RenderModes::AmbientOcclusion || RenderMode() == RenderModes::AmbientOcclusionShading)
 		KERNEL_SETTING(float, zDepthMax, ZDepthMax, RenderMode() == RenderModes::ZDepth)
+		KERNEL_SETTING(float3, skyColor, SkyColor, RenderMode() == RenderModes::PathTracing)
 
 #undef KERNEL_SETTING
 
