@@ -45,6 +45,7 @@ __constant__ CudaMatarial* materialData;
 __constant__ CudaMeshData* meshData;
 __constant__ LaunchParams* params;
 __constant__ uint32_t* materialOffsets;
+__constant__ uint32_t* modelIndices;
 
 
 
@@ -65,6 +66,13 @@ __host__ void SetCudaMatarialData(CudaMatarial* data)
 __host__ void SetCudaMatarialOffsets(uint32_t* data)
 {
 	cudaMemcpyToSymbol(materialOffsets, &data, sizeof(void*));
+}
+
+
+
+__host__ void SetCudaModelIndices(uint32_t* data)
+{
+	cudaMemcpyToSymbol(modelIndices, &data, sizeof(void*));
 }
 
 
@@ -184,7 +192,8 @@ inline IntersectionAttributes GetIntersectionAttributes(uint32_t instIx, uint32_
 	const uint3 index = md.indices[primIx];
 
 	// set material index
-	attrib.matIx = md.matIndices[primIx] + materialOffsets[instIx];
+	const uint32_t modelIx = modelIndices[instIx];
+	attrib.matIx = md.matIndices[primIx] + materialOffsets[modelIx];
 
 	// set simple data
 	attrib.shadingNormal = normalize(Barycentric(bary, md.normals[index.x], md.normals[index.y], md.normals[index.z]));

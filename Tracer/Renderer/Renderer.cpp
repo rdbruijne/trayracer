@@ -569,6 +569,7 @@ namespace Tracer
 		// #TODO: separate instance building from geometry building
 		std::vector<OptixBuildInput> buildInputs;
 		std::vector<CudaMeshData> meshData;
+		std::vector<uint32_t> modelIndices;
 
 		std::vector<OptixInstance> instances;
 		uint32_t instanceId = 0;
@@ -646,36 +647,55 @@ namespace Tracer
 		}
 		else
 		{
+			uint32_t lastMaterialOffset = 0;
 			std::vector<CudaMatarial> materialData;
 			std::vector<uint32_t> materialOffsets;
-			uint32_t lastOffset = 0;
-			for(auto& model : scene->Models())
+
+			std::vector<uint32_t> modelIndices;
+			std::vector<std::shared_ptr<Model>> parsedModels;
+
+			for(auto& inst : scene->Instances())
 			{
-				for(auto& mat : model->Materials())
+				const auto& model = inst->GetModel();
+				auto it = std::find(parsedModels.begin(), parsedModels.end(), model);
+				if(it != parsedModels.end())
 				{
-					CudaMatarial m;
-
-					m.diffuse = mat->Diffuse();
-					m.emissive = mat->Emissive();
-
-					if(mat->DiffuseMap())
+					modelIndices.push_back(static_cast<uint32_t>(std::distance(parsedModels.begin(), it)));
+				}
+				else
+				{
+					for(auto& mat : model->Materials())
 					{
-						m.textures |= Texture_DiffuseMap;
-						m.diffuseMap = mTextures[mat->DiffuseMap()]->mObject;
+						CudaMatarial m;
+
+						m.diffuse = mat->Diffuse();
+						m.emissive = mat->Emissive();
+
+						if(mat->DiffuseMap())
+						{
+							m.textures |= Texture_DiffuseMap;
+							m.diffuseMap = mTextures[mat->DiffuseMap()]->mObject;
+						}
+
+						mat->MarkClean();
+						materialData.push_back(m);
 					}
 
-					mat->MarkClean();
-					materialData.push_back(m);
-				}
+					materialOffsets.push_back(lastMaterialOffset);
+					lastMaterialOffset += static_cast<uint32_t>(model->Materials().size());
 
-				materialOffsets.push_back(lastOffset);
-				lastOffset += static_cast<uint32_t>(model->Materials().size());
+					modelIndices.push_back(static_cast<uint32_t>(parsedModels.size()));
+					parsedModels.push_back(model);
+				}
 			}
 			mCudaMaterialOffsets.Upload(materialOffsets, true);
 			mCudaMaterialData.Upload(materialData, true);
+			mCudaModelIndices.Upload(modelIndices, true);
 		}
-		SetCudaMatarialOffsets(mCudaMaterialOffsets.Ptr<uint32_t>());
+
 		SetCudaMatarialData(mCudaMaterialData.Ptr<CudaMatarial>());
+		SetCudaMatarialOffsets(mCudaMaterialOffsets.Ptr<uint32_t>());
+		SetCudaModelIndices(mCudaModelIndices.Ptr<uint32_t>());
 	}
 
 

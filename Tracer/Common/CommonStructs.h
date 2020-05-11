@@ -101,6 +101,7 @@ struct alignas(16) LaunchParams
 	// settings
 	int rayGenMode;
 	int multiSample;
+	int pad[2];
 
 	int maxDepth;
 	float epsilon;
