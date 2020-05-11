@@ -76,15 +76,15 @@ namespace Tracer
 			if(name != mLaunchParams.name)						\
 			{													\
 				mLaunchParams.name = name;						\
-				if constexpr (reqClear)							\
+				if (reqClear)									\
 					mLaunchParams.sampleCount = 0;				\
 			}													\
 		}
 
 		KERNEL_SETTING(int, multiSample, MultiSample, false)
 		KERNEL_SETTING(int, maxDepth, MaxDepth, true)
-		KERNEL_SETTING(float, aoDist, AODist, true)
-		KERNEL_SETTING(float, zDepthMax, ZDepthMax, true)
+		KERNEL_SETTING(float, aoDist, AODist, RenderMode() == RenderModes::AmbientOcclusion || RenderMode() == RenderModes::AmbientOcclusionShading)
+		KERNEL_SETTING(float, zDepthMax, ZDepthMax, RenderMode() == RenderModes::ZDepth)
 
 #undef KERNEL_SETTING
 

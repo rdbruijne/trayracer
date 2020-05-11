@@ -3,6 +3,10 @@
 #include "CudaFwd.h"
 #include "CudaUtility.h"
 
+#define KERNEL_PARAMS	uint32_t pathCount, float4* accumulator, float4* pathStates, uint4* hitData, int2 resolution, uint32_t stride, uint32_t pathLength
+
+
+
 static __device__ float2 DecodeBarycentrics(uint32_t barycentrics)
 {
 	const uint32_t bx = barycentrics >> 16;
@@ -19,7 +23,7 @@ static __device__ float3 SampleSky(const float3& O, const float3& D)
 
 
 
-__global__ void ShadeKernel_AmbientOcclusion(uint32_t pathCount, float4* accumulator, float4* pathStates, uint4* hitData, int2 resolution, uint32_t stride, uint32_t pathLength)
+__global__ void ShadeKernel_AmbientOcclusion(KERNEL_PARAMS)
 {
 	const int jobIdx = threadIdx.x + (blockIdx.x * blockDim.x);
 	if(jobIdx >= pathCount)
@@ -64,7 +68,67 @@ __global__ void ShadeKernel_AmbientOcclusion(uint32_t pathCount, float4* accumul
 
 
 
-__global__ void ShadeKernel_DiffuseFilter(uint32_t pathCount, float4* accumulator, float4* pathStates, uint4* hitData, int2 resolution, uint32_t stride, uint32_t pathLength)
+__global__ void ShadeKernel_AmbientOcclusionShading(KERNEL_PARAMS)
+{
+	const int jobIdx = threadIdx.x + (blockIdx.x * blockDim.x);
+	if(jobIdx >= pathCount)
+		return;
+
+	// gather data
+	const float4 O4 = pathStates[jobIdx + (stride * 0)];
+	const float4 D4 = pathStates[jobIdx + (stride * 1)];
+
+	const float3 O = make_float3(O4);
+	const float3 D = make_float3(D4);
+	const int32_t pathIx = __float_as_int(O4.w);
+	const int32_t pixelIx = pathIx % (resolution.x * resolution.y);
+
+	const uint4 hd = hitData[pathIx];
+	const float2 bary = DecodeBarycentrics(hd.x);
+	const uint32_t instIx = hd.y;
+	const uint32_t primIx = hd.z;
+	const float tmax = __uint_as_float(hd.w);
+
+	if(pathLength == 0)
+	{
+		if(primIx == ~0)
+			return;
+
+		const IntersectionAttributes attrib = GetIntersectionAttributes(instIx, primIx, bary);
+		const CudaMatarial& mat = materialData[attrib.matIx];
+
+		// diffuse
+		float3 diff = mat.diffuse;
+		if(mat.textures & Texture_DiffuseMap)
+		{
+			const float4 diffMap = tex2D<float4>(mat.diffuseMap, attrib.texcoordX, attrib.texcoordY);
+			diff *= make_float3(diffMap.z, diffMap.y, diffMap.x);
+		}
+
+		uint32_t seed = tea<2>(pathIx, params->sampleCount + pathLength + 1);
+
+		const float3 newOrigin = O + (D * tmax);
+		const float3 newDir = SampleCosineHemisphere(attrib.shadingNormal, rnd(seed), rnd(seed));
+
+		// update path states
+		const int32_t extendIx = atomicAdd(&counters->extendRays, 1);
+		pathStates[extendIx + (stride * 0)] = make_float4(newOrigin, __int_as_float(pathIx));
+		pathStates[extendIx + (stride * 1)] = make_float4(newDir, 0);
+		pathStates[extendIx + (stride * 2)] = make_float4(diff, 0);
+	}
+	else
+	{
+		const float4 T4 = pathStates[jobIdx + (stride * 2)];
+		const float3 T = make_float3(T4);
+
+		const float z = (tmax > params->aoDist) ? 1.f : tmax / params->aoDist;
+		accumulator[pixelIx] += make_float4(T * z, 0);
+	}
+}
+
+
+
+__global__ void ShadeKernel_DiffuseFilter(KERNEL_PARAMS)
 {
 	const int jobIdx = threadIdx.x + (blockIdx.x * blockDim.x);
 	if(jobIdx >= pathCount)
@@ -100,7 +164,7 @@ __global__ void ShadeKernel_DiffuseFilter(uint32_t pathCount, float4* accumulato
 
 
 
-__global__ void ShadeKernel_MaterialID(uint32_t pathCount, float4* accumulator, float4* pathStates, uint4* hitData, int2 resolution, uint32_t stride, uint32_t pathLength)
+__global__ void ShadeKernel_MaterialID(KERNEL_PARAMS)
 {
 	const int jobIdx = threadIdx.x + (blockIdx.x * blockDim.x);
 	if(jobIdx >= pathCount)
@@ -127,7 +191,7 @@ __global__ void ShadeKernel_MaterialID(uint32_t pathCount, float4* accumulator, 
 
 
 
-__global__ void ShadeKernel_ObjectID(uint32_t pathCount, float4* accumulator, float4* pathStates, uint4* hitData, int2 resolution, uint32_t stride, uint32_t pathLength)
+__global__ void ShadeKernel_ObjectID(KERNEL_PARAMS)
 {
 	const int jobIdx = threadIdx.x + (blockIdx.x * blockDim.x);
 	if(jobIdx >= pathCount)
@@ -152,7 +216,7 @@ __global__ void ShadeKernel_ObjectID(uint32_t pathCount, float4* accumulator, fl
 
 
 
-__global__ void ShadeKernel_PathTracing(uint32_t pathCount, float4* accumulator, float4* pathStates, uint4* hitData, int2 resolution, uint32_t stride, uint32_t pathLength)
+__global__ void ShadeKernel_PathTracing(KERNEL_PARAMS)
 {
 	const int jobIdx = threadIdx.x + (blockIdx.x * blockDim.x);
 	if(jobIdx >= pathCount)
@@ -221,7 +285,7 @@ __global__ void ShadeKernel_PathTracing(uint32_t pathCount, float4* accumulator,
 
 
 
-__global__ void ShadeKernel_ShadingNormal(uint32_t pathCount, float4* accumulator, float4* pathStates, uint4* hitData, int2 resolution, uint32_t stride, uint32_t pathLength)
+__global__ void ShadeKernel_ShadingNormal(KERNEL_PARAMS)
 {
 	const int jobIdx = threadIdx.x + (blockIdx.x * blockDim.x);
 	if(jobIdx >= pathCount)
@@ -247,7 +311,7 @@ __global__ void ShadeKernel_ShadingNormal(uint32_t pathCount, float4* accumulato
 
 
 
-__global__ void ShadeKernel_TextureCoordinate(uint32_t pathCount, float4* accumulator, float4* pathStates, uint4* hitData, int2 resolution, uint32_t stride, uint32_t pathLength)
+__global__ void ShadeKernel_TextureCoordinate(KERNEL_PARAMS)
 {
 	const int jobIdx = threadIdx.x + (blockIdx.x * blockDim.x);
 	if(jobIdx >= pathCount)
@@ -273,7 +337,7 @@ __global__ void ShadeKernel_TextureCoordinate(uint32_t pathCount, float4* accumu
 
 
 
-__global__ void ShadeKernel_Wireframe(uint32_t pathCount, float4* accumulator, float4* pathStates, uint4* hitData, int2 resolution, uint32_t stride, uint32_t pathLength)
+__global__ void ShadeKernel_Wireframe(KERNEL_PARAMS)
 {
 	const int jobIdx = threadIdx.x + (blockIdx.x * blockDim.x);
 	if(jobIdx >= pathCount)
@@ -312,7 +376,7 @@ __global__ void ShadeKernel_Wireframe(uint32_t pathCount, float4* accumulator, f
 
 
 
-__global__ void ShadeKernel_ZDepth(uint32_t pathCount, float4* accumulator, float4* pathStates, uint4* hitData, int2 resolution, uint32_t stride, uint32_t pathLength)
+__global__ void ShadeKernel_ZDepth(KERNEL_PARAMS)
 {
 	const int jobIdx = threadIdx.x + (blockIdx.x * blockDim.x);
 	if(jobIdx >= pathCount)
@@ -349,47 +413,57 @@ __global__ void ShadeKernel_ZDepth(uint32_t pathCount, float4* accumulator, floa
 
 __host__ void Shade(RenderModes renderMode, uint32_t pathCount, float4* accumulator, float4* pathStates, uint4* hitData, int2 resolution, uint32_t stride, uint32_t pathLength)
 {
+#define KERNEL_DIMENSIONS	blockCount, threadsPerBlock
+#define KERNEL_PASS_PARAMS	pathCount, accumulator, pathStates, hitData, resolution, stride, pathLength
+
 	const uint32_t threadsPerBlock = 128;
 	const uint32_t blockCount = DivRoundUp(pathCount, threadsPerBlock);
 	switch(renderMode)
 	{
 	case RenderModes::AmbientOcclusion:
-		ShadeKernel_AmbientOcclusion<<<blockCount, threadsPerBlock>>>(pathCount, accumulator, pathStates, hitData, resolution, stride, pathLength);
+		ShadeKernel_AmbientOcclusion<<<KERNEL_DIMENSIONS>>>(KERNEL_PASS_PARAMS);
 		break;
 
+	case RenderModes::AmbientOcclusionShading:
+		ShadeKernel_AmbientOcclusionShading<<<KERNEL_DIMENSIONS>>>(KERNEL_PASS_PARAMS);
+			break;
+
 	case RenderModes::DiffuseFilter:
-		ShadeKernel_DiffuseFilter<<<blockCount, threadsPerBlock>>>(pathCount, accumulator, pathStates, hitData, resolution, stride, pathLength);
+		ShadeKernel_DiffuseFilter<<<KERNEL_DIMENSIONS>>>(KERNEL_PASS_PARAMS);
 		break;
 
 	case RenderModes::MaterialID:
-		ShadeKernel_MaterialID<<<blockCount, threadsPerBlock>>>(pathCount, accumulator, pathStates, hitData, resolution, stride, pathLength);
+		ShadeKernel_MaterialID<<<KERNEL_DIMENSIONS>>>(KERNEL_PASS_PARAMS);
 		break;
 
 	case RenderModes::ObjectID:
-		ShadeKernel_ObjectID<<<blockCount, threadsPerBlock>>>(pathCount, accumulator, pathStates, hitData, resolution, stride, pathLength);
+		ShadeKernel_ObjectID<<<KERNEL_DIMENSIONS>>>(KERNEL_PASS_PARAMS);
 		break;
 
 	case RenderModes::PathTracing:
-		ShadeKernel_PathTracing<<<blockCount, threadsPerBlock>>>(pathCount, accumulator, pathStates, hitData, resolution, stride, pathLength);
+		ShadeKernel_PathTracing<<<KERNEL_DIMENSIONS>>>(KERNEL_PASS_PARAMS);
 		break;
 
 	case RenderModes::ShadingNormal:
-		ShadeKernel_ShadingNormal<<<blockCount, threadsPerBlock>>>(pathCount, accumulator, pathStates, hitData, resolution, stride, pathLength);
+		ShadeKernel_ShadingNormal<<<KERNEL_DIMENSIONS>>>(KERNEL_PASS_PARAMS);
 		break;
 
 	case RenderModes::TextureCoordinate:
-		ShadeKernel_TextureCoordinate<<<blockCount, threadsPerBlock>>>(pathCount, accumulator, pathStates, hitData, resolution, stride, pathLength);
+		ShadeKernel_TextureCoordinate<<<KERNEL_DIMENSIONS>>>(KERNEL_PASS_PARAMS);
 		break;
 
 	case RenderModes::Wireframe:
-		ShadeKernel_Wireframe<<<blockCount, threadsPerBlock>>>(pathCount, accumulator, pathStates, hitData, resolution, stride, pathLength);
+		ShadeKernel_Wireframe<<<KERNEL_DIMENSIONS>>>(KERNEL_PASS_PARAMS);
 		break;
 
 	case RenderModes::ZDepth:
-		ShadeKernel_ZDepth<<<blockCount, threadsPerBlock>>>(pathCount, accumulator, pathStates, hitData, resolution, stride, pathLength);
+		ShadeKernel_ZDepth<<<KERNEL_DIMENSIONS>>>(KERNEL_PASS_PARAMS);
 		break;
 
 	default:
 		break;
 	}
+
+#undef KERNEL_DIMENSIONS
+#undef KERNEL_PASS_PARAMS
 }

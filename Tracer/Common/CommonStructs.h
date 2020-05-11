@@ -45,6 +45,7 @@ enum TexturesInMaterial
 enum class RenderModes : uint32_t
 {
 	AmbientOcclusion,
+	AmbientOcclusionShading,
 	DiffuseFilter,
 	MaterialID,
 	ObjectID,
@@ -73,7 +74,6 @@ struct alignas(16) RayPickResult
 
 struct alignas(16) LaunchParams
 {
-
 	// Other
 	float3 cameraPos;
 	int32_t resX;
