@@ -187,55 +187,26 @@ inline IntersectionAttributes GetIntersectionAttributes(uint32_t instIx, uint32_
 {
 	IntersectionAttributes attrib = {};
 
-	// get optix info
+	// fetch triangle
 	const CudaMeshData& md = meshData[instIx];
-	const uint3 index = md.indices[primIx];
+	const PackedTriangle& tri = md.triangles[primIx];
 
 	// set material index
 	const uint32_t modelIx = modelIndices[instIx];
-	attrib.matIx = md.matIndices[primIx] + materialOffsets[modelIx];
+	attrib.matIx = tri.matIx + materialOffsets[modelIx];
 
-	// set simple data
-	attrib.shadingNormal = normalize(Barycentric(bary, md.normals[index.x], md.normals[index.y], md.normals[index.z]));
-
-	const float2 texcoord0 = md.texcoords[index.x];
-	const float2 texcoord1 = md.texcoords[index.y];
-	const float2 texcoord2 = md.texcoords[index.z];
-	const float2 texcoord = Barycentric(bary, texcoord0, texcoord1, texcoord2);;
+	// texcoords
+	const float2 texcoord = Barycentric(bary, tri.uv0, tri.uv1, tri.uv2);
 	attrib.texcoordX = texcoord.x;
 	attrib.texcoordY = texcoord.y;
 
-	// calculate geometric normal
-	const float3 v0 = md.vertices[index.x];
-	const float3 v1 = md.vertices[index.y];
-	const float3 v2 = md.vertices[index.z];
+	// normals
+	attrib.shadingNormal = normalize(Barycentric(bary, tri.N0, tri.N1, tri.N2));
+	attrib.geometricNormal = make_float3(tri.Nx, tri.Ny, tri.Nz);
 
-	const float3 e1 = v1 - v0;
-	const float3 e2 = v2 - v0;
-	const float3 N = cross(e1, e2);
-	attrib.geometricNormal = normalize(N);
-
-	// calculate tangents
-	const float s1 = texcoord1.x - texcoord0.x;
-	const float t1 = texcoord1.y - texcoord0.y;
-
-	const float s2 = texcoord2.x - texcoord0.x;
-	const float t2 = texcoord2.y - texcoord0.y;
-
-	float r = (s1 * t2) - (s2 * t1);
-
-	if(fabsf(r) < 1e-4f)
-	{
-		attrib.bitangent = normalize(cross(attrib.shadingNormal, e1));
-		attrib.tangent = normalize(cross(attrib.shadingNormal, attrib.bitangent));
-	}
-	else
-	{
-		r = 1.f / r;
-		const float3 t = make_float3((s1 * e2.x - s2 * e1.x) * r, (s1 * e2.y - s2 * e1.y) * r, (s1 * e2.z - s2 * e1.z) * r);
-		attrib.bitangent = normalize(t - attrib.shadingNormal * dot(attrib.shadingNormal, t));
-		attrib.tangent = normalize(cross(attrib.shadingNormal, attrib.bitangent));
-	}
+	// tangents
+	attrib.tangent = tri.tangent;
+	attrib.bitangent = tri.bitangent;
 
 	return attrib;
 }

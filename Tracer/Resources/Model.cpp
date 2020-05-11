@@ -39,13 +39,16 @@ namespace Tracer
 
 
 
-	void Model::AddMesh(const std::vector<float3>& vertices, const std::vector<float3>& normals, const std::vector<float2>& texCoords,
-						const std::vector<uint3>& indices, uint32_t materialIndex)
+	void Model::AddMesh(const std::vector<float3>& vertices, const std::vector<float3>& normals, const std::vector<float3>& tangents,
+					 const std::vector<float3>& bitangents, const std::vector<float2>& texCoords, const std::vector<uint3>& indices,
+					 uint32_t materialIndex)
 	{
 		const uint32_t indexOffset = static_cast<uint32_t>(mVertices.size());
 
 		mVertices.insert(mVertices.end(), vertices.begin(), vertices.end());
 		mNormals.insert(mNormals.end(), normals.begin(), normals.end());
+		mTangents.insert(mTangents.end(), tangents.begin(), tangents.end());
+		mBitangents.insert(mBitangents.end(), bitangents.begin(), bitangents.end());
 		mTexCoords.insert(mTexCoords.end(), texCoords.begin(), texCoords.end());
 
 		mIndices.reserve(mIndices.size() + indices.size());
@@ -65,10 +68,7 @@ namespace Tracer
 	{
 		// upload buffers
 		mVertexBuffer.Upload(mVertices, true);
-		mNormalBuffer.Upload(mNormals, true);
-		mTexcoordBuffer.Upload(mTexCoords, true);
 		mIndexBuffer.Upload(mIndices, true);
-		mMaterialIndexBuffer.Upload(mMaterialIndices, true);
 
 		// prepare build input
 		mBuildInput = {};
@@ -91,12 +91,41 @@ namespace Tracer
 		mBuildInput.triangleArray.flags              = buildFlags;
 		mBuildInput.triangleArray.numSbtRecords      = 1;
 
+		// make packed triangles
+		mPackedTriangles.reserve(mIndices.size());
+		for(size_t i = 0; i < mIndices.size(); i++)
+		{
+			const uint3 ix = mIndices[i];
+			PackedTriangle t = {};
+
+			t.uv0 = mTexCoords[ix.x];
+			t.uv1 = mTexCoords[ix.y];
+			t.uv2 = mTexCoords[ix.z];
+
+			t.matIx = mMaterialIndices[i];
+
+			t.N0 = mNormals[ix.x];
+			t.N1 = mNormals[ix.y];
+			t.N2 = mNormals[ix.z];
+
+			const float3 v0 = mVertices[ix.x];
+			const float3 v1 = mVertices[ix.y];
+			const float3 v2 = mVertices[ix.z];
+
+			float3 N = normalize(cross(v1 - v0, v2 - v0));
+			t.Nx = N.x;
+			t.Ny = N.y;
+			t.Nz = N.z;
+
+			t.tangent = mTangents[ix.x];
+			t.bitangent = mBitangents[ix.x];
+
+			mPackedTriangles.push_back(t);
+		}
+
 		// CUDA
-		mCudaMesh.vertices   = mVertexBuffer.Ptr<float3>();
-		mCudaMesh.normals    = mNormalBuffer.Ptr<float3>();
-		mCudaMesh.texcoords  = mTexcoordBuffer.Ptr<float2>();
-		mCudaMesh.indices    = mIndexBuffer.Ptr<uint3>();
-		mCudaMesh.matIndices = mMaterialIndexBuffer.Ptr<uint32_t>();
+		mTriangleBuffer.Upload(mPackedTriangles, true);
+		mCudaMesh.triangles  = mTriangleBuffer.Ptr<PackedTriangle>();
 
 		// Acceleration setup
 		OptixAccelBuildOptions buildOptions = {};

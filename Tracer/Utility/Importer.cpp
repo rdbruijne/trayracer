@@ -120,9 +120,11 @@ namespace Tracer
 		void ImportMesh(std::shared_ptr<Model> model, aiMesh* aMesh, const std::vector<std::shared_ptr<Material>>& materials)
 		{
 			// vertices
-			std::vector<float3> positions(aMesh->mNumVertices, make_float3(0, 0, 0));
-			std::vector<float3> normals(aMesh->mNumVertices, make_float3(0, 0, 0));
-			std::vector<float2> texcoords(aMesh->mNumVertices, make_float2(0, 0));
+			std::vector<float3> positions(aMesh->mNumVertices, make_float3(0));
+			std::vector<float3> normals(aMesh->mNumVertices, make_float3(0));
+			std::vector<float3> tangents(aMesh->mNumVertices, make_float3(0));
+			std::vector<float3> bitangents(aMesh->mNumVertices, make_float3(0));
+			std::vector<float2> texcoords(aMesh->mNumVertices, make_float2(0));
 
 			for(unsigned int i = 0; i < aMesh->mNumVertices; i++)
 			{
@@ -131,6 +133,12 @@ namespace Tracer
 
 				if(aMesh->mNormals)
 					normals[i] = *reinterpret_cast<float3*>(aMesh->mNormals + i);
+
+				if(aMesh->mTangents)
+					tangents[i] = *reinterpret_cast<float3*>(aMesh->mTangents + i);
+
+				if(aMesh->mBitangents)
+					bitangents[i] = *reinterpret_cast<float3*>(aMesh->mBitangents + i);
 
 				if(aMesh->mTextureCoords[0])
 					texcoords[i] = *reinterpret_cast<float2*>(aMesh->mTextureCoords[0] + i);
@@ -148,7 +156,7 @@ namespace Tracer
 			}
 
 			// add the mesh
-			model->AddMesh(positions, normals, texcoords, indices, aMesh->mMaterialIndex);
+			model->AddMesh(positions, normals, tangents, bitangents, texcoords, indices, aMesh->mMaterialIndex);
 		}
 	}
 

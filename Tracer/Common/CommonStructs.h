@@ -61,7 +61,7 @@ std::string ToString(RenderModes renderMode);
 
 
 
-struct alignas(16) RayPickResult
+struct RayPickResult
 {
 	float3 rayOrigin;
 	uint32_t instIx;
@@ -70,12 +70,11 @@ struct alignas(16) RayPickResult
 	uint32_t primIx;
 
 	float tmax;
-	float pad[3];
 };
 
 
 
-struct alignas(16) LaunchParams
+struct LaunchParams
 {
 	// Other
 	float3 cameraPos;
@@ -104,13 +103,10 @@ struct alignas(16) LaunchParams
 	// settings
 	int rayGenMode;
 	int multiSample;
-	int pad[2];
-
 	int maxDepth;
 	float epsilon;
 	float aoDist;
 	float zDepthMax;
-
 	float3 skyColor;
 };
 
@@ -123,29 +119,48 @@ struct Counters
 
 
 
-struct alignas(16) CudaMeshData
+struct alignas(16) PackedTriangle
 {
-	float3* vertices;
-	float3* normals;
+	float2 uv0;
+	float2 uv1;
 
-	float2* texcoords;
-	uint3* indices;
+	float2 uv2;
+	uint32_t matIx;
+	uint32_t pad0;
 
-	uint32_t* matIndices;
-	uint32_t objectID;
-	uint32_t pad;
+	float3 N0;
+	float Nx;
+
+	float3 N1;
+	float Ny;
+
+	float3 N2;
+	float Nz;
+
+	float3 tangent;
+	float pad1;
+
+	float3 bitangent;
+	float pad2;
 };
 
 
 
-struct CudaMatarial
+struct alignas(16) CudaMeshData
+{
+	PackedTriangle* triangles;
+};
+
+
+
+struct alignas(16) CudaMatarial
 {
 	float3 diffuse;
 	uint32_t textures;
 
 	float3 emissive;
-	int pad;
+	int pad0;
 
 	cudaTextureObject_t diffuseMap;
-	int64_t pad2;
+	int64_t pad1;
 };
