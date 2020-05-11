@@ -93,7 +93,7 @@ namespace Tracer
 	{
 		mScene = std::make_unique<Scene>();
 
-		const int sceneIx = 5;
+		const int sceneIx = 3;
 		switch(sceneIx)
 		{
 		case 0:
@@ -166,7 +166,7 @@ namespace Tracer
 			mScene->AddInstance(std::make_shared<Instance>("bistro interior", bistroIn));
 			mScene->AddInstance(std::make_shared<Instance>("bistro exterior", bistroEx));
 
-			mCamera = CameraNode(make_float3(10, 0, 0), make_float3(0, 0, 0), make_float3(0, 1, 0), 90.f * DegToRad);
+			mCamera = CameraNode(make_float3(-25, 5, -5), make_float3(0, 0, 0), make_float3(0, 1, 0), 90.f * DegToRad);
 		}
 		break;
 
