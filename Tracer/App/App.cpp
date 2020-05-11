@@ -93,7 +93,7 @@ namespace Tracer
 	{
 		mScene = std::make_unique<Scene>();
 
-		const int sceneIx = 3;
+		const int sceneIx = 1;
 		switch(sceneIx)
 		{
 		case 0:

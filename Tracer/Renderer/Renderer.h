@@ -26,22 +26,28 @@ namespace Tracer
 	class Renderer
 	{
 	public:
+		// settings
+		static constexpr int MaxTraceDepth = 16;
+
+		// functions
 		explicit Renderer();
 		~Renderer();
 
+		// render
 		void BuildScene(Scene* scene);
 		void RenderFrame(GLTexture* renderTexture);
 
 		void DownloadPixels(std::vector<float4>& dstPixels);
 
+		// camera
 		void SetCamera(CameraNode& camNode);
 		void SetCamera(const float3& cameraPos, const float3& cameraForward, const float3& cameraUp, float camFov);
 
+		// render mode
 		inline RenderModes RenderMode() const { return mRenderMode; }
 		void SetRenderMode(RenderModes mode);
 
-		inline int SampleCount() const { return mLaunchParams.sampleCount; }
-
+		// statistics
 		struct RenderStats
 		{
 			uint64_t pathCount = 0;
@@ -57,7 +63,8 @@ namespace Tracer
 			float shadeTimeMs = 0;
 			float denoiseTimeMs = 0;
 		};
-		RenderStats Statistics() const { return mRenderStats; }
+		inline RenderStats Statistics() const { return mRenderStats; }
+		inline int SampleCount() const { return mLaunchParams.sampleCount; }
 
 		// ray picking
 		RayPickResult PickRay(int2 pixelIndex);
@@ -112,14 +119,27 @@ namespace Tracer
 
 		// stats
 		RenderStats mRenderStats = {};
-		cudaEvent_t mRenderStart = nullptr;
-		cudaEvent_t mRenderEnd = nullptr;
-		cudaEvent_t mTraceStart = nullptr;
-		cudaEvent_t mTraceEnd = nullptr;
-		cudaEvent_t mShadeStart = nullptr;
-		cudaEvent_t mShadeEnd = nullptr;
-		cudaEvent_t mDenoiseStart = nullptr;
-		cudaEvent_t mDenoiseEnd = nullptr;
+
+		// timing
+		class TimeEvent
+		{
+		public:
+			TimeEvent();
+			~TimeEvent();
+
+			void Start(cudaStream_t stream = nullptr);
+			void End(cudaStream_t stream = nullptr);
+
+			float Elapsed() const;
+		private:
+			cudaEvent_t mStart = nullptr;
+			cudaEvent_t mEnd = nullptr;
+		};
+
+		TimeEvent mRenderTimeEvents = {};
+		TimeEvent mDenoiseTimeEvents = {};
+		std::array<TimeEvent, MaxTraceDepth> mTraceTimeEvents = {};
+		std::array<TimeEvent, MaxTraceDepth> mShadeTimeEvents = {};
 
 		// Render buffer
 		CudaBuffer mColorBuffer = {};

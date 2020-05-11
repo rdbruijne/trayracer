@@ -146,7 +146,7 @@ struct alignas(16) PackedTriangle
 
 
 
-struct alignas(16) CudaMeshData
+struct CudaMeshData
 {
 	PackedTriangle* triangles;
 };
