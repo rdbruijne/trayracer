@@ -212,7 +212,7 @@ namespace Tracer
 
 			// shade
 			mShadeTimeEvents[pathLength].Start(mStream);
-			Shade(mRenderMode, pathCount, mColorBuffer.Ptr<float4>(), mPathStates.Ptr<float4>(), mHitData.Ptr<uint4>(),
+			Shade(mRenderMode, pathCount, mAccumulator.Ptr<float4>(), mPathStates.Ptr<float4>(), mHitData.Ptr<uint4>(),
 				  make_int2(mLaunchParams.resX, mLaunchParams.resY), stride, pathLength);
 			mShadeTimeEvents[pathLength].End(mStream);
 
@@ -229,7 +229,7 @@ namespace Tracer
 
 			// input
 			OptixImage2D inputLayer;
-			inputLayer.data = mColorBuffer.DevicePtr();
+			inputLayer.data = mAccumulator.DevicePtr();
 			inputLayer.width = mLaunchParams.resX;
 			inputLayer.height = mLaunchParams.resY;
 			inputLayer.rowStrideInBytes = mLaunchParams.resX * sizeof(float4);
@@ -264,7 +264,7 @@ namespace Tracer
 			mDenoiseTimeEvents.Start(mStream);
 			mDenoiseTimeEvents.End(mStream);
 
-			CUDA_CHECK(cudaMemcpy(mDenoisedBuffer.Ptr(), mColorBuffer.Ptr(), mColorBuffer.Size(), cudaMemcpyDeviceToDevice));
+			CUDA_CHECK(cudaMemcpy(mDenoisedBuffer.Ptr(), mAccumulator.Ptr(), mAccumulator.Size(), cudaMemcpyDeviceToDevice));
 			mDenoisedFrame = false;
 		}
 
@@ -308,7 +308,7 @@ namespace Tracer
 		if(mDenoisedFrame)
 			mDenoisedBuffer.Download(dstPixels);
 		else
-			mColorBuffer.Download(dstPixels);
+			mAccumulator.Download(dstPixels);
 	}
 
 
@@ -378,14 +378,14 @@ namespace Tracer
 	void Renderer::Resize(const int2& resolution)
 	{
 		// resize buffers
-		mColorBuffer.Resize(sizeof(float4) * resolution.x * resolution.y);
+		mAccumulator.Resize(sizeof(float4) * resolution.x * resolution.y);
 		mDenoisedBuffer.Resize(sizeof(float4) * resolution.x * resolution.y);
 
 		// update launch params
 		mLaunchParams.sampleCount = 0;
 		mLaunchParams.resX = resolution.x;
 		mLaunchParams.resY = resolution.y;
-		mLaunchParams.accumulator = mColorBuffer.Ptr<float4>();
+		mLaunchParams.accumulator = mAccumulator.Ptr<float4>();
 
 		// allocate denoiser memory
 		OptixDenoiserSizes denoiserReturnSizes;

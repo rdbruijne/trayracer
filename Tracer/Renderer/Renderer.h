@@ -142,7 +142,7 @@ namespace Tracer
 		std::array<TimeEvent, MaxTraceDepth> mShadeTimeEvents = {};
 
 		// Render buffer
-		CudaBuffer mColorBuffer = {};
+		CudaBuffer mAccumulator = {};
 		GLTexture* mRenderTarget = nullptr;
 		cudaGraphicsResource* mCudaGraphicsResource = nullptr;
 
