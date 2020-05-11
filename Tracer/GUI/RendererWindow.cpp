@@ -53,6 +53,10 @@ namespace Tracer
 			ImGui::Spacing();
 			ImGui::Text("Settings");
 
+			int multiSample = mRenderer->MultiSample();
+			if(ImGui::SliderInt("Multi-sample", &multiSample, 1, 16))
+				mRenderer->SetMultiSample(multiSample);
+
 			int maxDepth = mRenderer->MaxDepth();
 			if(ImGui::SliderInt("Max depth", &maxDepth, 0, 16))
 				mRenderer->SetMaxDepth(maxDepth);

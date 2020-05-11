@@ -46,6 +46,7 @@ enum class RenderModes : uint32_t
 {
 	AmbientOcclusion,
 	DiffuseFilter,
+	MaterialID,
 	ObjectID,
 	PathTracing,
 	ShadingNormal,
@@ -99,7 +100,7 @@ struct alignas(16) LaunchParams
 
 	// settings
 	int rayGenMode;
-	int pad[2];
+	int multiSample;
 
 	int maxDepth;
 	float epsilon;

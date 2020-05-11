@@ -104,10 +104,11 @@ namespace Tracer
 		mLaunchParamsBuffer.Alloc(sizeof(LaunchParams));
 
 		// set launch param constants
-		mLaunchParams.maxDepth  = 16;
-		mLaunchParams.epsilon   = Epsilon;
-		mLaunchParams.aoDist    = 1500.f;
-		mLaunchParams.zDepthMax = 1500.f;
+		mLaunchParams.multiSample = 1;
+		mLaunchParams.maxDepth    = 16;
+		mLaunchParams.epsilon     = Epsilon;
+		mLaunchParams.aoDist      = 1500.f;
+		mLaunchParams.zDepthMax   = 1500.f;
 	}
 
 
@@ -127,6 +128,8 @@ namespace Tracer
 		BuildTextures(scene);
 		BuildMaterials(scene);
 		BuildGeometry(scene);
+
+		mLaunchParams.sceneRoot = mSceneRoot;
 		mLaunchParams.sampleCount = 0;
 	}
 
@@ -141,20 +144,17 @@ namespace Tracer
 		if(mLaunchParams.resX != texRes.x || mLaunchParams.resY != texRes.y)
 			Resize(texRes);
 
-		// update scene root
-		if(mLaunchParams.sceneRoot != mSceneRoot)
+		// prepare SPT buffers
+		const uint32_t stride = mLaunchParams.resX * mLaunchParams.resY * mLaunchParams.multiSample;
+		if(mPathStates.Size() < sizeof(float4) * stride * 3 || mPathStates.Size() > sizeof(float4) * stride * 3 * 2)
 		{
-			mLaunchParams.sampleCount = 0;
-			mLaunchParams.sceneRoot = mSceneRoot;
+			mPathStates.Resize(sizeof(float4) * stride * 3);
+			mLaunchParams.pathStates = mPathStates.Ptr<float4>();
 		}
 
-		// prepare SPT buffers
-		if(mPathStates.Size() == 0)
+		if(mHitData.Size() < sizeof(uint4) * stride || mHitData.Size() > sizeof(uint4) * stride * 2)
 		{
-			mPathStates.Resize(sizeof(float4) * mLaunchParams.resX * mLaunchParams.resY * 3);
-			mHitData.Resize(sizeof(uint4) * mLaunchParams.resX * mLaunchParams.resY);
-
-			mLaunchParams.pathStates = mPathStates.Ptr<float4>();
+			mHitData.Resize(sizeof(uint4) * stride);
 			mLaunchParams.hitData = mHitData.Ptr<uint4>();
 		}
 
@@ -172,8 +172,7 @@ namespace Tracer
 		SetCudaLaunchParams(mLaunchParamsBuffer.Ptr<LaunchParams>());
 
 		// loop
-		uint32_t pathCount = mLaunchParams.resX * mLaunchParams.resY;
-		const uint32_t stride = mLaunchParams.resX * mLaunchParams.resY;
+		uint32_t pathCount = stride;
 		for(int pathLength = 0; pathLength < mLaunchParams.maxDepth; pathLength++)
 		{
 			// launch Optix
@@ -183,7 +182,9 @@ namespace Tracer
 				InitCudaCounters();
 				OPTIX_CHECK(optixLaunch(mPipeline, mStream, mLaunchParamsBuffer.DevicePtr(), mLaunchParamsBuffer.Size(),
 										&mRenderModeConfigs[magic_enum::enum_integer(OptixRenderModes::SPT)].shaderBindingTable,
-										static_cast<unsigned int>(mLaunchParams.resX), static_cast<unsigned int>(mLaunchParams.resY), 1));
+										static_cast<unsigned int>(mLaunchParams.resX),
+										static_cast<unsigned int>(mLaunchParams.resY),
+										static_cast<unsigned int>(mLaunchParams.multiSample)));
 			}
 			else if(pathCount > 0)
 			{
@@ -197,7 +198,7 @@ namespace Tracer
 			}
 
 			Shade(mRenderMode, pathCount, mColorBuffer.Ptr<float4>(), mPathStates.Ptr<float4>(), mHitData.Ptr<uint4>(),
-					make_int2(mLaunchParams.resX, mLaunchParams.resY), stride, pathLength);
+				  make_int2(mLaunchParams.resX, mLaunchParams.resY), stride, pathLength);
 			CUDA_CHECK(cudaDeviceSynchronize());
 
 			mCountersBuffer.Download(&counters, 1);
@@ -262,7 +263,7 @@ namespace Tracer
 		CUDA_CHECK(cudaDeviceSynchronize());
 
 		// update sample count
-		mLaunchParams.sampleCount++;
+		mLaunchParams.sampleCount += mLaunchParams.multiSample;
 	}
 
 
@@ -565,6 +566,7 @@ namespace Tracer
 
 	void Renderer::BuildGeometry(Scene* scene)
 	{
+		// #TODO: separate instance building from geometry building
 		std::vector<OptixBuildInput> buildInputs;
 		std::vector<CudaMeshData> meshData;
 
@@ -578,7 +580,7 @@ namespace Tracer
 				const auto& model = inst->GetModel();
 				if(model->IsDirty())
 				{
-					model->Build(mOptixContext, nullptr);
+					model->Build(mOptixContext, mStream);
 					model->MarkClean();
 				}
 				instances.push_back(model->InstanceData(instanceId++, inst->Transform()));

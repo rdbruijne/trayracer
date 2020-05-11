@@ -38,13 +38,12 @@ inline void GenerateCameraRay(float3& O, float3& D, int2 pixelIndex, uint32_t& s
 
 // Film
 static __device__
-inline void InitializeFilm()
+inline void InitializeFilm(int pixelIx)
 {
-	const uint32_t fbIndex = optixGetLaunchIndex().x + optixGetLaunchIndex().y * params.resX;
 	if(params.sampleCount == 0)
-		params.accumulator[fbIndex] = make_float4(0, 0, 0, 1);
+		params.accumulator[pixelIx] = make_float4(0, 0, 0, params.multiSample);
 	else
-		params.accumulator[fbIndex].w++;
+		params.accumulator[pixelIx].w += params.multiSample;
 }
 
 
@@ -142,19 +141,23 @@ void __raygen__SPT()
 	// get the current pixel index
 	const uint3 launchIndex = optixGetLaunchIndex();
 	const uint3 launchDims = optixGetLaunchDimensions();
-	const uint32_t stride = params.resX * params.resY;
+	const uint32_t stride = params.resX * params.resY * params.multiSample;
 
 	switch(params.rayGenMode)
 	{
 	case RayGen_Primary:
 		{
-			InitializeFilm();
-
+			const int pixelIx = launchIndex.x + (launchIndex.y * launchDims.x);
+			const int pathIx = pixelIx + (launchIndex.z * launchDims.x * launchDims.y);
 			const int ix = launchIndex.x;
 			const int iy = launchIndex.y;
+			const int sampleIx = launchIndex.z;
+
+			if(sampleIx == 0)
+				InitializeFilm(pixelIx);
 
 			// set the seed
-			uint32_t seed = tea<2>(ix + (params.resX * iy), params.sampleCount);
+			uint32_t seed = tea<2>(pathIx, params.sampleCount);
 
 			// prepare the payload
 			uint32_t bary = 0;
@@ -171,7 +174,6 @@ void __raygen__SPT()
 					   RayType_Surface, RayType_Count, RayType_Surface, bary, instIx, primIx, tmax);
 
 			// set path data
-			const int pathIx = ix + (iy * params.resX);
 			params.pathStates[pathIx + (stride * 0)] = make_float4(O, __int_as_float(pathIx));
 			params.pathStates[pathIx + (stride * 1)] = make_float4(D);
 			//params.pathStates[pathIx + (stride * 2)] = make_float4(1, 1, 1, 0);

@@ -36,8 +36,8 @@ namespace Tracer
 		void SetCamera(CameraNode& camNode);
 		void SetCamera(const float3& cameraPos, const float3& cameraForward, const float3& cameraUp, float camFov);
 
-		void SetRenderMode(RenderModes mode);
 		inline RenderModes RenderMode() const { return mRenderMode; }
+		void SetRenderMode(RenderModes mode);
 
 		inline int SampleCount() const { return mLaunchParams.sampleCount; }
 
@@ -52,20 +52,22 @@ namespace Tracer
 		inline void SetDenoiserSampleTreshold(uint32_t treshold) { mDenoiserSampleTreshold = treshold; }
 
 		// kernel settings
-#define KERNEL_SETTING(type, name, func)						\
+#define KERNEL_SETTING(type, name, func, reqClear)				\
 		inline type func() const { return mLaunchParams.name; }	\
 		inline void Set##func(type name)						\
 		{														\
 			if(name != mLaunchParams.name)						\
 			{													\
 				mLaunchParams.name = name;						\
-				mLaunchParams.sampleCount = 0;					\
+				if constexpr (reqClear)							\
+					mLaunchParams.sampleCount = 0;				\
 			}													\
 		}
 
-		KERNEL_SETTING(int, maxDepth, MaxDepth)
-		KERNEL_SETTING(float, aoDist, AODist)
-		KERNEL_SETTING(float, zDepthMax, ZDepthMax)
+		KERNEL_SETTING(int, multiSample, MultiSample, false)
+		KERNEL_SETTING(int, maxDepth, MaxDepth, true)
+		KERNEL_SETTING(float, aoDist, AODist, true)
+		KERNEL_SETTING(float, zDepthMax, ZDepthMax, true)
 
 #undef KERNEL_SETTING
 
