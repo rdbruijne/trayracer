@@ -21,6 +21,9 @@ namespace Tracer
 		size_t InstanceCount() const;
 		size_t MaterialCount() const;
 		size_t ModelCount() const;
+		size_t InstancedModelCount() const;
+		size_t TriangleCount() const;
+		size_t UniqueTriangleCount() const;
 
 		void AddModel(std::shared_ptr<Model> model);
 		void AddInstance(std::shared_ptr<Instance> instance);

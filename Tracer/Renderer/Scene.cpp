@@ -5,6 +5,9 @@
 #include "Resources/Instance.h"
 #include "Resources/Material.h"
 
+// C++
+#include <set>
+
 namespace Tracer
 {
 	bool Scene::IsDirty() const
@@ -41,6 +44,40 @@ namespace Tracer
 	size_t Scene::ModelCount() const
 	{
 		return mModels.size();
+	}
+
+
+
+	size_t Scene::InstancedModelCount() const
+	{
+		std::set<std::shared_ptr<Model>> models;
+		for(auto& i : mInstances)
+			models.insert(i->GetModel());
+		return models.size();
+	}
+
+
+
+	size_t Scene::TriangleCount() const
+	{
+		size_t triCount = 0;
+		for(auto& i : mInstances)
+			triCount += i->GetModel()->PolyCount();
+		return triCount;
+	}
+
+
+
+	size_t Scene::UniqueTriangleCount() const
+	{
+		std::set<std::shared_ptr<Model>> models;
+		for(auto& i : mInstances)
+			models.insert(i->GetModel());
+
+		size_t triCount = 0;
+		for(const auto& m : models)
+			triCount += m->PolyCount();
+		return triCount;
 	}
 
 

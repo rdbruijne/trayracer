@@ -23,6 +23,10 @@ namespace Tracer
 		Model() = default;
 		explicit Model(const std::string& name);
 
+		// info
+		inline size_t PolyCount() const { return mIndices.size(); }
+		inline size_t VertexCount() const { return mVertices.size(); }
+
 		// materials
 		std::shared_ptr<Material> GetMaterial(uint32_t primIx) const;
 		const std::vector<std::shared_ptr<Material>>& Materials() const { return mMaterials; }

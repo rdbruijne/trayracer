@@ -247,10 +247,10 @@ namespace Tracer
 			//ParseNode(...);
 
 			printf("Imported \"%s\":\n", filePath.c_str());
-			printf("  Meshes   : %d\n", aScene->mNumMeshes);
-			printf("  Materials: %zd\n", model->Materials().size());
-			printf("  Textures : %zd\n", textures.size());
-			printf("  Polygons : %d\n", polyCount);
+			printf("  Meshes   : %s\n", ThousandSeparators(aScene->mNumMeshes).c_str());
+			printf("  Materials: %s\n", ThousandSeparators(model->Materials().size()).c_str());
+			printf("  Textures : %s\n", ThousandSeparators(textures.size()).c_str());
+			printf("  Polygons : %s\n", ThousandSeparators(polyCount).c_str());
 
 			return model;
 		}

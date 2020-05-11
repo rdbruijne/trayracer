@@ -155,4 +155,20 @@ namespace Tracer
 		return format("%lld:%02lld:%02lld", t2 / 3600, (t2 % 3600) / 60, t2 % 60);
 	}
 
+
+
+	std::string ThousandSeparators(uint64_t val, const std::string& separator)
+	{
+		std::string s = "";
+		int i = 0;
+		while(val > 0)
+		{
+			if(i && (i % 3) == 0)
+				s = separator + s;
+			s = "0123456789"[val % 10] + s;
+			val /= 10;
+			i++;
+		}
+		return s;
+	}
 }

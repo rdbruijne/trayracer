@@ -98,6 +98,7 @@ int main(int argc, char** argv)
 			Tracer::RendererWindow::Get()->mWindow = window;
 			Tracer::StatWindow::Get()->mFrameTimeMs = frameTimeMs;
 			Tracer::StatWindow::Get()->mRenderer = renderer;
+			Tracer::StatWindow::Get()->mScene = app->GetScene();
 
 			// toggle GUI
 			bool anyGuiWindow = false;

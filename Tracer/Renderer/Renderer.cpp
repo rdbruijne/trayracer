@@ -240,10 +240,6 @@ namespace Tracer
 				  make_int2(mLaunchParams.resX, mLaunchParams.resY), stride, pathLength);
 			cudaEventRecord(mShadeEnd, mStream);
 
-			// update counters
-			mCountersBuffer.Download(&counters, 1);
-			pathCount = counters.extendRays;
-
 			// update stats
 			switch(pathLength)
 			{
@@ -264,6 +260,10 @@ namespace Tracer
 			}
 
 			mRenderStats.shadeTimeMs += Elapsed(mShadeStart, mShadeEnd);
+
+			// update counters
+			mCountersBuffer.Download(&counters, 1);
+			pathCount = counters.extendRays;
 		}
 		cudaEventRecord(mRenderEnd, mStream);
 		mRenderStats.renderTimeMs = Elapsed(mRenderStart, mRenderEnd);

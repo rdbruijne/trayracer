@@ -3,6 +3,7 @@
 // Project
 #include "Gui/GuiHelpers.h"
 #include "Renderer/Renderer.h"
+#include "Renderer/Scene.h"
 
 // ImGUI
 #include "imgui/imgui.h"
@@ -83,6 +84,14 @@ namespace Tracer
 			ROW("Primaries", "%.1f M (%.1f M/s)", renderStats.primaryPathCount * 1e-6, PerSec(renderStats.primaryPathCount, renderStats.primaryPathTimeMs) * 1e-6);
 			ROW("Secondaries", "%.1f M (%.1f M/s)", renderStats.secondaryPathCount * 1e-6, PerSec(renderStats.secondaryPathCount, renderStats.secondaryPathTimeMs) * 1e-6);
 			ROW("Deep", "%.1f M (%.1f M/s)", renderStats.deepPathCount * 1e-6, PerSec(renderStats.deepPathCount, renderStats.deepPathTimeMs) * 1e-6);
+
+			SPACE;
+
+			// scene
+			ROW("Instance count", "%lld", mScene->InstanceCount());
+			ROW("Model count", "%lld", mScene->InstancedModelCount());
+			ROW("Triangle count", "%s", ThousandSeparators(mScene->TriangleCount()).c_str());
+			ROW("Unique triangle count", "%s", ThousandSeparators(mScene->UniqueTriangleCount()).c_str());
 
 #undef SPACE
 #undef ROW

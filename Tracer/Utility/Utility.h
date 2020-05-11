@@ -29,4 +29,5 @@ namespace Tracer
 
 	// stringify
 	std::string TimeString(int64_t elapsedNs);
+	std::string ThousandSeparators(uint64_t val, const std::string& separator = ",");
 }
