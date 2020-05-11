@@ -99,6 +99,9 @@
       <Filter>Renderer</Filter>
     </ClCompile>
     <ClCompile Include="Resources\Resource.cpp" />
+    <ClCompile Include="GUI\MaterialWindow.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">
@@ -258,6 +261,9 @@
     </ClInclude>
     <ClInclude Include="Renderer\Scene.h">
       <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\MaterialWindow.h">
+      <Filter>GUI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

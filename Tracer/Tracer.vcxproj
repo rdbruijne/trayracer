@@ -142,6 +142,7 @@
     <ClCompile Include="GUI\DebugWindow.cpp" />
     <ClCompile Include="GUI\GuiHelpers.cpp" />
     <ClCompile Include="GUI\GuiWindow.cpp" />
+    <ClCompile Include="GUI\MaterialWindow.cpp" />
     <ClCompile Include="GUI\RendererWindow.cpp" />
     <ClCompile Include="GUI\StatWindow.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -185,6 +186,7 @@
     <ClInclude Include="GUI\DebugWindow.h" />
     <ClInclude Include="GUI\GuiHelpers.h" />
     <ClInclude Include="GUI\GuiWindow.h" />
+    <ClInclude Include="GUI\MaterialWindow.h" />
     <ClInclude Include="GUI\RendererWindow.h" />
     <ClInclude Include="GUI\StatWindow.h" />
     <ClInclude Include="OpenGL\GLHelpers.h" />

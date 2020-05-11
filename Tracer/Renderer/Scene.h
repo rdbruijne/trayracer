@@ -14,6 +14,10 @@ namespace Tracer
 	{
 		friend class Renderer;
 	public:
+		bool IsDirty() const;
+		inline void MarkClean() { mIsDirty = false; }
+		inline void MarkDirty() { mIsDirty = true; }
+
 		size_t InstanceCount() const;
 		size_t MaterialCount() const;
 		size_t ModelCount() const;
@@ -21,9 +25,7 @@ namespace Tracer
 		void AddModel(std::shared_ptr<Model> model);
 		void AddInstance(std::shared_ptr<Instance> instance);
 
-		bool IsDirty() const;
-		inline void MarkClean() { mIsDirty = false; }
-		inline void MarkDirty() { mIsDirty = true; }
+		std::shared_ptr<Material> GetMaterial(uint32_t instanceIx, uint32_t primIx);
 
 		inline const std::vector<std::shared_ptr<Model>>& Models() const { return mModels; }
 		inline const std::vector<std::shared_ptr<Instance>>& Instances() const { return mInstances; }

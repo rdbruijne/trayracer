@@ -1,8 +1,8 @@
 #pragma once
 
 // Project
-#include "Renderer/CudaBuffer.h"
 #include "Common/CommonStructs.h"
+#include "Renderer/CudaBuffer.h"
 
 // Magic Enum
 #pragma warning(push)

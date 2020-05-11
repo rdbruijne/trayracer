@@ -24,6 +24,7 @@ namespace Tracer
 		explicit Model(const std::string& name);
 
 		// materials
+		std::shared_ptr<Material> GetMaterial(uint32_t primIx) const;
 		const std::vector<std::shared_ptr<Material>>& Materials() const { return mMaterials; }
 		uint32_t AddMaterial(std::shared_ptr<Material> mat);
 

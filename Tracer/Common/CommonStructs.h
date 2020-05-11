@@ -64,10 +64,13 @@ std::string ToString(RenderModes renderMode);
 struct alignas(16) RayPickResult
 {
 	float3 rayOrigin;
-	uint32_t objectID;
+	uint32_t instIx;
 
 	float3 rayDir;
+	uint32_t primIx;
+
 	float tmax;
+	float pad[3];
 };
 
 

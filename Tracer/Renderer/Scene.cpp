@@ -7,6 +7,19 @@
 
 namespace Tracer
 {
+	bool Scene::IsDirty() const
+	{
+		if(mIsDirty)
+			return true;
+
+		for(auto& i : mInstances)
+			if(i->IsDirty())
+				return true;
+
+		return false;
+	}
+
+
 
 	size_t Scene::InstanceCount() const
 	{
@@ -57,16 +70,10 @@ namespace Tracer
 
 
 
-	bool Scene::IsDirty() const
+	std::shared_ptr<Tracer::Material> Scene::GetMaterial(uint32_t instanceIx, uint32_t primIx)
 	{
-		if(mIsDirty)
-			return true;
-
-		for(auto& i : mInstances)
-			if(i->IsDirty())
-				return true;
-
-		return false;
+		if(instanceIx >= mInstances.size())
+			return nullptr;
+		return mInstances[instanceIx]->GetModel()->GetMaterial(primIx);
 	}
-
 }

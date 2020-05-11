@@ -20,6 +20,15 @@ namespace Tracer
 
 
 
+	std::shared_ptr<Tracer::Material> Model::GetMaterial(uint32_t primIx) const
+	{
+		if(primIx > mMaterialIndices.size())
+			return nullptr;
+		return mMaterials[mMaterialIndices[primIx]];
+	}
+
+
+
 	uint32_t Model::AddMaterial(std::shared_ptr<Material> mat)
 	{
 		mMaterials.push_back(mat);

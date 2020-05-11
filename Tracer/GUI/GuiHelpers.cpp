@@ -30,6 +30,8 @@ namespace Tracer
 		ImGui_ImplGlfw_InitForOpenGL(window->GlfwWindow(), true);
 		ImGui_ImplOpenGL3_Init("#version 130");
 
+		ImGui::SetColorEditOptions(ImGuiColorEditFlags_Float);
+
 		// #TODO(RJCDB): DPI Scaling
 		//ImGuiStyle guiStyle;
 		//guiStyle.ScaleAllSizes();

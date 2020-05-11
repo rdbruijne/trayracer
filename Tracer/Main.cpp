@@ -11,6 +11,7 @@
 // GUI windows
 #include "GUI/CameraWindow.h"
 #include "GUI/DebugWindow.h"
+#include "GUI/MaterialWindow.h"
 #include "GUI/RendererWindow.h"
 #include "GUI/StatWindow.h"
 
@@ -48,6 +49,7 @@ int main(int argc, char** argv)
 			{ Tracer::StatWindow::Get(),     Tracer::Input::Keys::F1 },
 			{ Tracer::RendererWindow::Get(), Tracer::Input::Keys::F2 },
 			{ Tracer::CameraWindow::Get(),   Tracer::Input::Keys::F3 },
+			{ Tracer::MaterialWindow::Get(), Tracer::Input::Keys::F4 },
 			{ Tracer::DebugWindow::Get(),    Tracer::Input::Keys::F10 }
 		};
 

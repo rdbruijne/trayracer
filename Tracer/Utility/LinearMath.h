@@ -211,25 +211,39 @@ namespace Tracer
 
 
 
-	inline float3x4 scale_3x4(const float3& scale)
+	inline float3x4 scale_3x4(float x, float y, float z)
 	{
 		float3x4 m = make_float3x4();
-		m.x.x = scale.x;
-		m.y.y = scale.y;
-		m.z.z = scale.z;
+		m.x.x = x;
+		m.y.y = y;
+		m.z.z = z;
 		return m;
 	}
 
 
 
+	inline float3x4 scale_3x4(const float3& scale)
+	{
+		return scale_3x4(scale.x, scale.y, scale.z);
+	}
+
+
+
 	// translate
-	inline float3x4 translate_3x4(const float3& t)
+	inline float3x4 translate_3x4(float x, float y, float z)
 	{
 		float3x4 m = make_float3x4();
-		m.tx = t.x;
-		m.ty = t.y;
-		m.tz = t.z;
+		m.tx = x;
+		m.ty = y;
+		m.tz = z;
 		return m;
+	}
+
+
+
+	inline float3x4 translate_3x4(const float3& t)
+	{
+		return translate_3x4(t.x, t.y, t.z);
 	}
 
 

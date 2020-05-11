@@ -99,9 +99,10 @@ void __raygen__RayPick()
 
 	RayPickResult& r = *params.rayPickResult;
 	r.rayOrigin = params.cameraPos;
-	r.objectID  = instIx;
+	r.instIx    = instIx;
 	r.rayDir    = D;
-	r.tmax       = __uint_as_float(tmax);
+	r.tmax      = __uint_as_float(tmax);
+	r.primIx    = primIx;
 }
 
 

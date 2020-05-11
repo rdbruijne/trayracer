@@ -252,6 +252,13 @@ __global__ void ShadeKernel_PathTracing(KERNEL_PARAMS)
 	const IntersectionAttributes attrib = GetIntersectionAttributes(instIx, primIx, bary);
 	const CudaMatarial& mat = materialData[attrib.matIx];
 
+	// emissive
+	if(mat.emissive.x > 0 || mat.emissive.y > 0 || mat.emissive.z > 0)
+	{
+		accumulator[pixelIx] += make_float4(T * mat.emissive);
+		return;
+	}
+
 	// diffuse
 	float3 diff = mat.diffuse;
 	if(mat.textures & Texture_DiffuseMap)
