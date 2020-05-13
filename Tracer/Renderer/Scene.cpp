@@ -111,20 +111,17 @@ namespace Tracer
 							else if(op.HasMember("rotate-x"))
 							{
 								const Value& opVal = op["rotate-x"];
-								if(opVal.IsFloat())
-									modelTransform *= rotate_x_3x4(opVal.GetFloat());
+								modelTransform *= rotate_x_3x4(opVal.GetFloat() * DegToRad);
 							}
 							else if(op.HasMember("rotate-y"))
 							{
 								const Value& opVal = op["rotate-y"];
-								if(opVal.IsFloat())
-									modelTransform *= rotate_y_3x4(opVal.GetFloat());
+								modelTransform *= rotate_y_3x4(opVal.GetFloat() * DegToRad);
 							}
 							else if(op.HasMember("rotate-z"))
 							{
 								const Value& opVal = op["rotate-z"];
-								if(opVal.IsFloat())
-									modelTransform *= rotate_z_3x4(opVal.GetFloat());
+								modelTransform *= rotate_z_3x4(opVal.GetFloat() * DegToRad);
 							}
 						}
 					}
