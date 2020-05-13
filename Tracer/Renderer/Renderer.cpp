@@ -698,7 +698,7 @@ namespace Tracer
 				{
 					for(auto& mat : model->Materials())
 					{
-						CudaMatarial m;
+						CudaMatarial m = {};
 
 						m.diffuse = mat->Diffuse();
 						m.emissive = mat->Emissive();
