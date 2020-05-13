@@ -225,6 +225,7 @@ namespace Tracer
 
 		// Optix scene
 		OptixTraversableHandle mSceneRoot = 0;
+		CudaBuffer mAccelBuffer = {};
 		CudaBuffer mInstancesBuffer = {};
 	};
 }

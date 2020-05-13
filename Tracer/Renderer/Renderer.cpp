@@ -656,10 +656,9 @@ namespace Tracer
 
 			// Execute build
 			CudaBuffer tempBuffer(accelBufferSizes.tempSizeInBytes);
-			static CudaBuffer outputBuffer;
-			outputBuffer.Resize(accelBufferSizes.outputSizeInBytes);
+			mAccelBuffer.Resize(accelBufferSizes.outputSizeInBytes);
 			OPTIX_CHECK(optixAccelBuild(mOptixContext, nullptr, &buildOptions, buildInputs.data(), static_cast<unsigned int>(buildInputs.size()),
-										tempBuffer.DevicePtr(), tempBuffer.Size(), outputBuffer.DevicePtr(), outputBuffer.Size(), &mSceneRoot, nullptr, 0));
+										tempBuffer.DevicePtr(), tempBuffer.Size(), mAccelBuffer.DevicePtr(), mAccelBuffer.Size(), &mSceneRoot, nullptr, 0));
 
 			CUDA_CHECK(cudaDeviceSynchronize());
 		}
