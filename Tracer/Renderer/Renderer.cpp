@@ -619,23 +619,22 @@ namespace Tracer
 					model->MarkClean();
 				}
 				instances.push_back(model->InstanceData(instanceId++, inst->Transform()));
-				if(mCudaMeshData.Size() == 0)
-					meshData.push_back(model->CudaMesh());
+				meshData.push_back(model->CudaMesh());
 
 				inst->MarkClean();
 			}
 		}
 
-		if(mCudaMeshData.Size() == 0 && meshData.size() == 0)
+		if(meshData.size() == 0)
 		{
 			mSceneRoot = 0;
 			mCudaMeshData.Free();
+			mInstancesBuffer.Free();
 		}
 		else
 		{
 			// CUDA mesh data
-			if(mCudaMeshData.Size() == 0)
-				mCudaMeshData.Upload(meshData, true);
+			mCudaMeshData.Upload(meshData, true);
 
 			// upload instances
 			mInstancesBuffer.Upload(instances, true);

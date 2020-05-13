@@ -30,4 +30,7 @@ namespace Tracer
 	// stringify
 	std::string TimeString(int64_t elapsedNs);
 	std::string ThousandSeparators(uint64_t val, const std::string& separator = ",");
+
+	// Windows
+	bool OpenFileDialog(const char* filter, const std::string& title, bool mustExist, std::string& result);
 }

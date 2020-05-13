@@ -13,15 +13,15 @@ namespace Tracer
 		explicit CameraNode(const float3& position, const float3& target, const float3& up, const float fov);
 
 		// position
-		inline float3 Position() const { return mPosition; }
+		const float3& Position() const { return mPosition; }
 		void SetPosition(const float3& position);
 
 		// target
-		float3 Target() const { return mTarget; }
+		const float3& Target() const { return mTarget; }
 		void SetTarget(const float3& target);
 
 		// up
-		float3 Up() const { return mUp; }
+		const float3& Up() const { return mUp; }
 		void SetUp(const float3& up);
 
 		// fov

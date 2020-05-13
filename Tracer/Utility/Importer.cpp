@@ -164,7 +164,7 @@ namespace Tracer
 
 	std::shared_ptr<Model> ImportModel(const std::string& filePath)
 	{
-		printf("Importing \"%s\"", filePath.c_str());
+		printf("Importing \"%s\"\n", filePath.c_str());
 		try
 		{
 			const std::string importDir = Directory(filePath);

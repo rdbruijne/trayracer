@@ -208,7 +208,6 @@
     <ClInclude Include="Utility\LinearMath.h" />
     <ClInclude Include="Utility\Stopwatch.h" />
     <ClInclude Include="Utility\Utility.h" />
-    <ClInclude Include="Utility\WindowsLean.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Model.h" />

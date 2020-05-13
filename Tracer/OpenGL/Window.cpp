@@ -5,7 +5,6 @@
 #include "OpenGL/Shader.h"
 #include "Utility/LinearMath.h"
 #include "Utility/Utility.h"
-#include "Utility/WindowsLean.h"
 
 // GL
 #include "GL/glew.h"
@@ -17,6 +16,9 @@
 
 // C++
 #include <assert.h>
+
+// Windows
+#include <Windows.h>
 
 namespace Tracer
 {

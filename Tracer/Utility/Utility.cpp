@@ -4,10 +4,11 @@
 #include <algorithm>
 #include <assert.h>
 #include <cctype>
+#include <filesystem>
 #include <fstream>
 
 // Windows
-#include "Utility/WindowsLean.h"
+#include <Windows.h>
 
 namespace Tracer
 {
@@ -159,6 +160,9 @@ namespace Tracer
 
 	std::string ThousandSeparators(uint64_t val, const std::string& separator)
 	{
+		if(val < 1000)
+			return std::to_string(val);
+
 		std::string s = "";
 		int i = 0;
 		while(val > 0)
@@ -170,5 +174,32 @@ namespace Tracer
 			i++;
 		}
 		return s;
+	}
+
+
+
+	bool OpenFileDialog(const char* filter, const std::string& title, bool mustExist, std::string& result)
+	{
+		const std::string curDir = std::filesystem::current_path().string();
+
+		char fileNameIn[MAX_PATH]  = {};
+		char fileNameOut[MAX_PATH] = {};
+
+		OPENFILENAMEA ofn = {};
+		ofn.lStructSize    = sizeof(ofn);
+		ofn.hwndOwner      = NULL;
+		ofn.lpstrFilter    = "Json\0*.json\0";
+		ofn.lpstrFile      = fileNameOut;
+		ofn.nMaxFile       = MAX_PATH;
+		ofn.lpstrFileTitle = fileNameIn;
+		ofn.nMaxFileTitle  = MAX_PATH;
+		ofn.lpstrTitle     = "Select a scene file";
+		ofn.Flags          = OFN_EXPLORER | OFN_NONETWORKBUTTON | OFN_DONTADDTORECENT | (mustExist ? OFN_FILEMUSTEXIST : 0);
+
+		const bool ok = GetOpenFileNameA(&ofn);
+		if(ok)
+			result = fileNameOut;
+		std::filesystem::current_path(curDir);
+		return ok;
 	}
 }

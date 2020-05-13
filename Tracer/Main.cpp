@@ -94,7 +94,9 @@ int main(int argc, char** argv)
 
 			// update GUI
 			Tracer::CameraGui::Get()->mCamNode = app->GetCameraNode();
+			Tracer::RendererGui::Get()->mCamNode = app->GetCameraNode();
 			Tracer::RendererGui::Get()->mRenderer = renderer;
+			Tracer::RendererGui::Get()->mScene = app->GetScene();
 			Tracer::RendererGui::Get()->mWindow = window;
 			Tracer::StatGui::Get()->mFrameTimeMs = frameTimeMs;
 			Tracer::StatGui::Get()->mRenderer = renderer;

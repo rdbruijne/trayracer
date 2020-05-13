@@ -4,6 +4,7 @@
 #include "Gui/GuiHelpers.h"
 #include "OpenGL/Window.h"
 #include "Renderer/Renderer.h"
+#include "Renderer/Scene.h"
 
 // Magic Enum
 #pragma warning(push)
@@ -13,6 +14,12 @@
 
 // ImGUI
 #include "imgui/imgui.h"
+
+// C++
+#include <filesystem>
+
+// Windows
+#include <Windows.h>
 
 namespace Tracer
 {
@@ -33,6 +40,35 @@ namespace Tracer
 		}
 		else
 		{
+			// scene
+			ImGui::Columns(3, nullptr, false);
+			if(ImGui::Button("Load scene", ImVec2(ImGui::GetWindowWidth() * .3f, 0)))
+			{
+				std::string sceneFile;
+				if(OpenFileDialog("Json\0*.json\0", "Select a scene file", true, sceneFile))
+				{
+					mScene->Clear();
+					mScene->Load(sceneFile, mCamNode);
+				}
+			}
+			ImGui::NextColumn();
+
+			if(ImGui::Button("Save scene", ImVec2(ImGui::GetWindowWidth() * .3f, 0)))
+			{
+				std::string sceneFile;
+				if(OpenFileDialog("Json\0*.json\0", "Select a scene file", false, sceneFile))
+					mScene->Save(sceneFile, mCamNode);
+			}
+			ImGui::NextColumn();
+
+			if(ImGui::Button("Clear scene", ImVec2(ImGui::GetWindowWidth() * .3f, 0)))
+			{
+				mScene->Clear();
+			}
+
+			ImGui::Columns();
+			ImGui::Spacing();
+
 			// render mode
 			RenderModes activeRenderMode = mRenderer->RenderMode();
 			const std::string rmName = ToString(activeRenderMode);

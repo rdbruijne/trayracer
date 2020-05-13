@@ -154,9 +154,6 @@
     <ClInclude Include="Utility\Utility.h">
       <Filter>Utility</Filter>
     </ClInclude>
-    <ClInclude Include="Utility\WindowsLean.h">
-      <Filter>Utility</Filter>
-    </ClInclude>
     <ClInclude Include="App\ControlScheme.h">
       <Filter>App</Filter>
     </ClInclude>

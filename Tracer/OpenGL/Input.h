@@ -2,10 +2,12 @@
 
 // Project
 #include "Utility/LinearMath.h"
-#include "Utility/WindowsLean.h"
 
 // C++
 #include <array>
+
+// Windows
+#include <Windows.h>
 
 namespace Tracer
 {
