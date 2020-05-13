@@ -47,6 +47,7 @@ enum class RenderModes : uint32_t
 	AmbientOcclusion,
 	AmbientOcclusionShading,
 	DiffuseFilter,
+	GeometricNormal,
 	MaterialID,
 	ObjectID,
 	PathTracing,

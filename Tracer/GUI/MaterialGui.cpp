@@ -36,6 +36,11 @@ namespace Tracer
 			float3 em = mat->Emissive();
 			if(ImGui::ColorEdit3("Emissive", reinterpret_cast<float*>(&em), ImGuiColorEditFlags_HDR))
 				mat->SetEmissive(em);
+
+			std::string diffuse = "";
+			if(mat->DiffuseMap())
+				diffuse = mat->DiffuseMap()->Name();
+			ImGui::Text("Diffuse map: %s", diffuse.c_str());
 		}
 
 		ImGui::End();

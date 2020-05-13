@@ -23,6 +23,13 @@ static __device__ float3 SampleSky(const float3& O, const float3& D)
 
 
 
+static __device__ float3 FlipInfacingNormal(const float3& D, const float3& N)
+{
+	return dot(D, N) > 0 ? -N : N;
+}
+
+
+
 __global__ void ShadeKernel_AmbientOcclusion(KERNEL_PARAMS)
 {
 	const int jobIdx = threadIdx.x + (blockIdx.x * blockDim.x);
@@ -51,8 +58,10 @@ __global__ void ShadeKernel_AmbientOcclusion(KERNEL_PARAMS)
 		uint32_t seed = tea<2>(pathIx, params->sampleCount + pathLength + 1);
 
 		const IntersectionAttributes attrib = GetIntersectionAttributes(instIx, primIx, bary);
+
+		// fix infacing normal
 		const float3 newOrigin = O + (D * tmax);
-		const float3 newDir = SampleCosineHemisphere(attrib.shadingNormal, rnd(seed), rnd(seed));
+		const float3 newDir = SampleCosineHemisphere(FlipInfacingNormal(D, attrib.shadingNormal), rnd(seed), rnd(seed));
 
 		// update path states
 		const int32_t extendIx = atomicAdd(&counters->extendRays, 1);
@@ -108,7 +117,7 @@ __global__ void ShadeKernel_AmbientOcclusionShading(KERNEL_PARAMS)
 		uint32_t seed = tea<2>(pathIx, params->sampleCount + pathLength + 1);
 
 		const float3 newOrigin = O + (D * tmax);
-		const float3 newDir = SampleCosineHemisphere(attrib.shadingNormal, rnd(seed), rnd(seed));
+		const float3 newDir = SampleCosineHemisphere(FlipInfacingNormal(D, attrib.shadingNormal), rnd(seed), rnd(seed));
 
 		// update path states
 		const int32_t extendIx = atomicAdd(&counters->extendRays, 1);
@@ -160,6 +169,32 @@ __global__ void ShadeKernel_DiffuseFilter(KERNEL_PARAMS)
 	}
 
 	accumulator[pixelIx] += make_float4(diff, 0);
+}
+
+
+
+__global__ void ShadeKernel_GeometricNormal(KERNEL_PARAMS)
+{
+	const int jobIdx = threadIdx.x + (blockIdx.x * blockDim.x);
+	if(jobIdx >= pathCount)
+		return;
+
+	// gather data
+	const float4 O4 = pathStates[jobIdx + (stride * 0)];
+	const int32_t pathIx = __float_as_int(O4.w);
+	const int32_t pixelIx = pathIx % (resolution.x * resolution.y);
+
+	const uint4 hd = hitData[pathIx];
+	const float2 bary = DecodeBarycentrics(hd.x);
+	const uint32_t instIx = hd.y;
+	const uint32_t primIx = hd.z;
+
+	// didn't hit anything
+	if(primIx == ~0)
+		return;
+
+	const IntersectionAttributes attrib = GetIntersectionAttributes(instIx, primIx, bary);
+	accumulator[pixelIx] += make_float4((attrib.geometricNormal + make_float3(1)) * 0.5f, 0);
 }
 
 
@@ -281,7 +316,7 @@ __global__ void ShadeKernel_PathTracing(KERNEL_PARAMS)
 
 	// generate extend
 	const float3 newOrigin = O + (D * tmax);
-	const float3 newDir = SampleCosineHemisphere(attrib.shadingNormal, rnd(seed), rnd(seed));
+	const float3 newDir = SampleCosineHemisphere(FlipInfacingNormal(D, attrib.shadingNormal), rnd(seed), rnd(seed));
 
 	// update path states
 	const int32_t extendIx = atomicAdd(&counters->extendRays, 1);
@@ -433,10 +468,14 @@ __host__ void Shade(RenderModes renderMode, uint32_t pathCount, float4* accumula
 
 	case RenderModes::AmbientOcclusionShading:
 		ShadeKernel_AmbientOcclusionShading<<<KERNEL_DIMENSIONS>>>(KERNEL_PASS_PARAMS);
-			break;
+		break;
 
 	case RenderModes::DiffuseFilter:
 		ShadeKernel_DiffuseFilter<<<KERNEL_DIMENSIONS>>>(KERNEL_PASS_PARAMS);
+		break;
+
+	case RenderModes::GeometricNormal:
+		ShadeKernel_GeometricNormal<<<KERNEL_DIMENSIONS>>>(KERNEL_PASS_PARAMS);
 		break;
 
 	case RenderModes::MaterialID:
