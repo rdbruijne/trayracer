@@ -1,4 +1,4 @@
-#include "MaterialWindow.h"
+#include "MaterialGui.h"
 
 // Project
 #include "Gui/GuiHelpers.h"
@@ -9,15 +9,15 @@
 
 namespace Tracer
 {
-	MaterialWindow* const MaterialWindow::Get()
+	MaterialGui* const MaterialGui::Get()
 	{
-		static MaterialWindow inst;
+		static MaterialGui inst;
 		return &inst;
 	}
 
 
 
-	void MaterialWindow::DrawImpl()
+	void MaterialGui::DrawImpl()
 	{
 		ImGui::Begin("Material", &mEnabled);
 		if(selectedMaterial.expired() || selectedMaterial.use_count() == 0)

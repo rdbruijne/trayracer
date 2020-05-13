@@ -2,10 +2,10 @@
 
 namespace Tracer
 {
-	class GuiWindow
+	class BaseGui
 	{
 	public:
-		virtual ~GuiWindow() = default;
+		virtual ~BaseGui() = default;
 
 		void SetEnabled(bool enable) { mEnabled = enable; }
 		bool IsEnabled() const { return mEnabled; }

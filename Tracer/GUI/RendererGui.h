@@ -1,16 +1,16 @@
 #pragma once
 
 // Project
-#include "GuiWindow.h"
+#include "BaseGui.h"
 
 namespace Tracer
 {
 	class Renderer;
 	class Window;
-	class RendererWindow : public GuiWindow
+	class RendererGui : public BaseGui
 	{
 	public:
-		static RendererWindow* const Get();
+		static RendererGui* const Get();
 
 		Renderer* mRenderer = nullptr;
 		Window* mWindow = nullptr;

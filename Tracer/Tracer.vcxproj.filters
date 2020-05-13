@@ -35,26 +35,11 @@
     <ClCompile Include="..\libraries\imgui\imgui_draw.cpp">
       <Filter>GUI\ImGUI</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\GuiHelpers.cpp">
-      <Filter>GUI</Filter>
-    </ClCompile>
-    <ClCompile Include="GUI\GuiWindow.cpp">
-      <Filter>GUI</Filter>
-    </ClCompile>
-    <ClCompile Include="GUI\CameraWindow.cpp">
-      <Filter>GUI</Filter>
-    </ClCompile>
-    <ClCompile Include="GUI\DebugWindow.cpp">
-      <Filter>GUI</Filter>
-    </ClCompile>
     <ClCompile Include="Resources\Material.cpp">
       <Filter>Resources</Filter>
     </ClCompile>
     <ClCompile Include="Resources\Model.cpp">
       <Filter>Resources</Filter>
-    </ClCompile>
-    <ClCompile Include="GUI\RendererWindow.cpp">
-      <Filter>GUI</Filter>
     </ClCompile>
     <ClCompile Include="OpenGL\GLTexture.cpp">
       <Filter>OpenGL</Filter>
@@ -70,9 +55,6 @@
     </ClCompile>
     <ClCompile Include="Resources\Texture.cpp">
       <Filter>Resources</Filter>
-    </ClCompile>
-    <ClCompile Include="GUI\StatWindow.cpp">
-      <Filter>GUI</Filter>
     </ClCompile>
     <ClCompile Include="Resources\CameraNode.cpp">
       <Filter>Resources</Filter>
@@ -99,7 +81,25 @@
       <Filter>Renderer</Filter>
     </ClCompile>
     <ClCompile Include="Resources\Resource.cpp" />
-    <ClCompile Include="GUI\MaterialWindow.cpp">
+    <ClCompile Include="GUI\CameraGui.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\DebugGui.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\GuiHelpers.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\BaseGui.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\MaterialGui.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\StatGui.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI\RendererGui.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
   </ItemGroup>
@@ -190,23 +190,8 @@
     <ClInclude Include="..\libraries\imgui\imgui_impl_opengl3.h">
       <Filter>GUI\ImGUI</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\GuiHelpers.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="GUI\CameraWindow.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="GUI\GuiWindow.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="GUI\DebugWindow.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
     <ClInclude Include="Resources\Material.h">
       <Filter>Resources</Filter>
-    </ClInclude>
-    <ClInclude Include="GUI\RendererWindow.h">
-      <Filter>GUI</Filter>
     </ClInclude>
     <ClInclude Include="OpenGL\GLTexture.h">
       <Filter>OpenGL</Filter>
@@ -222,9 +207,6 @@
     </ClInclude>
     <ClInclude Include="Resources\Texture.h">
       <Filter>Resources</Filter>
-    </ClInclude>
-    <ClInclude Include="GUI\StatWindow.h">
-      <Filter>GUI</Filter>
     </ClInclude>
     <ClInclude Include="Resources\CameraNode.h">
       <Filter>Resources</Filter>
@@ -262,7 +244,25 @@
     <ClInclude Include="Renderer\Scene.h">
       <Filter>Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\MaterialWindow.h">
+    <ClInclude Include="GUI\CameraGui.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\DebugGui.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\GuiHelpers.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\BaseGui.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\MaterialGui.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\StatGui.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\RendererGui.h">
       <Filter>GUI</Filter>
     </ClInclude>
   </ItemGroup>

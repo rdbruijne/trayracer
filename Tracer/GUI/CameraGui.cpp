@@ -1,4 +1,4 @@
-#include "CameraWindow.h"
+#include "CameraGui.h"
 
 // Project
 #include "Gui/GuiHelpers.h"
@@ -9,15 +9,15 @@
 
 namespace Tracer
 {
-	CameraWindow* const CameraWindow::Get()
+	CameraGui* const CameraGui::Get()
 	{
-		static CameraWindow inst;
+		static CameraGui inst;
 		return &inst;
 	}
 
 
 
-	void CameraWindow::DrawImpl()
+	void CameraGui::DrawImpl()
 	{
 		ImGui::Begin("Camera", &mEnabled);
 		if(!mCamNode)

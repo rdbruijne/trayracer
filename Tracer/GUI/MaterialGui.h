@@ -1,7 +1,7 @@
 #pragma once
 
 // Project
-#include "GuiWindow.h"
+#include "BaseGui.h"
 
 // C++
 #include <memory>
@@ -9,10 +9,10 @@
 namespace Tracer
 {
 	class Material;
-	class MaterialWindow : public GuiWindow
+	class MaterialGui : public BaseGui
 	{
 	public:
-		static MaterialWindow* const Get();
+		static MaterialGui* const Get();
 
 		std::weak_ptr<Material> selectedMaterial = {};
 

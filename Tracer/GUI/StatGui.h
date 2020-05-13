@@ -1,7 +1,7 @@
 #pragma once
 
 // Project
-#include "GuiWindow.h"
+#include "BaseGui.h"
 
 // C++
 #include <stdint.h>
@@ -10,10 +10,10 @@ namespace Tracer
 {
 	class Renderer;
 	class Scene;
-	class StatWindow : public GuiWindow
+	class StatGui : public BaseGui
 	{
 	public:
-		static StatWindow* const Get();
+		static StatGui* const Get();
 
 		float mFrameTimeMs = 0;
 		float mBuildTimeMs = 0;

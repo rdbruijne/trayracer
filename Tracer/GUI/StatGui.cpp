@@ -1,4 +1,4 @@
-#include "StatWindow.h"
+#include "StatGui.h"
 
 // Project
 #include "Gui/GuiHelpers.h"
@@ -20,15 +20,15 @@ namespace Tracer
 
 
 
-	StatWindow* const StatWindow::Get()
+	StatGui* const StatGui::Get()
 	{
-		static StatWindow inst;
+		static StatGui inst;
 		return &inst;
 	}
 
 
 
-	void StatWindow::DrawImpl()
+	void StatGui::DrawImpl()
 	{
 #define SPACE						\
 	for(int i = 0; i < 4; i++)		\

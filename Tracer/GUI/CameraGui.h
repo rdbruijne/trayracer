@@ -1,15 +1,15 @@
 #pragma once
 
 // Project
-#include "GuiWindow.h"
+#include "BaseGui.h"
 
 namespace Tracer
 {
 	class CameraNode;
-	class CameraWindow : public GuiWindow
+	class CameraGui : public BaseGui
 	{
 	public:
-		static CameraWindow* const Get();
+		static CameraGui* const Get();
 
 		CameraNode* mCamNode = nullptr;
 

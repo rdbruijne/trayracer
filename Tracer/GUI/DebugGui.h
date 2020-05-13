@@ -1,7 +1,7 @@
 #pragma once
 
 // Project
-#include "GuiWindow.h"
+#include "BaseGui.h"
 
 // C++
 #include <string>
@@ -9,10 +9,10 @@
 
 namespace Tracer
 {
-	class DebugWindow : public GuiWindow
+	class DebugGui : public BaseGui
 	{
 	public:
-		static DebugWindow* const Get();
+		static DebugGui* const Get();
 
 		void Set(const std::string& name, const std::string& data);
 		void Unset(const std::string& name);

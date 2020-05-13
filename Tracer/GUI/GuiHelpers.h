@@ -8,9 +8,7 @@
 
 namespace Tracer
 {
-	class CameraNode;
-	class GuiWindow;
-	class Renderer;
+	class BaseGui;
 	class Window;
 	class GuiHelpers
 	{

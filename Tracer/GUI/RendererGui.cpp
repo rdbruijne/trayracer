@@ -1,4 +1,4 @@
-#include "RendererWindow.h"
+#include "RendererGui.h"
 
 // Project
 #include "Gui/GuiHelpers.h"
@@ -16,15 +16,15 @@
 
 namespace Tracer
 {
-	RendererWindow* const RendererWindow::Get()
+	RendererGui* const RendererGui::Get()
 	{
-		static RendererWindow inst;
+		static RendererGui inst;
 		return &inst;
 	}
 
 
 
-	void RendererWindow::DrawImpl()
+	void RendererGui::DrawImpl()
 	{
 		ImGui::Begin("Renderer", &mEnabled);
 		if(!mRenderer)

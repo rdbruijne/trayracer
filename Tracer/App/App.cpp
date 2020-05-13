@@ -2,12 +2,12 @@
 
 // Project
 #include "App/OrbitCameraController.h"
-#include "GUI/DebugWindow.h"
+#include "GUI/DebugGui.h"
+#include "GUI/MaterialGui.h"
 #include "OpenGL/Window.h"
 #include "Renderer/Scene.h"
 #include "Renderer/Renderer.h"
 #include "Resources/Instance.h"
-#include "GUI/MaterialWindow.h"
 
 namespace Tracer
 {
@@ -60,7 +60,7 @@ namespace Tracer
 			if(window->IsKeyDown(Input::Keys::M))
 			{
 				const RayPickResult result = renderer->PickRay(cursorPosI2);
-				MaterialWindow::Get()->selectedMaterial = mScene->GetMaterial(result.instIx, result.primIx);
+				MaterialGui::Get()->selectedMaterial = mScene->GetMaterial(result.instIx, result.primIx);
 			}
 		}
 
@@ -68,19 +68,19 @@ namespace Tracer
 		renderer->SetCamera(mCamera);
 
 		// debug raypick
-		DebugWindow* dw = DebugWindow::Get();
-		if(dw->IsEnabled())
+		DebugGui* debugGui = DebugGui::Get();
+		if(debugGui->IsEnabled())
 		{
 			const float2 cursorPos = window->CursorPos();
 			const int2 cursorPosI2 = make_int2(static_cast<int32_t>(cursorPos.x), static_cast<int32_t>(cursorPos.y));
 			const RayPickResult result = renderer->PickRay(cursorPosI2);
 
-			dw->Set("Pixel", format("%d  %d", cursorPosI2.x, cursorPosI2.y));
-			dw->Set("Ray origin", format("%.2f  %.2f  %.2f", result.rayOrigin.x, result.rayOrigin.y, result.rayOrigin.z));
-			dw->Set("Ray dir", format("%.2f  %.2f  %.2f", result.rayDir.x, result.rayDir.y, result.rayDir.z));
-			dw->Set("Dst", format("%f", result.tmax));
-			dw->Set("Primitive", format("%d", result.primIx));
-			dw->Set("Instance", format("%d", result.instIx));
+			debugGui->Set("Pixel", format("%d  %d", cursorPosI2.x, cursorPosI2.y));
+			debugGui->Set("Ray origin", format("%.2f  %.2f  %.2f", result.rayOrigin.x, result.rayOrigin.y, result.rayOrigin.z));
+			debugGui->Set("Ray dir", format("%.2f  %.2f  %.2f", result.rayDir.x, result.rayDir.y, result.rayDir.z));
+			debugGui->Set("Dst", format("%f", result.tmax));
+			debugGui->Set("Primitive", format("%d", result.primIx));
+			debugGui->Set("Instance", format("%d", result.instIx));
 		}
 
 		// find a toad to rotate

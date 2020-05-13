@@ -1,4 +1,4 @@
-#include "DebugWindow.h"
+#include "DebugGui.h"
 
 // Project
 #include "Gui/GuiHelpers.h"
@@ -8,29 +8,29 @@
 
 namespace Tracer
 {
-	DebugWindow* const DebugWindow::Get()
+	DebugGui* const DebugGui::Get()
 	{
-		static DebugWindow inst;
+		static DebugGui inst;
 		return &inst;
 	}
 
 
 
-	void DebugWindow::Set(const std::string& name, const std::string& data)
+	void DebugGui::Set(const std::string& name, const std::string& data)
 	{
 		mMap[name] = data;
 	}
 
 
 
-	void DebugWindow::Unset(const std::string& name)
+	void DebugGui::Unset(const std::string& name)
 	{
 		mMap.erase(name);
 	}
 
 
 
-	void DebugWindow::DrawImpl()
+	void DebugGui::DrawImpl()
 	{
 		ImGui::Begin("Debug", &mEnabled);
 

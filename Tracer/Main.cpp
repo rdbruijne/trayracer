@@ -9,11 +9,11 @@
 #include "Utility/Utility.h"
 
 // GUI windows
-#include "GUI/CameraWindow.h"
-#include "GUI/DebugWindow.h"
-#include "GUI/MaterialWindow.h"
-#include "GUI/RendererWindow.h"
-#include "GUI/StatWindow.h"
+#include "GUI/CameraGui.h"
+#include "GUI/DebugGui.h"
+#include "GUI/MaterialGui.h"
+#include "GUI/RendererGui.h"
+#include "GUI/StatGui.h"
 
 // C++
 #include <iostream>
@@ -22,7 +22,7 @@ namespace
 {
 	struct WindowRegistration
 	{
-		Tracer::GuiWindow* window;
+		Tracer::BaseGui* window;
 		Tracer::Input::Keys toggleKey;
 	};
 }
@@ -46,16 +46,16 @@ int main(int argc, char** argv)
 
 		std::vector<WindowRegistration> guiWindows =
 		{
-			{ Tracer::StatWindow::Get(),     Tracer::Input::Keys::F1 },
-			{ Tracer::RendererWindow::Get(), Tracer::Input::Keys::F2 },
-			{ Tracer::CameraWindow::Get(),   Tracer::Input::Keys::F3 },
-			{ Tracer::MaterialWindow::Get(), Tracer::Input::Keys::F4 },
-			{ Tracer::DebugWindow::Get(),    Tracer::Input::Keys::F10 }
+			{ Tracer::StatGui::Get(),     Tracer::Input::Keys::F1 },
+			{ Tracer::RendererGui::Get(), Tracer::Input::Keys::F2 },
+			{ Tracer::CameraGui::Get(),   Tracer::Input::Keys::F3 },
+			{ Tracer::MaterialGui::Get(), Tracer::Input::Keys::F4 },
+			{ Tracer::DebugGui::Get(),    Tracer::Input::Keys::F10 }
 		};
 
 		// default enabled windows
-		Tracer::StatWindow::Get()->SetEnabled(true);
-		Tracer::RendererWindow::Get()->SetEnabled(true);
+		Tracer::StatGui::Get()->SetEnabled(true);
+		Tracer::RendererGui::Get()->SetEnabled(true);
 
 		// create app
 		Tracer::App* app = new Tracer::App();
@@ -84,7 +84,7 @@ int main(int argc, char** argv)
 				renderer->BuildScene(app->GetScene());
 				app->GetScene()->MarkClean();
 			}
-			Tracer::StatWindow::Get()->mBuildTimeMs = buildTimer.ElapsedMs();
+			Tracer::StatGui::Get()->mBuildTimeMs = buildTimer.ElapsedMs();
 
 			// run Optix
 			renderer->RenderFrame(window->RenderTexture());
@@ -93,12 +93,12 @@ int main(int argc, char** argv)
 			window->Display();
 
 			// update GUI
-			Tracer::CameraWindow::Get()->mCamNode = app->GetCameraNode();
-			Tracer::RendererWindow::Get()->mRenderer = renderer;
-			Tracer::RendererWindow::Get()->mWindow = window;
-			Tracer::StatWindow::Get()->mFrameTimeMs = frameTimeMs;
-			Tracer::StatWindow::Get()->mRenderer = renderer;
-			Tracer::StatWindow::Get()->mScene = app->GetScene();
+			Tracer::CameraGui::Get()->mCamNode = app->GetCameraNode();
+			Tracer::RendererGui::Get()->mRenderer = renderer;
+			Tracer::RendererGui::Get()->mWindow = window;
+			Tracer::StatGui::Get()->mFrameTimeMs = frameTimeMs;
+			Tracer::StatGui::Get()->mRenderer = renderer;
+			Tracer::StatGui::Get()->mScene = app->GetScene();
 
 			// toggle GUI
 			bool anyGuiWindow = false;
