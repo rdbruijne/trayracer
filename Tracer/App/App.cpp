@@ -22,7 +22,7 @@ namespace Tracer
 		//mScene->Load("scenes/cornell.json", &mCamera);
 		//mScene->Load("scenes/bistro.json", &mCamera);
 		//mScene->Load("scenes/sponza.json", &mCamera);
-		mScene->Load("scenes/sponza_toad.json", &mCamera);
+		//mScene->Load("scenes/sponza_toad.json", &mCamera);
 		//mScene->Load("scenes/suntemple.json", &mCamera);
 		//mScene->Load("scenes/toad_on_a_plane.json", &mCamera);
 
