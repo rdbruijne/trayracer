@@ -25,8 +25,6 @@ namespace Tracer
 		CameraNode* GetCameraNode() { return &mCamera; }
 
 	private:
-		void CreateScene();
-
 		std::unique_ptr<Scene> mScene = nullptr;
 
 		// Camera

@@ -1,0 +1,14 @@
+{
+	"models":
+	[
+		{ "model": "models/bistro/BistroInterior.fbx" },
+		{ "model": "models/bistro/BistroExterior.fbx" }
+	],
+	"camera":
+	{
+		"position": [-25, 5, -5],
+		"target": [0, 0, 0],
+		"up": [0, 1, 0],
+		"fov": 90
+	}
+}

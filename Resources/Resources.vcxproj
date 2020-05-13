@@ -56,6 +56,7 @@
       <Message>Copy resources</Message>
       <Command>xcopy /r /d /i /s /y "$(ProjectDir)glsl" "$(OutDir)glsl"
 xcopy /r /d /i /s /y "$(ProjectDir)models" "$(OutDir)models"
+xcopy /r /d /i /s /y "$(ProjectDir)scenes" "$(OutDir)scenes"
 for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
@@ -64,6 +65,7 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
       <Message>Copy resources</Message>
       <Command>xcopy /r /d /i /s /y "$(ProjectDir)glsl" "$(OutDir)glsl"
 xcopy /r /d /i /s /y "$(ProjectDir)models" "$(OutDir)models"
+xcopy /r /d /i /s /y "$(ProjectDir)scenes" "$(OutDir)scenes"
 for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>

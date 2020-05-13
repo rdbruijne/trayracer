@@ -21,9 +21,10 @@ namespace Tracer
 	{
 	public:
 		Model() = default;
-		explicit Model(const std::string& name);
+		explicit Model(const std::string& filePath);
 
 		// info
+		const std::string& FilePath() const { return mFilePath; }
 		inline size_t PolyCount() const { return mIndices.size(); }
 		inline size_t VertexCount() const { return mVertices.size(); }
 
@@ -46,6 +47,7 @@ namespace Tracer
 		inline const CudaMeshData& CudaMesh() const { return mCudaMesh; }
 
 	private:
+		std::string mFilePath;
 		std::vector<std::shared_ptr<Material>> mMaterials;
 
 		// geometry

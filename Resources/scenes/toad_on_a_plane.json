@@ -1,0 +1,17 @@
+{
+	"models":
+	[
+		{
+			"model": "models/toad/toad.obj",
+			"transform": [{ "matrix": [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.69, 0] }]
+		},
+		{ "model": "models/plane/plane.obj" }
+	],
+	"camera":
+	{
+		"position": [9, 2, 2],
+		"target": [0, 0, 0],
+		"up": [0, 1, 0],
+		"fov": 90
+	}
+}

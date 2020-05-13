@@ -14,7 +14,8 @@
 namespace Tracer
 {
 	Model::Model(const std::string& filePath) :
-		Resource(filePath)
+		Resource(FileName(filePath)),
+		mFilePath(filePath)
 	{
 	}
 

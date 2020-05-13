@@ -164,10 +164,12 @@ namespace Tracer
 
 	std::shared_ptr<Model> ImportModel(const std::string& filePath)
 	{
+		printf("Importing \"%s\"", filePath.c_str());
 		try
 		{
 			const std::string importDir = Directory(filePath);
 
+#if false
 			// attach log stream
 			static Assimp::Logger* defaultLogger = nullptr;
 			if(!defaultLogger)
@@ -176,6 +178,7 @@ namespace Tracer
 				//defaultLogger->setLogSeverity(Assimp::Logger::VERBOSE);
 				defaultLogger->attachStream(new ImportLogStream(), Assimp::Logger::Debugging | Assimp::Logger::Info | Assimp::Logger::Err | Assimp::Logger::Warn);
 			}
+#endif
 
 			// Importer
 			Assimp::Importer importer;
@@ -228,7 +231,7 @@ namespace Tracer
 				throw std::runtime_error(importer.GetErrorString());
 
 			// create model
-			std::shared_ptr<Model> model = std::make_shared<Model>(FileName(filePath));
+			std::shared_ptr<Model> model = std::make_shared<Model>(filePath);
 
 			// import materials
 			std::map<std::string, std::shared_ptr<Texture>> textures;

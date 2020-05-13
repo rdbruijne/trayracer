@@ -1,0 +1,13 @@
+{
+	"models":
+	[
+		{ "model": "models/sponza/sponza.obj" }
+	],
+	"camera":
+	{
+		"position": [-1350, 150, 0],
+		"target": [0, 125, 0],
+		"up": [0, 1, 0],
+		"fov": 90
+	}
+}

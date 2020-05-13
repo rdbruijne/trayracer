@@ -2,10 +2,12 @@
 
 // C++
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace Tracer
 {
+	class CameraNode;
 	class Instance;
 	class Material;
 	class Model;
@@ -14,6 +16,8 @@ namespace Tracer
 	{
 		friend class Renderer;
 	public:
+		void Load(const std::string& sceneFile, CameraNode& camNode);
+
 		bool IsDirty() const;
 		inline void MarkClean() { mIsDirty = false; }
 		inline void MarkDirty() { mIsDirty = true; }

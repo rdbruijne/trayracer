@@ -1,0 +1,22 @@
+{
+	"models":
+	[
+		{ "model": "models/sponza/sponza.obj" },
+		{
+			"model": "models/toad/toad.obj",
+			"transform":
+			[
+				{ "translate": [0, 1.69, 0] },
+				{ "scale": [40, 40, 40] },
+				{ "rotate-y": 3.14 }
+			]
+		}
+	],
+	"camera":
+	{
+		"position": [-1350, 150, 0],
+		"target": [0, 125, 0],
+		"up": [0, 1, 0],
+		"fov": 90
+	}
+}
