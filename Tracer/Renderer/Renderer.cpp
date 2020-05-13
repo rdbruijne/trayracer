@@ -459,7 +459,7 @@ namespace Tracer
 		mPipelineCompileOptions.pipelineLaunchParamsVariableName = "params";
 
 		// pipeline link options
-		mPipelineLinkOptions.maxTraceDepth          = 2;
+		mPipelineLinkOptions.maxTraceDepth          = 1;
 		mPipelineLinkOptions.debugLevel             = OPTIX_COMPILE_DEBUG_LEVEL_NONE;
 		mPipelineLinkOptions.overrideUsesMotionBlur = 0;
 

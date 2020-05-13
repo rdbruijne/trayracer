@@ -94,8 +94,8 @@ void __raygen__RayPick()
 	uint32_t tmax = __float_as_uint(DST_MAX);
 
 	// trace the ray
-	optixTrace(params.sceneRoot, O, D, params.epsilon, DST_MAX, 0.f, OptixVisibilityMask(255),
-			   OPTIX_RAY_FLAG_DISABLE_ANYHIT, RayType_Surface, RayType_Count, RayType_Surface, bary, instIx, primIx, tmax);
+	optixTrace(params.sceneRoot, O, D, params.epsilon, DST_MAX, 0.f, OptixVisibilityMask(255), OPTIX_RAY_FLAG_DISABLE_ANYHIT,
+			   RayType_Surface, RayType_Count, RayType_Surface, bary, instIx, primIx, tmax);
 
 	RayPickResult& r = *params.rayPickResult;
 	r.rayOrigin = params.cameraPos;
