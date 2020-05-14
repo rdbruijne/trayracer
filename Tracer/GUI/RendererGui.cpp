@@ -1,6 +1,7 @@
 #include "RendererGui.h"
 
 // Project
+#include "FileIO/SceneFile.h"
 #include "Gui/GuiHelpers.h"
 #include "OpenGL/Window.h"
 #include "Renderer/Renderer.h"
@@ -48,7 +49,7 @@ namespace Tracer
 				if(OpenFileDialog("Json\0*.json\0", "Select a scene file", true, sceneFile))
 				{
 					mScene->Clear();
-					mScene->Load(sceneFile, mCamNode);
+					SceneFile::Load(sceneFile, mScene,mCamNode, mRenderer, mWindow);
 				}
 			}
 			ImGui::NextColumn();
@@ -57,7 +58,7 @@ namespace Tracer
 			{
 				std::string sceneFile;
 				if(OpenFileDialog("Json\0*.json\0", "Select a scene file", false, sceneFile))
-					mScene->Save(sceneFile, mCamNode);
+					SceneFile::Save(sceneFile, mScene,mCamNode, mRenderer, mWindow);
 			}
 			ImGui::NextColumn();
 

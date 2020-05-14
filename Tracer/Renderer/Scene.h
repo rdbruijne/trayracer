@@ -7,18 +7,14 @@
 
 namespace Tracer
 {
-	class CameraNode;
 	class Instance;
 	class Material;
 	class Model;
-	class Renderer;
+	class Window;
 	class Scene
 	{
-		friend class Renderer;
 	public:
 		void Clear();
-		void Load(const std::string& sceneFile, CameraNode* camNode = nullptr);
-		void Save(const std::string& sceneFile, CameraNode* camNode = nullptr);
 
 		bool IsDirty() const;
 		inline void MarkClean() { mIsDirty = false; }

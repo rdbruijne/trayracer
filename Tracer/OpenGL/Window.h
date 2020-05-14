@@ -57,7 +57,7 @@ namespace Tracer
 			float exposure = 1.f;
 			float gamma = 1.f;
 		};
-		ShaderProperties PostShaderProperties() const { return mShaderProperties; }
+		const ShaderProperties& PostShaderProperties() const { return mShaderProperties; }
 		void SetPostShaderProperties(const ShaderProperties& properties) { mShaderProperties = properties; }
 
 		// GL

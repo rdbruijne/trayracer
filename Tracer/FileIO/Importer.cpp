@@ -162,7 +162,7 @@ namespace Tracer
 
 
 
-	std::shared_ptr<Model> ImportModel(const std::string& filePath)
+	std::shared_ptr<Model> Importer::ImportModel(const std::string& filePath)
 	{
 		printf("Importing \"%s\"\n", filePath.c_str());
 		try

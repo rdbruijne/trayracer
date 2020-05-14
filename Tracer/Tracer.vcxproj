@@ -197,6 +197,8 @@
     <ClCompile Include="App\ControlScheme.cpp" />
     <ClCompile Include="App\OrbitCameraController.cpp" />
     <ClCompile Include="Common\CommonStructs.cpp" />
+    <ClCompile Include="FileIO\Importer.cpp" />
+    <ClCompile Include="FileIO\SceneFile.cpp" />
     <ClCompile Include="GUI\BaseGui.cpp" />
     <ClCompile Include="GUI\CameraGui.cpp" />
     <ClCompile Include="GUI\DebugGui.cpp" />
@@ -220,7 +222,6 @@
     <ClCompile Include="Resources\Model.cpp" />
     <ClCompile Include="Resources\Resource.cpp" />
     <ClCompile Include="Resources\Texture.cpp" />
-    <ClCompile Include="Utility\Importer.cpp" />
     <ClCompile Include="Utility\Stopwatch.cpp" />
     <ClCompile Include="Utility\Utility.cpp" />
   </ItemGroup>
@@ -241,6 +242,8 @@
     <ClInclude Include="CUDA\CudaFwd.h" />
     <ClInclude Include="CUDA\CudaUtility.h" />
     <ClInclude Include="CUDA\Shade.h" />
+    <ClInclude Include="FileIO\Importer.h" />
+    <ClInclude Include="FileIO\SceneFile.h" />
     <ClInclude Include="GUI\BaseGui.h" />
     <ClInclude Include="GUI\CameraGui.h" />
     <ClInclude Include="GUI\DebugGui.h" />
@@ -263,7 +266,6 @@
     <ClInclude Include="Resources\Material.h" />
     <ClInclude Include="Resources\Resource.h" />
     <ClInclude Include="Resources\Texture.h" />
-    <ClInclude Include="Utility\Importer.h" />
     <ClInclude Include="Utility\LinearMath.h" />
     <ClInclude Include="Utility\Stopwatch.h" />
     <ClInclude Include="Utility\Utility.h" />

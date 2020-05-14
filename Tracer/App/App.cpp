@@ -18,14 +18,6 @@ namespace Tracer
 		// default camera
 		mCamera = CameraNode(make_float3(0, 0, -1), make_float3(0, 0, 0), make_float3(0, 1, 0), 90.f * DegToRad);
 
-		// load scene
-		//mScene->Load("scenes/cornell.json", &mCamera);
-		//mScene->Load("scenes/bistro.json", &mCamera);
-		//mScene->Load("scenes/sponza.json", &mCamera);
-		//mScene->Load("scenes/sponza_toad.json", &mCamera);
-		//mScene->Load("scenes/suntemple.json", &mCamera);
-		//mScene->Load("scenes/toad_on_a_plane.json", &mCamera);
-
 		// update camera
 		renderer->SetCamera(mCamera);
 	}
