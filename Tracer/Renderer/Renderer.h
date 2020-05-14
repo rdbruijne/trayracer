@@ -69,6 +69,9 @@ namespace Tracer
 		// ray picking
 		RayPickResult PickRay(int2 pixelIndex);
 
+		// device
+		const cudaDeviceProp& CudaDeviceProperties() const { return mDeviceProperties; }
+
 		// denoising
 		inline bool DenoisingEnabled() const { return mDenoisingEnabled; }
 		inline void SetDenoiserEnabled(bool enabled) { mDenoisingEnabled = enabled; }

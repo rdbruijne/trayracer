@@ -61,6 +61,11 @@ namespace Tracer
 			ROW("Stat", "Value");
 			ImGui::Separator();
 
+			// device
+			auto devProps = mRenderer->CudaDeviceProperties();
+			ROW("Device", devProps.name);
+			SPACE;
+
 			// kenel
 			ROW("Kernel", ToString(mRenderer->RenderMode()).c_str());
 			ROW("Samples","%d", mRenderer->SampleCount());
