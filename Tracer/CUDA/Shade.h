@@ -3,30 +3,7 @@
 #include "CudaFwd.h"
 #include "CudaUtility.h"
 
-#define KERNEL_PARAMS	uint32_t pathCount, float4* accumulator, float4* pathStates, uint4* hitData, int2 resolution, uint32_t stride, uint32_t pathLength
-
-
-
-static __device__ float2 DecodeBarycentrics(uint32_t barycentrics)
-{
-	const uint32_t bx = barycentrics >> 16;
-	const uint32_t by = barycentrics & 0xFFFF;
-	return make_float2(static_cast<float>(bx) / 65535.f, static_cast<float>(by) / 65535.f);
-}
-
-
-
-static __device__ float3 SampleSky(const float3& O, const float3& D)
-{
-	return params->skyColor;
-}
-
-
-
-static __device__ float3 FlipInfacingNormal(const float3& D, const float3& N)
-{
-	return dot(D, N) > 0 ? -N : N;
-}
+#define KERNEL_PARAMS	uint32_t pathCount, float4* accumulator, float4* pathStates, uint4* hitData, float4* shadowRays, int2 resolution, uint32_t stride, uint32_t pathLength
 
 
 
@@ -61,7 +38,7 @@ __global__ void ShadeKernel_AmbientOcclusion(KERNEL_PARAMS)
 
 		// fix infacing normal
 		const float3 newOrigin = O + (D * tmax);
-		const float3 newDir = SampleCosineHemisphere(FlipInfacingNormal(D, attrib.shadingNormal), rnd(seed), rnd(seed));
+		const float3 newDir = SampleCosineHemisphere(attrib.geometricNormal, rnd(seed), rnd(seed));
 
 		// update path states
 		const int32_t extendIx = atomicAdd(&counters->extendRays, 1);
@@ -117,7 +94,7 @@ __global__ void ShadeKernel_AmbientOcclusionShading(KERNEL_PARAMS)
 		uint32_t seed = tea<2>(pathIx, params->sampleCount + pathLength + 1);
 
 		const float3 newOrigin = O + (D * tmax);
-		const float3 newDir = SampleCosineHemisphere(FlipInfacingNormal(D, attrib.shadingNormal), rnd(seed), rnd(seed));
+		const float3 newDir = SampleCosineHemisphere(attrib.geometricNormal, rnd(seed), rnd(seed));
 
 		// update path states
 		const int32_t extendIx = atomicAdd(&counters->extendRays, 1);
@@ -169,6 +146,85 @@ __global__ void ShadeKernel_DiffuseFilter(KERNEL_PARAMS)
 	}
 
 	accumulator[pixelIx] += make_float4(diff, 0);
+}
+
+
+
+__global__ void ShadeKernel_DirectLight(KERNEL_PARAMS)
+{
+	const int jobIdx = threadIdx.x + (blockIdx.x * blockDim.x);
+	if(jobIdx >= pathCount)
+		return;
+
+	// gather data
+	const float4 O4 = pathStates[jobIdx + (stride * 0)];
+	const float4 D4 = pathStates[jobIdx + (stride * 1)];
+	const float4 T4 = pathLength == 0 ? make_float4(1) : pathStates[jobIdx + (stride * 2)];
+
+	const float3 O = make_float3(O4);
+	const float3 D = make_float3(D4);
+	const float3 T = make_float3(T4);
+	const int32_t pathIx = __float_as_int(O4.w);
+	const int32_t pixelIx = pathIx % (resolution.x * resolution.y);
+
+	const uint4 hd = hitData[pathIx];
+	const float2 bary = DecodeBarycentrics(hd.x);
+	const uint32_t instIx = hd.y;
+	const uint32_t primIx = hd.z;
+	const float tmax = __uint_as_float(hd.w);
+
+	// didn't hit anything
+	if(primIx == ~0)
+		return;
+
+	// generate seed
+	uint32_t seed = tea<2>(pathIx, params->sampleCount + pathLength + 1);
+
+	// fetch material info
+	const IntersectionAttributes attrib = GetIntersectionAttributes(instIx, primIx, bary);
+	const CudaMatarial& mat = materialData[attrib.matIx];
+
+	// emissive
+	if(mat.emissive.x > 0 || mat.emissive.y > 0 || mat.emissive.z > 0)
+	{
+		// accounted for in Next Event
+		accumulator[pixelIx] += make_float4(T * mat.emissive);
+		return;
+	}
+
+	// diffuse
+	float3 diff = mat.diffuse;
+	if(mat.textures & Texture_DiffuseMap)
+	{
+		const float4 diffMap = tex2D<float4>(mat.diffuseMap, attrib.texcoordX, attrib.texcoordY);
+		diff *= make_float3(diffMap.z, diffMap.y, diffMap.x);
+	}
+
+	// new throughput
+	float3 throughput = T * diff;
+
+	// next event
+	if(lightCount > 0)
+	{
+		const float3 I = O + D * tmax;
+		float lightProb;
+		float lightPdf;
+		float3 lightRadiance;
+		const float3 lightPoint = SampleLight(seed, I, attrib.shadingNormal, lightProb, lightPdf, lightRadiance);
+
+		float3 L = lightPoint - I;
+		const float lDist = length(L);
+		L *= 1.f / lDist;
+		const float NdotL = dot(L, attrib.shadingNormal);
+		if(NdotL > 0)// && lightPdf > 0)
+		{
+			// fire shadow ray
+			const int32_t shadowIx = atomicAdd(&counters->shadowRays, 1);
+			shadowRays[shadowIx + (stride * 0)] = make_float4(I, __int_as_float(pixelIx));
+			shadowRays[shadowIx + (stride * 1)] = make_float4(L, lDist);
+			shadowRays[shadowIx + (stride * 2)] = make_float4(throughput * lightRadiance * NdotL/** (NdotL / (lightProb * lightPdf))*/, 0);
+		}
+	}
 }
 
 
@@ -281,16 +337,20 @@ __global__ void ShadeKernel_PathTracing(KERNEL_PARAMS)
 		return;
 	}
 
-	// shading
+	// generate seed
 	uint32_t seed = tea<2>(pathIx, params->sampleCount + pathLength + 1);
 
+	// fetch material info
 	const IntersectionAttributes attrib = GetIntersectionAttributes(instIx, primIx, bary);
 	const CudaMatarial& mat = materialData[attrib.matIx];
 
 	// emissive
 	if(mat.emissive.x > 0 || mat.emissive.y > 0 || mat.emissive.z > 0)
 	{
-		accumulator[pixelIx] += make_float4(T * mat.emissive);
+		if(pathLength == 0)
+			accumulator[pixelIx] += make_float4(mat.emissive, 0);
+		else
+			accumulator[pixelIx] += make_float4(T * mat.emissive, 0);
 		return;
 	}
 
@@ -305,6 +365,29 @@ __global__ void ShadeKernel_PathTracing(KERNEL_PARAMS)
 	// new throughput
 	float3 throughput = T * diff;
 
+	// next event
+	if(lightCount > 0)
+	{
+		const float3 I = O + D * tmax;
+		float lightProb;
+		float lightPdf;
+		float3 lightRadiance;
+		const float3 lightPoint = SampleLight(seed, I, attrib.shadingNormal, lightProb, lightPdf, lightRadiance);
+
+		float3 L = lightPoint - I;
+		const float lDist = length(L);
+		L *= 1.f / lDist;
+		const float NdotL = dot(L, attrib.shadingNormal);
+		if(NdotL > 0)// && lightPdf > 0)
+		{
+			// fire shadow ray
+			const int32_t shadowIx = atomicAdd(&counters->shadowRays, 1);
+			shadowRays[shadowIx + (stride * 0)] = make_float4(I, __int_as_float(pixelIx));
+			shadowRays[shadowIx + (stride * 1)] = make_float4(L, lDist);
+			shadowRays[shadowIx + (stride * 2)] = make_float4(throughput * lightRadiance * NdotL/** (NdotL / (lightProb * lightPdf))*/, 0);
+		}
+	}
+
 	// Russian roulette
 	if(pathLength > 0)
 	{
@@ -316,7 +399,7 @@ __global__ void ShadeKernel_PathTracing(KERNEL_PARAMS)
 
 	// generate extend
 	const float3 newOrigin = O + (D * tmax);
-	const float3 newDir = SampleCosineHemisphere(FlipInfacingNormal(D, attrib.shadingNormal), rnd(seed), rnd(seed));
+	const float3 newDir = SampleCosineHemisphere(attrib.geometricNormal, rnd(seed), rnd(seed));
 
 	// update path states
 	const int32_t extendIx = atomicAdd(&counters->extendRays, 1);
@@ -453,10 +536,10 @@ __global__ void ShadeKernel_ZDepth(KERNEL_PARAMS)
 
 
 
-__host__ void Shade(RenderModes renderMode, uint32_t pathCount, float4* accumulator, float4* pathStates, uint4* hitData, int2 resolution, uint32_t stride, uint32_t pathLength)
+__host__ void Shade(RenderModes renderMode, KERNEL_PARAMS)
 {
 #define KERNEL_DIMENSIONS	blockCount, threadsPerBlock
-#define KERNEL_PASS_PARAMS	pathCount, accumulator, pathStates, hitData, resolution, stride, pathLength
+#define KERNEL_PASS_PARAMS	pathCount, accumulator, pathStates, hitData, shadowRays, resolution, stride, pathLength
 
 	const uint32_t threadsPerBlock = 128;
 	const uint32_t blockCount = DivRoundUp(pathCount, threadsPerBlock);
@@ -472,6 +555,10 @@ __host__ void Shade(RenderModes renderMode, uint32_t pathCount, float4* accumula
 
 	case RenderModes::DiffuseFilter:
 		ShadeKernel_DiffuseFilter<<<KERNEL_DIMENSIONS>>>(KERNEL_PASS_PARAMS);
+		break;
+
+	case RenderModes::DirectLight:
+		ShadeKernel_DirectLight<<<KERNEL_DIMENSIONS>>>(KERNEL_PASS_PARAMS);
 		break;
 
 	case RenderModes::GeometricNormal:

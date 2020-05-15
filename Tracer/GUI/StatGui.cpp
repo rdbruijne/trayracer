@@ -79,6 +79,7 @@ namespace Tracer
 			ROW("Primary rays", "%.1f ms", renderStats.primaryPathTimeMs);
 			ROW("Secondary rays", "%.1f ms", renderStats.secondaryPathTimeMs);
 			ROW("Deep rays", "%.1f ms", renderStats.deepPathTimeMs);
+			ROW("Shadow rays", "%.1f ms", renderStats.shadowTimeMs);
 			ROW("Shade time", "%.1f ms", renderStats.shadeTimeMs);
 			ROW("Denoise time", "%.1f ms", renderStats.denoiseTimeMs);
 
@@ -89,6 +90,7 @@ namespace Tracer
 			ROW("Primaries", "%.1f M (%.1f M/s)", renderStats.primaryPathCount * 1e-6, PerSec(renderStats.primaryPathCount, renderStats.primaryPathTimeMs) * 1e-6);
 			ROW("Secondaries", "%.1f M (%.1f M/s)", renderStats.secondaryPathCount * 1e-6, PerSec(renderStats.secondaryPathCount, renderStats.secondaryPathTimeMs) * 1e-6);
 			ROW("Deep", "%.1f M (%.1f M/s)", renderStats.deepPathCount * 1e-6, PerSec(renderStats.deepPathCount, renderStats.deepPathTimeMs) * 1e-6);
+			ROW("Shadow", "%.1f M (%.1f M/s)", renderStats.shadowRayCount * 1e-6, PerSec(renderStats.shadowRayCount, renderStats.shadowTimeMs) * 1e-6);
 
 			SPACE;
 
@@ -97,6 +99,8 @@ namespace Tracer
 			ROW("Model count", "%lld", mScene->InstancedModelCount());
 			ROW("Triangle count", "%s", ThousandSeparators(mScene->TriangleCount()).c_str());
 			ROW("Unique triangle count", "%s", ThousandSeparators(mScene->UniqueTriangleCount()).c_str());
+			ROW("Lights", "%s", ThousandSeparators(mScene->LightCount()).c_str());
+			ROW("Unique lights", "%s", ThousandSeparators(mScene->UniqueLightCount()).c_str());
 
 #undef SPACE
 #undef ROW

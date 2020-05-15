@@ -7,7 +7,7 @@
 			"transform":
 			[
 				{ "translate": [0, 1.69, 0] },
-				{ "scale": [40, 40, 40] },
+				{ "scale": 40 },
 				{ "rotate-y": 90 }
 			]
 		}

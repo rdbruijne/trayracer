@@ -1,5 +1,8 @@
 #pragma once
 
+// Project
+#include "Common/CommonStructs.h"
+
 // C++
 #include <memory>
 #include <string>
@@ -26,6 +29,8 @@ namespace Tracer
 		size_t InstancedModelCount() const;
 		size_t TriangleCount() const;
 		size_t UniqueTriangleCount() const;
+		size_t LightCount() const;
+		size_t UniqueLightCount() const;
 
 		void AddModel(std::shared_ptr<Model> model);
 		void AddInstance(std::shared_ptr<Instance> instance);
@@ -34,6 +39,8 @@ namespace Tracer
 
 		inline const std::vector<std::shared_ptr<Model>>& Models() const { return mModels; }
 		inline const std::vector<std::shared_ptr<Instance>>& Instances() const { return mInstances; }
+
+		std::vector<LightTriangle> Lights() const;
 
 	private:
 		// utility

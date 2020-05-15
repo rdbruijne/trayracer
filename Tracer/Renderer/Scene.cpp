@@ -94,6 +94,30 @@ namespace Tracer
 
 
 
+	size_t Scene::LightCount() const
+	{
+		size_t lightCount = 0;
+		for(auto& i : mInstances)
+			lightCount += i->GetModel()->LightCount();
+		return lightCount;
+	}
+
+
+
+	size_t Scene::UniqueLightCount() const
+	{
+		std::set<std::shared_ptr<Model>> models;
+		for(auto& i : mInstances)
+			models.insert(i->GetModel());
+
+		size_t lightCount = 0;
+		for(const auto& m : models)
+			lightCount += m->LightCount();
+		return lightCount;
+	}
+
+
+
 	void Scene::AddModel(std::shared_ptr<Model> model)
 	{
 		if(model && std::find(mModels.begin(), mModels.end(), model) == mModels.end())
@@ -124,5 +148,34 @@ namespace Tracer
 		if(instanceIx >= mInstances.size())
 			return nullptr;
 		return mInstances[instanceIx]->GetModel()->GetMaterial(primIx);
+	}
+
+
+
+	std::vector<LightTriangle> Scene::Lights() const
+	{
+		// #TODO: cache?
+		std::vector<LightTriangle> lights;
+		size_t lightSize = 0;
+		for(size_t i = 0; i < mInstances.size(); i++)
+		{
+			auto inst = mInstances[i];
+			const std::vector<LightTriangle>& modelLights = inst->GetModel()->Lights();
+			const float3x4& trans = inst->Transform();
+			if(modelLights.size() > 0)
+			{
+				lights.insert(lights.end(), modelLights.begin(), modelLights.end());
+				for(; lightSize < lights.size(); lightSize++)
+				{
+					LightTriangle& tri = lights[lightSize];
+					tri.V0 = make_float3(transform(trans, make_float4(tri.V0, 1)));
+					tri.V1 = make_float3(transform(trans, make_float4(tri.V1, 1)));
+					tri.V2 = make_float3(transform(trans, make_float4(tri.V2, 1)));
+					tri.N  = normalize(make_float3(transform(trans, make_float4(tri.N, 0))));
+					tri.instIx = static_cast<int32_t>(i);
+				}
+			}
+		}
+		return lights;
 	}
 }

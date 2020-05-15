@@ -113,10 +113,17 @@ namespace Tracer
 			const float3 v1 = mVertices[ix.y];
 			const float3 v2 = mVertices[ix.z];
 
+#if false
 			float3 N = normalize(cross(v1 - v0, v2 - v0));
 			t.Nx = N.x;
 			t.Ny = N.y;
 			t.Nz = N.z;
+#else
+			float3 N = normalize(t.N0 + t.N1 + t.N2);
+			t.Nx = N.x;
+			t.Ny = N.y;
+			t.Nz = N.z;
+#endif
 
 			t.tangent = mTangents[ix.x];
 			t.bitangent = mBitangents[ix.x];
@@ -153,9 +160,53 @@ namespace Tracer
 		uint64_t compactedSize = 0;
 		compactedSizeBuffer.Download(&compactedSize);
 
-		mAccelBuffer.Alloc(compactedSize);
+		if(mAccelBuffer.Size() != compactedSize)
+			mAccelBuffer.Alloc(compactedSize);
 		OPTIX_CHECK(optixAccelCompact(optixContext, stream, mTraversableHandle, mAccelBuffer.DevicePtr(), mAccelBuffer.Size(), &mTraversableHandle));
 		CUDA_CHECK(cudaDeviceSynchronize());
+	}
+
+
+
+	void Model::BuildLights()
+	{
+		size_t oldLightTriSize = mLightTriangles.size();
+		mLightTriangles.clear();
+		mLightTriangles.reserve(oldLightTriSize);
+
+		for(size_t i = 0; i < mIndices.size(); i++)
+		{
+			const uint32_t matIx = mMaterialIndices[i];
+			auto& mat = mMaterials[matIx];
+			const float3& em = mat->Emissive();
+			if(em.x + em.y + em.z > 0)
+			{
+				LightTriangle lt = {};
+
+				lt.triIx = static_cast<int32_t>(i);
+
+				const uint3& indices = mIndices[i];
+				lt.V0 = mVertices[indices.x];
+				lt.V1 = mVertices[indices.y];
+				lt.V2 = mVertices[indices.z];
+				lt.N = normalize(cross(lt.V1 - lt.V0, lt.V2 - lt.V0));
+
+				const float a = length(lt.V1 - lt.V0);
+				const float b = length(lt.V2 - lt.V1);
+				const float c = length(lt.V0 - lt.V2);
+				const float s = (a + b + c) * .5f;
+				lt.area = sqrtf(s * (s-a) * (s-b) * (s-c));
+
+				lt.radiance = em;
+
+				const float3 energy = em * lt.area;
+				lt.energy = energy.x + energy.y + energy.z;
+
+				mLightTriangles.push_back(lt);
+			}
+		}
+
+		mLightTriangles.shrink_to_fit();
 	}
 
 

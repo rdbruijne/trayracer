@@ -56,6 +56,7 @@ int main(int argc, char** argv)
 		// default enabled windows
 		Tracer::StatGui::Get()->SetEnabled(true);
 		Tracer::RendererGui::Get()->SetEnabled(true);
+		Tracer::MaterialGui::Get()->SetEnabled(true);
 
 		// create app
 		Tracer::App* app = new Tracer::App();

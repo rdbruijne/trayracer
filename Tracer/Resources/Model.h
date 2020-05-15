@@ -25,6 +25,7 @@ namespace Tracer
 
 		// info
 		const std::string& FilePath() const { return mFilePath; }
+		inline size_t LightCount() const { return mLightTriangles.size(); }
 		inline size_t PolyCount() const { return mIndices.size(); }
 		inline size_t VertexCount() const { return mVertices.size(); }
 
@@ -40,11 +41,13 @@ namespace Tracer
 
 		// build
 		void Build(OptixDeviceContext optixContext, CUstream stream);
+		void BuildLights();
 
 		// build info
 		OptixInstance InstanceData(uint32_t instanceId, const float3x4& transform) const;
 		inline CudaMeshData CudaMesh() { return mCudaMesh; }
 		inline const CudaMeshData& CudaMesh() const { return mCudaMesh; }
+		inline const std::vector<LightTriangle>& Lights() const { return mLightTriangles; }
 
 	private:
 		std::string mFilePath;
@@ -59,6 +62,7 @@ namespace Tracer
 		std::vector<uint3>  mIndices;
 		std::vector<uint32_t> mMaterialIndices;
 		std::vector<PackedTriangle> mPackedTriangles;
+		std::vector<LightTriangle> mLightTriangles;
 
 		// build data
 		CudaBuffer mVertexBuffer = {};

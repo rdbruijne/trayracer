@@ -39,19 +39,35 @@ constexpr float DST_MAX = 1e30f;
 //------------------------------------------------------------------------------------------------------------------------------
 // Globals
 //------------------------------------------------------------------------------------------------------------------------------
-static __device__ Counters* counters;
+static __device__ Counters* counters = nullptr;
 
-__constant__ CudaMatarial* materialData;
-__constant__ CudaMeshData* meshData;
-__constant__ LaunchParams* params;
-__constant__ uint32_t* materialOffsets;
-__constant__ uint32_t* modelIndices;
+__constant__ CudaMatarial* materialData = nullptr;
+__constant__ CudaMeshData* meshData = nullptr;
+__constant__ int32_t lightCount = 0;
+__constant__ LightTriangle* lights = nullptr;
+__constant__ LaunchParams* params = nullptr;
+__constant__ uint32_t* materialOffsets = nullptr;
+__constant__ uint32_t* modelIndices = nullptr;
 
 
 
 __host__ void SetCudaCounters(Counters* data)
 {
 	cudaMemcpyToSymbol(counters, &data, sizeof(void*));
+}
+
+
+
+__host__ void SetCudaLights(LightTriangle* data)
+{
+	cudaMemcpyToSymbol(lights, &data, sizeof(void*));
+}
+
+
+
+__host__ void SetCudaLightCount(int32_t count)
+{
+	cudaMemcpyToSymbol(lightCount, &count, sizeof(lightCount));
 }
 
 
@@ -99,6 +115,7 @@ static __global__ void InitCudaCountersKernel()
 	if(threadIdx.x == 0)
 	{
 		counters->extendRays = 0;
+		counters->shadowRays = 0;
 	}
 }
 
@@ -161,6 +178,16 @@ static __device__
 inline float3 Barycentric(float2 bc, const float3& v0, const float3& v1, const float3& v2)
 {
 	return v0 + ((v1 - v0) * bc.x) + ((v2 - v0) * bc.y);
+}
+
+
+
+static __device__
+inline float2 DecodeBarycentrics(uint32_t barycentrics)
+{
+	const uint32_t bx = barycentrics >> 16;
+	const uint32_t by = barycentrics & 0xFFFF;
+	return make_float2(static_cast<float>(bx) / 65535.f, static_cast<float>(by) / 65535.f);
 }
 
 
@@ -275,4 +302,48 @@ inline float3 SampleCosineHemisphere(const float3& normal, float u, float v)
 
 	const float3 f = SampleCosineHemisphere(u, v);
 	return f.x*tangent + f.y*bitangent + f.z*normal;
+}
+
+
+
+//------------------------------------------------------------------------------------------------------------------------------
+// Sky
+//------------------------------------------------------------------------------------------------------------------------------
+static __device__
+inline float3 SampleSky(const float3& O, const float3& D)
+{
+	return params->skyColor;
+}
+
+
+
+//------------------------------------------------------------------------------------------------------------------------------
+// Next event
+//------------------------------------------------------------------------------------------------------------------------------
+static __device__
+inline float3 SampleLight(uint32_t& seed, const float3& I, const float3& N, float& prob, float& pdf, float3& radiance)
+{
+	if(lightCount == 0)
+	{
+		prob = 0;
+		pdf = 0;
+		radiance = make_float3(0);
+		return make_float3(1);
+	}
+
+	// pick random light
+	const int lightIx = clamp((int)(rnd(seed) * lightCount), 0, lightCount - 1);
+	const LightTriangle& tri = lights[lightIx];
+	const float3 bary = make_float3(rnd(seed), rnd(seed), rnd(seed));
+	const float3 pointOnLight = (bary.x * tri.V0) + (bary.y * tri.V1) + (bary.z * tri.V2);
+	float3 L = I - pointOnLight;
+	const float sqDist = dot(L, L);
+	L = normalize(L);
+	const float LNdotL = dot(tri.N, L);
+	const float NdotL = dot(N, L);
+
+	prob = 1.f / lightCount;
+	pdf = (NdotL < 0 && LNdotL > 0) ? sqDist / (tri.area * LNdotL) : 0;
+	radiance = tri.radiance;
+	return pointOnLight;
 }

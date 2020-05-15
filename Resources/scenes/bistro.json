@@ -2,7 +2,17 @@
 	"models":
 	[
 		{ "model": "models/bistro/BistroInterior.fbx" },
-		{ "model": "models/bistro/BistroExterior.fbx" }
+		{ "model": "models/bistro/BistroExterior.fbx" },
+		{
+			"model": "models/toad/toad.obj",
+			"transform":
+			[
+				{ "translate": [0, 1.69, 0] },
+				{ "scale": 0.75 },
+				{ "rotate-y": 90 },
+				{ "translate": [-12, 0.29, -1] }
+			]
+		}
 	],
 	"camera":
 	{

@@ -20,7 +20,7 @@
 enum RayTypes
 {
 	RayType_Surface = 0,
-	//RayType_Shadow,
+	RayType_Shadow,
 
 	RayType_Count
 };
@@ -30,7 +30,8 @@ enum RayTypes
 enum RayGenModes : uint32_t
 {
 	RayGen_Primary,
-	RayGen_Secondary
+	RayGen_Secondary,
+	RayGen_Shadow,
 };
 
 
@@ -47,6 +48,7 @@ enum class RenderModes : uint32_t
 	AmbientOcclusion,
 	AmbientOcclusionShading,
 	DiffuseFilter,
+	DirectLight,
 	GeometricNormal,
 	MaterialID,
 	ObjectID,
@@ -101,8 +103,13 @@ struct LaunchParams
 	float4* pathStates;
 	uint4* hitData;
 
+	// Shadow
+	float4* shadowRays;
+
+	// optix
+	RayGenModes rayGenMode;
+
 	// settings
-	int rayGenMode;
 	int multiSample;
 	int maxDepth;
 	float epsilon;
@@ -116,6 +123,7 @@ struct LaunchParams
 struct Counters
 {
 	int32_t extendRays = 0;
+	int32_t shadowRays = 0;
 };
 
 
@@ -143,6 +151,17 @@ struct alignas(16) PackedTriangle
 
 	float3 bitangent;
 	float pad2;
+};
+
+
+
+struct alignas(16) LightTriangle
+{
+	float3 V0; int32_t instIx;
+	float3 V1; int32_t triIx;
+	float3 V2; float area;
+	float3 N;  float energy;
+	float3 radiance; float dummy;
 };
 
 

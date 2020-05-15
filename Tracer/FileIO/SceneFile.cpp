@@ -100,7 +100,8 @@ namespace Tracer
 									const Value& opVal = op["scale"];
 									if(opVal.IsArray() && opVal.Size() == 3)
 										modelTransform *= scale_3x4(opVal[0].GetFloat(), opVal[1].GetFloat(), opVal[2].GetFloat());
-
+									else if(opVal.IsNumber())
+										modelTransform *= scale_3x4(opVal.GetFloat());
 								}
 								else if(op.HasMember("rotate-x"))
 								{

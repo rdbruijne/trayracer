@@ -132,6 +132,7 @@ void __closesthit__SPT()
 extern "C" __global__
 void __miss__SPT()
 {
+	optixSetPayload_0(0);
 }
 
 
@@ -209,6 +210,36 @@ void __raygen__SPT()
 
 			// set hit data
 			params.hitData[pathIx] = make_uint4(bary, instIx, primIx, tmax);
+		}
+		break;
+
+	case RayGen_Shadow:
+		{
+			const int rayIx = launchIndex.x + (launchIndex.y * launchDims.x);
+
+			// extract info
+			const float4 O4 = params.shadowRays[rayIx + (stride * 0)];
+			const float4 D4 = params.shadowRays[rayIx + (stride * 1)];
+
+			const float3 O = make_float3(O4);
+			const float3 D = make_float3(D4);
+			const int pathIx = __float_as_int(O4.w);
+
+			// prepare the payload
+			uint32_t u0 = ~0u;
+			uint32_t u1, u2, u3;
+
+			// trace the ray
+			optixTrace(params.sceneRoot, O, D, params.epsilon, D4.w - (2 * params.epsilon), 0.f, 0xFF,
+					   OPTIX_RAY_FLAG_DISABLE_ANYHIT | OPTIX_RAY_FLAG_TERMINATE_ON_FIRST_HIT,
+					   RayType_Surface, RayType_Count, RayType_Surface, u0, u1, u2, u3);
+
+			if(!u0)
+			{
+				const float4 T4 = params.shadowRays[rayIx + (stride * 2)];
+				const int pixelIx = __float_as_int(O4.w);
+				params.accumulator[pixelIx] += make_float4(T4.x, T4.y, T4.z, 0);
+			}
 		}
 		break;
 	};

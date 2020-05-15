@@ -55,11 +55,13 @@ namespace Tracer
 			uint64_t primaryPathCount = 0;
 			uint64_t secondaryPathCount = 0;
 			uint64_t deepPathCount = 0;
+			uint64_t shadowRayCount = 0;
 
 			float renderTimeMs = 0;
 			float primaryPathTimeMs = 0;
 			float secondaryPathTimeMs = 0;
 			float deepPathTimeMs = 0;
+			float shadowTimeMs = 0;
 			float shadeTimeMs = 0;
 			float denoiseTimeMs = 0;
 		};
@@ -131,7 +133,7 @@ namespace Tracer
 			~TimeEvent();
 
 			void Start(cudaStream_t stream = nullptr);
-			void End(cudaStream_t stream = nullptr);
+			void Stop(cudaStream_t stream = nullptr);
 
 			float Elapsed() const;
 		private:
@@ -143,6 +145,7 @@ namespace Tracer
 		TimeEvent mDenoiseTimeEvents = {};
 		std::array<TimeEvent, MaxTraceDepth> mTraceTimeEvents = {};
 		std::array<TimeEvent, MaxTraceDepth> mShadeTimeEvents = {};
+		std::array<TimeEvent, MaxTraceDepth> mShadowTimeEvents = {};
 
 		// Render buffer
 		CudaBuffer mAccumulator = {};
@@ -151,7 +154,8 @@ namespace Tracer
 
 		// SPT
 		CudaBuffer mPathStates = {};		// (O.xyz, pathIx)[], (D.xyz, meshIx)[], (throughput, ?)[]
-		CudaBuffer mHitData = {};			// (bary.x, bary.y), instIx, primIx, tmin
+		CudaBuffer mHitData = {};			// ((bary.x, bary.y), instIx, primIx, tmin)[]
+		CudaBuffer mShadowRayData = {};		// (O.xyz, pixelIx)[], (D.xyz, dist)[], (radiance, ?)[]
 		CudaBuffer mCountersBuffer = {};
 
 		// Denoiser
@@ -213,6 +217,9 @@ namespace Tracer
 		// Materials
 		CudaBuffer mCudaMaterialData = {};
 		CudaBuffer mCudaMaterialOffsets = {};
+
+		// lights
+		CudaBuffer mCudaLightsBuffer = {};
 
 		// Textures
 		struct CudaTexture
