@@ -69,6 +69,9 @@ int main(int argc, char** argv)
 		// main loop
 		while(!window->IsClosed())
 		{
+			// begin new frame
+			Tracer::GuiHelpers::BeginFrame();
+
 			// user input
 			window->UpdateInput();
 
@@ -103,23 +106,16 @@ int main(int argc, char** argv)
 			Tracer::StatGui::Get()->mRenderer = renderer;
 			Tracer::StatGui::Get()->mScene = app->GetScene();
 
-			// toggle GUI
-			bool anyGuiWindow = false;
+			// display GUI
 			for(auto& w : guiWindows)
 			{
 				if(window->WasKeyPressed(w.toggleKey))
 					w.window->SetEnabled(!w.window->IsEnabled());
-				anyGuiWindow = anyGuiWindow || w.window->IsEnabled();
+				w.window->Draw();
 			}
 
-			// display GUI
-			if(anyGuiWindow)
-			{
-				Tracer::GuiHelpers::BeginFrame();
-				for(auto& w : guiWindows)
-					w.window->Draw();
-				Tracer::GuiHelpers::EndFrame();
-			}
+			// finalize GUI
+			Tracer::GuiHelpers::EndFrame();
 
 			// swap buffers
 			window->SwapBuffers();
