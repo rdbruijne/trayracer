@@ -77,32 +77,29 @@ namespace Tracer
 			std::shared_ptr<Material> mat = std::make_shared<Material>(name.C_Str());
 
 			// parse properties
-			for(unsigned int i = 0; i < aMat->mNumProperties; i++)
-			{
-				const aiMaterialProperty* aProp = aMat->mProperties[i];
+			ai_real r;
+			aiColor3D c3;
 
-				// name
-				std::string propName = aProp->mKey.C_Str();
-				const size_t dotIx = propName.find_first_of('.');
-				if(dotIx != std::string::npos)
-					propName = propName.substr(dotIx + 1);
+			if (!aMat->Get(AI_MATKEY_OPACITY, r))
+				mat->SetOpacity(r);
 
-				// diffuse
-#define READ_PROP(dataType, name, matPropName)												\
-				if(aProp->mDataLength == sizeof(dataType) && propName == name)				\
-				{																			\
-					mat->Set##matPropName(*reinterpret_cast<dataType*>(aProp->mData));		\
-					continue;																\
-				}
-				READ_PROP(float3, "diffuse", Diffuse);
-				READ_PROP(float3, "emissive", Emissive);
-				READ_PROP(float,  "opacity", Opacity);
-				READ_PROP(float,  "refracti", RefractI);
-				READ_PROP(float,  "shininess", Shininess);
-				READ_PROP(float3, "specular", Specular);
-				READ_PROP(float3, "transparent", Transparent);
-#undef READ_PROP
-			}
+			if (!aMat->Get(AI_MATKEY_SHININESS, r))
+				mat->SetShininess(r);
+
+			if (!aMat->Get(AI_MATKEY_REFRACTI, r))
+				mat->SetRefractI(r);
+
+			if (!aMat->Get(AI_MATKEY_COLOR_DIFFUSE, c3))
+				mat->SetDiffuse(make_float3(c3.r, c3.g, c3.b));
+
+			if (!aMat->Get(AI_MATKEY_COLOR_SPECULAR, c3))
+				mat->SetSpecular(make_float3(c3.r, c3.g, c3.b));
+
+			if (!aMat->Get(AI_MATKEY_COLOR_EMISSIVE, c3))
+				mat->SetEmissive(make_float3(c3.r, c3.g, c3.b));
+
+			if (!aMat->Get(AI_MATKEY_COLOR_TRANSPARENT, c3))
+				mat->SetTransparent(make_float3(c3.r, c3.g, c3.b));
 
 			// parse textures
 			auto GetTex = [&](const char* texPath)
