@@ -13,6 +13,30 @@
 
 namespace Tracer
 {
+	namespace
+	{
+		float sDpiScale = 1;
+		ImGuiStyle sStyleBackup;
+
+
+
+		void SetDpi(Window* window)
+		{
+			const float dpiScale = Window::MonitorDPI(window->CurrentMonitor());
+			if(sDpiScale != dpiScale)
+			{
+				ImGuiStyle& style = ImGui::GetStyle();
+				memcpy(&style, &sStyleBackup, sizeof(ImGuiStyle));
+				style.ScaleAllSizes(dpiScale);
+
+				ImGuiIO& io = ImGui::GetIO();
+				io.FontGlobalScale = dpiScale;
+			}
+		}
+	}
+
+
+
 	bool GuiHelpers::Init(Window* window)
 	{
 		// init ImGUI
@@ -26,16 +50,19 @@ namespace Tracer
 		ImGuiIO& io = ImGui::GetIO();
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
+		// style
 		ImGui::StyleColorsDark();
+		ImGuiStyle& style = ImGui::GetStyle();
+		memcpy(&sStyleBackup, &style, sizeof(ImGuiStyle));
+
+		// DPI
+		SetDpi(window);
+
+		// init for OpenGL
 		ImGui_ImplGlfw_InitForOpenGL(window->GlfwWindow(), true);
 		ImGui_ImplOpenGL3_Init("#version 130");
 
 		ImGui::SetColorEditOptions(ImGuiColorEditFlags_Float);
-
-		// #TODO(RJCDB): DPI Scaling
-		//ImGuiStyle guiStyle;
-		//guiStyle.ScaleAllSizes();
-		//GetDpiForMonitor(nullptr, MDT_EFFECTIVE_DPI,
 
 		return true;
 	}

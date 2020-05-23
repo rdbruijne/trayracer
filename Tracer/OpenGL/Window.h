@@ -25,13 +25,13 @@ namespace Tracer
 		// Title
 		void SetTitle(const std::string& title);
 
-		// Resolution
+		// Position
 		int2 Position() const;
 		void SetPosition(const int2& position);
 
-		// Position
-		int2 Resolution() const;
-		void SetResolution(const int2& resolution);
+		// Resolution
+		int2 Resolution(bool dpiAware) const;
+		void SetResolution(const int2& resolution, bool dpiAware);
 
 		// Render texture
 		GLTexture* RenderTexture();
@@ -63,6 +63,12 @@ namespace Tracer
 		// GL
 		GLFWwindow* GlfwWindow() { return mHandle; }
 		const GLFWwindow* GlfwWindow() const { return mHandle; }
+
+		// monitor info
+		int CurrentMonitor() const;
+		static int MonitorCount();
+		static float PrimaryMonitorDPI();
+		static float MonitorDPI(int monitorIndex);
 
 	private:
 		// GLFW Input callbacks

@@ -35,6 +35,7 @@ namespace Tracer
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
 		glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 		mHandle = glfwCreateWindow(resolution.x, resolution.y, title.c_str(), fullscreen ? glfwGetPrimaryMonitor() : nullptr, nullptr);
+
 		if(!mHandle)
 		{
 			glfwTerminate();
@@ -63,15 +64,8 @@ namespace Tracer
 		if(glewResult != GLEW_OK)
 			throw std::runtime_error("Failed to init glew");
 
-		// viewport
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		glOrtho(0, 1, 0, 1, -1, 1);
-
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-
-		glViewport(0, 0, mResolution.x, resolution.y);
+		// dpi fix
+		SetResolution(resolution, true);
 
 		// settings
 		glDisable(GL_DEPTH_TEST);
@@ -128,11 +122,46 @@ namespace Tracer
 
 
 
-	int2 Window::Resolution() const
+	int2 Window::Resolution(bool dpiAware) const
 	{
 		int2 resolution;
 		glfwGetWindowSize(mHandle, &resolution.x, &resolution.y);
+
+		if(dpiAware)
+		{
+			const float dpiScale = MonitorDPI(CurrentMonitor());
+			resolution = make_int2(static_cast<int>(resolution.x / dpiScale), static_cast<int>(resolution.y / dpiScale));
+		}
+
 		return resolution;
+	}
+
+
+
+	void Window::SetResolution(const int2& resolution, bool dpiAware)
+	{
+		if(!mRenderTexture || mRenderTexture->Resolution() != resolution)
+		{
+			delete mRenderTexture;
+			mRenderTexture = new GLTexture(resolution, GLTexture::Types::Float4);
+		}
+
+		float dpiScale = 1.f;
+		if(dpiAware)
+			dpiScale = MonitorDPI(CurrentMonitor());
+
+		const int2 dpiRes = make_int2(static_cast<int>(resolution.x * dpiScale), static_cast<int>(resolution.y * dpiScale));
+		glfwSetWindowSize(mHandle, dpiRes.x, dpiRes.y);
+
+		// viewport
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		glOrtho(0, 1, 0, 1, -1, 1);
+
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+
+		glViewport(0, 0, dpiRes.x, dpiRes.y);
 	}
 
 
@@ -151,18 +180,11 @@ namespace Tracer
 
 
 
-	void Window::SetResolution(const int2& resolution)
-	{
-		delete mRenderTexture;
-		mRenderTexture = new GLTexture(resolution, GLTexture::Types::Float4);
-
-		glfwSetWindowSize(mHandle, resolution.x, resolution.y);
-	}
-
-
-
 	void Window::Display()
 	{
+		// DPI fix
+		SetResolution(Resolution(true), true);
+
 		glEnable(GL_TEXTURE_2D);
 		glDisable(GL_LIGHTING);
 		glDisable(GL_DEPTH_TEST);
@@ -270,6 +292,63 @@ namespace Tracer
 	float2 Window::ScrollDelta() const
 	{
 		return mCurInputState.MouseScroll - mPrevInputState.MouseScroll;
+	}
+
+
+
+	int Window::CurrentMonitor() const
+	{
+		int count = 0;
+		GLFWmonitor** monitors = glfwGetMonitors(&count);
+		const int2 windowPos = Position();
+
+		for(int i = 0; i < count; i++)
+		{
+			int xPos = 0;
+			int yPos = 0;
+			glfwGetMonitorPos(monitors[i], &xPos, &yPos);
+			const GLFWvidmode* mode = glfwGetVideoMode(monitors[i]);
+
+			if(windowPos.x > xPos && windowPos.x < xPos + mode->width &&
+			   windowPos.y > yPos && windowPos.y < yPos + mode->height)
+			{
+				return i;
+			}
+		}
+		return 0;
+	}
+
+
+
+	int Window::MonitorCount()
+	{
+		int count = 0;
+		glfwGetMonitors(&count);
+		return count;
+	}
+
+
+
+	float Window::PrimaryMonitorDPI()
+	{
+		float xScale = 0;
+		float yScale = 0;
+		glfwGetMonitorContentScale(glfwGetPrimaryMonitor(), &xScale, &yScale);
+		return xScale;
+	}
+
+
+
+	float Window::MonitorDPI(int monitorIndex)
+	{
+		int count = 0;
+		GLFWmonitor** monitors = glfwGetMonitors(&count);
+		assert(monitorIndex < count);
+
+		float xScale = 0;
+		float yScale = 0;
+		glfwGetMonitorContentScale(monitors[monitorIndex], &xScale, &yScale);
+		return xScale;
 	}
 
 

@@ -26,18 +26,27 @@ namespace Tracer
 	//
 	// extension functions
 	//
+	inline int2 operator -(const int2& a) { return make_int2(-a.x, -a.y); }
+	inline int3 operator -(const int3& a) { return make_int3(-a.x, -a.y, -a.z); }
+	inline int4 operator -(const int4& a) { return make_int4(-a.x, -a.y, -a.z, -a.w); }
 	inline float2 operator -(const float2& a) { return make_float2(-a.x, -a.y); }
 	inline float3 operator -(const float3& a) { return make_float3(-a.x, -a.y, -a.z); }
 	inline float4 operator -(const float4& a) { return make_float4(-a.x, -a.y, -a.z, -a.w); }
 
 
 
+	inline bool operator == (const int2& a, const int2& b) { return (a.x == b.x) && (a.y == b.y); }
+	inline bool operator == (const int3& a, const int3& b) { return (a.x == b.x) && (a.y == b.y) && (a.z == b.z); }
+	inline bool operator == (const int4& a, const int4& b) { return (a.x == b.x) && (a.y == b.y) && (a.z == b.z) && (a.w == b.w); }
 	inline bool operator == (const float2& a, const float2& b) { return (a.x == b.x) && (a.y == b.y); }
 	inline bool operator == (const float3& a, const float3& b) { return (a.x == b.x) && (a.y == b.y) && (a.z == b.z); }
 	inline bool operator == (const float4& a, const float4& b) { return (a.x == b.x) && (a.y == b.y) && (a.z == b.z) && (a.w == b.w); }
 
 
 
+	inline bool operator != (const int2& a, const int2& b) { return !(a == b); }
+	inline bool operator != (const int3& a, const int3& b) { return !(a == b); }
+	inline bool operator != (const int4& a, const int4& b) { return !(a == b); }
 	inline bool operator != (const float2& a, const float2& b) { return !(a == b); }
 	inline bool operator != (const float3& a, const float3& b) { return !(a == b); }
 	inline bool operator != (const float4& a, const float4& b) { return !(a == b); }
