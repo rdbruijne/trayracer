@@ -88,31 +88,56 @@ namespace Tracer
 					propName = propName.substr(dotIx + 1);
 
 				// diffuse
-				if(propName == "diffuse" && aProp->mDataLength == 3 * sizeof(float))
-				{
-					mat->SetDiffuse(*reinterpret_cast<float3*>(aProp->mData));
-					continue;
+#define READ_PROP(dataType, name, matPropName)												\
+				if(aProp->mDataLength == sizeof(dataType) && propName == name)				\
+				{																			\
+					mat->Set##matPropName(*reinterpret_cast<dataType*>(aProp->mData));		\
+					continue;																\
 				}
-
-				//printf("Unhandled material property: %s\n", propName.c_str());
+				READ_PROP(float3, "diffuse", Diffuse);
+				READ_PROP(float3, "emissive", Emissive);
+				READ_PROP(float,  "opacity", Opacity);
+				READ_PROP(float,  "refracti", RefractI);
+				READ_PROP(float,  "shininess", Shininess);
+				READ_PROP(float3, "specular", Specular);
+				READ_PROP(float3, "transparent", Transparent);
+#undef READ_PROP
 			}
 
-			// parse textures
-			aiString texPath;
-			if(aMat->GetTexture(aiTextureType_DIFFUSE, 0, &texPath) == aiReturn_SUCCESS)
+			auto GetTex = [&](const char* texPath)
 			{
-				std::string texPathStr = texPath.C_Str();
+				const std::string texPathStr = texPath;
 				auto it = textures.find(texPathStr);
 				if(it != textures.end())
-					mat->SetDiffuseMap(it->second);
+					return it->second;
 
 				auto tex = ImportTexture(importDir, texPathStr);
 				textures[texPathStr] = tex;
-				mat->SetDiffuseMap(tex);
+				return tex;
+			};
+
+			// parse textures
+			aiString texPath;
+#define READ_TEX(type, matTexName)										\
+			if(aMat->GetTexture(type, 0, &texPath) == aiReturn_SUCCESS)	\
+			{															\
+				mat->Set##matTexName(GetTex(texPath.C_Str()));			\
 			}
+			READ_TEX(aiTextureType_DIFFUSE, DiffuseMap);
+			READ_TEX(aiTextureType_SPECULAR, SpecularMap);
+			READ_TEX(aiTextureType_EMISSIVE, EmissiveMap);
+			READ_TEX(aiTextureType_HEIGHT, HeightMap);
+			READ_TEX(aiTextureType_NORMALS, NormalMap);
+			READ_TEX(aiTextureType_SHININESS, ShininessMap);
+			READ_TEX(aiTextureType_OPACITY, OpacityMap);
+			READ_TEX(aiTextureType_DISPLACEMENT, DisplacementMap);
+			READ_TEX(aiTextureType_DISPLACEMENT, BaseColorMap);
+			READ_TEX(aiTextureType_EMISSION_COLOR, EmissionColorMap);
+			READ_TEX(aiTextureType_METALNESS, MetalnessMap);
+			READ_TEX(aiTextureType_DIFFUSE_ROUGHNESS, DiffuseRoughnessMap);
+#undef READ_TEX
 
 			return mat;
-
 		}
 
 
