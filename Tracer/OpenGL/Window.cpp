@@ -65,7 +65,7 @@ namespace Tracer
 			throw std::runtime_error("Failed to init glew");
 
 		// dpi fix
-		SetResolution(resolution, true);
+		SetResolution(resolution);
 
 		// settings
 		glDisable(GL_DEPTH_TEST);
@@ -122,23 +122,18 @@ namespace Tracer
 
 
 
-	int2 Window::Resolution(bool dpiAware) const
+	int2 Window::Resolution() const
 	{
 		int2 resolution;
 		glfwGetWindowSize(mHandle, &resolution.x, &resolution.y);
 
-		if(dpiAware)
-		{
-			const float dpiScale = MonitorDPI(CurrentMonitor());
-			resolution = make_int2(static_cast<int>(resolution.x / dpiScale), static_cast<int>(resolution.y / dpiScale));
-		}
-
-		return resolution;
+		const float dpiScale = MonitorDPI(CurrentMonitor());
+		return make_int2(static_cast<int>(resolution.x / dpiScale), static_cast<int>(resolution.y / dpiScale));
 	}
 
 
 
-	void Window::SetResolution(const int2& resolution, bool dpiAware)
+	void Window::SetResolution(const int2& resolution)
 	{
 		if(!mRenderTexture || mRenderTexture->Resolution() != resolution)
 		{
@@ -146,10 +141,7 @@ namespace Tracer
 			mRenderTexture = new GLTexture(resolution, GLTexture::Types::Float4);
 		}
 
-		float dpiScale = 1.f;
-		if(dpiAware)
-			dpiScale = MonitorDPI(CurrentMonitor());
-
+		const float dpiScale = MonitorDPI(CurrentMonitor());
 		const int2 dpiRes = make_int2(static_cast<int>(resolution.x * dpiScale), static_cast<int>(resolution.y * dpiScale));
 		glfwSetWindowSize(mHandle, dpiRes.x, dpiRes.y);
 
@@ -183,7 +175,7 @@ namespace Tracer
 	void Window::Display()
 	{
 		// DPI fix
-		SetResolution(Resolution(true), true);
+		SetResolution(Resolution());
 
 		glEnable(GL_TEXTURE_2D);
 		glDisable(GL_LIGHTING);
@@ -270,7 +262,7 @@ namespace Tracer
 
 	float2 Window::CursorPos() const
 	{
-		return mCurInputState.MousePos;
+		return mCurInputState.MousePos / MonitorDPI(CurrentMonitor());
 	}
 
 

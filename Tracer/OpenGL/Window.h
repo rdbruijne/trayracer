@@ -30,8 +30,8 @@ namespace Tracer
 		void SetPosition(const int2& position);
 
 		// Resolution
-		int2 Resolution(bool dpiAware) const;
-		void SetResolution(const int2& resolution, bool dpiAware);
+		int2 Resolution() const;
+		void SetResolution(const int2& resolution);
 
 		// Render texture
 		GLTexture* RenderTexture();
