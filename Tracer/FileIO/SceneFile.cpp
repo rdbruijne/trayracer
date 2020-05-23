@@ -7,6 +7,7 @@
 #include "Renderer/Scene.h"
 #include "Resources/CameraNode.h"
 #include "Resources/Instance.h"
+#include "Resources/Material.h"
 #include "Resources/Model.h"
 
 // RapidJson
@@ -146,6 +147,8 @@ namespace Tracer
 
 			Value jsonVectorObj = Value(kObjectType);
 			jsonVectorObj.AddMember(StringRef(memberName), jsonVector, allocator);
+
+			jsonValue.AddMember(StringRef(memberName), jsonVectorObj, allocator);
 		}
 
 
@@ -169,7 +172,9 @@ namespace Tracer
 			}
 
 			Value jsonMatrixObj = Value(kObjectType);
-			jsonValue.AddMember(StringRef(memberName), jsonMatrix, allocator);
+			jsonMatrixObj.AddMember(StringRef(memberName), jsonMatrix, allocator);
+
+			jsonValue.AddMember(StringRef(memberName), jsonMatrixObj, allocator);
 		}
 
 
@@ -345,6 +350,7 @@ namespace Tracer
 		// models/instances
 		if(scene)
 		{
+			// instances
 			auto& instances = scene->Instances();
 			if(instances.size() > 0)
 			{
@@ -358,14 +364,68 @@ namespace Tracer
 					Value jsonInst = Value(kObjectType);
 					Write(jsonInst, allocator, "name", inst->Name());
 					Write(jsonInst, allocator, "model", inst->GetModel()->FilePath());
-
-					Value jsonTransform = Value(kArrayType);
-					Write(jsonTransform, allocator, "matrix", inst->Transform());
+					Write(jsonInst, allocator, "transform", inst->Transform());
 
 					// add model to array
 					jsonModels.PushBack(jsonInst, allocator);
 				}
 				doc.AddMember("models", jsonModels, allocator);
+			}
+
+			// materials
+			auto& models = scene->Models();
+			if(models.size() > 0)
+			{
+				Value jsonMaterials(kArrayType);
+				for(auto& model : models)
+				{
+					for(auto& mat : model->Materials())
+					{
+						Value jsonMat = Value(kObjectType);
+
+						// properties
+						Write(jsonMat, allocator, "name", mat->Name());
+						Write(jsonMat, allocator, "diffuse", mat->Diffuse());
+						Write(jsonMat, allocator, "emissive", mat->Emissive());
+						Write(jsonMat, allocator, "opacity", mat->Opacity());
+						Write(jsonMat, allocator, "refracti", mat->RefractI());
+						Write(jsonMat, allocator, "shininess", mat->Shininess());
+						Write(jsonMat, allocator, "specular", mat->Specular());
+						Write(jsonMat, allocator, "transparent", mat->Transparent());
+
+						// textures
+						if (mat->BaseColorMap())
+							Write(jsonMat, allocator, "BaseColorMap", mat->BaseColorMap()->Path());
+						if (mat->DiffuseMap())
+							Write(jsonMat, allocator, "DiffuseMap", mat->DiffuseMap()->Path());
+						if (mat->DiffuseRoughnessMap())
+							Write(jsonMat, allocator, "DiffuseRoughnessMap", mat->DiffuseRoughnessMap()->Path());
+						if (mat->DisplacementMap())
+							Write(jsonMat, allocator, "DisplacementMap", mat->DisplacementMap()->Path());
+						if (mat->EmissionColorMap())
+							Write(jsonMat, allocator, "EmissionColorMap", mat->EmissionColorMap()->Path());
+						if (mat->EmissiveMap())
+							Write(jsonMat, allocator, "EmissiveMap", mat->EmissiveMap()->Path());
+						if (mat->HeightMap())
+							Write(jsonMat, allocator, "HeightMap", mat->HeightMap()->Path());
+						if (mat->MetalnessMap())
+							Write(jsonMat, allocator, "MetalnessMap", mat->MetalnessMap()->Path());
+						if (mat->NormalCameraMap())
+							Write(jsonMat, allocator, "NormalCameraMap", mat->NormalCameraMap()->Path());
+						if (mat->NormalMap())
+							Write(jsonMat, allocator, "NormalMap", mat->NormalMap()->Path());
+						if (mat->OpacityMap())
+							Write(jsonMat, allocator, "OpacityMap", mat->OpacityMap()->Path());
+						if (mat->ShininessMap())
+							Write(jsonMat, allocator, "ShininessMap", mat->ShininessMap()->Path());
+						if (mat->SpecularMap())
+							Write(jsonMat, allocator, "SpecularMap", mat->SpecularMap()->Path());
+
+						// add momatdel to array
+						jsonMaterials.PushBack(jsonMat, allocator);
+					}
+				}
+				doc.AddMember("materials", jsonMaterials, allocator);
 			}
 		}
 

@@ -61,7 +61,7 @@ namespace Tracer
 			FreeImage_Unload(dib);
 
 			// create texture
-			return std::make_shared<Texture>(FileName(textureFile), make_uint2(w, h), pixels);
+			return std::make_shared<Texture>(texPath, make_uint2(w, h), pixels);
 		}
 
 
