@@ -43,19 +43,19 @@ namespace Tracer
 		MATERIAL_VALUE(float3, Transparent, make_float3(1));
 
 		// textures
-		MATERIAL_TEXTURE(BaseColorMap);
+		///MATERIAL_TEXTURE(BaseColorMap);
 		MATERIAL_TEXTURE(DiffuseMap);
-		MATERIAL_TEXTURE(DiffuseRoughnessMap);
-		MATERIAL_TEXTURE(DisplacementMap);
-		MATERIAL_TEXTURE(EmissionColorMap);
-		MATERIAL_TEXTURE(EmissiveMap);
-		MATERIAL_TEXTURE(HeightMap);
-		MATERIAL_TEXTURE(MetalnessMap);
-		MATERIAL_TEXTURE(NormalCameraMap);
-		MATERIAL_TEXTURE(NormalMap);
-		MATERIAL_TEXTURE(OpacityMap);
-		MATERIAL_TEXTURE(ShininessMap);
-		MATERIAL_TEXTURE(SpecularMap);
+		//MATERIAL_TEXTURE(DiffuseRoughnessMap);
+		//MATERIAL_TEXTURE(DisplacementMap);
+		//MATERIAL_TEXTURE(EmissionColorMap);
+		//MATERIAL_TEXTURE(EmissiveMap);
+		//MATERIAL_TEXTURE(HeightMap);
+		//MATERIAL_TEXTURE(MetalnessMap);
+		//MATERIAL_TEXTURE(NormalCameraMap);
+		//MATERIAL_TEXTURE(NormalMap);
+		//MATERIAL_TEXTURE(OpacityMap);
+		//MATERIAL_TEXTURE(ShininessMap);
+		//MATERIAL_TEXTURE(SpecularMap);
 	};
 }
 

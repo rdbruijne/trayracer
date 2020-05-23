@@ -118,38 +118,38 @@ namespace Tracer
 			if(aMat->GetTexture(aiTextureType_DIFFUSE, 0, &texPath) == aiReturn_SUCCESS)
 				mat->SetDiffuseMap(GetTex(texPath.C_Str()));
 
-			if(aMat->GetTexture(aiTextureType_SPECULAR, 0, &texPath) == aiReturn_SUCCESS)
-				mat->SetSpecularMap(GetTex(texPath.C_Str()));
+			//if(aMat->GetTexture(aiTextureType_SPECULAR, 0, &texPath) == aiReturn_SUCCESS)
+			//	mat->SetSpecularMap(GetTex(texPath.C_Str()));
 
-			if(aMat->GetTexture(aiTextureType_EMISSIVE, 0, &texPath) == aiReturn_SUCCESS)
-				mat->SetEmissiveMap(GetTex(texPath.C_Str()));
+			//if(aMat->GetTexture(aiTextureType_EMISSIVE, 0, &texPath) == aiReturn_SUCCESS)
+			//	mat->SetEmissiveMap(GetTex(texPath.C_Str()));
 
-			if(aMat->GetTexture(aiTextureType_HEIGHT, 0, &texPath) == aiReturn_SUCCESS)
-				mat->SetHeightMap(GetTex(texPath.C_Str()));
+			//if(aMat->GetTexture(aiTextureType_HEIGHT, 0, &texPath) == aiReturn_SUCCESS)
+			//	mat->SetHeightMap(GetTex(texPath.C_Str()));
 
-			if(aMat->GetTexture(aiTextureType_NORMALS, 0, &texPath) == aiReturn_SUCCESS)
-				mat->SetNormalMap(GetTex(texPath.C_Str()));
+			//if(aMat->GetTexture(aiTextureType_NORMALS, 0, &texPath) == aiReturn_SUCCESS)
+			//	mat->SetNormalMap(GetTex(texPath.C_Str()));
 
-			if(aMat->GetTexture(aiTextureType_SHININESS, 0, &texPath) == aiReturn_SUCCESS)
-				mat->SetShininessMap(GetTex(texPath.C_Str()));
+			//if(aMat->GetTexture(aiTextureType_SHININESS, 0, &texPath) == aiReturn_SUCCESS)
+			//	mat->SetShininessMap(GetTex(texPath.C_Str()));
 
-			if(aMat->GetTexture(aiTextureType_OPACITY, 0, &texPath) == aiReturn_SUCCESS)
-				mat->SetOpacityMap(GetTex(texPath.C_Str()));
+			//if(aMat->GetTexture(aiTextureType_OPACITY, 0, &texPath) == aiReturn_SUCCESS)
+			//	mat->SetOpacityMap(GetTex(texPath.C_Str()));
 
-			if(aMat->GetTexture(aiTextureType_DISPLACEMENT, 0, &texPath) == aiReturn_SUCCESS)
-				mat->SetDisplacementMap(GetTex(texPath.C_Str()));
+			//if(aMat->GetTexture(aiTextureType_DISPLACEMENT, 0, &texPath) == aiReturn_SUCCESS)
+			//	mat->SetDisplacementMap(GetTex(texPath.C_Str()));
 
-			if(aMat->GetTexture(aiTextureType_DISPLACEMENT, 0, &texPath) == aiReturn_SUCCESS)
-				mat->SetBaseColorMap(GetTex(texPath.C_Str()));
+			//if(aMat->GetTexture(aiTextureType_DISPLACEMENT, 0, &texPath) == aiReturn_SUCCESS)
+			//	mat->SetBaseColorMap(GetTex(texPath.C_Str()));
 
-			if(aMat->GetTexture(aiTextureType_EMISSION_COLOR, 0, &texPath) == aiReturn_SUCCESS)
-				mat->SetEmissionColorMap(GetTex(texPath.C_Str()));
+			//if(aMat->GetTexture(aiTextureType_EMISSION_COLOR, 0, &texPath) == aiReturn_SUCCESS)
+			//	mat->SetEmissionColorMap(GetTex(texPath.C_Str()));
 
-			if(aMat->GetTexture(aiTextureType_METALNESS, 0, &texPath) == aiReturn_SUCCESS)
-				mat->SetMetalnessMap(GetTex(texPath.C_Str()));
+			//if(aMat->GetTexture(aiTextureType_METALNESS, 0, &texPath) == aiReturn_SUCCESS)
+			//	mat->SetMetalnessMap(GetTex(texPath.C_Str()));
 
-			if(aMat->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &texPath) == aiReturn_SUCCESS)
-				mat->SetDiffuseRoughnessMap(GetTex(texPath.C_Str()));
+			//if(aMat->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &texPath) == aiReturn_SUCCESS)
+			//	mat->SetDiffuseRoughnessMap(GetTex(texPath.C_Str()));
 
 			return mat;
 		}

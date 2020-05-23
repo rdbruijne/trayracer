@@ -394,32 +394,32 @@ namespace Tracer
 						Write(jsonMat, allocator, "transparent", mat->Transparent());
 
 						// textures
-						if (mat->BaseColorMap())
-							Write(jsonMat, allocator, "BaseColorMap", mat->BaseColorMap()->Path());
+						//if (mat->BaseColorMap())
+						//	Write(jsonMat, allocator, "BaseColorMap", mat->BaseColorMap()->Path());
 						if (mat->DiffuseMap())
 							Write(jsonMat, allocator, "DiffuseMap", mat->DiffuseMap()->Path());
-						if (mat->DiffuseRoughnessMap())
-							Write(jsonMat, allocator, "DiffuseRoughnessMap", mat->DiffuseRoughnessMap()->Path());
-						if (mat->DisplacementMap())
-							Write(jsonMat, allocator, "DisplacementMap", mat->DisplacementMap()->Path());
-						if (mat->EmissionColorMap())
-							Write(jsonMat, allocator, "EmissionColorMap", mat->EmissionColorMap()->Path());
-						if (mat->EmissiveMap())
-							Write(jsonMat, allocator, "EmissiveMap", mat->EmissiveMap()->Path());
-						if (mat->HeightMap())
-							Write(jsonMat, allocator, "HeightMap", mat->HeightMap()->Path());
-						if (mat->MetalnessMap())
-							Write(jsonMat, allocator, "MetalnessMap", mat->MetalnessMap()->Path());
-						if (mat->NormalCameraMap())
-							Write(jsonMat, allocator, "NormalCameraMap", mat->NormalCameraMap()->Path());
-						if (mat->NormalMap())
-							Write(jsonMat, allocator, "NormalMap", mat->NormalMap()->Path());
-						if (mat->OpacityMap())
-							Write(jsonMat, allocator, "OpacityMap", mat->OpacityMap()->Path());
-						if (mat->ShininessMap())
-							Write(jsonMat, allocator, "ShininessMap", mat->ShininessMap()->Path());
-						if (mat->SpecularMap())
-							Write(jsonMat, allocator, "SpecularMap", mat->SpecularMap()->Path());
+						//if (mat->DiffuseRoughnessMap())
+						//	Write(jsonMat, allocator, "DiffuseRoughnessMap", mat->DiffuseRoughnessMap()->Path());
+						//if (mat->DisplacementMap())
+						//	Write(jsonMat, allocator, "DisplacementMap", mat->DisplacementMap()->Path());
+						//if (mat->EmissionColorMap())
+						//	Write(jsonMat, allocator, "EmissionColorMap", mat->EmissionColorMap()->Path());
+						//if (mat->EmissiveMap())
+						//	Write(jsonMat, allocator, "EmissiveMap", mat->EmissiveMap()->Path());
+						//if (mat->HeightMap())
+						//	Write(jsonMat, allocator, "HeightMap", mat->HeightMap()->Path());
+						//if (mat->MetalnessMap())
+						//	Write(jsonMat, allocator, "MetalnessMap", mat->MetalnessMap()->Path());
+						//if (mat->NormalCameraMap())
+						//	Write(jsonMat, allocator, "NormalCameraMap", mat->NormalCameraMap()->Path());
+						//if (mat->NormalMap())
+						//	Write(jsonMat, allocator, "NormalMap", mat->NormalMap()->Path());
+						//if (mat->OpacityMap())
+						//	Write(jsonMat, allocator, "OpacityMap", mat->OpacityMap()->Path());
+						//if (mat->ShininessMap())
+						//	Write(jsonMat, allocator, "ShininessMap", mat->ShininessMap()->Path());
+						//if (mat->SpecularMap())
+						//	Write(jsonMat, allocator, "SpecularMap", mat->SpecularMap()->Path());
 
 						// add momatdel to array
 						jsonMaterials.PushBack(jsonMat, allocator);
