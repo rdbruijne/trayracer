@@ -104,6 +104,7 @@ namespace Tracer
 #undef READ_PROP
 			}
 
+			// parse textures
 			auto GetTex = [&](const char* texPath)
 			{
 				const std::string texPathStr = texPath;
@@ -116,26 +117,42 @@ namespace Tracer
 				return tex;
 			};
 
-			// parse textures
 			aiString texPath;
-#define READ_TEX(type, matTexName)										\
-			if(aMat->GetTexture(type, 0, &texPath) == aiReturn_SUCCESS)	\
-			{															\
-				mat->Set##matTexName(GetTex(texPath.C_Str()));			\
-			}
-			READ_TEX(aiTextureType_DIFFUSE, DiffuseMap);
-			READ_TEX(aiTextureType_SPECULAR, SpecularMap);
-			READ_TEX(aiTextureType_EMISSIVE, EmissiveMap);
-			READ_TEX(aiTextureType_HEIGHT, HeightMap);
-			READ_TEX(aiTextureType_NORMALS, NormalMap);
-			READ_TEX(aiTextureType_SHININESS, ShininessMap);
-			READ_TEX(aiTextureType_OPACITY, OpacityMap);
-			READ_TEX(aiTextureType_DISPLACEMENT, DisplacementMap);
-			READ_TEX(aiTextureType_DISPLACEMENT, BaseColorMap);
-			READ_TEX(aiTextureType_EMISSION_COLOR, EmissionColorMap);
-			READ_TEX(aiTextureType_METALNESS, MetalnessMap);
-			READ_TEX(aiTextureType_DIFFUSE_ROUGHNESS, DiffuseRoughnessMap);
-#undef READ_TEX
+			if(aMat->GetTexture(aiTextureType_DIFFUSE, 0, &texPath) == aiReturn_SUCCESS)
+				mat->SetDiffuseMap(GetTex(texPath.C_Str()));
+
+			if(aMat->GetTexture(aiTextureType_SPECULAR, 0, &texPath) == aiReturn_SUCCESS)
+				mat->SetSpecularMap(GetTex(texPath.C_Str()));
+
+			if(aMat->GetTexture(aiTextureType_EMISSIVE, 0, &texPath) == aiReturn_SUCCESS)
+				mat->SetEmissiveMap(GetTex(texPath.C_Str()));
+
+			if(aMat->GetTexture(aiTextureType_HEIGHT, 0, &texPath) == aiReturn_SUCCESS)
+				mat->SetHeightMap(GetTex(texPath.C_Str()));
+
+			if(aMat->GetTexture(aiTextureType_NORMALS, 0, &texPath) == aiReturn_SUCCESS)
+				mat->SetNormalMap(GetTex(texPath.C_Str()));
+
+			if(aMat->GetTexture(aiTextureType_SHININESS, 0, &texPath) == aiReturn_SUCCESS)
+				mat->SetShininessMap(GetTex(texPath.C_Str()));
+
+			if(aMat->GetTexture(aiTextureType_OPACITY, 0, &texPath) == aiReturn_SUCCESS)
+				mat->SetOpacityMap(GetTex(texPath.C_Str()));
+
+			if(aMat->GetTexture(aiTextureType_DISPLACEMENT, 0, &texPath) == aiReturn_SUCCESS)
+				mat->SetDisplacementMap(GetTex(texPath.C_Str()));
+
+			if(aMat->GetTexture(aiTextureType_DISPLACEMENT, 0, &texPath) == aiReturn_SUCCESS)
+				mat->SetBaseColorMap(GetTex(texPath.C_Str()));
+
+			if(aMat->GetTexture(aiTextureType_EMISSION_COLOR, 0, &texPath) == aiReturn_SUCCESS)
+				mat->SetEmissionColorMap(GetTex(texPath.C_Str()));
+
+			if(aMat->GetTexture(aiTextureType_METALNESS, 0, &texPath) == aiReturn_SUCCESS)
+				mat->SetMetalnessMap(GetTex(texPath.C_Str()));
+
+			if(aMat->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &texPath) == aiReturn_SUCCESS)
+				mat->SetDiffuseRoughnessMap(GetTex(texPath.C_Str()));
 
 			return mat;
 		}
