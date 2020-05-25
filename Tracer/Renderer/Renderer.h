@@ -37,8 +37,6 @@ namespace Tracer
 		void BuildScene(Scene* scene);
 		void RenderFrame(GLTexture* renderTexture);
 
-		void DownloadPixels(std::vector<float4>& dstPixels);
-
 		// camera
 		void SetCamera(CameraNode& camNode);
 		void SetCamera(const float3& cameraPos, const float3& cameraForward, const float3& cameraUp, float camFov);
@@ -149,6 +147,7 @@ namespace Tracer
 
 		// Render buffer
 		CudaBuffer mAccumulator = {};
+		CudaBuffer mColorBuffer = {};
 		GLTexture* mRenderTarget = nullptr;
 		cudaGraphicsResource* mCudaGraphicsResource = nullptr;
 

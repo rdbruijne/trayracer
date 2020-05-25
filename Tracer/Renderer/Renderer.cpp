@@ -246,6 +246,12 @@ namespace Tracer
 		}
 		mRenderTimeEvents.Stop(mStream);
 
+		// update sample count
+		mLaunchParams.sampleCount += mLaunchParams.multiSample;
+
+		// finalize the frame
+		FinalizeFrame(mAccumulator.Ptr<float4>(), mColorBuffer.Ptr<float4>(), make_int2(mLaunchParams.resX, mLaunchParams.resY), mLaunchParams.sampleCount);
+
 		// run denoiser
 		if(ShouldDenoise())
 		{
@@ -253,7 +259,7 @@ namespace Tracer
 
 			// input
 			OptixImage2D inputLayer;
-			inputLayer.data = mAccumulator.DevicePtr();
+			inputLayer.data = mColorBuffer.DevicePtr();
 			inputLayer.width = mLaunchParams.resX;
 			inputLayer.height = mLaunchParams.resY;
 			inputLayer.rowStrideInBytes = mLaunchParams.resX * sizeof(float4);
@@ -273,7 +279,7 @@ namespace Tracer
 			OptixDenoiserParams denoiserParams;
 			denoiserParams.denoiseAlpha = 1;
 			denoiserParams.hdrIntensity = 0;
-			denoiserParams.blendFactor  = 1.f / (mLaunchParams.sampleCount + 1);
+			denoiserParams.blendFactor  = 1;
 
 			OPTIX_CHECK(optixDenoiserInvoke(mDenoiser, 0, &denoiserParams, mDenoiserState.DevicePtr(), mDenoiserState.Size(),
 											&inputLayer, 1, 0, 0, &outputLayer,
@@ -288,7 +294,7 @@ namespace Tracer
 			mDenoiseTimeEvents.Start(mStream);
 			mDenoiseTimeEvents.Stop(mStream);
 
-			CUDA_CHECK(cudaMemcpy(mDenoisedBuffer.Ptr(), mAccumulator.Ptr(), mAccumulator.Size(), cudaMemcpyDeviceToDevice));
+			CUDA_CHECK(cudaMemcpy(mDenoisedBuffer.Ptr(), mColorBuffer.Ptr(), mColorBuffer.Size(), cudaMemcpyDeviceToDevice));
 			mDenoisedFrame = false;
 		}
 
@@ -321,20 +327,6 @@ namespace Tracer
 			mRenderStats.shadowTimeMs += mShadowTimeEvents[i].Elapsed();
 		mRenderStats.renderTimeMs = mRenderTimeEvents.Elapsed();
 		mRenderStats.denoiseTimeMs = mDenoiseTimeEvents.Elapsed();
-
-		// update sample count
-		mLaunchParams.sampleCount += mLaunchParams.multiSample;
-	}
-
-
-
-	void Renderer::DownloadPixels(std::vector<float4>& dstPixels)
-	{
-		dstPixels.resize(static_cast<size_t>(mLaunchParams.resX) * mLaunchParams.resY);
-		if(mDenoisedFrame)
-			mDenoisedBuffer.Download(dstPixels);
-		else
-			mAccumulator.Download(dstPixels);
 	}
 
 
@@ -405,6 +397,7 @@ namespace Tracer
 	{
 		// resize buffers
 		mAccumulator.Resize(sizeof(float4) * resolution.x * resolution.y);
+		mColorBuffer.Resize(sizeof(float4) * resolution.x * resolution.y);
 		mDenoisedBuffer.Resize(sizeof(float4) * resolution.x * resolution.y);
 
 		// update launch params

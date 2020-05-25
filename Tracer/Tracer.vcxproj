@@ -241,6 +241,7 @@
     <ClInclude Include="Common\CommonUtility.h" />
     <ClInclude Include="CUDA\CudaFwd.h" />
     <ClInclude Include="CUDA\CudaUtility.h" />
+    <ClInclude Include="CUDA\CudaUtilityKernels.h" />
     <ClInclude Include="CUDA\Shade.h" />
     <ClInclude Include="FileIO\Importer.h" />
     <ClInclude Include="FileIO\SceneFile.h" />

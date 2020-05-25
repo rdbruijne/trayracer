@@ -271,6 +271,9 @@
     <ClInclude Include="FileIO\SceneFile.h">
       <Filter>FileIO</Filter>
     </ClInclude>
+    <ClInclude Include="CUDA\CudaUtilityKernels.h">
+      <Filter>CUDA</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Model.h">

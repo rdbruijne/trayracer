@@ -13,7 +13,6 @@ layout(location = 0) out vec4 outColor;
 void main()
 {
 	vec4 c = texture(convergeBuffer, inUV);
-	c.xyz /= c.w;
 	c.x = pow(c.x, 1.f / gamma);
 	c.y = pow(c.y, 1.f / gamma);
 	c.z = pow(c.z, 1.f / gamma);

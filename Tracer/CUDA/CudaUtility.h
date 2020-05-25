@@ -4,13 +4,6 @@
 #include "Common/CommonStructs.h"
 #include "Common/CommonUtility.h"
 
-// C++
-//#include <stdint.h>
-
-// CUDA
-//#include "CUDA/helper_math.h"
-//#include "CUDA/random.h"
-
 
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -108,28 +101,6 @@ __host__ void SetCudaLaunchParams(LaunchParams* data)
 
 
 //------------------------------------------------------------------------------------------------------------------------------
-// Counters
-//------------------------------------------------------------------------------------------------------------------------------
-static __global__ void InitCudaCountersKernel()
-{
-	if(threadIdx.x == 0)
-	{
-		counters->extendRays = 0;
-		counters->shadowRays = 0;
-	}
-}
-
-
-
-__host__ void InitCudaCounters()
-{
-	InitCudaCountersKernel<<<32, 1>>>();
-}
-
-
-
-
-//------------------------------------------------------------------------------------------------------------------------------
 // Math
 //------------------------------------------------------------------------------------------------------------------------------
 static __host__ inline uint32_t DivRoundUp(uint32_t a, uint32_t b) { return (a + b - 1) / b; }
@@ -137,7 +108,6 @@ static __host__ inline uint32_t DivRoundUp(uint32_t a, uint32_t b) { return (a +
 static __device__ inline float2 operator -(const float2& a) { return make_float2(-a.x, -a.y); }
 static __device__ inline float3 operator -(const float3& a) { return make_float3(-a.x, -a.y, -a.z); }
 static __device__ inline float4 operator -(const float4& a) { return make_float4(-a.x, -a.y, -a.z, -a.w); }
-
 
 
 
