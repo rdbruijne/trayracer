@@ -48,11 +48,8 @@ inline void InitializeFilm(int pixelIx)
 
 
 
-//------------------------------------------------------------------------------------------------------------------------------
-// Ray picking
-//------------------------------------------------------------------------------------------------------------------------------
 extern "C" __global__
-void __anyhit__RayPick()
+void __anyhit__()
 {
 	optixTerminateRay();
 }
@@ -60,7 +57,7 @@ void __anyhit__RayPick()
 
 
 extern "C" __global__
-void __closesthit__RayPick()
+void __closesthit__()
 {
 	optixSetPayload_0(EncodeBarycentrics(optixGetTriangleBarycentrics()));
 	optixSetPayload_1(optixGetInstanceIndex());
@@ -71,66 +68,7 @@ void __closesthit__RayPick()
 
 
 extern "C" __global__
-void __miss__RayPick()
-{
-}
-
-
-
-extern "C" __global__
-void __raygen__RayPick()
-{
-	// generate ray
-	uint32_t seed = 0;
-	const int ix = params.rayPickPixel.x;
-	const int iy = params.resY - params.rayPickPixel.y;
-	float3 O, D;
-	GenerateCameraRay(O, D, make_int2(ix, iy), seed);
-
-	// prepare the payload
-	uint32_t bary = 0;
-	uint32_t instIx = ~0u;
-	uint32_t primIx = ~0u;
-	uint32_t tmax = __float_as_uint(DST_MAX);
-
-	// trace the ray
-	optixTrace(params.sceneRoot, O, D, params.epsilon, DST_MAX, 0.f, OptixVisibilityMask(255), OPTIX_RAY_FLAG_DISABLE_ANYHIT,
-			   RayType_Surface, RayType_Count, RayType_Surface, bary, instIx, primIx, tmax);
-
-	RayPickResult& r = *params.rayPickResult;
-	r.rayOrigin = params.cameraPos;
-	r.instIx    = instIx;
-	r.rayDir    = D;
-	r.tmax      = __uint_as_float(tmax);
-	r.primIx    = primIx;
-}
-
-
-
-//------------------------------------------------------------------------------------------------------------------------------
-// SPT
-//------------------------------------------------------------------------------------------------------------------------------
-extern "C" __global__
-void __anyhit__SPT()
-{
-	optixTerminateRay();
-}
-
-
-
-extern "C" __global__
-void __closesthit__SPT()
-{
-	optixSetPayload_0(EncodeBarycentrics(optixGetTriangleBarycentrics()));
-	optixSetPayload_1(optixGetInstanceIndex());
-	optixSetPayload_2(optixGetPrimitiveIndex());
-	optixSetPayload_3(__float_as_uint(optixGetRayTmax()));
-}
-
-
-
-extern "C" __global__
-void __miss__SPT()
+void __miss__()
 {
 	optixSetPayload_0(0);
 }
@@ -138,7 +76,7 @@ void __miss__SPT()
 
 
 extern "C" __global__
-void __raygen__SPT()
+void __raygen__()
 {
 	// get the current pixel index
 	const uint3 launchIndex = optixGetLaunchIndex();
@@ -240,6 +178,34 @@ void __raygen__SPT()
 				const int pixelIx = __float_as_int(O4.w);
 				params.accumulator[pixelIx] += make_float4(T4.x, T4.y, T4.z, 0);
 			}
+		}
+		break;
+
+	case RayGen_RayPick:
+		{
+			// generate ray
+			uint32_t seed = 0;
+			const int ix = params.rayPickPixel.x;
+			const int iy = params.resY - params.rayPickPixel.y;
+			float3 O, D;
+			GenerateCameraRay(O, D, make_int2(ix, iy), seed);
+
+			// prepare the payload
+			uint32_t bary = 0;
+			uint32_t instIx = ~0u;
+			uint32_t primIx = ~0u;
+			uint32_t tmax = __float_as_uint(DST_MAX);
+
+			// trace the ray
+			optixTrace(params.sceneRoot, O, D, params.epsilon, DST_MAX, 0.f, OptixVisibilityMask(255), OPTIX_RAY_FLAG_DISABLE_ANYHIT,
+					   RayType_Surface, RayType_Count, RayType_Surface, bary, instIx, primIx, tmax);
+
+			RayPickResult& r = *params.rayPickResult;
+			r.rayOrigin = params.cameraPos;
+			r.instIx    = instIx;
+			r.rayDir    = D;
+			r.tmax      = __uint_as_float(tmax);
+			r.primIx    = primIx;
 		}
 		break;
 	};

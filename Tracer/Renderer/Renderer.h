@@ -110,7 +110,7 @@ namespace Tracer
 		void CreateModule();
 		void CreatePrograms();
 		void CreatePipeline();
-		void CreateShaderBindingTables();
+		void CreateShaderBindingTable();
 
 		// scene building
 		void BuildGeometry(Scene* scene);
@@ -188,20 +188,17 @@ namespace Tracer
 		// Optix device context
 		OptixDeviceContext mOptixContext = nullptr;
 
-		// Render mode data
-		struct RenderModeConfig
-		{
-			OptixProgramGroup rayGenProgram;
-			OptixProgramGroup missProgram;
-			OptixProgramGroup hitgroupProgram;
+		// Programs
+		OptixProgramGroup mRayGenProgram;
+		OptixProgramGroup mMissProgram;
+		OptixProgramGroup mHitgroupProgram;
 
-			CudaBuffer rayGenRecordsBuffer = {};
-			CudaBuffer missRecordsBuffer = {};
-			CudaBuffer hitRecordsBuffer = {};
+		CudaBuffer mRayGenRecordsBuffer = {};
+		CudaBuffer mMissRecordsBuffer = {};
+		CudaBuffer mHitRecordsBuffer = {};
 
-			OptixShaderBindingTable shaderBindingTable = {};
-		};
-		std::vector<RenderModeConfig> mRenderModeConfigs;
+		// shader bindings
+		OptixShaderBindingTable mShaderBindingTable = {};
 
 		// Geometry #TODO: remove
 		std::vector<CudaBuffer> mVertexBuffers;

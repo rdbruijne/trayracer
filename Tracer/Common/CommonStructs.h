@@ -32,6 +32,7 @@ enum RayGenModes : uint32_t
 	RayGen_Primary,
 	RayGen_Secondary,
 	RayGen_Shadow,
+	RayGen_RayPick
 };
 
 

@@ -38,14 +38,6 @@ namespace Tracer
 {
 	namespace
 	{
-		enum class OptixRenderModes
-		{
-			SPT,
-			RayPick
-		};
-
-
-
 		// Raygen program Shader Binding Table record
 		struct alignas(OPTIX_SBT_RECORD_ALIGNMENT) RaygenRecord
 		{
@@ -77,13 +69,6 @@ namespace Tracer
 		{
 			printf("[%1u][%-12s]: %s\n", level, tag, message);
 		}
-
-
-
-		std::string ToString(OptixRenderModes renderMode)
-		{
-			return std::string(magic_enum::enum_name(renderMode));
-		}
 	}
 
 
@@ -98,7 +83,7 @@ namespace Tracer
 		CreateDenoiser();
 
 		// build shader binding table
-		CreateShaderBindingTables();
+		CreateShaderBindingTable();
 
 		// allocate launch params
 		mLaunchParamsBuffer.Alloc(sizeof(LaunchParams));
@@ -194,9 +179,8 @@ namespace Tracer
 				// primary
 				mRenderStats.primaryPathCount = pathCount;
 				OPTIX_CHECK(optixLaunch(mPipeline, mStream, mLaunchParamsBuffer.DevicePtr(), mLaunchParamsBuffer.Size(),
-										&mRenderModeConfigs[magic_enum::enum_integer(OptixRenderModes::SPT)].shaderBindingTable,
-										static_cast<unsigned int>(mLaunchParams.resX), static_cast<unsigned int>(mLaunchParams.resY),
-										static_cast<unsigned int>(mLaunchParams.multiSample)));
+										&mShaderBindingTable, static_cast<unsigned int>(mLaunchParams.resX),
+										static_cast<unsigned int>(mLaunchParams.resY), static_cast<unsigned int>(mLaunchParams.multiSample)));
 			}
 			else if(pathCount > 0)
 			{
@@ -208,8 +192,7 @@ namespace Tracer
 				else
 					mRenderStats.deepPathCount += pathCount;
 				OPTIX_CHECK(optixLaunch(mPipeline, mStream, mLaunchParamsBuffer.DevicePtr(), mLaunchParamsBuffer.Size(),
-										&mRenderModeConfigs[magic_enum::enum_integer(OptixRenderModes::SPT)].shaderBindingTable,
-										pathCount, 1, 1));
+										&mShaderBindingTable, pathCount, 1, 1));
 			}
 			mRenderStats.pathCount += pathCount;
 			mTraceTimeEvents[pathLength].Stop(mStream);
@@ -234,8 +217,7 @@ namespace Tracer
 				mLaunchParams.rayGenMode = RayGen_Shadow;
 				mLaunchParamsBuffer.Upload(&mLaunchParams);
 				OPTIX_CHECK(optixLaunch(mPipeline, mStream, mLaunchParamsBuffer.DevicePtr(), mLaunchParamsBuffer.Size(),
-										&mRenderModeConfigs[magic_enum::enum_integer(OptixRenderModes::SPT)].shaderBindingTable,
-										counters.shadowRays, 1, 1));
+										&mShaderBindingTable, counters.shadowRays, 1, 1));
 				mShadowTimeEvents[pathLength].Stop(mStream);
 
 				// update stats
@@ -373,15 +355,15 @@ namespace Tracer
 		resultBuffer.Alloc(sizeof(RayPickResult));
 
 		// set ray pick specific launch param options
-		mLaunchParams.rayPickPixel = pixelIndex;
+		mLaunchParams.rayGenMode    = RayGen_RayPick;
+		mLaunchParams.rayPickPixel  = pixelIndex;
 		mLaunchParams.rayPickResult = resultBuffer.Ptr<RayPickResult>();
 
 		// upload launch params
 		mLaunchParamsBuffer.Upload(&mLaunchParams);
 
 		// launch the kernel
-		OPTIX_CHECK(optixLaunch(mPipeline, mStream, mLaunchParamsBuffer.DevicePtr(), mLaunchParamsBuffer.Size(),
-								&mRenderModeConfigs[magic_enum::enum_integer(OptixRenderModes::RayPick)].shaderBindingTable, 1, 1, 1));
+		OPTIX_CHECK(optixLaunch(mPipeline, mStream, mLaunchParamsBuffer.DevicePtr(), mLaunchParamsBuffer.Size(), &mShaderBindingTable, 1, 1, 1));
 		CUDA_CHECK(cudaDeviceSynchronize());
 
 		// read the raypick result
@@ -411,7 +393,8 @@ namespace Tracer
 		OPTIX_CHECK(optixDenoiserComputeMemoryResources(mDenoiser, resolution.x, resolution.y, &denoiserReturnSizes));
 		mDenoiserScratch.Resize(denoiserReturnSizes.recommendedScratchSizeInBytes);
 		mDenoiserState.Resize(denoiserReturnSizes.stateSizeInBytes);
-		OPTIX_CHECK(optixDenoiserSetup(mDenoiser, 0, resolution.x, resolution.y, mDenoiserState.DevicePtr(), mDenoiserState.Size(), mDenoiserScratch.DevicePtr(), mDenoiserScratch.Size()));
+		OPTIX_CHECK(optixDenoiserSetup(mDenoiser, 0, resolution.x, resolution.y, mDenoiserState.DevicePtr(), mDenoiserState.Size(),
+									   mDenoiserScratch.DevicePtr(), mDenoiserScratch.Size()));
 	}
 
 
@@ -508,59 +491,41 @@ namespace Tracer
 			return program;
 		};
 
-		// configs for rendermodes
-		mRenderModeConfigs.resize(magic_enum::enum_count<OptixRenderModes>());
-		for(size_t m = 0; m < magic_enum::enum_count<OptixRenderModes>(); m++)
-		{
-			const std::string modeName = ToString(static_cast<OptixRenderModes>(m));
+		// ray gen
+		OptixProgramGroupDesc raygenDesc      = {};
+		raygenDesc.kind                       = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
+		raygenDesc.raygen.module              = mModule;
+		raygenDesc.raygen.entryFunctionName   = "__raygen__";
+		mRayGenProgram                        = CreateProgram({}, raygenDesc);
 
-			// entry names
-			const std::string raygenEntryName     = "__raygen__" + modeName;
-			const std::string missEntryName       = "__miss__" + modeName;
-			const std::string anyhitEntryName     = "__anyhit__" + modeName;
-			const std::string closesthitEntryName = "__closesthit__" + modeName;
+		// miss
+		OptixProgramGroupDesc missDesc        = {};
+		missDesc.kind                         = OPTIX_PROGRAM_GROUP_KIND_MISS;
+		missDesc.miss.module                  = mModule;
+		missDesc.miss.entryFunctionName       = "__miss__";
+		mMissProgram                          = CreateProgram({}, missDesc);
 
-			// ray gen
-			OptixProgramGroupDesc raygenDesc      = {};
-			raygenDesc.kind                       = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
-			raygenDesc.raygen.module              = mModule;
-			raygenDesc.raygen.entryFunctionName   = raygenEntryName.c_str();
-			mRenderModeConfigs[m].rayGenProgram   = CreateProgram({}, raygenDesc);
-
-			// miss
-			OptixProgramGroupDesc missDesc        = {};
-			missDesc.kind                         = OPTIX_PROGRAM_GROUP_KIND_MISS;
-			missDesc.miss.module                  = mModule;
-			missDesc.miss.entryFunctionName       = missEntryName.c_str();
-			mRenderModeConfigs[m].missProgram     = CreateProgram({}, missDesc);
-
-			// hit
-			OptixProgramGroupDesc hitDesc         = {};
-			hitDesc.kind                          = OPTIX_PROGRAM_GROUP_KIND_HITGROUP;
-			hitDesc.hitgroup.moduleCH             = mModule;
-			hitDesc.hitgroup.entryFunctionNameCH  = closesthitEntryName.c_str();
-			hitDesc.hitgroup.moduleAH             = mModule;
-			hitDesc.hitgroup.entryFunctionNameAH  = anyhitEntryName.c_str();
-			mRenderModeConfigs[m].hitgroupProgram = CreateProgram({}, hitDesc);
-		}
+		// hit
+		OptixProgramGroupDesc hitDesc         = {};
+		hitDesc.kind                          = OPTIX_PROGRAM_GROUP_KIND_HITGROUP;
+		hitDesc.hitgroup.moduleCH             = mModule;
+		hitDesc.hitgroup.entryFunctionNameCH  = "__closesthit__";
+		hitDesc.hitgroup.moduleAH             = mModule;
+		hitDesc.hitgroup.entryFunctionNameAH  = "__anyhit__";
+		mHitgroupProgram                      = CreateProgram({}, hitDesc);
 	}
 
 
 
 	void Renderer::CreatePipeline()
 	{
-		// count total number of programs
-		size_t programCount = mRenderModeConfigs.size() * 3;
-
-		// add programs
-		std::vector<OptixProgramGroup> programGroups;
-		programGroups.reserve(programCount);
-		for(RenderModeConfig& c : mRenderModeConfigs)
+		// create programs vector
+		std::vector<OptixProgramGroup> programGroups =
 		{
-			programGroups.push_back(c.rayGenProgram);
-			programGroups.push_back(c.missProgram);
-			programGroups.push_back(c.hitgroupProgram);
-		}
+			mRayGenProgram,
+			mMissProgram,
+			mHitgroupProgram
+		};
 
 		char log[2048];
 		size_t logLength = sizeof(log);
@@ -587,32 +552,29 @@ namespace Tracer
 
 
 
-	void Renderer::CreateShaderBindingTables()
+	void Renderer::CreateShaderBindingTable()
 	{
-		for(RenderModeConfig& config : mRenderModeConfigs)
-		{
-			// raygen records
-			RaygenRecord raygen = {};
-			OPTIX_CHECK(optixSbtRecordPackHeader(config.rayGenProgram, &raygen));
-			config.rayGenRecordsBuffer.Upload(&raygen, 1, true);
-			config.shaderBindingTable.raygenRecord = config.rayGenRecordsBuffer.DevicePtr();
+		// raygen records
+		RaygenRecord raygen = {};
+		OPTIX_CHECK(optixSbtRecordPackHeader(mRayGenProgram, &raygen));
+		mRayGenRecordsBuffer.Upload(&raygen, 1, true);
+		mShaderBindingTable.raygenRecord = mRayGenRecordsBuffer.DevicePtr();
 
-			// miss records
-			MissRecord miss = {};
-			OPTIX_CHECK(optixSbtRecordPackHeader(config.missProgram, &miss));
-			config.missRecordsBuffer.Upload(&miss, 1, true);
-			config.shaderBindingTable.missRecordBase          = config.missRecordsBuffer.DevicePtr();
-			config.shaderBindingTable.missRecordStrideInBytes = sizeof(MissRecord);
-			config.shaderBindingTable.missRecordCount         = 1;
+		// miss records
+		MissRecord miss = {};
+		OPTIX_CHECK(optixSbtRecordPackHeader(mMissProgram, &miss));
+		mMissRecordsBuffer.Upload(&miss, 1, true);
+		mShaderBindingTable.missRecordBase          = mMissRecordsBuffer.DevicePtr();
+		mShaderBindingTable.missRecordStrideInBytes = sizeof(MissRecord);
+		mShaderBindingTable.missRecordCount         = 1;
 
-			// hitgroup records
-			HitgroupRecord hit = {};
-			OPTIX_CHECK(optixSbtRecordPackHeader(config.hitgroupProgram, &hit));
-			config.hitRecordsBuffer.Upload(&hit, 1, true);
-			config.shaderBindingTable.hitgroupRecordBase          = config.hitRecordsBuffer.DevicePtr();
-			config.shaderBindingTable.hitgroupRecordStrideInBytes = sizeof(HitgroupRecord);
-			config.shaderBindingTable.hitgroupRecordCount         = 1;
-		}
+		// hitgroup records
+		HitgroupRecord hit = {};
+		OPTIX_CHECK(optixSbtRecordPackHeader(mHitgroupProgram, &hit));
+		mHitRecordsBuffer.Upload(&hit, 1, true);
+		mShaderBindingTable.hitgroupRecordBase          = mHitRecordsBuffer.DevicePtr();
+		mShaderBindingTable.hitgroupRecordStrideInBytes = sizeof(HitgroupRecord);
+		mShaderBindingTable.hitgroupRecordCount         = 1;
 	}
 
 
