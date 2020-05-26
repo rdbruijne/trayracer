@@ -276,7 +276,8 @@ namespace Tracer
 						}
 
 						// add instance
-						scene->AddInstance(std::make_shared<Instance>(instName, model, modelTransform));
+						if(model)
+							scene->AddInstance(std::make_shared<Instance>(instName, model, modelTransform));
 					}
 				}
 			}
