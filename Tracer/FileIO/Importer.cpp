@@ -77,29 +77,29 @@ namespace Tracer
 			std::shared_ptr<Material> mat = std::make_shared<Material>(name.C_Str());
 
 			// parse properties
-			ai_real r;
+			//ai_real r;
 			aiColor3D c3;
 
-			if (!aMat->Get(AI_MATKEY_OPACITY, r))
-				mat->SetOpacity(r);
+			//if (!aMat->Get(AI_MATKEY_OPACITY, r))
+			//	mat->SetOpacity(r);
 
-			if (!aMat->Get(AI_MATKEY_SHININESS, r))
-				mat->SetShininess(r);
+			//if (!aMat->Get(AI_MATKEY_SHININESS, r))
+			//	mat->SetShininess(r);
 
-			if (!aMat->Get(AI_MATKEY_REFRACTI, r))
-				mat->SetRefractI(r);
+			//if (!aMat->Get(AI_MATKEY_REFRACTI, r))
+			//	mat->SetRefractI(r);
 
 			if (!aMat->Get(AI_MATKEY_COLOR_DIFFUSE, c3))
 				mat->SetDiffuse(make_float3(c3.r, c3.g, c3.b));
 
-			if (!aMat->Get(AI_MATKEY_COLOR_SPECULAR, c3))
-				mat->SetSpecular(make_float3(c3.r, c3.g, c3.b));
+			//if (!aMat->Get(AI_MATKEY_COLOR_SPECULAR, c3))
+			//	mat->SetSpecular(make_float3(c3.r, c3.g, c3.b));
 
 			if (!aMat->Get(AI_MATKEY_COLOR_EMISSIVE, c3))
 				mat->SetEmissive(make_float3(c3.r, c3.g, c3.b));
 
-			if (!aMat->Get(AI_MATKEY_COLOR_TRANSPARENT, c3))
-				mat->SetTransparent(make_float3(c3.r, c3.g, c3.b));
+			//if (!aMat->Get(AI_MATKEY_COLOR_TRANSPARENT, c3))
+			//	mat->SetTransparent(make_float3(c3.r, c3.g, c3.b));
 
 			// parse textures
 			auto GetTex = [&](const char* texPath)

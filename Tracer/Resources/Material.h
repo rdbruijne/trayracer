@@ -36,11 +36,11 @@ namespace Tracer
 		// values
 		MATERIAL_VALUE(float3, Diffuse, make_float3(.5f));
 		MATERIAL_VALUE(float3, Emissive, make_float3(0));
-		MATERIAL_VALUE(float,  Opacity, 1);
-		MATERIAL_VALUE(float,  RefractI, 1);
-		MATERIAL_VALUE(float,  Shininess, 1);
-		MATERIAL_VALUE(float3, Specular, make_float3(0));
-		MATERIAL_VALUE(float3, Transparent, make_float3(1));
+		//MATERIAL_VALUE(float,  Opacity, 1);
+		//MATERIAL_VALUE(float,  RefractI, 1);
+		//MATERIAL_VALUE(float,  Shininess, 1);
+		//MATERIAL_VALUE(float3, Specular, make_float3(0));
+		//MATERIAL_VALUE(float3, Transparent, make_float3(1));
 
 		// textures
 		///MATERIAL_TEXTURE(BaseColorMap);

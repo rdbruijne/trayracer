@@ -387,11 +387,11 @@ namespace Tracer
 						Write(jsonMat, allocator, "name", mat->Name());
 						Write(jsonMat, allocator, "diffuse", mat->Diffuse());
 						Write(jsonMat, allocator, "emissive", mat->Emissive());
-						Write(jsonMat, allocator, "opacity", mat->Opacity());
-						Write(jsonMat, allocator, "refracti", mat->RefractI());
-						Write(jsonMat, allocator, "shininess", mat->Shininess());
-						Write(jsonMat, allocator, "specular", mat->Specular());
-						Write(jsonMat, allocator, "transparent", mat->Transparent());
+						//Write(jsonMat, allocator, "opacity", mat->Opacity());
+						//Write(jsonMat, allocator, "refracti", mat->RefractI());
+						//Write(jsonMat, allocator, "shininess", mat->Shininess());
+						//Write(jsonMat, allocator, "specular", mat->Specular());
+						//Write(jsonMat, allocator, "transparent", mat->Transparent());
 
 						// textures
 						//if (mat->BaseColorMap())
