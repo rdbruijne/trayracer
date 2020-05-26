@@ -44,6 +44,6 @@ __host__ void FinalizeFrame(float4* accumulator, float4* colors, int2 resolution
 {
 	const int32_t pixelCount = resolution.x * resolution.y;
 	const uint32_t threadsPerBlock = 128;
-	const uint32_t blockCount = DivRoundUp(resolution.x * resolution.y, threadsPerBlock);
+	const uint32_t blockCount = DivRoundUp(static_cast<uint32_t>(resolution.x * resolution.y), threadsPerBlock);
 	FimalizeFrameKernel<<<blockCount, threadsPerBlock>>>(accumulator, colors, pixelCount, sampleCount);
 }

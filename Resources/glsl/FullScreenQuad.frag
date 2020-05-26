@@ -10,11 +10,31 @@ layout(location = 0) in vec2 inUV;
 // result
 layout(location = 0) out vec4 outColor;
 
+
+
+// gamma correction
+vec3 GammaCorrect(vec3 c)
+{
+	float g = 1.f / gamma;
+	return vec3(pow(c.x, g), pow(c.y, g), pow(c.z, g));
+}
+
+
+
+// tonemapping
+vec3 Tonemap(vec3 c)
+{
+	return clamp(c, 0, 1);
+}
+
+
+
+// main shader program
 void main()
 {
-	vec4 c = texture(convergeBuffer, inUV);
-	c.x = pow(c.x, 1.f / gamma);
-	c.y = pow(c.y, 1.f / gamma);
-	c.z = pow(c.z, 1.f / gamma);
-	outColor = vec4(c.xyz, 1.0) * exposure;
+	vec3 c = texture(convergeBuffer, inUV).xyz;
+	c = Tonemap(c);
+	c *= exposure;
+	c = GammaCorrect(c);
+	outColor = c;
 }
