@@ -8,7 +8,7 @@ uniform float gamma = 1;
 layout(location = 0) in vec2 inUV;
 
 // result
-layout(location = 0) out vec4 outColor;
+layout(location = 0) out vec3 outColor;
 
 
 
