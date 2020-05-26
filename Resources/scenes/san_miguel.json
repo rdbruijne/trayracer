@@ -1,0 +1,13 @@
+{
+	"models":
+	[
+		{ "model": "../Resources/models/San_Miguel/san-miguel.obj" }
+	],
+	"camera":
+	{
+		"position": [22, 2, 5],
+        "target": [0, 0, 0],
+        "up": [0, 1, 0],
+        "fov": 90
+	}
+}

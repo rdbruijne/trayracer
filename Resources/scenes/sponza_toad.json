@@ -1,9 +1,9 @@
 {
 	"models":
 	[
-		{ "model": "models/sponza/sponza.obj" },
+		{ "model": "../Resources/models/sponza/sponza.obj" },
 		{
-			"model": "models/toad/toad.obj",
+			"model": "../Resources/models/toad/toad.obj",
 			"transform":
 			[
 				{ "translate": [0, 1.69, 0] },

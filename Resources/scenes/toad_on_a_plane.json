@@ -2,10 +2,10 @@
 	"models":
 	[
 		{
-			"model": "models/toad/toad.obj",
+			"model": "../Resources/models/toad/toad.obj",
 			"transform": [{ "matrix": [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.69, 0] }]
 		},
-		{ "model": "models/plane/plane.obj" }
+		{ "model": "../Resources/models/plane/plane.obj" }
 	],
 	"camera":
 	{

@@ -1,7 +1,7 @@
 {
 	"models":
 	[
-		{ "model": "models/sun_temple/SunTemple.fbx" }
+		{ "model": "../Resources/models/sun_temple/SunTemple.fbx" }
 	],
 	"camera":
 	{

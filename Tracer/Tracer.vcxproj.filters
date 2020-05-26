@@ -140,6 +140,9 @@
     <Filter Include="FileIO">
       <UniqueIdentifier>{d1a97724-f5ba-4c93-8f56-d131838adce0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="glsl">
+      <UniqueIdentifier>{c7f6896a-605e-4a32-b74e-cd48bbda9032}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App\App.h">
@@ -278,6 +281,12 @@
   <ItemGroup>
     <None Include="Resources\Model.h">
       <Filter>Resources</Filter>
+    </None>
+    <None Include="glsl\FullScreenQuad.frag">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\FullScreenQuad.vert">
+      <Filter>glsl</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

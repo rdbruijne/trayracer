@@ -109,6 +109,21 @@
       <KeepDir>$(IntDir)</KeepDir>
       <InterleaveSourceInPTX>true</InterleaveSourceInPTX>
     </CudaCompile>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+    <PreBuildEvent>
+      <Message>
+      </Message>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>xcopy /r /d /i /s /y "$(ProjectDir)glsl" "$(OutDir)glsl"
+for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copy resources</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -146,6 +161,21 @@
       <KeepDir>$(IntDir)</KeepDir>
       <InterleaveSourceInPTX>true</InterleaveSourceInPTX>
     </CudaCompile>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+    <PreBuildEvent>
+      <Message>
+      </Message>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>xcopy /r /d /i /s /y "$(ProjectDir)glsl" "$(OutDir)glsl"
+for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copy resources</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
     <ClCompile>
@@ -186,6 +216,21 @@
       <KeepDir>$(IntDir)</KeepDir>
       <InterleaveSourceInPTX>true</InterleaveSourceInPTX>
     </CudaCompile>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+    <PreBuildEvent>
+      <Message>
+      </Message>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>xcopy /r /d /i /s /y "$(ProjectDir)glsl" "$(OutDir)glsl"
+for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copy resources</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\libraries\imgui\imgui.cpp" />
@@ -272,6 +317,8 @@
     <ClInclude Include="Utility\Utility.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="glsl\FullScreenQuad.frag" />
+    <None Include="glsl\FullScreenQuad.vert" />
     <None Include="Resources\Model.h" />
   </ItemGroup>
   <ItemGroup>

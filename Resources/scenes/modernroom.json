@@ -2,7 +2,7 @@
     "models": [
         {
             "name": "modernroom_t",
-            "model": "models/ModernRoom/modernroom_t.obj",
+            "model": "../Resources/models/ModernRoom/modernroom_t.obj",
             "transform": [
                 {
                     "matrix": [
