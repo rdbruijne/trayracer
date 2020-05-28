@@ -13,8 +13,8 @@
 
 namespace Tracer
 {
-	Model::Model(const std::string& filePath) :
-		Resource(FileName(filePath)),
+	Model::Model(const std::string& filePath, const std::string& name) :
+		Resource(name.empty() ? FileName(filePath) : name),
 		mFilePath(filePath)
 	{
 	}
@@ -26,6 +26,18 @@ namespace Tracer
 		if(primIx > mMaterialIndices.size())
 			return nullptr;
 		return mMaterials[mMaterialIndices[primIx]];
+	}
+
+
+
+	std::shared_ptr<Tracer::Material> Model::GetMaterial(const std::string& name) const
+	{
+		for(auto m : mMaterials)
+		{
+			if(m->Name() == name)
+				return m;
+		}
+		return nullptr;
 	}
 
 

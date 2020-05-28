@@ -1,11 +1,16 @@
 {
 	"models":
 	[
+		{ "name": "plane", "path": "../Resources/models/plane/plane.obj" },
+		{ "name": "toad", "path": "../Resources/models/toad/toad.obj" }
+	],
+	"instances":
+	[
+		{ "model": "plane" },
 		{
-			"model": "../Resources/models/toad/toad.obj",
-			"transform": [{ "matrix": [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.69, 0] }]
-		},
-		{ "model": "../Resources/models/plane/plane.obj" }
+			"model": "toad",
+			"transform": [ { "translate": [ 0, 1.69, 0 ] } ]
+		}
 	],
 	"camera":
 	{

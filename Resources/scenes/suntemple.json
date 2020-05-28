@@ -1,8 +1,6 @@
 {
-	"models":
-	[
-		{ "model": "../Resources/models/sun_temple/SunTemple.fbx" }
-	],
+	"models": [ { "name": "suntemple", "path": "../Resources/models/sun_temple/SunTemple.fbx" } ],
+	"instances": [ { "model": "suntemple" } ],
 	"camera":
 	{
 		"position": [6, 6, -10],

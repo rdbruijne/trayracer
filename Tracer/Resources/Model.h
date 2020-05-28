@@ -21,7 +21,7 @@ namespace Tracer
 	{
 	public:
 		Model() = default;
-		explicit Model(const std::string& filePath);
+		explicit Model(const std::string& filePath, const std::string& name = "");
 
 		// info
 		const std::string& FilePath() const { return mFilePath; }
@@ -31,6 +31,7 @@ namespace Tracer
 
 		// materials
 		std::shared_ptr<Material> GetMaterial(uint32_t primIx) const;
+		std::shared_ptr<Material> GetMaterial(const std::string& name) const;
 		const std::vector<std::shared_ptr<Material>>& Materials() const { return mMaterials; }
 		uint32_t AddMaterial(std::shared_ptr<Material> mat);
 

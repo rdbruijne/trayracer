@@ -39,33 +39,6 @@ namespace Tracer
 
 
 
-		std::shared_ptr<Texture> ImportTexture(const std::string& importDir, const std::string& textureFile)
-		{
-			const std::string texPath = importDir + "/" + textureFile;
-
-			// load image
-			FREE_IMAGE_FORMAT fif = FreeImage_GetFileType(texPath.c_str(), 0);
-			if(fif == FIF_UNKNOWN)
-				fif = FreeImage_GetFIFFromFilename(texPath.c_str());
-			FIBITMAP* tmp = FreeImage_Load(fif, texPath.c_str());
-			FIBITMAP* dib = FreeImage_ConvertTo32Bits(tmp);
-			FreeImage_Unload(tmp);
-			const uint32_t w = FreeImage_GetWidth(dib);
-			const uint32_t h = FreeImage_GetHeight(dib);
-			std::vector<uint32_t> pixels(static_cast<size_t>(w) * h);
-			for(uint32_t y = 0; y < h; y++)
-			{
-				const uint8_t* line = FreeImage_GetScanLine(dib, y);
-				memcpy(pixels.data() + (static_cast<size_t>(y) * w), line, w * sizeof(uint32_t));
-			}
-			FreeImage_Unload(dib);
-
-			// create texture
-			return std::make_shared<Texture>(texPath, make_uint2(w, h), pixels);
-		}
-
-
-
 		std::shared_ptr<Material> ImportMaterial(const std::string& importDir, std::map<std::string, std::shared_ptr<Texture>>& textures, const aiMaterial* aMat)
 		{
 			// name
@@ -109,7 +82,7 @@ namespace Tracer
 				if(it != textures.end())
 					return it->second;
 
-				auto tex = ImportTexture(importDir, texPathStr);
+				auto tex = Importer::ImportTexture(texPathStr, importDir);
 				textures[texPathStr] = tex;
 				return tex;
 			};
@@ -201,7 +174,36 @@ namespace Tracer
 
 
 
-	std::shared_ptr<Model> Importer::ImportModel(const std::string& filePath)
+	std::shared_ptr<Texture> Importer::ImportTexture(const std::string& textureFile, const std::string& importDir)
+	{
+		std::string texPath = textureFile;
+		if(!importDir.empty())
+			texPath = importDir + "/" + textureFile;
+
+		// load image
+		FREE_IMAGE_FORMAT fif = FreeImage_GetFileType(texPath.c_str(), 0);
+		if(fif == FIF_UNKNOWN)
+			fif = FreeImage_GetFIFFromFilename(texPath.c_str());
+		FIBITMAP* tmp = FreeImage_Load(fif, texPath.c_str());
+		FIBITMAP* dib = FreeImage_ConvertTo32Bits(tmp);
+		FreeImage_Unload(tmp);
+		const uint32_t w = FreeImage_GetWidth(dib);
+		const uint32_t h = FreeImage_GetHeight(dib);
+		std::vector<uint32_t> pixels(static_cast<size_t>(w) * h);
+		for(uint32_t y = 0; y < h; y++)
+		{
+			const uint8_t* line = FreeImage_GetScanLine(dib, y);
+			memcpy(pixels.data() + (static_cast<size_t>(y) * w), line, w * sizeof(uint32_t));
+		}
+		FreeImage_Unload(dib);
+
+		// create texture
+		return std::make_shared<Texture>(texPath, make_uint2(w, h), pixels);
+	}
+
+
+
+	std::shared_ptr<Model> Importer::ImportModel(const std::string& filePath, const std::string& name)
 	{
 		printf("Importing \"%s\"\n", filePath.c_str());
 		try
@@ -270,7 +272,7 @@ namespace Tracer
 				throw std::runtime_error(importer.GetErrorString());
 
 			// create model
-			std::shared_ptr<Model> model = std::make_shared<Model>(filePath);
+			std::shared_ptr<Model> model = std::make_shared<Model>(filePath, name);
 
 			// import materials
 			std::map<std::string, std::shared_ptr<Texture>> textures;

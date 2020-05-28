@@ -1,8 +1,6 @@
 {
-	"models":
-	[
-		{ "model": "../Resources/models/sponza/sponza.obj" }
-	],
+	"models": [ { "name": "sponza", "path": "../Resources/models/sponza/sponza.obj" } ],
+	"instances": [ { "model": "sponza" } ],
 	"camera":
 	{
 		"position": [-1350, 150, 0],

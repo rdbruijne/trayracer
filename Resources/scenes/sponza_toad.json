@@ -1,9 +1,14 @@
 {
 	"models":
 	[
-		{ "model": "../Resources/models/sponza/sponza.obj" },
+		{ "name": "sponza", "path": "../Resources/models/sponza/sponza.obj" },
+		{ "name": "toad", "path": "../Resources/models/toad/toad.obj" }
+	],
+	"instances":
+	[
+		{ "model": "sponza" },
 		{
-			"model": "../Resources/models/toad/toad.obj",
+			"model": "toad",
 			"transform":
 			[
 				{ "translate": [0, 1.69, 0] },

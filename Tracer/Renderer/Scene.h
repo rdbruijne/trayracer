@@ -35,6 +35,7 @@ namespace Tracer
 		void AddModel(std::shared_ptr<Model> model);
 		void AddInstance(std::shared_ptr<Instance> instance);
 
+		std::shared_ptr<Model> GetModel(const std::string& name) const;
 		std::shared_ptr<Material> GetMaterial(uint32_t instanceIx, uint32_t primIx);
 
 		inline const std::vector<std::shared_ptr<Model>>& Models() const { return mModels; }

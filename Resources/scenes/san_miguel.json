@@ -1,8 +1,6 @@
 {
-	"models":
-	[
-		{ "model": "../Resources/models/San_Miguel/san-miguel.obj" }
-	],
+	"models": [ { "name": "sanmiguel", "path": "../Resources/models/San_Miguel/san-miguel.obj" } ],
+	"instances": [ { "model": "sanmiguel" } ],
 	"camera":
 	{
 		"position": [22, 2, 5],

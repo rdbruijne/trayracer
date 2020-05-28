@@ -143,6 +143,18 @@ namespace Tracer
 
 
 
+	std::shared_ptr<Tracer::Model> Scene::GetModel(const std::string& name) const
+	{
+		for(auto& m : mModels)
+		{
+			if(m->Name() == name)
+				return m;
+		}
+		return nullptr;
+	}
+
+
+
 	std::shared_ptr<Tracer::Material> Scene::GetMaterial(uint32_t instanceIx, uint32_t primIx)
 	{
 		if(instanceIx >= mInstances.size())
