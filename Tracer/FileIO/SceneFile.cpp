@@ -145,10 +145,7 @@ namespace Tracer
 			jsonVector.PushBack(val.y, allocator);
 			jsonVector.PushBack(val.z, allocator);
 
-			Value jsonVectorObj = Value(kObjectType);
-			jsonVectorObj.AddMember(StringRef(memberName), jsonVector, allocator);
-
-			jsonValue.AddMember(StringRef(memberName), jsonVectorObj, allocator);
+			jsonValue.AddMember(StringRef(memberName), jsonVector, allocator);
 		}
 
 
@@ -171,10 +168,7 @@ namespace Tracer
 				jsonMatrix.PushBack(f, allocator);
 			}
 
-			Value jsonMatrixObj = Value(kObjectType);
-			jsonMatrixObj.AddMember(StringRef(memberName), jsonMatrix, allocator);
-
-			jsonValue.AddMember(StringRef(memberName), jsonMatrixObj, allocator);
+			jsonValue.AddMember(StringRef(memberName), jsonMatrix, allocator);
 		}
 
 
