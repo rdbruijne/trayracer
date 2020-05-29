@@ -191,7 +191,7 @@ namespace Tracer
 			const uint32_t matIx = mMaterialIndices[i];
 			auto& mat = mMaterials[matIx];
 			const float3& em = mat->Emissive();
-			if(em.x + em.y + em.z > 0)
+			if(em.x + em.y + em.z > Epsilon)
 			{
 				LightTriangle lt = {};
 

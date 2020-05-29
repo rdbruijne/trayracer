@@ -621,7 +621,10 @@ namespace Tracer
 			mInstancesBuffer.Upload(instances, true);
 
 			// upload lights
-			std::vector<LightTriangle> lights = scene->Lights();
+			std::vector<LightTriangle> lights;
+			if(scene)
+				lights = scene->Lights();
+
 			if(lights.size() == 0)
 				mCudaLightsBuffer.Free();
 			else
