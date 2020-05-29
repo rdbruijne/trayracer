@@ -117,7 +117,7 @@ namespace Tracer
 		void BuildMaterials(Scene* scene);
 
 		// render mode
-		RenderModes mRenderMode = RenderModes::DiffuseFilter;
+		RenderModes mRenderMode = RenderModes::AmbientOcclusionShading;
 
 		// stats
 		RenderStats mRenderStats = {};

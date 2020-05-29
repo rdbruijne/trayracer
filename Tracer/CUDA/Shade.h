@@ -185,7 +185,7 @@ __global__ void ShadeKernel_DirectLight(KERNEL_PARAMS)
 	const CudaMatarial& mat = materialData[attrib.matIx];
 
 	// emissive
-	if(mat.emissive.x > 0 || mat.emissive.y > 0 || mat.emissive.z > 0)
+	if(mat.emissive.x + mat.emissive.y + mat.emissive.z > Epsilon)
 	{
 		// accounted for in Next Event
 		accumulator[pixelIx] += make_float4(T * mat.emissive);
@@ -345,7 +345,7 @@ __global__ void ShadeKernel_PathTracing(KERNEL_PARAMS)
 	const CudaMatarial& mat = materialData[attrib.matIx];
 
 	// emissive
-	if(mat.emissive.x > 0 || mat.emissive.y > 0 || mat.emissive.z > 0)
+	if(mat.emissive.x + mat.emissive.y + mat.emissive.z > Epsilon)
 	{
 		if(pathLength == 0)
 			accumulator[pixelIx] += make_float4(mat.emissive, 0);

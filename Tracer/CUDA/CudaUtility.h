@@ -25,7 +25,8 @@ constexpr float M_SQRT2    = 1.41421356237309504880f;   // sqrt(2)
 constexpr float M_SQRT1_2  = 0.707106781186547524401f;  // 1/sqrt(2)
 
 // rendering
-constexpr float DST_MAX = 1e30f;
+constexpr float DstMax = 1e30f;
+constexpr float Epsilon = 1e-3f;
 
 
 
