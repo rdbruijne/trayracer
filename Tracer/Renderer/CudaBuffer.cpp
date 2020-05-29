@@ -22,8 +22,11 @@ namespace Tracer
 	void CudaBuffer::Alloc(size_t size)
 	{
 		assert(mPtr == nullptr);
-		mSize = size;
-		CUDA_CHECK(cudaMalloc(&mPtr, size));
+		if(size != 0)
+		{
+			mSize = size;
+			CUDA_CHECK(cudaMalloc(&mPtr, size));
+		}
 	}
 
 

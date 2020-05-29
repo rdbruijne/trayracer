@@ -16,7 +16,7 @@ namespace Tracer
 
 		const std::string& Name() const { return mName; }
 
-		bool IsDirty() const;
+		bool IsDirty(bool parseDependencies = true) const;
 		inline void MarkDirty() { mIsDirty = true; }
 		inline void MarkClean() { mIsDirty = false; }
 

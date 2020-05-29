@@ -110,7 +110,7 @@ namespace Tracer
 
 	void Renderer::BuildScene(Scene* scene)
 	{
-		// #TODO: async?
+		// #NOTE: build order is important for dirty checks
 		BuildGeometry(scene);
 		BuildMaterials(scene);
 
@@ -580,58 +580,75 @@ namespace Tracer
 
 	void Renderer::BuildGeometry(Scene* scene)
 	{
-		// #TODO: separate instance building from geometry building
 		std::vector<OptixBuildInput> buildInputs;
 		std::vector<CudaMeshData> meshData;
 		std::vector<uint32_t> modelIndices;
 
 		std::vector<OptixInstance> instances;
-		uint32_t instanceId = 0;
 
 		if(scene)
 		{
-			for(auto& inst : scene->Instances())
+			// flag to check for light rebuild
+			bool rebuildLights = false;
+
+			// build models
+			auto& models = scene->Models();
+			for(auto& m : models)
+			{
+				if(m->IsDirty())
+				{
+					if(m->IsDirty(false))
+						m->Build(mOptixContext, mStream);
+					if(m->BuildLights())
+						rebuildLights = true;
+					m->MarkClean();
+				}
+			}
+
+			// place instances
+			uint32_t instanceId = 0;
+			auto& sceneInstances = scene->Instances();
+			instances.reserve(sceneInstances.size());
+			meshData.reserve(sceneInstances.size());
+			for(auto& inst : sceneInstances)
 			{
 				const auto& model = inst->GetModel();
-				if(model->IsDirty())
-				{
-					model->Build(mOptixContext, mStream);
-					model->BuildLights();
-					model->MarkClean();
-				}
 				instances.push_back(model->InstanceData(instanceId++, inst->Transform()));
 				meshData.push_back(model->CudaMesh());
-
+				rebuildLights = rebuildLights || (inst->IsDirty() && (model->LightCount() > 0));
 				inst->MarkClean();
 			}
+
+			// build lights
+			if(rebuildLights)
+				scene->GatherLights();
 		}
 
-		if(meshData.size() == 0)
+		if(!scene || meshData.size() == 0)
 		{
 			mSceneRoot = 0;
 			mCudaMeshData.Free();
 			mInstancesBuffer.Free();
+			mCudaLightsBuffer.Free();
+
+			SetCudaMeshData(nullptr);
+			SetCudaLights(nullptr);
+			SetCudaLightCount(0);
 		}
 		else
 		{
 			// CUDA mesh data
 			mCudaMeshData.Upload(meshData, true);
+			SetCudaMeshData(mCudaMeshData.Ptr<CudaMeshData>());
 
 			// upload instances
 			mInstancesBuffer.Upload(instances, true);
 
 			// upload lights
-			std::vector<LightTriangle> lights;
-			if(scene)
-				lights = scene->Lights();
-
-			if(lights.size() == 0)
-				mCudaLightsBuffer.Free();
-			else
-				mCudaLightsBuffer.Upload(lights, true);
-
+			const std::vector<LightTriangle>& lightData = scene->Lights();
+			mCudaLightsBuffer.Upload(lightData, true);
 			SetCudaLights(mCudaLightsBuffer.Ptr<LightTriangle>());
-			SetCudaLightCount(static_cast<int32_t>(lights.size()));
+			SetCudaLightCount(static_cast<int32_t>(lightData.size()));
 
 			// build top-level
 			OptixBuildInput instanceBuildInput = {};
@@ -642,7 +659,7 @@ namespace Tracer
 
 			// Acceleration setup
 			OptixAccelBuildOptions buildOptions = {};
-			buildOptions.buildFlags = OPTIX_BUILD_FLAG_NONE;
+			buildOptions.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_BUILD;
 			buildOptions.operation  = OPTIX_BUILD_OPERATION_BUILD;
 
 			OptixAccelBufferSizes accelBufferSizes = {};
@@ -656,8 +673,6 @@ namespace Tracer
 
 			CUDA_CHECK(cudaDeviceSynchronize());
 		}
-
-		SetCudaMeshData(mCudaMeshData.Ptr<CudaMeshData>());
 	}
 
 

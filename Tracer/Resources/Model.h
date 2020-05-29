@@ -42,7 +42,7 @@ namespace Tracer
 
 		// build
 		void Build(OptixDeviceContext optixContext, CUstream stream);
-		void BuildLights();
+		bool BuildLights();
 
 		// build info
 		OptixInstance InstanceData(uint32_t instanceId, const float3x4& transform) const;

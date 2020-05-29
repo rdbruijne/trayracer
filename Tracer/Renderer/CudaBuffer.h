@@ -28,13 +28,21 @@ namespace Tracer
 		template<typename TYPE>
 		void Upload(const TYPE* data, size_t count = 1, bool allowResize = false)
 		{
-			const size_t size = count * sizeof(TYPE);
-			if(allowResize && (!mPtr || mSize != size))
-				Resize(size);
+			if(count == 0)
+			{
+				if(allowResize)
+					Free();
+			}
+			else
+			{
+				const size_t size = count * sizeof(TYPE);
+				if(allowResize && (!mPtr || mSize != size))
+					Resize(size);
 
-			assert(mPtr != nullptr);
-			assert(mSize == size);
-			CUDA_CHECK(cudaMemcpy(mPtr, static_cast<const void*>(data), size, cudaMemcpyHostToDevice));
+				assert(mPtr != nullptr);
+				assert(mSize == size);
+				CUDA_CHECK(cudaMemcpy(mPtr, static_cast<const void*>(data), size, cudaMemcpyHostToDevice));
+			}
 		}
 
 		template<typename TYPE>

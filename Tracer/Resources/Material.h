@@ -33,29 +33,36 @@ namespace Tracer
 	public:
 		explicit Material(const std::string& name);
 
-		// values
-		MATERIAL_VALUE(float3, Diffuse, make_float3(.5f));
-		MATERIAL_VALUE(float3, Emissive, make_float3(0));
-		//MATERIAL_VALUE(float,  Opacity, 1);
-		//MATERIAL_VALUE(float,  RefractI, 1);
-		//MATERIAL_VALUE(float,  Shininess, 1);
-		//MATERIAL_VALUE(float3, Specular, make_float3(0));
-		//MATERIAL_VALUE(float3, Transparent, make_float3(1));
+		//----------------
+		// info
+		//----------------
+		bool EmissiveChanged() const { return mEmissiveChanged; }
+		void ResetEmissiveChanged() { mEmissiveChanged = false; }
 
-		// textures
-		///MATERIAL_TEXTURE(BaseColorMap);
-		MATERIAL_TEXTURE(DiffuseMap);
-		//MATERIAL_TEXTURE(DiffuseRoughnessMap);
-		//MATERIAL_TEXTURE(DisplacementMap);
-		//MATERIAL_TEXTURE(EmissionColorMap);
-		//MATERIAL_TEXTURE(EmissiveMap);
-		//MATERIAL_TEXTURE(HeightMap);
-		//MATERIAL_TEXTURE(MetalnessMap);
-		//MATERIAL_TEXTURE(NormalCameraMap);
-		//MATERIAL_TEXTURE(NormalMap);
-		//MATERIAL_TEXTURE(OpacityMap);
-		//MATERIAL_TEXTURE(ShininessMap);
-		//MATERIAL_TEXTURE(SpecularMap);
+
+		//----------------
+		// getters
+		//----------------
+		const float3 Diffuse() const { return mDiffuse; }
+		const float3 Emissive() const { return mEmissive; }
+
+		const std::shared_ptr<Texture>& DiffuseMap() const { return mDiffuseMap; }
+
+		//----------------
+		// setters
+		//----------------
+		void SetDiffuse(const float3& val);
+		void SetEmissive(const float3& val);
+
+		void SetDiffuseMap(std::shared_ptr<Texture> tex);
+
+	private:
+		bool mEmissiveChanged = false;
+
+		float3 mDiffuse = make_float3(.5f);
+		float3 mEmissive = make_float3(0);
+
+		std::shared_ptr<Texture> mDiffuseMap = nullptr;
 	};
 }
 

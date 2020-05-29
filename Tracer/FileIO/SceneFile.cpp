@@ -269,44 +269,11 @@ namespace Tracer
 						mat->SetDiffuse(f3);
 					if(Read(jsonMat, "emissive", f3))
 						mat->SetEmissive(f3);
-					//if(Read(jsonMat, "opacity", f)
-					//	mat->SetOpacity(f);
-					//if(Read(jsonMat, "refracti", f)
-					//	mat->SetRefractI(f);
-					//if(Read(jsonMat, "shininess", f)
-					//	mat->SetShininess(f);
-					//if(Read(jsonMat, "specular", f3)
-					//	mat->SetSpecular(f3);
-					//if(Read(jsonMat, "transparent", f3)
-					//	mat->SetTransparent(f3);
 
+					// #TODO: Add texture importing
 					// textures
-					//if(Read(jsonMat, "BaseColorMap", s))
-					//	mat->SetBaseColorMap(Importer::ImportTexture(s));
 					//if(Read(jsonMat, "DiffuseMap", s))
 					//	mat->SetDiffuseMap(Importer::ImportTexture(s));
-					//if(Read(jsonMat, "DiffuseRoughnessMap", s))
-					//	mat->SetDiffuseRoughnessMap(Importer::ImportTexture(s));
-					//if(Read(jsonMat, "DisplacementMap", s))
-					//	mat->SetDisplacementMap(Importer::ImportTexture(s));
-					//if(Read(jsonMat, "EmissionColorMap", s))
-					//	mat->SetEmissionColorMap(Importer::ImportTexture(s));
-					//if(Read(jsonMat, "EmissiveMap", s))
-					//	mat->SetEmissiveMap(Importer::ImportTexture(s));
-					//if(Read(jsonMat, "HeightMap", s))
-					//	mat->SetHeightMap(Importer::ImportTexture(s));
-					//if(Read(jsonMat, "MetalnessMap", s))
-					//	mat->SetMetalnessMap(Importer::ImportTexture(s));
-					//if(Read(jsonMat, "NormalCameraMap", s))
-					//	mat->SetNormalCameraMap(Importer::ImportTexture(s));
-					//if(Read(jsonMat, "NormalMap", s))
-					//	mat->SetNormalMap(Importer::ImportTexture(s));
-					//if(Read(jsonMat, "OpacityMap", s))
-					//	mat->SetOpacityMap(Importer::ImportTexture(s));
-					//if(Read(jsonMat, "ShininessMap", s))
-					//	mat->SetShininessMap(Importer::ImportTexture(s));
-					//if(Read(jsonMat, "SpecularMap", s))
-					//	mat->SetSpecularMap(Importer::ImportTexture(s));
 				}
 			}
 		}
@@ -558,39 +525,10 @@ namespace Tracer
 					Write(jsonMat, allocator, "name", mat->Name());
 					Write(jsonMat, allocator, "diffuse", mat->Diffuse());
 					Write(jsonMat, allocator, "emissive", mat->Emissive());
-					//Write(jsonMat, allocator, "opacity", mat->Opacity());
-					//Write(jsonMat, allocator, "refracti", mat->RefractI());
-					//Write(jsonMat, allocator, "shininess", mat->Shininess());
-					//Write(jsonMat, allocator, "specular", mat->Specular());
-					//Write(jsonMat, allocator, "transparent", mat->Transparent());
 
 					// textures
-					//if (mat->BaseColorMap())
-					//	Write(jsonMat, allocator, "BaseColorMap", mat->BaseColorMap()->Path());
 					if (mat->DiffuseMap())
 						Write(jsonMat, allocator, "DiffuseMap", mat->DiffuseMap()->Path());
-					//if (mat->DiffuseRoughnessMap())
-					//	Write(jsonMat, allocator, "DiffuseRoughnessMap", mat->DiffuseRoughnessMap()->Path());
-					//if (mat->DisplacementMap())
-					//	Write(jsonMat, allocator, "DisplacementMap", mat->DisplacementMap()->Path());
-					//if (mat->EmissionColorMap())
-					//	Write(jsonMat, allocator, "EmissionColorMap", mat->EmissionColorMap()->Path());
-					//if (mat->EmissiveMap())
-					//	Write(jsonMat, allocator, "EmissiveMap", mat->EmissiveMap()->Path());
-					//if (mat->HeightMap())
-					//	Write(jsonMat, allocator, "HeightMap", mat->HeightMap()->Path());
-					//if (mat->MetalnessMap())
-					//	Write(jsonMat, allocator, "MetalnessMap", mat->MetalnessMap()->Path());
-					//if (mat->NormalCameraMap())
-					//	Write(jsonMat, allocator, "NormalCameraMap", mat->NormalCameraMap()->Path());
-					//if (mat->NormalMap())
-					//	Write(jsonMat, allocator, "NormalMap", mat->NormalMap()->Path());
-					//if (mat->OpacityMap())
-					//	Write(jsonMat, allocator, "OpacityMap", mat->OpacityMap()->Path());
-					//if (mat->ShininessMap())
-					//	Write(jsonMat, allocator, "ShininessMap", mat->ShininessMap()->Path());
-					//if (mat->SpecularMap())
-					//	Write(jsonMat, allocator, "SpecularMap", mat->SpecularMap()->Path());
 
 					// add mat to model material array
 					jsonMaterialList.PushBack(jsonMat, allocator);

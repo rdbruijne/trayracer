@@ -149,7 +149,7 @@ namespace Tracer
 
 		// Acceleration setup
 		OptixAccelBuildOptions buildOptions = {};
-		buildOptions.buildFlags = OPTIX_BUILD_FLAG_ALLOW_COMPACTION;// | OPTIX_BUILD_FLAG_PREFER_FAST_TRACE;
+		buildOptions.buildFlags = OPTIX_BUILD_FLAG_ALLOW_COMPACTION | OPTIX_BUILD_FLAG_PREFER_FAST_TRACE;
 		buildOptions.operation  = OPTIX_BUILD_OPERATION_BUILD;
 
 		OptixAccelBufferSizes accelBufferSizes = {};
@@ -180,12 +180,33 @@ namespace Tracer
 
 
 
-	void Model::BuildLights()
+	bool Model::BuildLights()
 	{
+		// check for emissive changes
+		bool emissiveChanged = false;
+		bool hasEmissiveMaterial = false;
+		for(auto& mat : mMaterials)
+		{
+			if(mat->EmissiveChanged())
+			{
+				emissiveChanged = true;
+				break;
+			}
+			const float3& em = mat->Emissive();
+			if(em.x + em.y + em.z > Epsilon)
+				hasEmissiveMaterial = true;
+		}
+
+		// determine is a light build is required
+		if(!emissiveChanged && (!hasEmissiveMaterial || !IsDirty(false)))
+			return false;
+
+		// allocate memory
 		size_t oldLightTriSize = mLightTriangles.size();
 		mLightTriangles.clear();
 		mLightTriangles.reserve(oldLightTriSize);
 
+		// fill buffer
 		for(size_t i = 0; i < mIndices.size(); i++)
 		{
 			const uint32_t matIx = mMaterialIndices[i];
@@ -218,7 +239,9 @@ namespace Tracer
 			}
 		}
 
+		// clear unused memory
 		mLightTriangles.shrink_to_fit();
+		return true;
 	}
 
 

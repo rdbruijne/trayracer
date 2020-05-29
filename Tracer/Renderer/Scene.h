@@ -41,7 +41,8 @@ namespace Tracer
 		inline const std::vector<std::shared_ptr<Model>>& Models() const { return mModels; }
 		inline const std::vector<std::shared_ptr<Instance>>& Instances() const { return mInstances; }
 
-		std::vector<LightTriangle> Lights() const;
+		const std::vector<LightTriangle>& Lights() const { return mLights; }
+		void GatherLights();
 
 	private:
 		// utility
@@ -50,5 +51,8 @@ namespace Tracer
 		// resources
 		std::vector<std::shared_ptr<Model>> mModels;
 		std::vector<std::shared_ptr<Instance>> mInstances;
+
+		// build data
+		std::vector<LightTriangle> mLights;
 	};
 }

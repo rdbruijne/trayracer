@@ -164,10 +164,9 @@ namespace Tracer
 
 
 
-	std::vector<LightTriangle> Scene::Lights() const
+	void Scene::GatherLights()
 	{
-		// #TODO: cache?
-		std::vector<LightTriangle> lights;
+		mLights.clear();
 		size_t lightSize = 0;
 		for(size_t i = 0; i < mInstances.size(); i++)
 		{
@@ -176,10 +175,10 @@ namespace Tracer
 			const float3x4& trans = inst->Transform();
 			if(modelLights.size() > 0)
 			{
-				lights.insert(lights.end(), modelLights.begin(), modelLights.end());
-				for(; lightSize < lights.size(); lightSize++)
+				mLights.insert(mLights.end(), modelLights.begin(), modelLights.end());
+				for(; lightSize < mLights.size(); lightSize++)
 				{
-					LightTriangle& tri = lights[lightSize];
+					LightTriangle& tri = mLights[lightSize];
 					tri.V0 = make_float3(transform(trans, make_float4(tri.V0, 1)));
 					tri.V1 = make_float3(transform(trans, make_float4(tri.V1, 1)));
 					tri.V2 = make_float3(transform(trans, make_float4(tri.V2, 1)));
@@ -188,6 +187,5 @@ namespace Tracer
 				}
 			}
 		}
-		return lights;
 	}
 }

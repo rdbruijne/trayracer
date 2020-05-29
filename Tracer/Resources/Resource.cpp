@@ -2,14 +2,17 @@
 
 namespace Tracer
 {
-	bool Resource::IsDirty() const
+	bool Resource::IsDirty(bool parseDependencies) const
 	{
 		if(mIsDirty)
 			return true;
 
-		for(auto& d : mDependencies)
-			if(!d.expired() && d.lock()->IsDirty())
-				return true;
+		if(parseDependencies)
+		{
+			for(auto& d : mDependencies)
+				if(!d.expired() && d.lock()->IsDirty())
+					return true;
+		}
 
 		return false;
 	}
