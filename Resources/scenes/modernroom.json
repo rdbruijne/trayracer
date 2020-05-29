@@ -1,10 +1,220 @@
 {
-    "models": [ { "name": "modernroom", "path": "../Resources/models/ModernRoom/modernroom_t.obj" } ],
-    "instances": [ { "model": "modernroom" } ],
+    "models": [{
+            "name": "lightSphereOuter",
+            "path": "../Resources/models/LightSphere/lightsphere_outer.obj"
+        }, {
+            "name": "modernroom",
+            "path": "../Resources/models/ModernRoom/modernroom_t.obj"
+        }, {
+            "name": "lightSphereInner",
+            "path": "../Resources/models/LightSphere/lightsphere_inner.obj"
+        }],
+    "instances": [{
+            "name": "modernroom",
+            "model": "modernroom",
+            "transform": [{
+                    "matrix": [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0]
+                }]
+        }, {
+            "name": "lightSphereOuter",
+            "model": "lightSphereOuter",
+            "transform": [{
+                    "matrix": [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0]
+                }]
+        }, {
+            "name": "lightSphereInner",
+            "model": "lightSphereInner",
+            "transform": [{
+                    "matrix": [0.0005, 0.0, 0.0, 0.0, 0.0005, 0.0, 0.0, 0.0, 0.0005, 0.0, 0.0, 0.0]
+                }]
+        }],
+    "materials": [{
+            "model": "lightSphereInner",
+            "materials": [{
+                    "name": "lightsphere_inner",
+                    "diffuse": [0.5, 0.5, 0.5],
+                    "emissive": [1.0, 0.9999899864196777, 0.9999899864196777]
+                }]
+        }, {
+            "model": "lightSphereOuter",
+            "materials": [{
+                    "name": "lightsphere_outer",
+                    "diffuse": [0.5882350206375122, 0.5882350206375122, 0.5882350206375122],
+                    "emissive": [0.0, 0.0, 0.0]
+                }]
+        }, {
+            "model": "modernroom",
+            "materials": [{
+                    "name": "caveRock",
+                    "diffuse": [0.5881999731063843, 0.5881999731063843, 0.5881999731063843],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "DiffuseMap": "../Resources/models/ModernRoom/caveDiffuseM.png"
+                }, {
+                    "name": "wallSciFiM",
+                    "diffuse": [0.5879999995231628, 0.5879999995231628, 0.5879999995231628],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "DiffuseMap": "../Resources/models/ModernRoom/wallScifiDiffuseM.png"
+                }, {
+                    "name": "base1M",
+                    "diffuse": [0.5879999995231628, 0.5879999995231628, 0.5879999995231628],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "DiffuseMap": "../Resources/models/ModernRoom/base1DiffuseM.png"
+                }, {
+                    "name": "barracksM",
+                    "diffuse": [0.5879999995231628, 0.5879999995231628, 0.5879999995231628],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "DiffuseMap": "../Resources/models/ModernRoom/barracksDiffuseM.png"
+                }, {
+                    "name": "crateWoodM",
+                    "diffuse": [0.5879999995231628, 0.5879999995231628, 0.5879999995231628],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "DiffuseMap": "../Resources/models/ModernRoom/crateWoodDiffuseM.png"
+                }, {
+                    "name": "crateRedM",
+                    "diffuse": [0.5881999731063843, 0.5881999731063843, 0.5881999731063843],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "DiffuseMap": "../Resources/models/ModernRoom/crateRedDiffuseM.png"
+                }, {
+                    "name": "crateGreyM",
+                    "diffuse": [0.5881999731063843, 0.5881999731063843, 0.5881999731063843],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "DiffuseMap": "../Resources/models/ModernRoom/crateGreyDiffuseM.png"
+                }, {
+                    "name": "oldBrickM",
+                    "diffuse": [0.5879999995231628, 0.5879999995231628, 0.5879999995231628],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "DiffuseMap": "../Resources/models/ModernRoom/oldBrickDiffuseM.png"
+                }, {
+                    "name": "grassM",
+                    "diffuse": [0.5879999995231628, 0.5879999995231628, 0.5879999995231628],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "DiffuseMap": "../Resources/models/ModernRoom/grassDiffuseM.png"
+                }, {
+                    "name": "barrelM",
+                    "diffuse": [0.5879999995231628, 0.5879999995231628, 0.5879999995231628],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "DiffuseMap": "../Resources/models/ModernRoom/barrelDiffuseM.png"
+                }, {
+                    "name": "streetM",
+                    "diffuse": [0.5879999995231628, 0.5879999995231628, 0.5879999995231628],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "DiffuseMap": "../Resources/models/ModernRoom/streetDiffuseM.png"
+                }, {
+                    "name": "base2M",
+                    "diffuse": [0.5879999995231628, 0.5879999995231628, 0.5879999995231628],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "DiffuseMap": "../Resources/models/ModernRoom/base2DiffuseM.png"
+                }, {
+                    "name": "AEGMainWallM",
+                    "diffuse": [0.5881999731063843, 0.5881999731063843, 0.5881999731063843],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "DiffuseMap": "../Resources/models/ModernRoom/aegMainWallDiffuseM.png"
+                }, {
+                    "name": "AEGDetailsM",
+                    "diffuse": [0.5881999731063843, 0.5881999731063843, 0.5881999731063843],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "DiffuseMap": "../Resources/models/ModernRoom/aegdetailsDiffuseM.png"
+                }, {
+                    "name": "matRefGlass",
+                    "diffuse": [0.07840000092983246, 0.07840000092983246, 0.07840000092983246],
+                    "emissive": [0.0, 0.0, 0.0]
+                }, {
+                    "name": "AEGWindowMaterial",
+                    "diffuse": [0.7170000076293945, 0.878000020980835, 0.7170000076293945],
+                    "emissive": [0.0, 0.0, 0.0]
+                }, {
+                    "name": "trenchM",
+                    "diffuse": [0.5879999995231628, 0.5879999995231628, 0.5879999995231628],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "DiffuseMap": "../Resources/models/ModernRoom/trenchDiffuseM.png"
+                }, {
+                    "name": "base3M",
+                    "diffuse": [0.5879999995231628, 0.5879999995231628, 0.5879999995231628],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "DiffuseMap": "../Resources/models/ModernRoom/base3DiffuseM.png"
+                }, {
+                    "name": "sandbagsM",
+                    "diffuse": [0.5879999995231628, 0.5879999995231628, 0.5879999995231628],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "DiffuseMap": "../Resources/models/ModernRoom/sandbagDiffuseM.png"
+                }, {
+                    "name": "matRefPipesM",
+                    "diffuse": [1.0, 0.7529000043869019, 0.0],
+                    "emissive": [0.0, 0.0, 0.0]
+                }, {
+                    "name": "aircounitM",
+                    "diffuse": [0.5879999995231628, 0.5879999995231628, 0.5879999995231628],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "DiffuseMap": "../Resources/models/ModernRoom/aircoDiffuseM.png"
+                }, {
+                    "name": "buildingM",
+                    "diffuse": [0.5879999995231628, 0.5879999995231628, 0.5879999995231628],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "DiffuseMap": "../Resources/models/ModernRoom/BuildingDiffuseM.png"
+                }, {
+                    "name": "buildingWindowsM",
+                    "diffuse": [0.3921999931335449, 0.3921999931335449, 0.3921999931335449],
+                    "emissive": [0.0, 0.0, 0.0]
+                }, {
+                    "name": "salkBaseM",
+                    "diffuse": [0.5879999995231628, 0.5879999995231628, 0.5879999995231628],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "DiffuseMap": "../Resources/models/ModernRoom/salkbaseDiffuseM.png"
+                }, {
+                    "name": "SalkFloorM",
+                    "diffuse": [0.5879999995231628, 0.5879999995231628, 0.5879999995231628],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "DiffuseMap": "../Resources/models/ModernRoom/salkfloorDiffuseM.png"
+                }, {
+                    "name": "salkPanelsM",
+                    "diffuse": [0.5879999995231628, 0.5879999995231628, 0.5879999995231628],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "DiffuseMap": "../Resources/models/ModernRoom/salkpanelsDiffuseM.png"
+                }, {
+                    "name": "Clay",
+                    "diffuse": [0.8705999851226807, 0.8705999851226807, 0.8705999851226807],
+                    "emissive": [0.0, 0.0, 0.0]
+                }, {
+                    "name": "tankBaseM",
+                    "diffuse": [0.5879999995231628, 0.5879999995231628, 0.5879999995231628],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "DiffuseMap": "../Resources/models/ModernRoom/tankDiffuseM.png"
+                }, {
+                    "name": "tankTreadsM",
+                    "diffuse": [0.5879999995231628, 0.5879999995231628, 0.5879999995231628],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "DiffuseMap": "../Resources/models/ModernRoom/treadsDiffuseM.png"
+                }, {
+                    "name": "tentsM",
+                    "diffuse": [0.5881999731063843, 0.5881999731063843, 0.5881999731063843],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "DiffuseMap": "../Resources/models/ModernRoom/Tents.png"
+                }, {
+                    "name": "emiPillar3",
+                    "diffuse": [0.5881999731063843, 0.5881999731063843, 0.5881999731063843],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "DiffuseMap": "../Resources/models/ModernRoom/lightDiffuseM.png"
+                }, {
+                    "name": "pillarM",
+                    "diffuse": [0.5881999731063843, 0.5881999731063843, 0.5881999731063843],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "DiffuseMap": "../Resources/models/ModernRoom/pillarDiffuseM.png"
+                }, {
+                    "name": "emiHose3_03",
+                    "diffuse": [0.5879999995231628, 0.5879999995231628, 0.5879999995231628],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "DiffuseMap": "../Resources/models/ModernRoom/emiHoseDiffuseM.png"
+                }, {
+                    "name": "pipeSectionM",
+                    "diffuse": [0.5879999995231628, 0.5879999995231628, 0.5879999995231628],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "DiffuseMap": "../Resources/models/ModernRoom/pipesectionDiffuseM.png"
+                }]
+        }],
     "camera": {
-        "position": [ 4.169864654541016, -0.2608817517757416, -1.8491891622543336 ],
-        "target": [ 0.08064635843038559, -0.0976584330201149, 0.3889881670475006 ],
-        "up": [ 0.0, 1.0, 0.0 ],
+        "position": [4.110673427581787, 0.14383000135421754, -1.342480182647705],
+        "target": [0.08064635843038559, -0.0976584330201149, 0.3889881670475006],
+        "up": [0.0, 1.0, 0.0],
         "fov": 90.0
     },
     "renderer": {
@@ -12,10 +222,10 @@
         "maxdepth": 16,
         "aodist": 1.0,
         "zdepthmax": 1.0,
-        "skycolor": [ 1.0, 1.0, 1.0 ]
+        "skycolor": [9.999999974752428e-7, 9.999899930335233e-7, 9.999899930335233e-7]
     },
     "post": {
-        "exposure": 1.0,
-        "gamma": 1.0
+        "exposure": 0.5,
+        "gamma": 2.2
     }
 }

@@ -17,11 +17,22 @@
 			]
 		}
 	],
+	"materials":
+	[
+		{
+			"model": "cornell",
+			"materials": [ { "name": "matLight", "emissive": [1, 1, 1] } ]
+		}
+	],
 	"camera":
 	{
 		"position": [0, 200, -500],
 		"target": [0, 200, 0],
 		"up": [0, 1, 0],
 		"fov": 90
-	}
+	},
+	"renderer":
+    {
+        "skycolor": [ 0, 0, 0 ]
+    }
 }
