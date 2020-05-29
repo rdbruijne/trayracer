@@ -38,6 +38,9 @@ namespace Tracer
 	inline bool operator == (const int2& a, const int2& b) { return (a.x == b.x) && (a.y == b.y); }
 	inline bool operator == (const int3& a, const int3& b) { return (a.x == b.x) && (a.y == b.y) && (a.z == b.z); }
 	inline bool operator == (const int4& a, const int4& b) { return (a.x == b.x) && (a.y == b.y) && (a.z == b.z) && (a.w == b.w); }
+	inline bool operator == (const uint2& a, const uint2& b) { return (a.x == b.x) && (a.y == b.y); }
+	inline bool operator == (const uint3& a, const uint3& b) { return (a.x == b.x) && (a.y == b.y) && (a.z == b.z); }
+	inline bool operator == (const uint4& a, const uint4& b) { return (a.x == b.x) && (a.y == b.y) && (a.z == b.z) && (a.w == b.w); }
 	inline bool operator == (const float2& a, const float2& b) { return (a.x == b.x) && (a.y == b.y); }
 	inline bool operator == (const float3& a, const float3& b) { return (a.x == b.x) && (a.y == b.y) && (a.z == b.z); }
 	inline bool operator == (const float4& a, const float4& b) { return (a.x == b.x) && (a.y == b.y) && (a.z == b.z) && (a.w == b.w); }
@@ -47,6 +50,9 @@ namespace Tracer
 	inline bool operator != (const int2& a, const int2& b) { return !(a == b); }
 	inline bool operator != (const int3& a, const int3& b) { return !(a == b); }
 	inline bool operator != (const int4& a, const int4& b) { return !(a == b); }
+	inline bool operator != (const uint2& a, const uint2& b) { return !(a == b); }
+	inline bool operator != (const uint3& a, const uint3& b) { return !(a == b); }
+	inline bool operator != (const uint4& a, const uint4& b) { return !(a == b); }
 	inline bool operator != (const float2& a, const float2& b) { return !(a == b); }
 	inline bool operator != (const float3& a, const float3& b) { return !(a == b); }
 	inline bool operator != (const float4& a, const float4& b) { return !(a == b); }

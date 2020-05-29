@@ -5,6 +5,8 @@
 #include "glfw/glfw3.h"
 #include "glfw/glfw3native.h"
 
+// C++
+#include <assert.h>
 
 namespace Tracer
 {
@@ -23,11 +25,11 @@ namespace Tracer
 		switch(mType)
 		{
 		case Types::Byte4:
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mResolution.x, mResolution.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mResolution.x, mResolution.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 			break;
 
 		case Types::Float4:
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mResolution.x, mResolution.y, 0, GL_RGBA, GL_FLOAT, 0);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mResolution.x, mResolution.y, 0, GL_RGBA, GL_FLOAT, nullptr);
 			break;
 		}
 
@@ -53,5 +55,15 @@ namespace Tracer
 	void GLTexture::Unbind()
 	{
 		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+
+
+
+	void GLTexture::Upload(std::vector<uint32_t> pixels)
+	{
+		assert(pixels.size() == static_cast<size_t>(mResolution.x) * mResolution.y);
+		Bind();
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mResolution.x, mResolution.y, 0, GL_BGRA, GL_UNSIGNED_BYTE, pixels.data());
+		Unbind();
 	}
 }

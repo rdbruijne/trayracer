@@ -6,7 +6,7 @@
 
 namespace Tracer
 {
-	Texture::Texture(const std::string& path, const uint2& resolution, std::vector<uint32_t> pixels) :
+	Texture::Texture(const std::string& path, const int2& resolution, std::vector<uint32_t> pixels) :
 		Resource(FileName(path)),
 		mPath(path),
 		mResolution(resolution),
@@ -22,6 +22,29 @@ namespace Tracer
 			CUDA_CHECK(cudaFreeArray(mCudaArray));
 		if(mCudaObject)
 			CUDA_CHECK(cudaDestroyTextureObject(mCudaObject));
+		if(mGlTexture)
+			delete mGlTexture;
+	}
+
+
+
+	void Texture::MakeGlTex()
+	{
+		if(mRebuildGlTex)
+		{
+			// delete existing texture
+			if(mGlTexture && mGlTexture->Resolution() != mResolution)
+				delete mGlTexture;
+
+			// create new if no texture exists
+			if(!mGlTexture)
+				mGlTexture = new GLTexture(mResolution, GLTexture::Types::Byte4);
+
+			// upload pixels
+			mGlTexture->Upload(mPixels);
+
+			mRebuildGlTex = false;
+		}
 	}
 
 
@@ -70,6 +93,8 @@ namespace Tracer
 
 		// texture object
 		CUDA_CHECK(cudaCreateTextureObject(&mCudaObject, &resourceDesc, &texDesc, nullptr));
-	}
 
+		// signal for OpenGL texture rebuild
+		mRebuildGlTex = true;
+	}
 }

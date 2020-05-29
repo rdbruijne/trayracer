@@ -5,6 +5,7 @@
 
 // C++
 #include <stdint.h>
+#include <vector>
 
 namespace Tracer
 {
@@ -22,6 +23,8 @@ namespace Tracer
 
 		void Bind();
 		void Unbind();
+
+		void Upload(std::vector<uint32_t> pixels);
 
 		inline uint32_t ID() const { return mId; }
 		inline Types Type() const { return mType; }

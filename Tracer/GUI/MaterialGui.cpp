@@ -9,6 +9,33 @@
 
 namespace Tracer
 {
+	namespace
+	{
+		void DrawTexture(const std::string& name, std::shared_ptr<Texture> tex)
+		{
+			if(!tex)
+			{
+				ImGui::Text("%s: N/A", name.c_str());
+				return;
+			}
+
+			tex->MakeGlTex();
+
+			// tex ID
+			size_t texId = static_cast<size_t>(tex->GLTex()->ID());
+
+			// resolution
+			const ImVec2 res = ImVec2(100, 100);
+
+			// display
+			const float dpiScale = ImGui::GetIO().FontGlobalScale;
+			ImGui::Text("%s: %s", name.c_str(), tex->Name().c_str());
+			ImGui::Image(reinterpret_cast<ImTextureID>(texId), ImVec2(res.x * dpiScale, res.y * dpiScale));
+		}
+	}
+
+
+
 	MaterialGui* const MaterialGui::Get()
 	{
 		static MaterialGui inst;
@@ -37,10 +64,7 @@ namespace Tracer
 			if(ImGui::ColorEdit3("Emissive", reinterpret_cast<float*>(&em), ImGuiColorEditFlags_HDR))
 				mat->SetEmissive(em);
 
-			std::string diffuse = "";
-			if(mat->DiffuseMap())
-				diffuse = mat->DiffuseMap()->Name();
-			ImGui::Text("Diffuse map: %s", diffuse.c_str());
+			DrawTexture("Diffuse map", mat->DiffuseMap());
 		}
 
 		ImGui::End();

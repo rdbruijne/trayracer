@@ -31,6 +31,8 @@ namespace Tracer
 
 				ImGuiIO& io = ImGui::GetIO();
 				io.FontGlobalScale = dpiScale;
+
+				sDpiScale = dpiScale;
 			}
 		}
 	}
