@@ -110,9 +110,8 @@ namespace Tracer
 
 	void Renderer::BuildScene(Scene* scene)
 	{
-		// #TODO: acync?
+		// #TODO: async?
 		BuildGeometry(scene);
-		BuildTextures(scene);
 		BuildMaterials(scene);
 
 		mLaunchParams.sceneRoot = mSceneRoot;
@@ -697,8 +696,13 @@ namespace Tracer
 
 						if(mat->DiffuseMap())
 						{
+							if(mat->DiffuseMap()->IsDirty())
+							{
+								mat->DiffuseMap()->Build();
+								mat->DiffuseMap()->MarkClean();
+							}
 							m.textures |= Texture_DiffuseMap;
-							m.diffuseMap = mTextures[mat->DiffuseMap()]->mObject;
+							m.diffuseMap = mat->DiffuseMap()->CudaObject();
 						}
 
 						mat->MarkClean();
@@ -720,97 +724,6 @@ namespace Tracer
 		SetCudaMatarialData(mCudaMaterialData.Ptr<CudaMatarial>());
 		SetCudaMatarialOffsets(mCudaMaterialOffsets.Ptr<uint32_t>());
 		SetCudaModelIndices(mCudaModelIndices.Ptr<uint32_t>());
-	}
-
-
-
-	void Renderer::BuildTextures(Scene* scene)
-	{
-		if(!scene)
-		{
-			mTextures.clear();
-			return;
-		}
-
-		// gather textures
-		std::set<std::shared_ptr<Texture>> textures;
-		for(auto& model : scene->Models())
-		{
-			for(auto& mat : model->Materials())
-			{
-				if(mat->DiffuseMap())
-					textures.insert(mat->DiffuseMap());
-			}
-		}
-
-		// remove removed textures
-		std::vector<std::shared_ptr<Texture>> texturesToRemove;
-		for(auto& t : mTextures)
-		{
-			if(textures.find(t.first) == textures.end())
-				texturesToRemove.push_back(t.first);
-		}
-		for(auto& t : texturesToRemove)
-			mTextures.erase(t);
-
-		// add new textures
-		for(auto& t : textures)
-		{
-			if(t->IsDirty() || mTextures.find(t) == mTextures.end())
-				mTextures[t] = std::make_shared<CudaTexture>(t);
-			t->MarkClean();
-		}
-	}
-
-
-
-	//--------------------------------------------------------------------------------------------------------------------------
-	// Renderer::CudaTexture
-	//--------------------------------------------------------------------------------------------------------------------------
-	Renderer::CudaTexture::CudaTexture(std::shared_ptr<Texture> srcTex)
-	{
-		// create channel descriptor
-		constexpr uint32_t numComponents = 4;
-		const uint32_t width  = srcTex->Resolution().x;
-		const uint32_t height = srcTex->Resolution().y;
-		const uint32_t pitch  = width * numComponents * sizeof(uint8_t);
-		cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<uchar4>();
-
-		// upload pixels
-		CUDA_CHECK(cudaMallocArray(&mArray, &channelDesc, width, height));
-		CUDA_CHECK(cudaMemcpy2DToArray(mArray, 0, 0, srcTex->Pixels().data(), pitch, pitch, height, cudaMemcpyHostToDevice));
-
-		// resource descriptor
-		cudaResourceDesc resourceDesc = {};
-		resourceDesc.resType = cudaResourceTypeArray;
-		resourceDesc.res.array.array = mArray;
-
-		// texture descriptor
-		cudaTextureDesc texDesc     = {};
-		texDesc.addressMode[0]      = cudaAddressModeWrap;
-		texDesc.addressMode[1]      = cudaAddressModeWrap;
-		texDesc.filterMode          = cudaFilterModeLinear;
-		texDesc.readMode            = cudaReadModeNormalizedFloat;
-		texDesc.sRGB                = 0;
-		texDesc.borderColor[0]      = 1.0f;
-		texDesc.normalizedCoords    = 1;
-		texDesc.maxAnisotropy       = 1;
-		texDesc.mipmapFilterMode    = cudaFilterModePoint;
-		texDesc.minMipmapLevelClamp = 0;
-		texDesc.maxMipmapLevelClamp = 99;
-
-		// texture object
-		CUDA_CHECK(cudaCreateTextureObject(&mObject, &resourceDesc, &texDesc, nullptr));
-	}
-
-
-
-	Renderer::CudaTexture::~CudaTexture()
-	{
-		if(mArray)
-			CUDA_CHECK(cudaFreeArray(mArray));
-		if(mObject)
-			CUDA_CHECK(cudaDestroyTextureObject(mObject));
 	}
 
 

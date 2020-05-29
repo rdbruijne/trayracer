@@ -115,7 +115,6 @@ namespace Tracer
 		// scene building
 		void BuildGeometry(Scene* scene);
 		void BuildMaterials(Scene* scene);
-		void BuildTextures(Scene* scene);
 
 		// render mode
 		RenderModes mRenderMode = RenderModes::DiffuseFilter;
@@ -216,18 +215,6 @@ namespace Tracer
 
 		// lights
 		CudaBuffer mCudaLightsBuffer = {};
-
-		// Textures
-		struct CudaTexture
-		{
-			CudaTexture() = default;
-			~CudaTexture();
-			explicit CudaTexture(std::shared_ptr<Texture> srcTex);
-
-			cudaArray_t mArray = nullptr;
-			cudaTextureObject_t mObject = 0;
-		};
-		std::unordered_map<std::shared_ptr<Texture>, std::shared_ptr<CudaTexture>> mTextures;
 
 		// Optix scene
 		OptixTraversableHandle mSceneRoot = 0;
