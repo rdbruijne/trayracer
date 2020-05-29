@@ -1,19 +1,22 @@
 {
     "models": [{
-            "name": "lightSphereOuter",
-            "path": "../Resources/models/LightSphere/lightsphere_outer.obj"
+            "name": "lightSphereInner",
+            "path": "../Resources/models/LightSphere/lightsphere_inner.obj"
         }, {
             "name": "modernroom",
             "path": "../Resources/models/ModernRoom/modernroom_t.obj"
         }, {
-            "name": "lightSphereInner",
-            "path": "../Resources/models/LightSphere/lightsphere_inner.obj"
+            "name": "spaceship",
+            "path": "../Resources/models/spaceship/rtrtSpaceship_final.obj"
+        }, {
+            "name": "lightSphereOuter",
+            "path": "../Resources/models/LightSphere/lightsphere_outer.obj"
         }],
     "instances": [{
             "name": "modernroom",
             "model": "modernroom",
             "transform": [{
-                    "matrix": [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0]
+                    "matrix": [2.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0]
                 }]
         }, {
             "name": "lightSphereOuter",
@@ -25,7 +28,13 @@
             "name": "lightSphereInner",
             "model": "lightSphereInner",
             "transform": [{
-                    "matrix": [0.0005, 0.0, 0.0, 0.0, 0.0005, 0.0, 0.0, 0.0, 0.0005, 0.0, 0.0, 0.0]
+                    "matrix": [0.0005000000237487257, 0.0, 0.0, 0.0, 0.0005000000237487257, 0.0, 0.0, 0.0, 0.0005000000237487257, 0.0, 0.0, 0.0]
+                }]
+        }, {
+            "name": "spaceship",
+            "model": "spaceship",
+            "transform": [{
+                    "matrix": [1.7484554915014883e-9, 0.0, 0.009999998845160008, 0.0, 0.009999999776482582, 0.0, -0.009999998845160008, 0.0, 1.7484554915014883e-9, -4.0, 0.0, 0.0]
                 }]
         }],
     "materials": [{
@@ -210,22 +219,30 @@
                     "emissive": [0.0, 0.0, 0.0],
                     "DiffuseMap": "../Resources/models/ModernRoom/pipesectionDiffuseM.png"
                 }]
+        }, {
+            "model": "spaceship",
+            "materials": [{
+                    "name": "blinn2SG",
+                    "diffuse": [1.0, 1.0, 1.0],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "DiffuseMap": "../Resources/models/spaceship/spaceship_tex_2.tga"
+                }]
         }],
     "camera": {
-        "position": [4.110673427581787, 0.14383000135421754, -1.342480182647705],
-        "target": [0.08064635843038559, -0.0976584330201149, 0.3889881670475006],
+        "position": [8.1472749710083, -0.2577857971191406, -3.1470401287078859],
+        "target": [0.5346525311470032, 0.4857560396194458, 1.1191076040267945],
         "up": [0.0, 1.0, 0.0],
         "fov": 90.0
     },
     "renderer": {
         "multisample": 1,
         "maxdepth": 16,
-        "aodist": 1.0,
-        "zdepthmax": 1.0,
+        "aodist": 6.947999954223633,
+        "zdepthmax": 42.70899963378906,
         "skycolor": [9.999999974752428e-7, 9.999899930335233e-7, 9.999899930335233e-7]
     },
     "post": {
         "exposure": 0.5,
-        "gamma": 2.2
+        "gamma": 2.200000047683716
     }
 }
