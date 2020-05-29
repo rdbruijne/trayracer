@@ -34,6 +34,7 @@ __global__ void ShadeKernel_AmbientOcclusion(KERNEL_PARAMS)
 			return;
 		uint32_t seed = tea<2>(pathIx, params->sampleCount + pathLength + 1);
 
+		// fetch intersection info
 		const IntersectionAttributes attrib = GetIntersectionAttributes(instIx, primIx, bary);
 
 		// fix infacing normal
@@ -80,19 +81,14 @@ __global__ void ShadeKernel_AmbientOcclusionShading(KERNEL_PARAMS)
 		if(primIx == ~0)
 			return;
 
+		// fetch intersection info
 		const IntersectionAttributes attrib = GetIntersectionAttributes(instIx, primIx, bary);
-		const CudaMatarial& mat = materialData[attrib.matIx];
 
 		// diffuse
-		float3 diff = mat.diffuse;
-		if(mat.textures & Texture_DiffuseMap)
-		{
-			const float4 diffMap = tex2D<float4>(mat.diffuseMap, attrib.texcoordX, attrib.texcoordY);
-			diff *= make_float3(diffMap.z, diffMap.y, diffMap.x);
-		}
+		float3 diff = attrib.diffuse;
 
+		// bounce ray
 		uint32_t seed = tea<2>(pathIx, params->sampleCount + pathLength + 1);
-
 		const float3 newOrigin = O + (D * tmax);
 		const float3 newDir = SampleCosineHemisphere(attrib.geometricNormal, rnd(seed), rnd(seed));
 
@@ -134,18 +130,9 @@ __global__ void ShadeKernel_DiffuseFilter(KERNEL_PARAMS)
 	if(primIx == ~0)
 		return;
 
+	// fetch intersection info
 	const IntersectionAttributes attrib = GetIntersectionAttributes(instIx, primIx, bary);
-	const CudaMatarial& mat = materialData[attrib.matIx];
-
-	// diffuse
-	float3 diff = mat.diffuse;
-	if(mat.textures & Texture_DiffuseMap)
-	{
-		const float4 diffMap = tex2D<float4>(mat.diffuseMap, attrib.texcoordX, attrib.texcoordY);
-		diff *= make_float3(diffMap.z, diffMap.y, diffMap.x);
-	}
-
-	accumulator[pixelIx] += make_float4(diff, 0);
+	accumulator[pixelIx] += make_float4(attrib.diffuse, 0);
 }
 
 
@@ -180,28 +167,19 @@ __global__ void ShadeKernel_DirectLight(KERNEL_PARAMS)
 	// generate seed
 	uint32_t seed = tea<2>(pathIx, params->sampleCount + pathLength + 1);
 
-	// fetch material info
+	// fetch intersection info
 	const IntersectionAttributes attrib = GetIntersectionAttributes(instIx, primIx, bary);
-	const CudaMatarial& mat = materialData[attrib.matIx];
 
 	// emissive
-	if(mat.emissive.x + mat.emissive.y + mat.emissive.z > Epsilon)
+	if(attrib.emissive.x + attrib.emissive.y + attrib.emissive.z > Epsilon)
 	{
 		// accounted for in Next Event
-		accumulator[pixelIx] += make_float4(T * mat.emissive);
+		accumulator[pixelIx] += make_float4(T * attrib.emissive);
 		return;
 	}
 
-	// diffuse
-	float3 diff = mat.diffuse;
-	if(mat.textures & Texture_DiffuseMap)
-	{
-		const float4 diffMap = tex2D<float4>(mat.diffuseMap, attrib.texcoordX, attrib.texcoordY);
-		diff *= make_float3(diffMap.z, diffMap.y, diffMap.x);
-	}
-
 	// new throughput
-	float3 throughput = T * diff;
+	const float3 throughput = T * attrib.diffuse;
 
 	// next event
 	if(lightCount > 0)
@@ -249,6 +227,7 @@ __global__ void ShadeKernel_GeometricNormal(KERNEL_PARAMS)
 	if(primIx == ~0)
 		return;
 
+	// fetch intersection info
 	const IntersectionAttributes attrib = GetIntersectionAttributes(instIx, primIx, bary);
 	accumulator[pixelIx] += make_float4((attrib.geometricNormal + make_float3(1)) * 0.5f, 0);
 }
@@ -275,7 +254,7 @@ __global__ void ShadeKernel_MaterialID(KERNEL_PARAMS)
 	if(primIx == ~0)
 		return;
 
-	// ID to color
+	// fetch intersection info
 	const IntersectionAttributes attrib = GetIntersectionAttributes(instIx, primIx, bary);
 	accumulator[pixelIx] += make_float4(IdToColor(attrib.matIx + 1), 0);
 }
@@ -340,30 +319,21 @@ __global__ void ShadeKernel_PathTracing(KERNEL_PARAMS)
 	// generate seed
 	uint32_t seed = tea<2>(pathIx, params->sampleCount + pathLength + 1);
 
-	// fetch material info
+	// fetch intersection info
 	const IntersectionAttributes attrib = GetIntersectionAttributes(instIx, primIx, bary);
-	const CudaMatarial& mat = materialData[attrib.matIx];
 
 	// emissive
-	if(mat.emissive.x + mat.emissive.y + mat.emissive.z > Epsilon)
+	if(attrib.emissive.x + attrib.emissive.y + attrib.emissive.z > Epsilon)
 	{
 		if(pathLength == 0)
-			accumulator[pixelIx] += make_float4(mat.emissive, 0);
+			accumulator[pixelIx] += make_float4(attrib.emissive, 0);
 		else
-			accumulator[pixelIx] += make_float4(T * mat.emissive, 0);
+			accumulator[pixelIx] += make_float4(T * attrib.emissive, 0);
 		return;
 	}
 
-	// diffuse
-	float3 diff = mat.diffuse;
-	if(mat.textures & Texture_DiffuseMap)
-	{
-		const float4 diffMap = tex2D<float4>(mat.diffuseMap, attrib.texcoordX, attrib.texcoordY);
-		diff *= make_float3(diffMap.z, diffMap.y, diffMap.x);
-	}
-
 	// new throughput
-	float3 throughput = T * diff;
+	float3 throughput = T * attrib.diffuse;
 
 	// next event
 	if(lightCount > 0)
@@ -430,6 +400,7 @@ __global__ void ShadeKernel_ShadingNormal(KERNEL_PARAMS)
 	if(primIx == ~0)
 		return;
 
+	// fetch intersection info
 	const IntersectionAttributes attrib = GetIntersectionAttributes(instIx, primIx, bary);
 	accumulator[pixelIx] += make_float4((attrib.shadingNormal + make_float3(1)) * 0.5f, 0);
 }
@@ -456,6 +427,7 @@ __global__ void ShadeKernel_TextureCoordinate(KERNEL_PARAMS)
 	if(primIx == ~0)
 		return;
 
+	// fetch intersection info
 	const IntersectionAttributes attrib = GetIntersectionAttributes(instIx, primIx, bary);
 	accumulator[pixelIx] += make_float4(attrib.texcoordX, attrib.texcoordY, 0, 0);
 }

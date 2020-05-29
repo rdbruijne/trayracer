@@ -47,6 +47,7 @@ namespace Tracer
 		const float3 Emissive() const { return mEmissive; }
 
 		const std::shared_ptr<Texture>& DiffuseMap() const { return mDiffuseMap; }
+		const std::shared_ptr<Texture>& NormalMap() const { return mNormalMap; }
 
 		//----------------
 		// setters
@@ -55,6 +56,7 @@ namespace Tracer
 		void SetEmissive(const float3& val);
 
 		void SetDiffuseMap(std::shared_ptr<Texture> tex);
+		void SetNormalMap(std::shared_ptr<Texture> tex);
 
 	private:
 		bool mEmissiveChanged = false;
@@ -63,6 +65,7 @@ namespace Tracer
 		float3 mEmissive = make_float3(0);
 
 		std::shared_ptr<Texture> mDiffuseMap = nullptr;
+		std::shared_ptr<Texture> mNormalMap = nullptr;
 	};
 }
 

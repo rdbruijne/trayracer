@@ -709,9 +709,11 @@ namespace Tracer
 					{
 						CudaMatarial m = {};
 
+						// simple properties
 						m.diffuse = mat->Diffuse();
 						m.emissive = mat->Emissive();
 
+						// diffuse map
 						if(mat->DiffuseMap())
 						{
 							if(mat->DiffuseMap()->IsDirty())
@@ -723,6 +725,19 @@ namespace Tracer
 							m.diffuseMap = mat->DiffuseMap()->CudaObject();
 						}
 
+						// normal map
+						if(mat->NormalMap())
+						{
+							if(mat->NormalMap()->IsDirty())
+							{
+								mat->NormalMap()->Build();
+								mat->NormalMap()->MarkClean();
+							}
+							m.textures |= Texture_NormalMap;
+							m.normalMap = mat->NormalMap()->CudaObject();
+						}
+
+						// finalize mat
 						mat->MarkClean();
 						materialData.push_back(m);
 					}

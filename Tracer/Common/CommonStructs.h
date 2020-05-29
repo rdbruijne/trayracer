@@ -39,7 +39,8 @@ enum RayGenModes : uint32_t
 
 enum TexturesInMaterial
 {
-	Texture_DiffuseMap = 0x1
+	Texture_DiffuseMap = 0x1,
+	Texture_NormalMap  = 0x2
 };
 
 
@@ -183,5 +184,5 @@ struct alignas(16) CudaMatarial
 	int pad0;
 
 	cudaTextureObject_t diffuseMap;
-	int64_t pad1;
+	cudaTextureObject_t normalMap;
 };

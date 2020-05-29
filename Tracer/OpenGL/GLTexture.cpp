@@ -59,11 +59,23 @@ namespace Tracer
 
 
 
-	void GLTexture::Upload(std::vector<uint32_t> pixels)
+	void GLTexture::Upload(const std::vector<uint32_t>& pixels)
 	{
+		assert(mType == Types::Byte4);
 		assert(pixels.size() == static_cast<size_t>(mResolution.x) * mResolution.y);
 		Bind();
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mResolution.x, mResolution.y, 0, GL_BGRA, GL_UNSIGNED_BYTE, pixels.data());
+		Unbind();
+	}
+
+
+
+	void GLTexture::Upload(const std::vector<float4>& pixels)
+	{
+		assert(mType == Types::Float4);
+		assert(pixels.size() == static_cast<size_t>(mResolution.x) * mResolution.y);
+		Bind();
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mResolution.x, mResolution.y, 0, GL_RGBA, GL_FLOAT, pixels.data());
 		Unbind();
 	}
 }

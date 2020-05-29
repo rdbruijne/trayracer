@@ -32,4 +32,13 @@ namespace Tracer
 		MarkDirty();
 		AddDependency(tex);
 	}
+
+
+
+	void Material::SetNormalMap(std::shared_ptr<Texture> tex)
+	{
+		mNormalMap = tex;
+		MarkDirty();
+		AddDependency(tex);
+	}
 }

@@ -16,6 +16,7 @@
 
 // C++
 #include <assert.h>
+#include <stdexcept>
 
 // Windows
 #include <Windows.h>

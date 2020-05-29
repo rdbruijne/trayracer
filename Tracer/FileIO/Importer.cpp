@@ -1,6 +1,7 @@
 #include "Importer.h"
 
 // Project
+#include "Renderer/Scene.h"
 #include "Resources/Material.h"
 #include "Resources/Model.h"
 #include "Resources/Texture.h"
@@ -39,7 +40,7 @@ namespace Tracer
 
 
 
-		std::shared_ptr<Material> ImportMaterial(const std::string& importDir, std::map<std::string, std::shared_ptr<Texture>>& textures, const aiMaterial* aMat)
+		std::shared_ptr<Material> ImportMaterial(Scene* scene, const std::string& importDir, const aiMaterial* aMat)
 		{
 			// name
 			aiString name;
@@ -75,54 +76,43 @@ namespace Tracer
 			//	mat->SetTransparent(make_float3(c3.r, c3.g, c3.b));
 
 			// parse textures
-			auto GetTex = [&](const char* texPath)
-			{
-				const std::string texPathStr = texPath;
-				auto it = textures.find(texPathStr);
-				if(it != textures.end())
-					return it->second;
-
-				auto tex = Importer::ImportTexture(texPathStr, importDir);
-				textures[texPathStr] = tex;
-				return tex;
-			};
 
 			aiString texPath;
 			if(aMat->GetTexture(aiTextureType_DIFFUSE, 0, &texPath) == aiReturn_SUCCESS)
-				mat->SetDiffuseMap(GetTex(texPath.C_Str()));
+				mat->SetDiffuseMap(Importer::ImportTexture(scene, texPath.C_Str(), importDir));
 
 			//if(aMat->GetTexture(aiTextureType_SPECULAR, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->SetSpecularMap(GetTex(texPath.C_Str()));
+			//	mat->SetSpecularMap(Importer::ImportTexture(scene, texPath.C_Str(), importDir));
 
 			//if(aMat->GetTexture(aiTextureType_EMISSIVE, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->SetEmissiveMap(GetTex(texPath.C_Str()));
+			//	mat->SetEmissiveMap(Importer::ImportTexture(scene, texPath.C_Str(), importDir));
 
 			//if(aMat->GetTexture(aiTextureType_HEIGHT, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->SetHeightMap(GetTex(texPath.C_Str()));
+			//	mat->SetHeightMap(Importer::ImportTexture(scene, texPath.C_Str(), importDir));
 
-			//if(aMat->GetTexture(aiTextureType_NORMALS, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->SetNormalMap(GetTex(texPath.C_Str()));
+			if(aMat->GetTexture(aiTextureType_NORMALS, 0, &texPath) == aiReturn_SUCCESS)
+				mat->SetNormalMap(Importer::ImportTexture(scene, texPath.C_Str(), importDir));
 
 			//if(aMat->GetTexture(aiTextureType_SHININESS, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->SetShininessMap(GetTex(texPath.C_Str()));
+			//	mat->SetShininessMap(Importer::ImportTexture(scene, texPath.C_Str(), importDir));
 
 			//if(aMat->GetTexture(aiTextureType_OPACITY, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->SetOpacityMap(GetTex(texPath.C_Str()));
+			//	mat->SetOpacityMap(Importer::ImportTexture(scene, texPath.C_Str(), importDir));
 
 			//if(aMat->GetTexture(aiTextureType_DISPLACEMENT, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->SetDisplacementMap(GetTex(texPath.C_Str()));
+			//	mat->SetDisplacementMap(Importer::ImportTexture(scene, texPath.C_Str(), importDir));
 
 			//if(aMat->GetTexture(aiTextureType_DISPLACEMENT, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->SetBaseColorMap(GetTex(texPath.C_Str()));
+			//	mat->SetBaseColorMap(Importer::ImportTexture(scene, texPath.C_Str(), importDir));
 
 			//if(aMat->GetTexture(aiTextureType_EMISSION_COLOR, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->SetEmissionColorMap(GetTex(texPath.C_Str()));
+			//	mat->SetEmissionColorMap(Importer::ImportTexture(scene, texPath.C_Str(), importDir));
 
 			//if(aMat->GetTexture(aiTextureType_METALNESS, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->SetMetalnessMap(GetTex(texPath.C_Str()));
+			//	mat->SetMetalnessMap(Importer::ImportTexture(scene, texPath.C_Str(), importDir));
 
 			//if(aMat->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->SetDiffuseRoughnessMap(GetTex(texPath.C_Str()));
+			//	mat->SetDiffuseRoughnessMap(Importer::ImportTexture(scene, texPath.C_Str(), importDir));
 
 			return mat;
 		}
@@ -174,36 +164,43 @@ namespace Tracer
 
 
 
-	std::shared_ptr<Texture> Importer::ImportTexture(const std::string& textureFile, const std::string& importDir)
+	std::shared_ptr<Texture> Importer::ImportTexture(Scene* scene, const std::string& textureFile, const std::string& importDir)
 	{
 		std::string texPath = textureFile;
 		if(!importDir.empty())
 			texPath = importDir + "/" + textureFile;
 
+		// check the scene for an existing texture
+		if(std::shared_ptr<Texture> tex = scene->GetTexture(texPath))
+			return tex;
+
 		// load image
 		FREE_IMAGE_FORMAT fif = FreeImage_GetFileType(texPath.c_str(), 0);
 		if(fif == FIF_UNKNOWN)
 			fif = FreeImage_GetFIFFromFilename(texPath.c_str());
+
 		FIBITMAP* tmp = FreeImage_Load(fif, texPath.c_str());
-		FIBITMAP* dib = FreeImage_ConvertTo32Bits(tmp);
+		//FIBITMAP* dib = FreeImage_ConvertTo32Bits(tmp);
+		FIBITMAP* dib = FreeImage_ConvertToRGBAF(tmp);
 		FreeImage_Unload(tmp);
-		const uint32_t w = FreeImage_GetWidth(dib);
-		const uint32_t h = FreeImage_GetHeight(dib);
-		std::vector<uint32_t> pixels(static_cast<size_t>(w) * h);
-		for(uint32_t y = 0; y < h; y++)
+
+		const uint32_t width  = FreeImage_GetWidth(dib);
+		const uint32_t height = FreeImage_GetHeight(dib);
+		std::vector<float4> pixels(static_cast<size_t>(width) * height);
+		for(uint32_t y = 0; y < height; y++)
 		{
 			const uint8_t* line = FreeImage_GetScanLine(dib, y);
-			memcpy(pixels.data() + (static_cast<size_t>(y) * w), line, w * sizeof(uint32_t));
+			memcpy(pixels.data() + (static_cast<size_t>(y) * width), line, width * sizeof(float4));
 		}
 		FreeImage_Unload(dib);
 
 		// create texture
-		return std::make_shared<Texture>(texPath, make_int2(w, h), pixels);
+		return std::make_shared<Texture>(texPath, make_int2(width, height), pixels);
 	}
 
 
 
-	std::shared_ptr<Model> Importer::ImportModel(const std::string& filePath, const std::string& name)
+	std::shared_ptr<Model> Importer::ImportModel(Scene* scene, const std::string& filePath, const std::string& name)
 	{
 		printf("Importing \"%s\"\n", filePath.c_str());
 		try
@@ -277,7 +274,7 @@ namespace Tracer
 			// import materials
 			std::map<std::string, std::shared_ptr<Texture>> textures;
 			for(uint32_t i = 0; i < aScene->mNumMaterials; i++)
-				model->AddMaterial(ImportMaterial(importDir, textures, aScene->mMaterials[i]));
+				model->AddMaterial(ImportMaterial(scene, importDir, aScene->mMaterials[i]));
 
 			// import meshes
 			uint32_t polyCount = 0;

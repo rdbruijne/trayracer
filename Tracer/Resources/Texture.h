@@ -15,14 +15,14 @@ namespace Tracer
 	{
 	public:
 		Texture() = default;
-		explicit Texture(const std::string& path, const int2& resolution, std::vector<uint32_t> pixels);
+		explicit Texture(const std::string& path, const int2& resolution, std::vector<float4> pixels);
 		~Texture();
 
 		std::string Path() { return mPath; }
 		const std::string& Path() const { return mPath; }
 
 		int2 Resolution() const { return mResolution; }
-		const std::vector<uint32_t> Pixels() const { return mPixels; }
+		const std::vector<float4> Pixels() const { return mPixels; }
 
 		// build
 		void Build();
@@ -38,7 +38,7 @@ namespace Tracer
 	private:
 		std::string mPath = "";
 		int2 mResolution = make_int2(0, 0);
-		std::vector<uint32_t> mPixels;
+		std::vector<float4> mPixels;
 
 		// build data
 		cudaArray_t mCudaArray = nullptr;

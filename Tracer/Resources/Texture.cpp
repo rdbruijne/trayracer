@@ -6,7 +6,7 @@
 
 namespace Tracer
 {
-	Texture::Texture(const std::string& path, const int2& resolution, std::vector<uint32_t> pixels) :
+	Texture::Texture(const std::string& path, const int2& resolution, std::vector<float4> pixels) :
 		Resource(FileName(path)),
 		mPath(path),
 		mResolution(resolution),
@@ -38,7 +38,7 @@ namespace Tracer
 
 			// create new if no texture exists
 			if(!mGlTexture)
-				mGlTexture = new GLTexture(mResolution, GLTexture::Types::Byte4);
+				mGlTexture = new GLTexture(mResolution, GLTexture::Types::Float4);
 
 			// upload pixels
 			mGlTexture->Upload(mPixels);
@@ -64,13 +64,12 @@ namespace Tracer
 		constexpr uint32_t numComponents = 4;
 		const uint32_t width  = mResolution.x;
 		const uint32_t height = mResolution.y;
-		const uint32_t pitch  = width * numComponents * sizeof(uint8_t);
-		cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<uchar4>();
+		const uint32_t pitch  = width * numComponents * sizeof(float);
+		cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float4>();
 
 		// upload pixels
 		CUDA_CHECK(cudaMallocArray(&mCudaArray, &channelDesc, width, height));
 		CUDA_CHECK(cudaMemcpy2DToArray(mCudaArray, 0, 0, mPixels.data(), pitch, pitch, height, cudaMemcpyHostToDevice));
-
 
 		// resource descriptor
 		cudaResourceDesc resourceDesc = {};
@@ -82,7 +81,7 @@ namespace Tracer
 		texDesc.addressMode[0]      = cudaAddressModeWrap;
 		texDesc.addressMode[1]      = cudaAddressModeWrap;
 		texDesc.filterMode          = cudaFilterModeLinear;
-		texDesc.readMode            = cudaReadModeNormalizedFloat;
+		texDesc.readMode            = cudaReadModeElementType;
 		texDesc.sRGB                = 0;
 		texDesc.borderColor[0]      = 1.0f;
 		texDesc.normalizedCoords    = 1;

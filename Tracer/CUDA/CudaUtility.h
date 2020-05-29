@@ -176,6 +176,12 @@ struct IntersectionAttributes
 
 	float3 bitangent;
 	int pad2;
+
+	float3 diffuse;
+	float pad3;
+
+	float3 emissive;
+	float pad4;
 };
 
 
@@ -205,6 +211,24 @@ inline IntersectionAttributes GetIntersectionAttributes(uint32_t instIx, uint32_
 	// tangents
 	attrib.tangent = tri.tangent;
 	attrib.bitangent = tri.bitangent;
+
+	// material
+	const CudaMatarial& mat = materialData[attrib.matIx];
+
+	// diffuse
+	attrib.diffuse = mat.diffuse;
+	if(mat.textures & Texture_DiffuseMap)
+		attrib.diffuse *= make_float3(tex2D<float4>(mat.diffuseMap, attrib.texcoordX, attrib.texcoordY));
+
+	// emissive
+	attrib.emissive = mat.emissive;
+
+	// normal map
+	if(mat.textures & Texture_NormalMap)
+	{
+		const float3 norMap = (make_float3(tex2D<float4>(mat.normalMap, attrib.texcoordX, attrib.texcoordY)) * 2.f) - make_float3(1.f);
+		attrib.shadingNormal = normalize(norMap.x * attrib.tangent + norMap.y * attrib.bitangent + norMap.z * attrib.shadingNormal);
+	}
 
 	return attrib;
 }

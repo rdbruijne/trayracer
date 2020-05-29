@@ -188,12 +188,12 @@ namespace Tracer
 		OPENFILENAMEA ofn = {};
 		ofn.lStructSize    = sizeof(ofn);
 		ofn.hwndOwner      = NULL;
-		ofn.lpstrFilter    = "Json\0*.json\0";
+		ofn.lpstrFilter    = filter;
 		ofn.lpstrFile      = fileNameOut;
 		ofn.nMaxFile       = MAX_PATH;
 		ofn.lpstrFileTitle = fileNameIn;
 		ofn.nMaxFileTitle  = MAX_PATH;
-		ofn.lpstrTitle     = "Select a scene file";
+		ofn.lpstrTitle     = title.c_str();
 		ofn.Flags          = OFN_EXPLORER | OFN_NONETWORKBUTTON | OFN_DONTADDTORECENT | (mustExist ? OFN_FILEMUSTEXIST : 0);
 
 		const bool ok = GetOpenFileNameA(&ofn);

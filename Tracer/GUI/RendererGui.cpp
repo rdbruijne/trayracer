@@ -16,12 +16,6 @@
 // ImGUI
 #include "imgui/imgui.h"
 
-// C++
-#include <filesystem>
-
-// Windows
-#include <Windows.h>
-
 namespace Tracer
 {
 	RendererGui* const RendererGui::Get()

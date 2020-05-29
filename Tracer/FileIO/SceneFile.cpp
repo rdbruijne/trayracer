@@ -270,10 +270,11 @@ namespace Tracer
 					if(Read(jsonMat, "emissive", f3))
 						mat->SetEmissive(f3);
 
-					// #TODO: Add texture importing
 					// textures
-					//if(Read(jsonMat, "DiffuseMap", s))
-					//	mat->SetDiffuseMap(Importer::ImportTexture(s));
+					if(Read(jsonMat, "DiffuseMap", s))
+						mat->SetDiffuseMap(Importer::ImportTexture(scene, s));
+					if(Read(jsonMat, "NormalMap", s))
+						mat->SetNormalMap(Importer::ImportTexture(scene, s));
 				}
 			}
 		}
@@ -366,7 +367,7 @@ namespace Tracer
 			std::map<std::string, std::shared_ptr<Model>> importedModels;
 			for(auto m : modelsToImport)
 			{
-				auto model = Importer::ImportModel(models.at(m), m);
+				auto model = Importer::ImportModel(scene, models.at(m), m);
 				scene->AddModel(model);
 				importedModels[m] = model;
 			}
@@ -529,6 +530,8 @@ namespace Tracer
 					// textures
 					if (mat->DiffuseMap())
 						Write(jsonMat, allocator, "DiffuseMap", mat->DiffuseMap()->Path());
+					if (mat->NormalMap())
+						Write(jsonMat, allocator, "NormalMap", mat->NormalMap()->Path());
 
 					// add mat to model material array
 					jsonMaterialList.PushBack(jsonMat, allocator);

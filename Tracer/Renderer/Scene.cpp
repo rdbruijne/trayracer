@@ -70,6 +70,13 @@ namespace Tracer
 
 
 
+	size_t Scene::TextureCount() const
+	{
+		return mTextures.size();
+	}
+
+
+
 	size_t Scene::TriangleCount() const
 	{
 		size_t triCount = 0;
@@ -160,6 +167,18 @@ namespace Tracer
 		if(instanceIx >= mInstances.size())
 			return nullptr;
 		return mInstances[instanceIx]->GetModel()->GetMaterial(primIx);
+	}
+
+
+
+	std::shared_ptr<Tracer::Texture> Scene::GetTexture(const std::string& path)
+	{
+		for(auto& t : mTextures)
+		{
+			if(t->Path() == path)
+				return t;
+		}
+		return nullptr;
 	}
 
 

@@ -24,7 +24,8 @@ namespace Tracer
 		void Bind();
 		void Unbind();
 
-		void Upload(std::vector<uint32_t> pixels);
+		void Upload(const std::vector<uint32_t>& pixels);
+		void Upload(const std::vector<float4>& pixels);
 
 		inline uint32_t ID() const { return mId; }
 		inline Types Type() const { return mType; }
