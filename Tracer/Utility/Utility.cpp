@@ -202,4 +202,31 @@ namespace Tracer
 		std::filesystem::current_path(curDir);
 		return ok;
 	}
+
+
+
+	bool SaveFileDialog(const char* filter, const std::string& title, std::string& result)
+	{
+		const std::string curDir = std::filesystem::current_path().string();
+
+		char fileNameIn[MAX_PATH]  = {};
+		char fileNameOut[MAX_PATH] = {};
+
+		OPENFILENAMEA ofn = {};
+		ofn.lStructSize    = sizeof(ofn);
+		ofn.hwndOwner      = NULL;
+		ofn.lpstrFilter    = filter;
+		ofn.lpstrFile      = fileNameOut;
+		ofn.nMaxFile       = MAX_PATH;
+		ofn.lpstrFileTitle = fileNameIn;
+		ofn.nMaxFileTitle  = MAX_PATH;
+		ofn.lpstrTitle     = title.c_str();
+		ofn.Flags          = OFN_OVERWRITEPROMPT | OFN_EXPLORER | OFN_NONETWORKBUTTON | OFN_DONTADDTORECENT;
+
+		const bool ok = GetSaveFileNameA(&ofn);
+		if(ok)
+			result = fileNameOut;
+		std::filesystem::current_path(curDir);
+		return ok;
+	}
 }

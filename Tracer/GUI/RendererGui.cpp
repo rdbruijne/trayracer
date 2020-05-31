@@ -51,7 +51,7 @@ namespace Tracer
 			if(ImGui::Button("Save scene", ImVec2(ImGui::GetWindowWidth() * .3f, 0)))
 			{
 				std::string sceneFile;
-				if(OpenFileDialog("Json\0*.json\0", "Select a scene file", false, sceneFile))
+				if(SaveFileDialog("Json\0*.json\0", "Select a scene file", sceneFile))
 					SceneFile::Save(sceneFile, mScene,mCamNode, mRenderer, mWindow);
 			}
 			ImGui::NextColumn();
