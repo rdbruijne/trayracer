@@ -44,7 +44,8 @@
                     "name": "Explorer_Default",
                     "diffuse": [1.0, 1.0, 1.0],
                     "emissive": [0.0, 0.0, 0.0],
-                    "diffuseMap": "../Resources/models/toad/BugBack_Diffuse.png"
+                    "diffuseMap": "../Resources/models/toad/BugBack_Diffuse.png",
+                    "normalMap": "../Resources/models/toad/BugBack_Normals.png"
                 }]
         }],
     "camera": {
