@@ -6,6 +6,7 @@
 #include <cctype>
 #include <filesystem>
 #include <fstream>
+#include <sstream>
 
 // Windows
 #include <Windows.h>
@@ -53,6 +54,32 @@ namespace Tracer
 			return static_cast<char>(std::toupper(c));
 		});
 		return s;
+	}
+
+
+
+	std::vector<std::string> Split(const std::string& str, char delimiter)
+	{
+		std::vector<std::string> result;
+		std::string token;
+		std::istringstream tokenStream(str);
+		while (std::getline(tokenStream, token, delimiter))
+			result.push_back(token);
+		return result;
+	}
+
+
+
+	std::string ReplaceAll(const std::string& str, const std::string& toReplace, const std::string& replaceStr)
+	{
+		std::string localStr = str;
+		size_t pos = localStr.find(toReplace);
+		while(pos != std::string::npos)
+		{
+			localStr.replace(pos, toReplace.size(), replaceStr);
+			pos = localStr.find(toReplace, pos + replaceStr.size());
+		}
+		return localStr;
 	}
 
 

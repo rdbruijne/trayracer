@@ -1,22 +1,57 @@
 {
-	"models":
-	[
-		{ "name": "plane", "path": "../Resources/models/plane/plane.obj" },
-		{ "name": "toad", "path": "../Resources/models/toad/toad.obj" }
-	],
-	"instances":
-	[
-		{ "model": "plane" },
-		{
-			"model": "toad",
-			"transform": [ { "translate": [ 0, 1.69, 0 ] } ]
-		}
-	],
-	"camera":
-	{
-		"position": [9, 2, 2],
-		"target": [0, 0, 0],
-		"up": [0, 1, 0],
-		"fov": 90
-	}
+    "models": [{
+            "name": "toad",
+            "path": "../Resources/models/toad/toad.obj"
+        }, {
+            "name": "plane",
+            "path": "../Resources/models/plane/plane.obj"
+        }],
+    "instances": [{
+            "name": "plane",
+            "model": "plane",
+            "transform": [{
+                    "matrix": [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0]
+                }]
+        }, {
+            "name": "toad",
+            "model": "toad",
+            "transform": [{
+                    "matrix": [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.690000057220459, 0.0]
+                }]
+        }],
+    "materials": [{
+            "model": "plane",
+            "materials": [{
+                    "name": "planeMaterial",
+                    "diffuse": [0.75, 0.75, 0.75],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "diffuseMap": "../Resources/models/plane/tiled_tiles.png"
+                }]
+        }, {
+            "model": "toad",
+            "materials": [{
+                    "name": "Explorer_Default",
+                    "diffuse": [1.0, 1.0, 1.0],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "diffuseMap": "../Resources/models/toad/BugBack_Diffuse.png",
+                    "normalMap": "R:\\code\\TrayRacer\\Resources\\models\\toad\\BugBack_Normals.png"
+                }]
+        }],
+    "camera": {
+        "position": [7.780611991882324, 3.487166404724121, 4.037517547607422],
+        "target": [0.0, 0.0, 0.0],
+        "up": [0.0, 1.0, 0.0],
+        "fov": 90.0
+    },
+    "renderer": {
+        "multisample": 1,
+        "maxdepth": 16,
+        "aodist": 1.0,
+        "zdepthmax": 1.0,
+        "skycolor": [1.0, 1.0, 1.0]
+    },
+    "post": {
+        "exposure": 1.0,
+        "gamma": 2.200000047683716
+    }
 }

@@ -52,28 +52,12 @@ namespace Tracer
 			if(window->IsKeyDown(Input::Keys::M))
 			{
 				const RayPickResult result = renderer->PickRay(cursorPosI2);
-				MaterialGui::Get()->selectedMaterial = mScene->GetMaterial(result.instIx, result.primIx);
+				MaterialGui::Get()->mSelectedMaterial = mScene->GetMaterial(result.instIx, result.primIx);
 			}
 		}
 
 		// set the camera
 		renderer->SetCamera(mCamera);
-
-		// debug raypick
-		DebugGui* debugGui = DebugGui::Get();
-		if(debugGui->IsEnabled())
-		{
-			const float2 cursorPos = window->CursorPos();
-			const int2 cursorPosI2 = make_int2(static_cast<int32_t>(cursorPos.x), static_cast<int32_t>(cursorPos.y));
-			const RayPickResult result = renderer->PickRay(cursorPosI2);
-
-			debugGui->Set("Pixel", format("%d  %d", cursorPosI2.x, cursorPosI2.y));
-			debugGui->Set("Ray origin", format("%.2f  %.2f  %.2f", result.rayOrigin.x, result.rayOrigin.y, result.rayOrigin.z));
-			debugGui->Set("Ray dir", format("%.2f  %.2f  %.2f", result.rayDir.x, result.rayDir.y, result.rayDir.z));
-			debugGui->Set("Dst", format("%f", result.tmax));
-			debugGui->Set("Primitive", format("%d", result.primIx));
-			debugGui->Set("Instance", format("%d", result.instIx));
-		}
 
 		// find a toad to rotate
 		/*

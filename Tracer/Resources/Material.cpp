@@ -20,8 +20,8 @@ namespace Tracer
 	void Material::SetEmissive(const float3& val)
 	{
 		mEmissive = val;
-		MarkDirty();
 		mEmissiveChanged = true;
+		MarkDirty();
 	}
 
 
@@ -29,8 +29,8 @@ namespace Tracer
 	void Material::SetDiffuseMap(std::shared_ptr<Texture> tex)
 	{
 		mDiffuseMap = tex;
-		MarkDirty();
 		AddDependency(tex);
+		MarkDirty();
 	}
 
 
@@ -38,7 +38,7 @@ namespace Tracer
 	void Material::SetNormalMap(std::shared_ptr<Texture> tex)
 	{
 		mNormalMap = tex;
-		MarkDirty();
 		AddDependency(tex);
+		MarkDirty();
 	}
 }

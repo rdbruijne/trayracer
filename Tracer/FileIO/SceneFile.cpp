@@ -271,9 +271,9 @@ namespace Tracer
 						mat->SetEmissive(f3);
 
 					// textures
-					if(Read(jsonMat, "DiffuseMap", s))
+					if(Read(jsonMat, "diffuseMap", s))
 						mat->SetDiffuseMap(Importer::ImportTexture(scene, s));
-					if(Read(jsonMat, "NormalMap", s))
+					if(Read(jsonMat, "normalMap", s))
 						mat->SetNormalMap(Importer::ImportTexture(scene, s));
 				}
 			}
@@ -529,9 +529,9 @@ namespace Tracer
 
 					// textures
 					if (mat->DiffuseMap())
-						Write(jsonMat, allocator, "DiffuseMap", mat->DiffuseMap()->Path());
+						Write(jsonMat, allocator, "diffuseMap", mat->DiffuseMap()->Path());
 					if (mat->NormalMap())
-						Write(jsonMat, allocator, "NormalMap", mat->NormalMap()->Path());
+						Write(jsonMat, allocator, "normalMap", mat->NormalMap()->Path());
 
 					// add mat to model material array
 					jsonMaterialList.PushBack(jsonMat, allocator);

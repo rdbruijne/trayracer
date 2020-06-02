@@ -39,8 +39,8 @@ enum RayGenModes : uint32_t
 
 enum TexturesInMaterial
 {
-	Texture_DiffuseMap = 0x1,
-	Texture_NormalMap  = 0x2
+	Texture_DiffuseMap  = 0x1,
+	Texture_NormalMap   = 0x2
 };
 
 

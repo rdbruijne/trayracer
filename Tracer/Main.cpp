@@ -100,6 +100,7 @@ int main(int argc, char** argv)
 
 			// update GUI
 			Tracer::CameraGui::Get()->mCamNode = app->GetCameraNode();
+			Tracer::MaterialGui::Get()->mScene = app->GetScene();
 			Tracer::RendererGui::Get()->mCamNode = app->GetCameraNode();
 			Tracer::RendererGui::Get()->mRenderer = renderer;
 			Tracer::RendererGui::Get()->mScene = app->GetScene();

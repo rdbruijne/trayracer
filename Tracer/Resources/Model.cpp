@@ -182,6 +182,7 @@ namespace Tracer
 
 	bool Model::BuildLights()
 	{
+
 		// check for emissive changes
 		bool emissiveChanged = false;
 		bool hasEmissiveMaterial = false;
@@ -211,6 +212,7 @@ namespace Tracer
 		{
 			const uint32_t matIx = mMaterialIndices[i];
 			auto& mat = mMaterials[matIx];
+
 			const float3& em = mat->Emissive();
 			if(em.x + em.y + em.z > Epsilon)
 			{

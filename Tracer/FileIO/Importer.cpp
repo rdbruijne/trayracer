@@ -5,6 +5,7 @@
 #include "Resources/Material.h"
 #include "Resources/Model.h"
 #include "Resources/Texture.h"
+#include "Utility/Stopwatch.h"
 #include "Utility/Utility.h"
 
 // Assimp
@@ -164,6 +165,31 @@ namespace Tracer
 
 
 
+	const std::vector<Importer::Format>& Importer::SupportedTextureFormats()
+	{
+		static std::vector<Format> result;
+		if(result.size() == 0)
+		{
+			const int formatCount = FreeImage_GetFIFCount();
+			result.reserve(formatCount);
+			for(int i = 0; i < formatCount; i++)
+			{
+				FREE_IMAGE_FORMAT fif = static_cast<FREE_IMAGE_FORMAT>(i);
+				if(FreeImage_FIFSupportsReading(fif))
+				{
+					Format f;
+					f.name = FreeImage_GetFormatFromFIF(fif);
+					f.description  = FreeImage_GetFIFDescription(fif);
+					f.ext  = FreeImage_GetFIFExtensionList(fif);
+					result.push_back(f);
+				}
+			}
+		}
+		return result;
+	}
+
+
+
 	std::shared_ptr<Texture> Importer::ImportTexture(Scene* scene, const std::string& textureFile, const std::string& importDir)
 	{
 		std::string texPath = textureFile;
@@ -186,11 +212,11 @@ namespace Tracer
 
 		const uint32_t width  = FreeImage_GetWidth(dib);
 		const uint32_t height = FreeImage_GetHeight(dib);
-		std::vector<float4> pixels(static_cast<size_t>(width) * height);
+		std::vector<float4> pixels(width * height);
 		for(uint32_t y = 0; y < height; y++)
 		{
 			const uint8_t* line = FreeImage_GetScanLine(dib, y);
-			memcpy(pixels.data() + (static_cast<size_t>(y) * width), line, width * sizeof(float4));
+			memcpy(pixels.data() + (y * width), line, width * sizeof(float4));
 		}
 		FreeImage_Unload(dib);
 
@@ -205,6 +231,7 @@ namespace Tracer
 		printf("Importing \"%s\"\n", filePath.c_str());
 		try
 		{
+			Stopwatch sw;
 			const std::string importDir = Directory(filePath);
 
 #if false
@@ -267,6 +294,11 @@ namespace Tracer
 			const aiScene* aScene = importer.ReadFile(filePath.c_str(), importFlags);
 			if(!aScene)
 				throw std::runtime_error(importer.GetErrorString());
+			printf("Imported \"%s\" in %s\n", filePath.c_str(), sw.ElapsedString().c_str());
+
+			// start parsing
+			printf("Parsing \"%s\"\n", filePath.c_str());
+			sw.Reset();
 
 			// create model
 			std::shared_ptr<Model> model = std::make_shared<Model>(filePath, name);
@@ -284,10 +316,7 @@ namespace Tracer
 				polyCount += aScene->mMeshes[i]->mNumFaces;
 			}
 
-			// parse graph
-			//ParseNode(...);
-
-			printf("Imported \"%s\":\n", filePath.c_str());
+			printf("Parsed \"%s\" in %s:\n", filePath.c_str(), sw.ElapsedString().c_str());
 			printf("  Meshes   : %s\n", ThousandSeparators(aScene->mNumMeshes).c_str());
 			printf("  Materials: %s\n", ThousandSeparators(model->Materials().size()).c_str());
 			printf("  Textures : %s\n", ThousandSeparators(textures.size()).c_str());

@@ -2,6 +2,7 @@
 
 // c++
 #include <string>
+#include <vector>
 
 #define NO_COPY_ALLOWED(c)				\
 	c(const c&) = delete;				\
@@ -15,6 +16,8 @@ namespace Tracer
 	std::string format(const char* fmt, ...);
 	std::string ToLower(const std::string& str);
 	std::string ToUpper(const std::string& str);
+	std::vector<std::string> Split(const std::string& str, char delimiter);
+	std::string ReplaceAll(const std::string& str, const std::string& toReplace, const std::string& replaceStr);
 
 	// file paths
 	std::string Directory(const std::string& filePath);
