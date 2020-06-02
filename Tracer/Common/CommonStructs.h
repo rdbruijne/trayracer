@@ -163,8 +163,9 @@ struct alignas(16) LightTriangle
 	float3 V1; int32_t triIx;
 	float3 V2; float area;
 	float3 N;  float energy;
-	float3 radiance; float dummy;
+	float3 radiance; float sumEnergy;
 };
+
 
 
 

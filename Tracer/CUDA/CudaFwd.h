@@ -9,6 +9,7 @@
 __host__ void SetCudaCounters(Counters* data);
 __host__ void SetCudaLights(LightTriangle* data);
 __host__ void SetCudaLightCount(int32_t count);
+__host__ void SetCudaLightEnergy(float energy);
 __host__ void SetCudaMatarialData(CudaMatarial* data);
 __host__ void SetCudaMeshData(CudaMeshData* data);
 __host__ void SetCudaMatarialOffsets(uint32_t* data);

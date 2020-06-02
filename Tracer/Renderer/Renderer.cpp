@@ -402,8 +402,29 @@ namespace Tracer
 
 	bool Renderer::ShouldDenoise() const
 	{
-		return mDenoisingEnabled && (mLaunchParams.sampleCount >= mDenoiserSampleTreshold) &&
-			((mRenderMode == RenderModes::AmbientOcclusion) || (mRenderMode == RenderModes::AmbientOcclusionShading) || (mRenderMode == RenderModes::PathTracing));
+#pragma warning(push)
+#pragma warning(disable: 4061)
+		switch(mRenderMode)
+		{
+		case RenderModes::AmbientOcclusion:
+		case RenderModes::AmbientOcclusionShading:
+		//case RenderModes::DiffuseFilter:
+		case RenderModes::DirectLight:
+		//case RenderModes::GeometricNormal:
+		//case RenderModes::MaterialID:
+		//case RenderModes::ObjectID:
+		case RenderModes::PathTracing:
+		//case RenderModes::ShadingNormal:
+		//case RenderModes::TextureCoordinate:
+		case RenderModes::Wireframe:
+		//case RenderModes::ZDepth:
+			return mDenoisingEnabled && (mLaunchParams.sampleCount >= mDenoiserSampleTreshold);
+			break;
+
+		default:
+			return false;
+		}
+#pragma warning(pop)
 	}
 
 
@@ -638,6 +659,7 @@ namespace Tracer
 			SetCudaMeshData(nullptr);
 			SetCudaLights(nullptr);
 			SetCudaLightCount(0);
+			SetCudaLightEnergy(0);
 		}
 		else
 		{
@@ -653,6 +675,7 @@ namespace Tracer
 			mCudaLightsBuffer.Upload(lightData, true);
 			SetCudaLights(mCudaLightsBuffer.Ptr<LightTriangle>());
 			SetCudaLightCount(static_cast<int32_t>(lightData.size()));
+			SetCudaLightEnergy(lightData.back().sumEnergy);
 
 			// build top-level
 			OptixBuildInput instanceBuildInput = {};

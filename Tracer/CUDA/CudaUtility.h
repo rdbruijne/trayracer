@@ -38,6 +38,7 @@ static __device__ Counters* counters = nullptr;
 __constant__ CudaMatarial* materialData = nullptr;
 __constant__ CudaMeshData* meshData = nullptr;
 __constant__ int32_t lightCount = 0;
+__constant__ float lightEnergy = 0;
 __constant__ LightTriangle* lights = nullptr;
 __constant__ LaunchParams* params = nullptr;
 __constant__ uint32_t* materialOffsets = nullptr;
@@ -62,6 +63,13 @@ __host__ void SetCudaLights(LightTriangle* data)
 __host__ void SetCudaLightCount(int32_t count)
 {
 	cudaMemcpyToSymbol(lightCount, &count, sizeof(lightCount));
+}
+
+
+
+__host__ void SetCudaLightEnergy(float energy)
+{
+	cudaMemcpyToSymbol(lightEnergy, &energy, sizeof(lightEnergy));
 }
 
 
@@ -316,6 +324,32 @@ inline float3 SampleSky(const float3& O, const float3& D)
 // Next event
 //------------------------------------------------------------------------------------------------------------------------------
 static __device__
+int32_t SelectLight(uint32_t& seed)
+{
+#if false
+	return clamp((int)(rnd(seed) * lightCount), 0, lightCount - 1);
+#else
+	const float e = rnd(seed) * lightEnergy;
+	int32_t low = 0;
+	int32_t high = lightCount - 1;
+	while(low <= high)
+	{
+		const int32_t mid = (low + high) >> 1;
+		const LightTriangle& tri = lights[mid];
+		if(e < tri.sumEnergy)
+			high = mid;
+		else if(e > tri.sumEnergy + tri.energy)
+			low = mid + 1;
+		else
+			return mid;
+	}
+	return -1;
+#endif
+}
+
+
+
+static __device__
 inline float3 SampleLight(uint32_t& seed, const float3& I, const float3& N, float& prob, float& pdf, float3& radiance)
 {
 	if(lightCount == 0)
@@ -327,7 +361,10 @@ inline float3 SampleLight(uint32_t& seed, const float3& I, const float3& N, floa
 	}
 
 	// pick random light
-	const int lightIx = clamp((int)(rnd(seed) * lightCount), 0, lightCount - 1);
+	const int32_t lightIx = SelectLight(seed);
+	if(lightIx == -1)
+		return;
+
 	const LightTriangle& tri = lights[lightIx];
 	const float3 bary = make_float3(rnd(seed), rnd(seed), rnd(seed));
 	const float3 pointOnLight = (bary.x * tri.V0) + (bary.y * tri.V1) + (bary.z * tri.V2);

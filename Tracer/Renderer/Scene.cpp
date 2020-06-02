@@ -187,6 +187,7 @@ namespace Tracer
 	{
 		mLights.clear();
 		size_t lightSize = 0;
+		float sumEnergy = 0;
 		for(size_t i = 0; i < mInstances.size(); i++)
 		{
 			auto inst = mInstances[i];
@@ -202,7 +203,10 @@ namespace Tracer
 					tri.V1 = make_float3(transform(trans, make_float4(tri.V1, 1)));
 					tri.V2 = make_float3(transform(trans, make_float4(tri.V2, 1)));
 					tri.N  = normalize(make_float3(transform(trans, make_float4(tri.N, 0))));
+					tri.sumEnergy = sumEnergy;
 					tri.instIx = static_cast<int32_t>(i);
+
+					sumEnergy += tri.energy;
 				}
 			}
 		}
