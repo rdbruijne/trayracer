@@ -256,13 +256,16 @@ namespace Tracer
 			outputLayer.pixelStrideInBytes = sizeof(float4);
 			outputLayer.format = OPTIX_PIXEL_FORMAT_FLOAT4;
 
+			// calculate intensity
+			OPTIX_CHECK(optixDenoiserComputeIntensity(mDenoiser, mStream, &inputLayer, mDenoiserHdrIntensity.DevicePtr(), mDenoiserScratch.DevicePtr(), mDenoiserScratch.Size()));
+
 			// denoise
 			OptixDenoiserParams denoiserParams;
 			denoiserParams.denoiseAlpha = 1;
-			denoiserParams.hdrIntensity = 0;
-			denoiserParams.blendFactor  = 1;
+			denoiserParams.hdrIntensity = mDenoiserHdrIntensity.DevicePtr();
+			denoiserParams.blendFactor  = 1.f / (mLaunchParams.sampleCount + 1);
 
-			OPTIX_CHECK(optixDenoiserInvoke(mDenoiser, 0, &denoiserParams, mDenoiserState.DevicePtr(), mDenoiserState.Size(),
+			OPTIX_CHECK(optixDenoiserInvoke(mDenoiser, mStream, &denoiserParams, mDenoiserState.DevicePtr(), mDenoiserState.Size(),
 											&inputLayer, 1, 0, 0, &outputLayer,
 											mDenoiserScratch.DevicePtr(), mDenoiserScratch.Size()));
 			mDenoiseTimeEvents.Stop(mStream);
@@ -274,8 +277,6 @@ namespace Tracer
 			// empty timing so that we can call "Elapsed"
 			mDenoiseTimeEvents.Start(mStream);
 			mDenoiseTimeEvents.Stop(mStream);
-
-			CUDA_CHECK(cudaMemcpy(mDenoisedBuffer.Ptr(), mColorBuffer.Ptr(), mColorBuffer.Size(), cudaMemcpyDeviceToDevice));
 			mDenoisedFrame = false;
 		}
 
@@ -291,9 +292,10 @@ namespace Tracer
 
 		// copy to GL texture
 		cudaArray* cudaTexPtr = nullptr;
+		void* srcBuffer = mDenoisedFrame ? mDenoisedBuffer.Ptr() : mColorBuffer.Ptr();
 		CUDA_CHECK(cudaGraphicsMapResources(1, &mCudaGraphicsResource, 0));
 		CUDA_CHECK(cudaGraphicsSubResourceGetMappedArray(&cudaTexPtr, mCudaGraphicsResource, 0, 0));
-		CUDA_CHECK(cudaMemcpy2DToArray(cudaTexPtr, 0, 0, mDenoisedBuffer.Ptr(), texRes.x * sizeof(float4), texRes.x * sizeof(float4), texRes.y, cudaMemcpyDeviceToDevice));
+		CUDA_CHECK(cudaMemcpy2DToArray(cudaTexPtr, 0, 0, srcBuffer, texRes.x * sizeof(float4), texRes.x * sizeof(float4), texRes.y, cudaMemcpyDeviceToDevice));
 		CUDA_CHECK(cudaGraphicsUnmapResources(1, &mCudaGraphicsResource, 0));
 		CUDA_CHECK(cudaDeviceSynchronize());
 
@@ -401,7 +403,7 @@ namespace Tracer
 	bool Renderer::ShouldDenoise() const
 	{
 		return mDenoisingEnabled && (mLaunchParams.sampleCount >= mDenoiserSampleTreshold) &&
-			((mRenderMode == RenderModes::AmbientOcclusion) || (mRenderMode == RenderModes::PathTracing));
+			((mRenderMode == RenderModes::AmbientOcclusion) || (mRenderMode == RenderModes::AmbientOcclusionShading) || (mRenderMode == RenderModes::PathTracing));
 	}
 
 
@@ -432,8 +434,10 @@ namespace Tracer
 		denoiserOptions.inputKind   = OPTIX_DENOISER_INPUT_RGB;
 		denoiserOptions.pixelFormat = OPTIX_PIXEL_FORMAT_FLOAT4;
 
+		mDenoiserHdrIntensity.Alloc(sizeof(float));
+
 		OPTIX_CHECK(optixDenoiserCreate(mOptixContext, &denoiserOptions, &mDenoiser));
-		OPTIX_CHECK(optixDenoiserSetModel(mDenoiser, OPTIX_DENOISER_MODEL_KIND_LDR, nullptr, 0));
+		OPTIX_CHECK(optixDenoiserSetModel(mDenoiser, OPTIX_DENOISER_MODEL_KIND_HDR, nullptr, 0));
 	}
 
 

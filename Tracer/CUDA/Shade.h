@@ -146,11 +146,9 @@ __global__ void ShadeKernel_DirectLight(KERNEL_PARAMS)
 	// gather data
 	const float4 O4 = pathStates[jobIdx + (stride * 0)];
 	const float4 D4 = pathStates[jobIdx + (stride * 1)];
-	const float4 T4 = pathLength == 0 ? make_float4(1) : pathStates[jobIdx + (stride * 2)];
 
 	const float3 O = make_float3(O4);
 	const float3 D = make_float3(D4);
-	const float3 T = make_float3(T4);
 	const int32_t pathIx = __float_as_int(O4.w);
 	const int32_t pixelIx = pathIx % (resolution.x * resolution.y);
 
@@ -174,12 +172,12 @@ __global__ void ShadeKernel_DirectLight(KERNEL_PARAMS)
 	if(attrib.emissive.x + attrib.emissive.y + attrib.emissive.z > Epsilon)
 	{
 		// accounted for in Next Event
-		accumulator[pixelIx] += make_float4(T * attrib.emissive);
+		accumulator[pixelIx] += make_float4(attrib.emissive);
 		return;
 	}
 
 	// new throughput
-	const float3 throughput = T * attrib.diffuse;
+	const float3 throughput = attrib.diffuse;
 
 	// next event
 	if(lightCount > 0)

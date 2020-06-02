@@ -161,6 +161,7 @@ namespace Tracer
 		CudaBuffer mDenoiserScratch = {};
 		CudaBuffer mDenoiserState = {};
 		CudaBuffer mDenoisedBuffer = {};
+		CudaBuffer mDenoiserHdrIntensity = {};
 
 		bool mDenoisingEnabled = false;
 		bool mDenoisedFrame = false;

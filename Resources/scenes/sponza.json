@@ -1,11 +1,158 @@
 {
-	"models": [ { "name": "sponza", "path": "../Resources/models/sponza/sponza.obj" } ],
-	"instances": [ { "model": "sponza" } ],
-	"camera":
-	{
-		"position": [-1350, 150, 0],
-		"target": [0, 125, 0],
-		"up": [0, 1, 0],
-		"fov": 90
-	}
+    "models": [{
+            "name": "sponza",
+            "path": "../Resources/models/sponza/sponza.obj"
+        }],
+    "instances": [{
+            "name": "sponza",
+            "model": "sponza",
+            "transform": [{
+                    "matrix": [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0]
+                }]
+        }],
+    "materials": [{
+            "model": "sponza",
+            "materials": [{
+                    "name": "leaf",
+                    "diffuse": [1.0, 1.0, 1.0],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "diffuseMap": "../Resources/models/sponza/sponza_thorn_diff.png"
+                }, {
+                    "name": "vase_round",
+                    "diffuse": [1.0, 1.0, 1.0],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "diffuseMap": "../Resources/models/sponza/vase_round.png"
+                }, {
+                    "name": "Material__57",
+                    "diffuse": [1.0, 1.0, 1.0],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "diffuseMap": "../Resources/models/sponza/vase_plant.png"
+                }, {
+                    "name": "Material__298",
+                    "diffuse": [1.0, 1.0, 1.0],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "diffuseMap": "../Resources/models/sponza/background.png"
+                }, {
+                    "name": "bricks",
+                    "diffuse": [1.0, 1.0, 1.0],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "diffuseMap": "../Resources/models/sponza/spnza_bricks_a_diff.png"
+                }, {
+                    "name": "arch",
+                    "diffuse": [1.0, 1.0, 1.0],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "diffuseMap": "../Resources/models/sponza/sponza_arch_diff.png"
+                }, {
+                    "name": "ceiling",
+                    "diffuse": [1.0, 1.0, 1.0],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "diffuseMap": "../Resources/models/sponza/sponza_ceiling_a_diff.png"
+                }, {
+                    "name": "column_a",
+                    "diffuse": [1.0, 1.0, 1.0],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "diffuseMap": "../Resources/models/sponza/sponza_column_a_diff.png"
+                }, {
+                    "name": "floor",
+                    "diffuse": [1.0, 1.0, 1.0],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "diffuseMap": "../Resources/models/sponza/sponza_floor_a_diff.png"
+                }, {
+                    "name": "column_c",
+                    "diffuse": [1.0, 1.0, 1.0],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "diffuseMap": "../Resources/models/sponza/sponza_column_c_diff.png"
+                }, {
+                    "name": "details",
+                    "diffuse": [1.0, 1.0, 1.0],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "diffuseMap": "../Resources/models/sponza/sponza_details_diff.png"
+                }, {
+                    "name": "column_b",
+                    "diffuse": [1.0, 1.0, 1.0],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "diffuseMap": "../Resources/models/sponza/sponza_column_b_diff.png"
+                }, {
+                    "name": "Material__47",
+                    "diffuse": [1.0, 1.0, 1.0],
+                    "emissive": [0.0, 0.0, 0.0]
+                }, {
+                    "name": "flagpole",
+                    "diffuse": [1.0, 1.0, 1.0],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "diffuseMap": "../Resources/models/sponza/sponza_flagpole_diff.png"
+                }, {
+                    "name": "fabric_e",
+                    "diffuse": [1.0, 1.0, 1.0],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "diffuseMap": "../Resources/models/sponza/sponza_fabric_green_diff.png"
+                }, {
+                    "name": "fabric_d",
+                    "diffuse": [1.0, 1.0, 1.0],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "diffuseMap": "../Resources/models/sponza/sponza_fabric_blue_diff.png"
+                }, {
+                    "name": "fabric_a",
+                    "diffuse": [1.0, 1.0, 1.0],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "diffuseMap": "../Resources/models/sponza/sponza_fabric_diff.png"
+                }, {
+                    "name": "fabric_g",
+                    "diffuse": [1.0, 1.0, 1.0],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "diffuseMap": "../Resources/models/sponza/sponza_curtain_blue_diff.png"
+                }, {
+                    "name": "fabric_c",
+                    "diffuse": [1.0, 1.0, 1.0],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "diffuseMap": "../Resources/models/sponza/sponza_curtain_diff.png"
+                }, {
+                    "name": "fabric_f",
+                    "diffuse": [1.0, 1.0, 1.0],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "diffuseMap": "../Resources/models/sponza/sponza_curtain_green_diff.png"
+                }, {
+                    "name": "chain",
+                    "diffuse": [1.0, 1.0, 1.0],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "diffuseMap": "../Resources/models/sponza/chain_texture.png"
+                }, {
+                    "name": "vase_hanging",
+                    "diffuse": [1.0, 1.0, 1.0],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "diffuseMap": "../Resources/models/sponza/vase_hanging.png"
+                }, {
+                    "name": "vase",
+                    "diffuse": [1.0, 1.0, 1.0],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "diffuseMap": "../Resources/models/sponza/vase_dif.png"
+                }, {
+                    "name": "Material__25",
+                    "diffuse": [1.0, 1.0, 1.0],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "diffuseMap": "../Resources/models/sponza/lion.png"
+                }, {
+                    "name": "roof",
+                    "diffuse": [1.0, 1.0, 1.0],
+                    "emissive": [0.0, 0.0, 0.0],
+                    "diffuseMap": "../Resources/models/sponza/sponza_roof_diff.png"
+                }]
+        }],
+    "camera": {
+        "position": [-1350.0, 150.0, 0.0],
+        "target": [0.0, 125.0, 0.0],
+        "up": [0.0, 1.0, 0.0],
+        "fov": 90.0
+    },
+    "renderer": {
+        "multisample": 1,
+        "maxdepth": 16,
+        "aodist": 1860.093017578125,
+        "zdepthmax": 5229.9951171875,
+        "skycolor": [1.0, 0.9999899864196777, 0.9999899864196777]
+    },
+    "post": {
+        "exposure": 1.0,
+        "gamma": 2.200000047683716
+    }
 }
