@@ -2,6 +2,26 @@
 
 Personal path tracer project.
 
+# Controls
+
+## GUI
+| GUI window | Key |
+|----|----|
+| Statistics | F1 |
+| Renderer | F2 |
+| Camera | F3 |
+| Material Editor | F4 |
+| Debug | F10 |
+
+## Camera
+| Action | Key | Alt Key |
+|----|----|----|
+| Dolly | Right Mouse Button | Scroll Wheel |
+| Move | Middle Mouse Button ||
+| Orbit | Left Mouse Button ||
+| Roll | ALT + Right Mouse Button ||
+| Rotate | ALT + Left Mouse Button ||
+
 # Dependencies
 
 * [CUDA Toolkit 10.2](https://developer.nvidia.com/cuda-10.2-download-archive)
