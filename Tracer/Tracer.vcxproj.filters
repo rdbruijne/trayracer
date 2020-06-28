@@ -77,7 +77,6 @@
     <ClCompile Include="Renderer\Scene.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="Resources\Resource.cpp" />
     <ClCompile Include="GUI\CameraGui.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
@@ -104,6 +103,9 @@
     </ClCompile>
     <ClCompile Include="FileIO\SceneFile.cpp">
       <Filter>FileIO</Filter>
+    </ClCompile>
+    <ClCompile Include="Resources\Resource.cpp">
+      <Filter>Resources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -142,6 +144,9 @@
     </Filter>
     <Filter Include="glsl">
       <UniqueIdentifier>{c7f6896a-605e-4a32-b74e-cd48bbda9032}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CUDA\Shade">
+      <UniqueIdentifier>{92818293-8462-4654-b751-3d676b92fe2c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -223,9 +228,6 @@
     <ClInclude Include="Renderer\CudaError.h">
       <Filter>Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="CUDA\Shade.h">
-      <Filter>CUDA</Filter>
-    </ClInclude>
     <ClInclude Include="CUDA\CudaUtility.h">
       <Filter>CUDA</Filter>
     </ClInclude>
@@ -276,6 +278,42 @@
     </ClInclude>
     <ClInclude Include="CUDA\CudaUtilityKernels.h">
       <Filter>CUDA</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\Shade\AmbientOcclusion.h">
+      <Filter>CUDA\Shade</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\Shade\AmbientOcclusionShading.h">
+      <Filter>CUDA\Shade</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\Shade\DiffuseFilter.h">
+      <Filter>CUDA\Shade</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\Shade\DirectLight.h">
+      <Filter>CUDA\Shade</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\Shade\GeometricNormal.h">
+      <Filter>CUDA\Shade</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\Shade\MaterialID.h">
+      <Filter>CUDA\Shade</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\Shade\ObjectID.h">
+      <Filter>CUDA\Shade</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\Shade\PathTracing.h">
+      <Filter>CUDA\Shade</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\Shade\ShadingNormal.h">
+      <Filter>CUDA\Shade</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\Shade\TextureCoordinate.h">
+      <Filter>CUDA\Shade</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\Shade\Wireframe.h">
+      <Filter>CUDA\Shade</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\Shade\ZDepth.h">
+      <Filter>CUDA\Shade</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

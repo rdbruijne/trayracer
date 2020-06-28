@@ -4,25 +4,11 @@
 #include "Common/CommonStructs.h"
 #include "Common/CommonUtility.h"
 
-
-
 //------------------------------------------------------------------------------------------------------------------------------
-// Cconstants
+// Constants
 //------------------------------------------------------------------------------------------------------------------------------
 // math
-constexpr float M_E        = 2.71828182845904523536f;   // e
-constexpr float M_LOG2E    = 1.44269504088896340736f;   // log2(e)
-constexpr float M_LOG10E   = 0.434294481903251827651f;  // log10(e)
-constexpr float M_LN2      = 0.693147180559945309417f;  // ln(2)
-constexpr float M_LN10     = 2.30258509299404568402f;   // ln(10)
-constexpr float M_PI       = 3.14159265358979323846f;   // pi
-constexpr float M_PI_2     = 1.57079632679489661923f;   // pi/2
-constexpr float M_PI_4     = 0.785398163397448309616f;  // pi/4
-constexpr float M_1_PI     = 0.318309886183790671538f;  // 1/pi
-constexpr float M_2_PI     = 0.636619772367581343076f;  // 2/pi
-constexpr float M_2_SQRTPI = 1.12837916709551257390f;   // 2/sqrt(pi)
-constexpr float M_SQRT2    = 1.41421356237309504880f;   // sqrt(2)
-constexpr float M_SQRT1_2  = 0.707106781186547524401f;  // 1/sqrt(2)
+constexpr float Pi = 3.14159265358979323846f;
 
 // rendering
 constexpr float DstMax = 1e30f;
@@ -288,7 +274,7 @@ inline float3 SampleCosineHemisphere(float u, float v)
 {
 	// uniform sample disk
 	const float r = sqrtf(u);
-	const float phi = 2.f * M_PI * v;
+	const float phi = 2.f * Pi * v;
 	const float x = r * cosf(phi);
 	const float y = r * sinf(phi);
 	const float z = sqrtf(fmaxf(0.f, 1.f - x*x - y*y));
@@ -326,9 +312,6 @@ inline float3 SampleSky(const float3& O, const float3& D)
 static __device__
 int32_t SelectLight(uint32_t& seed)
 {
-#if false
-	return clamp((int)(rnd(seed) * lightCount), 0, lightCount - 1);
-#else
 	const float e = rnd(seed) * lightEnergy;
 	int32_t low = 0;
 	int32_t high = lightCount - 1;
@@ -343,8 +326,10 @@ int32_t SelectLight(uint32_t& seed)
 		else
 			return mid;
 	}
-	return -1;
-#endif
+
+	// failed to find a light using importance sampling, pick a random one from the array
+	// #NOTE: we should never get here!
+	return clamp((int)(rnd(seed) * lightCount), 0, lightCount - 1);
 }
 
 
@@ -362,9 +347,6 @@ inline float3 SampleLight(uint32_t& seed, const float3& I, const float3& N, floa
 
 	// pick random light
 	const int32_t lightIx = SelectLight(seed);
-	if(lightIx == -1)
-		return;
-
 	const LightTriangle& tri = lights[lightIx];
 	const float3 bary = make_float3(rnd(seed), rnd(seed), rnd(seed));
 	const float3 pointOnLight = (bary.x * tri.V0) + (bary.y * tri.V1) + (bary.z * tri.V2);

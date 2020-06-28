@@ -1,0 +1,56 @@
+#pragma once
+
+#include "CudaUtility.h"
+
+__global__ void AmbientOcclusionShadingKernel(uint32_t pathCount, float4* accumulator, float4* pathStates, uint4* hitData, float4* shadowRays, int2 resolution, uint32_t stride, uint32_t pathLength)
+{
+	const int jobIdx = threadIdx.x + (blockIdx.x * blockDim.x);
+	if(jobIdx >= pathCount)
+		return;
+
+	// gather data
+	const float4 O4 = pathStates[jobIdx + (stride * 0)];
+	const float4 D4 = pathStates[jobIdx + (stride * 1)];
+
+	const float3 O = make_float3(O4);
+	const float3 D = make_float3(D4);
+	const int32_t pathIx = __float_as_int(O4.w);
+	const int32_t pixelIx = pathIx % (resolution.x * resolution.y);
+
+	const uint4 hd = hitData[pathIx];
+	const float2 bary = DecodeBarycentrics(hd.x);
+	const uint32_t instIx = hd.y;
+	const uint32_t primIx = hd.z;
+	const float tmax = __uint_as_float(hd.w);
+
+	if(pathLength == 0)
+	{
+		if(primIx == ~0)
+			return;
+
+		// fetch intersection info
+		const IntersectionAttributes attrib = GetIntersectionAttributes(instIx, primIx, bary);
+
+		// diffuse
+		float3 diff = attrib.diffuse;
+
+		// bounce ray
+		uint32_t seed = tea<2>(pathIx, params->sampleCount + pathLength + 1);
+		const float3 newOrigin = O + (D * tmax);
+		const float3 newDir = SampleCosineHemisphere(attrib.geometricNormal, rnd(seed), rnd(seed));
+
+		// update path states
+		const int32_t extendIx = atomicAdd(&counters->extendRays, 1);
+		pathStates[extendIx + (stride * 0)] = make_float4(newOrigin, __int_as_float(pathIx));
+		pathStates[extendIx + (stride * 1)] = make_float4(newDir, 0);
+		pathStates[extendIx + (stride * 2)] = make_float4(diff, 0);
+	}
+	else
+	{
+		const float4 T4 = pathStates[jobIdx + (stride * 2)];
+		const float3 T = make_float3(T4);
+
+		const float z = (tmax > params->aoDist) ? 1.f : tmax / params->aoDist;
+		accumulator[pixelIx] += make_float4(T * z, 0);
+	}
+}
