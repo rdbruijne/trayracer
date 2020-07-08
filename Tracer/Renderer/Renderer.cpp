@@ -675,7 +675,7 @@ namespace Tracer
 			mCudaLightsBuffer.Upload(lightData, true);
 			SetCudaLights(mCudaLightsBuffer.Ptr<LightTriangle>());
 			SetCudaLightCount(static_cast<int32_t>(lightData.size()));
-			SetCudaLightEnergy(lightData.back().sumEnergy);
+			SetCudaLightEnergy(lightData.size() == 0 ? 0 : lightData.back().sumEnergy);
 
 			// build top-level
 			OptixBuildInput instanceBuildInput = {};
