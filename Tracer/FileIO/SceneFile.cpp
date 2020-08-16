@@ -368,7 +368,7 @@ namespace Tracer
 			for(auto m : modelsToImport)
 			{
 				auto model = Importer::ImportModel(scene, models.at(m), m);
-				scene->AddModel(model);
+				scene->Add(model);
 				importedModels[m] = model;
 			}
 
@@ -376,7 +376,7 @@ namespace Tracer
 			for(auto& i : instances)
 			{
 				if(models.find(i.modelName) != models.end())
-					scene->AddInstance(std::make_shared<Instance>(i.name, importedModels[i.modelName], i.transform));
+					scene->Add(std::make_shared<Instance>(i.name, importedModels[i.modelName], i.transform));
 				else
 					printf("Model \"%s\" was not declared\n", i.modelName.c_str());
 			}

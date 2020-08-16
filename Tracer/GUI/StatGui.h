@@ -17,8 +17,6 @@ namespace Tracer
 
 		float mFrameTimeMs = 0;
 		float mBuildTimeMs = 0;
-		Renderer* mRenderer = nullptr;
-		Scene* mScene = nullptr;
 
 	private:
 		void DrawImpl() final;

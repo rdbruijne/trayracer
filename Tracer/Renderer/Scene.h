@@ -34,8 +34,11 @@ namespace Tracer
 		size_t LightCount() const;
 		size_t UniqueLightCount() const;
 
-		void AddModel(std::shared_ptr<Model> model);
-		void AddInstance(std::shared_ptr<Instance> instance);
+		void Add(std::shared_ptr<Model> model);
+		void Add(std::shared_ptr<Instance> instance);
+
+		void Remove(std::shared_ptr<Model> model);
+		void Remove(std::shared_ptr<Instance> instance);
 
 		std::shared_ptr<Model> GetModel(const std::string& name) const;
 		std::shared_ptr<Material> GetMaterial(uint32_t instanceIx, uint32_t primIx);

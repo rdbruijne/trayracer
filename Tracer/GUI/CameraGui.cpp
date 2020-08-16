@@ -1,7 +1,7 @@
 #include "CameraGui.h"
 
 // Project
-#include "Gui/GuiHelpers.h"
+#include "GUI/GuiHelpers.h"
 #include "Resources/CameraNode.h"
 
 // ImGUI
@@ -20,7 +20,7 @@ namespace Tracer
 	void CameraGui::DrawImpl()
 	{
 		ImGui::Begin("Camera", &mEnabled);
-		if(!mCamNode)
+		if(!GuiHelpers::camNode)
 		{
 			ImGui::Text("No camera node detected");
 		}
@@ -29,10 +29,10 @@ namespace Tracer
 			bool hasChanged = false;
 
 			// transformation
-			float camPos[] = { mCamNode->Position().x, mCamNode->Position().y, mCamNode->Position().z };
-			float camTarget[] = { mCamNode->Target().x, mCamNode->Target().y, mCamNode->Target().z };
-			float camUp[] = { mCamNode->Up().x, mCamNode->Up().y, mCamNode->Up().z };
-			float camFov = mCamNode->Fov() * RadToDeg;
+			float camPos[] = { GuiHelpers::camNode->Position().x, GuiHelpers::camNode->Position().y, GuiHelpers::camNode->Position().z };
+			float camTarget[] = { GuiHelpers::camNode->Target().x, GuiHelpers::camNode->Target().y, GuiHelpers::camNode->Target().z };
+			float camUp[] = { GuiHelpers::camNode->Up().x, GuiHelpers::camNode->Up().y, GuiHelpers::camNode->Up().z };
+			float camFov = GuiHelpers::camNode->Fov() * RadToDeg;
 
 			ImGui::BeginGroup();
 			hasChanged = ImGui::InputFloat3("Position", camPos) || hasChanged;
@@ -43,10 +43,10 @@ namespace Tracer
 
 			if(hasChanged)
 			{
-				mCamNode->SetPosition(make_float3(camPos[0], camPos[1], camPos[2]));
-				mCamNode->SetTarget(make_float3(camTarget[0], camTarget[1], camTarget[2]));
-				mCamNode->SetUp(make_float3(camUp[0], camUp[1], camUp[2]));
-				mCamNode->SetFov(camFov * DegToRad);
+				GuiHelpers::camNode->SetPosition(make_float3(camPos[0], camPos[1], camPos[2]));
+				GuiHelpers::camNode->SetTarget(make_float3(camTarget[0], camTarget[1], camTarget[2]));
+				GuiHelpers::camNode->SetUp(make_float3(camUp[0], camUp[1], camUp[2]));
+				GuiHelpers::camNode->SetFov(camFov * DegToRad);
 			}
 		}
 

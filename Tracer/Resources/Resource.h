@@ -15,6 +15,7 @@ namespace Tracer
 		virtual ~Resource() {}
 
 		const std::string& Name() const { return mName; }
+		virtual void SetName(const std::string& name) { mName = name; }
 
 		bool IsDirty(bool parseDependencies = true) const;
 		inline void MarkDirty() { mIsDirty = true; }

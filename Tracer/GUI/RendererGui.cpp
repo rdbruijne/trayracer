@@ -1,11 +1,9 @@
 #include "RendererGui.h"
 
 // Project
-#include "FileIO/SceneFile.h"
-#include "Gui/GuiHelpers.h"
+#include "GUI/GuiHelpers.h"
 #include "OpenGL/Window.h"
 #include "Renderer/Renderer.h"
-#include "Renderer/Scene.h"
 
 // Magic Enum
 #pragma warning(push)
@@ -29,43 +27,14 @@ namespace Tracer
 	void RendererGui::DrawImpl()
 	{
 		ImGui::Begin("Renderer", &mEnabled);
-		if(!mRenderer)
+		if(!GuiHelpers::renderer)
 		{
 			ImGui::Text("No renderer node detected");
 		}
 		else
 		{
-			// scene
-			ImGui::Columns(3, nullptr, false);
-			if(ImGui::Button("Load scene", ImVec2(ImGui::GetWindowWidth() * .3f, 0)))
-			{
-				std::string sceneFile;
-				if(OpenFileDialog("Json\0*.json\0", "Select a scene file", true, sceneFile))
-				{
-					mScene->Clear();
-					SceneFile::Load(sceneFile, mScene,mCamNode, mRenderer, mWindow);
-				}
-			}
-			ImGui::NextColumn();
-
-			if(ImGui::Button("Save scene", ImVec2(ImGui::GetWindowWidth() * .3f, 0)))
-			{
-				std::string sceneFile;
-				if(SaveFileDialog("Json\0*.json\0", "Select a scene file", sceneFile))
-					SceneFile::Save(sceneFile, mScene,mCamNode, mRenderer, mWindow);
-			}
-			ImGui::NextColumn();
-
-			if(ImGui::Button("Clear scene", ImVec2(ImGui::GetWindowWidth() * .3f, 0)))
-			{
-				mScene->Clear();
-			}
-
-			ImGui::Columns();
-			ImGui::Spacing();
-
 			// render mode
-			RenderModes activeRenderMode = mRenderer->RenderMode();
+			RenderModes activeRenderMode = GuiHelpers::renderer->RenderMode();
 			const std::string rmName = ToString(activeRenderMode);
 			if(ImGui::BeginCombo("Render Mode", rmName.c_str()))
 			{
@@ -74,7 +43,7 @@ namespace Tracer
 					const RenderModes mode = static_cast<RenderModes>(i);
 					const std::string itemName = ToString(mode);
 					if(ImGui::Selectable(itemName.c_str(), mode == activeRenderMode))
-						mRenderer->SetRenderMode(mode);
+						GuiHelpers::renderer->SetRenderMode(mode);
 					if(mode == activeRenderMode)
 						ImGui::SetItemDefaultFocus();
 				}
@@ -85,49 +54,49 @@ namespace Tracer
 			ImGui::Spacing();
 			ImGui::Text("Settings");
 
-			int multiSample = mRenderer->MultiSample();
+			int multiSample = GuiHelpers::renderer->MultiSample();
 			if(ImGui::SliderInt("Multi-sample", &multiSample, 1, Renderer::MaxTraceDepth))
-				mRenderer->SetMultiSample(multiSample);
+				GuiHelpers::renderer->SetMultiSample(multiSample);
 
-			int maxDepth = mRenderer->MaxDepth();
+			int maxDepth = GuiHelpers::renderer->MaxDepth();
 			if(ImGui::SliderInt("Max depth", &maxDepth, 0, 16))
-				mRenderer->SetMaxDepth(maxDepth);
+				GuiHelpers::renderer->SetMaxDepth(maxDepth);
 
-			float aoDist = mRenderer->AODist();
+			float aoDist = GuiHelpers::renderer->AODist();
 			if(ImGui::SliderFloat("AO Dist", &aoDist, 0.f, 1e4f, "%.3f", 10.f))
-				mRenderer->SetAODist(aoDist);
+				GuiHelpers::renderer->SetAODist(aoDist);
 
-			float zDepthMax = mRenderer->ZDepthMax();
+			float zDepthMax = GuiHelpers::renderer->ZDepthMax();
 			if(ImGui::SliderFloat("Z-Depth max", &zDepthMax, 0.f, 1e4f, "%.3f", 10.f))
-				mRenderer->SetZDepthMax(zDepthMax);
+				GuiHelpers::renderer->SetZDepthMax(zDepthMax);
 
-			float3 skyColor = mRenderer->SkyColor();
+			float3 skyColor = GuiHelpers::renderer->SkyColor();
 			if(ImGui::ColorEdit3("Sky color", reinterpret_cast<float*>(&skyColor)))
-				mRenderer->SetSkyColor(skyColor);
+				GuiHelpers::renderer->SetSkyColor(skyColor);
 
 			// post
-			if(mWindow)
+			if(GuiHelpers::window)
 			{
 				ImGui::Spacing();
 				ImGui::Text("Post");
 
-				Window::ShaderProperties shaderProps = mWindow->PostShaderProperties();
+				Window::ShaderProperties shaderProps = GuiHelpers::window->PostShaderProperties();
 				ImGui::SliderFloat("Exposure", &shaderProps.exposure, 0.f, 100.f, "%.3f", 10.f);
 				ImGui::SliderFloat("Gamma", &shaderProps.gamma, 0.f, 4.f, "%.3f", 1.f);
-				mWindow->SetPostShaderProperties(shaderProps);
+				GuiHelpers::window->SetPostShaderProperties(shaderProps);
 			}
 
 			// denoiser
 			ImGui::Spacing();
 			ImGui::Text("Denoiser");
 
-			bool denoising = mRenderer->DenoisingEnabled();
+			bool denoising = GuiHelpers::renderer->DenoisingEnabled();
 			if(ImGui::Checkbox("Enabled", &denoising))
-				mRenderer->SetDenoiserEnabled(denoising);
+				GuiHelpers::renderer->SetDenoiserEnabled(denoising);
 
-			int32_t denoiserSampleTreshold = mRenderer->DenoiserSampleTreshold();
+			int32_t denoiserSampleTreshold = GuiHelpers::renderer->DenoiserSampleTreshold();
 			if(ImGui::SliderInt("Sample treshold", &denoiserSampleTreshold, 0, 100))
-				mRenderer->SetDenoiserSampleTreshold(denoiserSampleTreshold);
+				GuiHelpers::renderer->SetDenoiserSampleTreshold(denoiserSampleTreshold);
 		}
 
 		ImGui::End();

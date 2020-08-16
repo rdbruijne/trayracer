@@ -11,8 +11,10 @@
 // GUI windows
 #include "GUI/CameraGui.h"
 #include "GUI/DebugGui.h"
+#include "GUI/GuiHelpers.h"
 #include "GUI/MaterialGui.h"
 #include "GUI/RendererGui.h"
+#include "GUI/SceneGui.h"
 #include "GUI/StatGui.h"
 
 // C++
@@ -50,6 +52,7 @@ int main(int argc, char** argv)
 			{ Tracer::RendererGui::Get(), Tracer::Input::Keys::F2 },
 			{ Tracer::CameraGui::Get(),   Tracer::Input::Keys::F3 },
 			{ Tracer::MaterialGui::Get(), Tracer::Input::Keys::F4 },
+			{ Tracer::SceneGui::Get(),    Tracer::Input::Keys::F5 },
 			{ Tracer::DebugGui::Get(),    Tracer::Input::Keys::F10 }
 		};
 
@@ -58,6 +61,7 @@ int main(int argc, char** argv)
 		Tracer::RendererGui::Get()->SetEnabled(true);
 		//Tracer::CameraGui::Get()->SetEnabled(true);
 		//Tracer::MaterialGui::Get()->SetEnabled(true);
+		Tracer::SceneGui::Get()->SetEnabled(true);
 		//Tracer::DebugGui::Get()->SetEnabled(true);
 
 		// create app
@@ -67,6 +71,12 @@ int main(int argc, char** argv)
 		// timer
 		Tracer::Stopwatch stopwatch;
 		float frameTimeMs = 0;
+
+		// init GUI data
+		Tracer::GuiHelpers::camNode  = app->GetCameraNode();
+		Tracer::GuiHelpers::renderer = renderer;
+		Tracer::GuiHelpers::scene    = app->GetScene();
+		Tracer::GuiHelpers::window   = window;
 
 		// main loop
 		while(!window->IsClosed())
@@ -99,15 +109,7 @@ int main(int argc, char** argv)
 			window->Display();
 
 			// update GUI
-			Tracer::CameraGui::Get()->mCamNode = app->GetCameraNode();
-			Tracer::MaterialGui::Get()->mScene = app->GetScene();
-			Tracer::RendererGui::Get()->mCamNode = app->GetCameraNode();
-			Tracer::RendererGui::Get()->mRenderer = renderer;
-			Tracer::RendererGui::Get()->mScene = app->GetScene();
-			Tracer::RendererGui::Get()->mWindow = window;
 			Tracer::StatGui::Get()->mFrameTimeMs = frameTimeMs;
-			Tracer::StatGui::Get()->mRenderer = renderer;
-			Tracer::StatGui::Get()->mScene = app->GetScene();
 
 			// display GUI
 			for(auto& w : guiWindows)

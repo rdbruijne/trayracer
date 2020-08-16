@@ -2,7 +2,7 @@
 
 // Project
 #include "FileIO/Importer.h"
-#include "Gui/GuiHelpers.h"
+#include "GUI/GuiHelpers.h"
 #include "Resources/Material.h"
 #include "Utility/Utility.h"
 
@@ -16,27 +16,30 @@
 
 namespace Tracer
 {
-	std::string LoadTextureDialog()
+	namespace
 	{
-		std::string filter = "";
-		if(filter.empty())
+		std::string ImportTextureDialog()
 		{
-			const std::vector<Importer::Format>& texFormats = Importer::SupportedTextureFormats();
-			std::string extensions = "";
-			for(auto f : texFormats)
+			std::string filter = "";
+			if(filter.empty())
 			{
-				std::vector<std::string> extParts = Split(f.ext, ',');
-				for(auto e : extParts)
-					extensions += std::string(extensions.empty() ? "" : ";") + "*." + e;
+				const std::vector<Importer::Format>& texFormats = Importer::SupportedTextureFormats();
+				std::string extensions = "";
+				for(auto f : texFormats)
+				{
+					std::vector<std::string> extParts = Split(f.ext, ',');
+					for(auto e : extParts)
+						extensions += std::string(extensions.empty() ? "" : ";") + "*." + e;
+				}
+
+				const std::string& zeroString = std::string(1, '\0');
+				filter = "Image files" + zeroString + extensions + zeroString;
 			}
 
-			const std::string& zeroString = std::string(1, '\0');
-			filter = "Image files" + zeroString + extensions + zeroString;
+			std::string texFile = "";
+			OpenFileDialog(filter.c_str(), "Select a texture file", true, texFile);
+			return texFile;
 		}
-
-		std::string texFile = "";
-		OpenFileDialog(filter.c_str(), "Select a texture file", true, texFile);
-		return texFile;
 	}
 
 
@@ -92,9 +95,9 @@ namespace Tracer
 			const std::string buttonName = format("Load texture##%s", name.c_str());
 			if(ImGui::Button(buttonName.c_str()))
 			{
-				std::string texFile = LoadTextureDialog();
+				std::string texFile = ImportTextureDialog();
 				if(!texFile.empty())
-					setTex(Importer::ImportTexture(mScene, texFile));
+					setTex(Importer::ImportTexture(GuiHelpers::scene, texFile));
 			}
 		}
 		else
@@ -117,9 +120,9 @@ namespace Tracer
 
 			if(ImGui::ImageButton(reinterpret_cast<ImTextureID>(texId), ImVec2(res.x * dpiScale, res.y * dpiScale)))
 			{
-				std::string texFile = LoadTextureDialog();
+				std::string texFile = ImportTextureDialog();
 				if(!texFile.empty())
-					setTex(Importer::ImportTexture(mScene, texFile));
+					setTex(Importer::ImportTexture(GuiHelpers::scene, texFile));
 			}
 			ImGui::NextColumn();
 

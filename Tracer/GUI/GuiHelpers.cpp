@@ -39,7 +39,7 @@ namespace Tracer
 
 
 
-	bool GuiHelpers::Init(Window* window)
+	bool GuiHelpers::Init(Window* renderWindow)
 	{
 		// init ImGUI
 		IMGUI_CHECKVERSION();
@@ -58,13 +58,15 @@ namespace Tracer
 		memcpy(&sStyleBackup, &style, sizeof(ImGuiStyle));
 
 		// DPI
-		SetDpi(window);
+		SetDpi(renderWindow);
 
 		// init for OpenGL
-		ImGui_ImplGlfw_InitForOpenGL(window->GlfwWindow(), true);
+		ImGui_ImplGlfw_InitForOpenGL(renderWindow->GlfwWindow(), true);
 		ImGui_ImplOpenGL3_Init("#version 130");
 
 		ImGui::SetColorEditOptions(ImGuiColorEditFlags_Float);
+
+		window = renderWindow;
 
 		return true;
 	}

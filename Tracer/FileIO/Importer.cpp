@@ -165,6 +165,33 @@ namespace Tracer
 
 
 
+	const std::vector<Importer::Format>& Importer::SupportedModelFormats()
+	{
+		static std::vector<Format> result;
+		if(result.size() == 0)
+		{
+			Assimp::Importer importer;
+			aiString extensions;
+			importer.GetExtensionList(extensions);
+
+			const std::vector<std::string> exts = Split(extensions.C_Str(), ';');
+			result.reserve(exts.size());
+			for(const std::string& e : exts)
+			{
+				const std::string ext = e.substr(2);
+
+				Format f;
+				f.name = ext;
+				f.description = ext;
+				f.ext = ext;
+				result.push_back(f);
+			}
+		}
+		return result;
+	}
+
+
+
 	const std::vector<Importer::Format>& Importer::SupportedTextureFormats()
 	{
 		static std::vector<Format> result;
@@ -247,6 +274,11 @@ namespace Tracer
 
 			// Importer
 			Assimp::Importer importer;
+			if(!importer.IsExtensionSupported(FileExtension(filePath)))
+			{
+				printf("Filetype \"%s\" is not supported by the importer.\n", FileExtension(filePath).c_str());
+				return nullptr;
+			}
 
 			// import flags
 			constexpr uint32_t importFlags =

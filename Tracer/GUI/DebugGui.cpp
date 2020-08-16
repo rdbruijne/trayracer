@@ -1,7 +1,7 @@
 #include "DebugGui.h"
 
 // Project
-#include "Gui/GuiHelpers.h"
+#include "GUI/GuiHelpers.h"
 
 // ImGUI
 #include "imgui/imgui.h"

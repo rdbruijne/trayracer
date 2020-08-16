@@ -250,6 +250,7 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
     <ClCompile Include="GUI\GuiHelpers.cpp" />
     <ClCompile Include="GUI\MaterialGui.cpp" />
     <ClCompile Include="GUI\RendererGui.cpp" />
+    <ClCompile Include="GUI\SceneGui.cpp" />
     <ClCompile Include="GUI\StatGui.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="OpenGL\GLHelpers.cpp" />
@@ -307,6 +308,7 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
     <ClInclude Include="GUI\GuiHelpers.h" />
     <ClInclude Include="GUI\MaterialGui.h" />
     <ClInclude Include="GUI\RendererGui.h" />
+    <ClInclude Include="GUI\SceneGui.h" />
     <ClInclude Include="GUI\StatGui.h" />
     <ClInclude Include="OpenGL\GLHelpers.h" />
     <ClInclude Include="OpenGL\GLTexture.h" />

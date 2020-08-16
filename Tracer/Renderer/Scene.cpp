@@ -125,7 +125,7 @@ namespace Tracer
 
 
 
-	void Scene::AddModel(std::shared_ptr<Model> model)
+	void Scene::Add(std::shared_ptr<Model> model)
 	{
 		if(model && std::find(mModels.begin(), mModels.end(), model) == mModels.end())
 		{
@@ -136,7 +136,7 @@ namespace Tracer
 
 
 
-	void Scene::AddInstance(std::shared_ptr<Instance> instance)
+	void Scene::Add(std::shared_ptr<Instance> instance)
 	{
 		assert(instance->GetModel() != nullptr);
 		assert(std::find(mModels.begin(), mModels.end(), instance->GetModel()) != mModels.end());
@@ -144,6 +144,44 @@ namespace Tracer
 		if(instance && std::find(mInstances.begin(), mInstances.end(), instance) == mInstances.end())
 		{
 			mInstances.push_back(instance);
+			MarkDirty();
+		}
+	}
+
+
+
+	void Scene::Remove(std::shared_ptr<Model> model)
+	{
+		auto it = std::find(mModels.begin(), mModels.end(), model);
+		if(it != mModels.end())
+		{
+			bool removed;
+			do
+			{
+				removed = false;
+				for(auto i : mInstances)
+				{
+					if(i->GetModel() == model)
+					{
+						Remove(i);
+						removed = true;
+						break;
+					}
+				}
+			} while(removed);
+			mModels.erase(it);
+			MarkDirty();
+		}
+	}
+
+
+
+	void Scene::Remove(std::shared_ptr<Instance> instance)
+	{
+		auto it = std::find(mInstances.begin(), mInstances.end(), instance);
+		if(it != mInstances.end())
+		{
+			mInstances.erase(it);
 			MarkDirty();
 		}
 	}
@@ -210,5 +248,17 @@ namespace Tracer
 				}
 			}
 		}
+
+		// set pdf
+		// #TODO: pdf
+		/*for(size_t i = 0; i < mLights.size(); i++)
+		{
+			LightTriangle& tri = mLights[i];
+
+			static const float3 luminanceFactor = make_float3(0.2126f, 0.7152f, 0.0722f);
+			const float3 luminance = tri.radiance * luminanceFactor;
+			const float3 normal = cross(tri.V1 - tri.V0, tri.V2 - tri.V0);
+			const float importance = (luminance.x + luminance.y + luminance.z) * length(normal) * 0.5f;
+		}*/
 	}
 }

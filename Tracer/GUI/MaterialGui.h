@@ -10,7 +10,6 @@
 namespace Tracer
 {
 	class Material;
-	class Scene;
 	class Texture;
 	class MaterialGui : public BaseGui
 	{
@@ -18,7 +17,6 @@ namespace Tracer
 		static MaterialGui* const Get();
 
 		std::weak_ptr<Material> mSelectedMaterial = {};
-		Scene* mScene = nullptr;
 
 	private:
 		void DrawImpl() final;

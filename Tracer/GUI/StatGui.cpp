@@ -1,7 +1,7 @@
 #include "StatGui.h"
 
 // Project
-#include "Gui/GuiHelpers.h"
+#include "GUI/GuiHelpers.h"
 #include "Renderer/Renderer.h"
 #include "Renderer/Scene.h"
 
@@ -45,7 +45,7 @@ namespace Tracer
 
 		ImGui::Begin("Statistics", &mEnabled);
 
-		if(!mRenderer)
+		if(!GuiHelpers::renderer)
 		{
 			ImGui::Text("No renderer detected");
 		}
@@ -54,7 +54,7 @@ namespace Tracer
 			ImGui::Columns(2);
 
 			// fetch stats
-			const Renderer::RenderStats renderStats = mRenderer->Statistics();
+			const Renderer::RenderStats renderStats = GuiHelpers::renderer->Statistics();
 
 			// table header
 			ImGui::Separator();
@@ -62,13 +62,13 @@ namespace Tracer
 			ImGui::Separator();
 
 			// device
-			auto devProps = mRenderer->CudaDeviceProperties();
+			auto devProps = GuiHelpers::renderer->CudaDeviceProperties();
 			ROW("Device", devProps.name);
 			SPACE;
 
 			// kenel
-			ROW("Kernel", ToString(mRenderer->RenderMode()).c_str());
-			ROW("Samples","%d", mRenderer->SampleCount());
+			ROW("Kernel", ToString(GuiHelpers::renderer->RenderMode()).c_str());
+			ROW("Samples","%d", GuiHelpers::renderer->SampleCount());
 
 			SPACE;
 
@@ -95,12 +95,12 @@ namespace Tracer
 			SPACE;
 
 			// scene
-			ROW("Instance count", "%lld", mScene->InstanceCount());
-			ROW("Model count", "%lld", mScene->InstancedModelCount());
-			ROW("Triangle count", "%s", ThousandSeparators(mScene->TriangleCount()).c_str());
-			ROW("Unique triangle count", "%s", ThousandSeparators(mScene->UniqueTriangleCount()).c_str());
-			ROW("Lights", "%s", ThousandSeparators(mScene->LightCount()).c_str());
-			ROW("Unique lights", "%s", ThousandSeparators(mScene->UniqueLightCount()).c_str());
+			ROW("Instance count", "%lld", GuiHelpers::scene->InstanceCount());
+			ROW("Model count", "%lld", GuiHelpers::scene->InstancedModelCount());
+			ROW("Triangle count", "%s", ThousandSeparators(GuiHelpers::scene->TriangleCount()).c_str());
+			ROW("Unique triangle count", "%s", ThousandSeparators(GuiHelpers::scene->UniqueTriangleCount()).c_str());
+			ROW("Lights", "%s", ThousandSeparators(GuiHelpers::scene->LightCount()).c_str());
+			ROW("Unique lights", "%s", ThousandSeparators(GuiHelpers::scene->UniqueLightCount()).c_str());
 
 #undef SPACE
 #undef ROW

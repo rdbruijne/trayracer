@@ -11,6 +11,7 @@ Personal path tracer project.
 | Renderer | F2 |
 | Camera | F3 |
 | Material Editor | F4 |
+| Scene Editor | F5 |
 | Debug | F10 |
 
 ## Camera

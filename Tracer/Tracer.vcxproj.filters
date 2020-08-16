@@ -107,6 +107,9 @@
     <ClCompile Include="Resources\Resource.cpp">
       <Filter>Resources</Filter>
     </ClCompile>
+    <ClCompile Include="GUI\SceneGui.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">
@@ -314,6 +317,9 @@
     </ClInclude>
     <ClInclude Include="CUDA\Shade\ZDepth.h">
       <Filter>CUDA\Shade</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\SceneGui.h">
+      <Filter>GUI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

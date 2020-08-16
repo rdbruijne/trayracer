@@ -17,6 +17,7 @@ namespace Tracer
 	//
 	// extra constants
 	//
+	constexpr float Pi = 3.14159265358979323846f;
 	constexpr float Epsilon  = 1e-3f;
 	constexpr float DegToRad = 3.14159265359f / 180.f;
 	constexpr float RadToDeg = 180.f / 3.14159265359f;
@@ -214,6 +215,36 @@ namespace Tracer
 
 
 
+	inline float3x4 rotate_3x4(float x, float y, float z)
+	{
+		const float cx = cosf(x);
+		const float sx = sinf(x);
+		const float cy = cosf(y);
+		const float sy = sinf(y);
+		const float cz = cosf(z);
+		const float sz = sinf(z);
+
+		return make_float3x4(
+			cy * cz,
+			sy*sx - cy*sz*cx,
+			cy*sz*sx + sy*cx,
+			sz,
+			cz*cx,
+			-cz*sx,
+			-sy*cz,
+			sy*sz*cx + cy*sx,
+			-sy*sz*sx + cy*cx);
+	}
+
+
+
+	inline float3x4 rotate_3x4(const float3& euler)
+	{
+		return rotate_3x4(euler.x, euler.y, euler.z);
+	}
+
+
+
 	// scale
 	inline float3x4 scale_3x4(float scale)
 	{
@@ -337,6 +368,31 @@ namespace Tracer
 		result.ty = -inv10 * a.tx - inv11 * a.ty - inv12 * a.tz;
 		result.tz = -inv20 * a.tx - inv21 * a.ty - inv22 * a.tz;
 		return result;
+	}
+
+
+
+	// decompose
+	inline void decompose(const float3x4& a, float3& pos, float3& euler, float3& scale)
+	{
+		pos = make_float3(a.tx, a.ty, a.tz);
+		scale = make_float3(length(a.x), length(a.y), length(a.z));
+
+		const float3 tx = normalize(a.x);
+		const float3 ty = normalize(a.y);
+		const float3 tz = normalize(a.z);
+		if(ty.x > .998f)
+		{
+			euler = make_float3(0, atan2f(tx.z, tz.z), Pi * .5f);
+		}
+		else if(ty.x < -.998f)
+		{
+			euler = make_float3(0, atan2f(tx.z, tz.z), -Pi * .5f);
+		}
+		else
+		{
+			euler = make_float3(atan2f(-ty.z, ty.y), atan2f(-tz.x, tx.x), asinf(ty.x));
+		}
 	}
 
 
