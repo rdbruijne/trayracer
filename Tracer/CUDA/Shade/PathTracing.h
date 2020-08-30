@@ -2,6 +2,9 @@
 
 #include "CudaUtility.h"
 
+// Closures
+#include "BSDF/Diffuse.h"
+
 __global__ void PathTracingKernel(uint32_t pathCount, float4* accumulator, float4* pathStates, uint4* hitData, float4* shadowRays, int2 resolution, uint32_t stride, uint32_t pathLength)
 {
 	const int jobIdx = threadIdx.x + (blockIdx.x * blockDim.x);
@@ -51,27 +54,47 @@ __global__ void PathTracingKernel(uint32_t pathCount, float4* accumulator, float
 	// new throughput
 	float3 throughput = T * attrib.diffuse;
 
-	// next event
-	if(lightCount > 0)
-	{
-		const float3 I = O + D * tmax;
-		float lightProb;
-		float lightPdf;
-		float3 lightRadiance;
-		const float3 lightPoint = SampleLight(seed, I, attrib.shadingNormal, lightProb, lightPdf, lightRadiance);
+	// sample light
+	const float3 I = O + D * tmax;
+	float lightProb;
+	float lightPdf;
+	float3 lightRadiance;
+	const float3 lightPoint = SampleLight(seed, I, attrib.shadingNormal, lightProb, lightPdf, lightRadiance);
 
-		float3 L = lightPoint - I;
-		const float lDist = length(L);
-		L *= 1.f / lDist;
-		const float NdotL = dot(L, attrib.shadingNormal);
-		if(NdotL > 0)// && lightPdf > 0)
-		{
-			// fire shadow ray
-			const int32_t shadowIx = atomicAdd(&counters->shadowRays, 1);
-			shadowRays[shadowIx + (stride * 0)] = make_float4(I, __int_as_float(pixelIx));
-			shadowRays[shadowIx + (stride * 1)] = make_float4(L, lDist);
-			shadowRays[shadowIx + (stride * 2)] = make_float4(throughput * lightRadiance * NdotL/** (NdotL / (lightProb * lightPdf))*/, 0);
-		}
+	float3 L = lightPoint - I;
+	const float lDist = length(L);
+	L *= 1.f / lDist;
+	const float NdotL = dot(L, attrib.shadingNormal);
+
+	// hit -> eye
+	const float3 wow = -D;
+	const float3 wo = normalize(make_float3(dot(wow, attrib.tangent), dot(wow, attrib.bitangent), dot(wow, attrib.geometricNormal)));
+
+	// hit -> light
+	const float3 wiw = L;
+	const float3 wi = normalize(make_float3(dot(wiw, attrib.tangent), dot(wiw, attrib.bitangent), dot(wiw, attrib.geometricNormal)));
+
+	// sample closure
+	ShadingInfo info;
+	info.wo   = wo;
+	info.wi   = wi;
+	info.seed = seed;
+	info.T    = throughput;
+
+	Closure closure = Diffuse_Closure(info);
+
+	// extend ray
+	const float3 extend = normalize(closure.extend.wi.x * attrib.tangent + closure.extend.wi.y * attrib.bitangent + closure.extend.wi.z * attrib.geometricNormal);
+
+	// shadow ray
+	if(NdotL > 0 && lightPdf > 0)
+	{
+		// fire shadow ray
+		const int32_t shadowIx = atomicAdd(&counters->shadowRays, 1);
+		shadowRays[shadowIx + (stride * 0)] = make_float4(I, __int_as_float(pixelIx));
+		shadowRays[shadowIx + (stride * 1)] = make_float4(L, lDist);
+		shadowRays[shadowIx + (stride * 2)] = make_float4(closure.shadow.T * lightRadiance * NdotL, 0);
+		//shadowRays[shadowIx + (stride * 2)] = make_float4((throughput * lightRadiance * NdotL) / (lightProb * lightPdf), 0);
 	}
 
 	// Russian roulette
@@ -85,11 +108,11 @@ __global__ void PathTracingKernel(uint32_t pathCount, float4* accumulator, float
 
 	// generate extend
 	const float3 newOrigin = O + (D * tmax);
-	const float3 newDir = SampleCosineHemisphere(attrib.geometricNormal, rnd(seed), rnd(seed));
+	const float3 newDir = extend;
 
 	// update path states
 	const int32_t extendIx = atomicAdd(&counters->extendRays, 1);
 	pathStates[extendIx + (stride * 0)] = make_float4(newOrigin, __int_as_float(pathIx));
 	pathStates[extendIx + (stride * 1)] = make_float4(newDir, 0);
-	pathStates[extendIx + (stride * 2)] = make_float4(throughput, 0);
+	pathStates[extendIx + (stride * 2)] = make_float4(throughput, closure.extend.pdf);
 }

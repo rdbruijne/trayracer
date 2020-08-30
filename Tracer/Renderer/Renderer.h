@@ -117,7 +117,7 @@ namespace Tracer
 		void BuildMaterials(Scene* scene);
 
 		// render mode
-		RenderModes mRenderMode = RenderModes::AmbientOcclusionShading;
+		RenderModes mRenderMode = RenderModes::PathTracing;
 
 		// stats
 		RenderStats mRenderStats = {};
@@ -151,7 +151,7 @@ namespace Tracer
 		cudaGraphicsResource* mCudaGraphicsResource = nullptr;
 
 		// SPT
-		CudaBuffer mPathStates = {};		// (O.xyz, pathIx)[], (D.xyz, meshIx)[], (throughput, ?)[]
+		CudaBuffer mPathStates = {};		// (O.xyz, pathIx)[], (D.xyz, meshIx)[], (throughput, pdf)[]
 		CudaBuffer mHitData = {};			// ((bary.x, bary.y), instIx, primIx, tmin)[]
 		CudaBuffer mShadowRayData = {};		// (O.xyz, pixelIx)[], (D.xyz, dist)[], (radiance, ?)[]
 		CudaBuffer mCountersBuffer = {};

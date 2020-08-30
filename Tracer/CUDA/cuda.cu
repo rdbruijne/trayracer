@@ -4,6 +4,7 @@
 // Shade kernels
 #include "Shade/AmbientOcclusion.h"
 #include "Shade/AmbientOcclusionShading.h"
+#include "Shade/Bitangent.h"
 #include "Shade/DiffuseFilter.h"
 #include "Shade/DirectLight.h"
 #include "Shade/GeometricNormal.h"
@@ -11,6 +12,7 @@
 #include "Shade/ObjectID.h"
 #include "Shade/PathTracing.h"
 #include "Shade/ShadingNormal.h"
+#include "Shade/Tangent.h"
 #include "Shade/TextureCoordinate.h"
 #include "Shade/Wireframe.h"
 #include "Shade/ZDepth.h"
@@ -29,6 +31,10 @@ __host__ void Shade(RenderModes renderMode, uint32_t pathCount, float4* accumula
 
 	case RenderModes::AmbientOcclusionShading:
 		AmbientOcclusionShadingKernel<<<blockCount, threadsPerBlock>>>(pathCount, accumulator, pathStates, hitData, shadowRays, resolution, stride, pathLength);
+		break;
+
+	case RenderModes::Bitangent:
+		BitangentKernel<<<blockCount, threadsPerBlock>>>(pathCount, accumulator, pathStates, hitData, shadowRays, resolution, stride, pathLength);
 		break;
 
 	case RenderModes::DiffuseFilter:
@@ -57,6 +63,10 @@ __host__ void Shade(RenderModes renderMode, uint32_t pathCount, float4* accumula
 
 	case RenderModes::ShadingNormal:
 		ShadingNormalKernel<<<blockCount, threadsPerBlock>>>(pathCount, accumulator, pathStates, hitData, shadowRays, resolution, stride, pathLength);
+		break;
+
+	case RenderModes::Tangent:
+		TangentKernel<<<blockCount, threadsPerBlock>>>(pathCount, accumulator, pathStates, hitData, shadowRays, resolution, stride, pathLength);
 		break;
 
 	case RenderModes::TextureCoordinate:

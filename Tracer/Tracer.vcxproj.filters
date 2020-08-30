@@ -151,6 +151,9 @@
     <Filter Include="CUDA\Shade">
       <UniqueIdentifier>{92818293-8462-4654-b751-3d676b92fe2c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="CUDA\Shade\BSDF">
+      <UniqueIdentifier>{d251a70f-af72-4786-8d9e-76e72c57e072}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App\App.h">
@@ -318,8 +321,20 @@
     <ClInclude Include="CUDA\Shade\ZDepth.h">
       <Filter>CUDA\Shade</Filter>
     </ClInclude>
+    <ClInclude Include="CUDA\Shade\BSDF\Diffuse.h">
+      <Filter>CUDA\Shade\BSDF</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\Shade\BSDF\Closure.h">
+      <Filter>CUDA\Shade\BSDF</Filter>
+    </ClInclude>
     <ClInclude Include="GUI\SceneGui.h">
       <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\Shade\Tangent.h">
+      <Filter>CUDA\Shade</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\Shade\Bitangent.h">
+      <Filter>CUDA\Shade</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

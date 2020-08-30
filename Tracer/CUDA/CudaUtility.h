@@ -169,7 +169,7 @@ struct IntersectionAttributes
 	uint32_t matIx;
 
 	float3 bitangent;
-	int pad2;
+	float area;
 
 	float3 diffuse;
 	float pad3;
@@ -183,6 +183,7 @@ struct IntersectionAttributes
 static __device__
 inline IntersectionAttributes GetIntersectionAttributes(uint32_t instIx, uint32_t primIx, float2 bary)
 {
+	// #TODO: apply instance transform
 	IntersectionAttributes attrib = {};
 
 	// fetch triangle
@@ -194,17 +195,44 @@ inline IntersectionAttributes GetIntersectionAttributes(uint32_t instIx, uint32_
 	attrib.matIx = tri.matIx + materialOffsets[modelIx];
 
 	// texcoords
-	const float2 texcoord = Barycentric(bary, tri.uv0, tri.uv1, tri.uv2);
+	const float2 uv0 = make_float2(tri.uv0x, tri.uv0y);
+	const float2 uv1 = make_float2(tri.uv1x, tri.uv1y);
+	const float2 uv2 = make_float2(tri.uv2x, tri.uv2y);
+	const float2 texcoord = Barycentric(bary, uv0, uv1, uv2);
 	attrib.texcoordX = texcoord.x;
 	attrib.texcoordY = texcoord.y;
 
 	// normals
-	attrib.shadingNormal = normalize(Barycentric(bary, tri.N0, tri.N1, tri.N2));
-	attrib.geometricNormal = make_float3(tri.Nx, tri.Ny, tri.Nz);
+	const float3 e1 = tri.v1 - tri.v0;
+	const float3 e2 = tri.v2 - tri.v0;
+	attrib.area = length(cross(e1, e2)) * 0.5f;
 
-	// tangents
-	attrib.tangent = tri.tangent;
-	attrib.bitangent = tri.bitangent;
+	attrib.shadingNormal = normalize(Barycentric(bary, tri.N0, tri.N1, tri.N2));
+	attrib.geometricNormal = tri.N;
+
+	// calculate tangents
+	const float s1 = tri.uv1x - tri.uv0x;
+	const float t1 = tri.uv1y - tri.uv0y;
+
+	const float s2 = tri.uv2x - tri.uv0x;
+	const float t2 = tri.uv2y - tri.uv0y;
+
+	const float r = (s1 * t2) - (s2 * t1);
+
+	if(fabsf(r) < 1e-5f || true)
+	{
+		attrib.bitangent = normalize(cross(attrib.shadingNormal, e1));
+		attrib.tangent   = normalize(cross(attrib.shadingNormal, attrib.bitangent));
+	}
+	else
+	{
+		const float rr = 1.f / r;
+		const float3 s = ((t2 * e1) - (t1 * e2)) * rr;
+		const float3 t = ((s1 * e2) - (s2 * e1)) * rr;
+
+		attrib.bitangent = normalize(t - attrib.shadingNormal * dot(attrib.shadingNormal, t));
+		attrib.tangent   = normalize(cross(attrib.shadingNormal, attrib.bitangent));
+	}
 
 	// material
 	const CudaMatarial& mat = materialData[attrib.matIx];
@@ -348,15 +376,19 @@ inline float3 SampleLight(uint32_t& seed, const float3& I, const float3& N, floa
 	// pick random light
 	const int32_t lightIx = SelectLight(seed);
 	const LightTriangle& tri = lights[lightIx];
+
+	// select point on light
 	const float3 bary = make_float3(rnd(seed), rnd(seed), rnd(seed));
 	const float3 pointOnLight = (bary.x * tri.V0) + (bary.y * tri.V1) + (bary.z * tri.V2);
+
+	// sample direction
 	float3 L = I - pointOnLight;
 	const float sqDist = dot(L, L);
 	L = normalize(L);
 	const float LNdotL = dot(tri.N, L);
 	const float NdotL = dot(N, L);
 
-	prob = 1.f / lightCount;
+	prob = tri.energy / lightEnergy;
 	pdf = (NdotL < 0 && LNdotL > 0) ? sqDist / (tri.area * LNdotL) : 0;
 	radiance = tri.radiance;
 	return pointOnLight;

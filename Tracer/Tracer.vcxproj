@@ -104,7 +104,7 @@
       <Include>$(ProjectDir);$(SolutionDir)libraries</Include>
       <TargetMachinePlatform>64</TargetMachinePlatform>
       <CodeGeneration>compute_61,sm_61</CodeGeneration>
-      <AdditionalCompilerOptions>/wd4505 /wd4514 /wd4668 /wd4820 /wd5039</AdditionalCompilerOptions>
+      <AdditionalCompilerOptions>/wd4505 /wd4514 /wd4668 /wd4711 /wd4820 /wd5039</AdditionalCompilerOptions>
       <Keep>true</Keep>
       <KeepDir>$(IntDir)</KeepDir>
       <InterleaveSourceInPTX>true</InterleaveSourceInPTX>
@@ -156,7 +156,7 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
       <Include>$(ProjectDir);$(SolutionDir)libraries</Include>
       <TargetMachinePlatform>64</TargetMachinePlatform>
       <CodeGeneration>compute_61,sm_61</CodeGeneration>
-      <AdditionalCompilerOptions>/wd4505 /wd4514 /wd4668 /wd4820 /wd5039</AdditionalCompilerOptions>
+      <AdditionalCompilerOptions>/wd4505 /wd4514 /wd4668 /wd4711 /wd4820 /wd5039</AdditionalCompilerOptions>
       <Keep>true</Keep>
       <KeepDir>$(IntDir)</KeepDir>
       <InterleaveSourceInPTX>true</InterleaveSourceInPTX>
@@ -211,7 +211,7 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
       <Include>$(ProjectDir);$(SolutionDir)libraries</Include>
       <TargetMachinePlatform>64</TargetMachinePlatform>
       <CodeGeneration>compute_61,sm_61</CodeGeneration>
-      <AdditionalCompilerOptions>/wd4505 /wd4514 /wd4668 /wd4820 /wd5039</AdditionalCompilerOptions>
+      <AdditionalCompilerOptions>/wd4505 /wd4514 /wd4668 /wd4711 /wd4820 /wd5039</AdditionalCompilerOptions>
       <Keep>true</Keep>
       <KeepDir>$(IntDir)</KeepDir>
       <InterleaveSourceInPTX>true</InterleaveSourceInPTX>
@@ -290,6 +290,9 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
     <ClInclude Include="CUDA\CudaUtilityKernels.h" />
     <ClInclude Include="CUDA\Shade\AmbientOcclusion.h" />
     <ClInclude Include="CUDA\Shade\AmbientOcclusionShading.h" />
+    <ClInclude Include="CUDA\Shade\Bitangent.h" />
+    <ClInclude Include="CUDA\Shade\BSDF\Closure.h" />
+    <ClInclude Include="CUDA\Shade\BSDF\Diffuse.h" />
     <ClInclude Include="CUDA\Shade\DiffuseFilter.h" />
     <ClInclude Include="CUDA\Shade\DirectLight.h" />
     <ClInclude Include="CUDA\Shade\GeometricNormal.h" />
@@ -297,6 +300,7 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
     <ClInclude Include="CUDA\Shade\ObjectID.h" />
     <ClInclude Include="CUDA\Shade\PathTracing.h" />
     <ClInclude Include="CUDA\Shade\ShadingNormal.h" />
+    <ClInclude Include="CUDA\Shade\Tangent.h" />
     <ClInclude Include="CUDA\Shade\TextureCoordinate.h" />
     <ClInclude Include="CUDA\Shade\Wireframe.h" />
     <ClInclude Include="CUDA\Shade\ZDepth.h" />

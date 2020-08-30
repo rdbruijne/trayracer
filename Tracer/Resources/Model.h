@@ -36,8 +36,8 @@ namespace Tracer
 		uint32_t AddMaterial(std::shared_ptr<Material> mat);
 
 		// meshes
-		void AddMesh(const std::vector<float3>& vertices, const std::vector<float3>& normals, const std::vector<float3>& tangents,
-					 const std::vector<float3>& bitangents, const std::vector<float2>& texCoords, const std::vector<uint3>& indices,
+		void AddMesh(const std::vector<float3>& vertices, const std::vector<float3>& normals,
+					 const std::vector<float2>& texCoords, const std::vector<uint3>& indices,
 					 uint32_t materialIndex);
 
 		// build
@@ -57,8 +57,6 @@ namespace Tracer
 		// geometry
 		std::vector<float3> mVertices;
 		std::vector<float3> mNormals;
-		std::vector<float3> mTangents;
-		std::vector<float3> mBitangents;
 		std::vector<float2> mTexCoords;
 		std::vector<uint3>  mIndices;
 		std::vector<uint32_t> mMaterialIndices;

@@ -49,6 +49,7 @@ enum class RenderModes : uint32_t
 {
 	AmbientOcclusion,
 	AmbientOcclusionShading,
+	Bitangent,
 	DiffuseFilter,
 	DirectLight,
 	GeometricNormal,
@@ -56,6 +57,7 @@ enum class RenderModes : uint32_t
 	ObjectID,
 	PathTracing,
 	ShadingNormal,
+	Tangent,
 	TextureCoordinate,
 	Wireframe,
 	ZDepth
@@ -130,29 +132,18 @@ struct Counters
 
 
 
+// #TODO: compress
 struct alignas(16) PackedTriangle
 {
-	float2 uv0;
-	float2 uv1;
+	float3 v0;	float uv0x;
+	float3 v1;	float uv0y;
+	float3 v2;	float uv1x;
 
-	float2 uv2;
-	uint32_t matIx;
-	uint32_t pad0;
+	float3 N0;	float uv1y;
+	float3 N1;	float uv2x;
+	float3 N2;	float uv2y;
 
-	float3 N0;
-	float Nx;
-
-	float3 N1;
-	float Ny;
-
-	float3 N2;
-	float Nz;
-
-	float3 tangent;
-	float pad1;
-
-	float3 bitangent;
-	float pad2;
+	float3 N;	uint32_t matIx;
 };
 
 
@@ -165,7 +156,6 @@ struct alignas(16) LightTriangle
 	float3 N;  float energy;
 	float3 radiance; float sumEnergy;
 };
-
 
 
 
