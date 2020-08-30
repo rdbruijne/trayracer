@@ -9,27 +9,11 @@
 #include "Utility/Utility.h"
 
 // GUI windows
-#include "GUI/CameraGui.h"
-#include "GUI/DebugGui.h"
 #include "GUI/GuiHelpers.h"
-#include "GUI/MaterialGui.h"
-#include "GUI/RendererGui.h"
-#include "GUI/SceneGui.h"
-#include "GUI/StatGui.h"
+#include "GUI/MainGui.h"
 
 // C++
 #include <iostream>
-
-namespace
-{
-	struct WindowRegistration
-	{
-		Tracer::BaseGui* window;
-		Tracer::Input::Keys toggleKey;
-	};
-}
-
-
 
 int main(int argc, char** argv)
 {
@@ -45,24 +29,7 @@ int main(int argc, char** argv)
 
 		// init GUI
 		Tracer::GuiHelpers::Init(window);
-
-		std::vector<WindowRegistration> guiWindows =
-		{
-			{ Tracer::StatGui::Get(),     Tracer::Input::Keys::F1 },
-			{ Tracer::RendererGui::Get(), Tracer::Input::Keys::F2 },
-			{ Tracer::CameraGui::Get(),   Tracer::Input::Keys::F3 },
-			{ Tracer::MaterialGui::Get(), Tracer::Input::Keys::F4 },
-			{ Tracer::SceneGui::Get(),    Tracer::Input::Keys::F5 },
-			{ Tracer::DebugGui::Get(),    Tracer::Input::Keys::F10 }
-		};
-
-		// default enabled windows
-		//Tracer::StatGui::Get()->SetEnabled(true);
-		Tracer::RendererGui::Get()->SetEnabled(true);
-		//Tracer::CameraGui::Get()->SetEnabled(true);
-		//Tracer::MaterialGui::Get()->SetEnabled(true);
-		Tracer::SceneGui::Get()->SetEnabled(true);
-		//Tracer::DebugGui::Get()->SetEnabled(true);
+		Tracer::MainGui::Get()->SetEnabled(true);
 
 		// create app
 		Tracer::App* app = new Tracer::App();
@@ -100,7 +67,7 @@ int main(int argc, char** argv)
 				renderer->BuildScene(app->GetScene());
 				app->GetScene()->MarkClean();
 			}
-			Tracer::StatGui::Get()->mBuildTimeMs = buildTimer.ElapsedMs();
+			const float buildTime = buildTimer.ElapsedMs();
 
 			// run Optix
 			renderer->RenderFrame(window->RenderTexture());
@@ -109,15 +76,12 @@ int main(int argc, char** argv)
 			window->Display();
 
 			// update GUI
-			Tracer::StatGui::Get()->mFrameTimeMs = frameTimeMs;
+			Tracer::MainGui::Get()->UpdateStats(frameTimeMs, buildTime);
 
 			// display GUI
-			for(auto& w : guiWindows)
-			{
-				if(window->WasKeyPressed(w.toggleKey))
-					w.window->SetEnabled(!w.window->IsEnabled());
-				w.window->Draw();
-			}
+			if(window->WasKeyPressed(Tracer::Input::Keys::F1))
+				Tracer::MainGui::Get()->SetEnabled(!Tracer::MainGui::Get()->IsEnabled());
+			Tracer::MainGui::Get()->Draw();
 
 			// finalize GUI
 			Tracer::GuiHelpers::EndFrame();

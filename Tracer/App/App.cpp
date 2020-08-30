@@ -2,8 +2,7 @@
 
 // Project
 #include "App/OrbitCameraController.h"
-#include "GUI/DebugGui.h"
-#include "GUI/MaterialGui.h"
+#include "GUI/MainGui.h"
 #include "OpenGL/Window.h"
 #include "Renderer/Scene.h"
 #include "Renderer/Renderer.h"
@@ -52,7 +51,7 @@ namespace Tracer
 			if(window->IsKeyDown(Input::Keys::M))
 			{
 				const RayPickResult result = renderer->PickRay(cursorPosI2);
-				MaterialGui::Get()->mSelectedMaterial = mScene->GetMaterial(result.instIx, result.primIx);
+				MainGui::Get()->SelectMaterial(mScene->GetMaterial(result.instIx, result.primIx));
 			}
 		}
 

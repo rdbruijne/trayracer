@@ -77,25 +77,7 @@
     <ClCompile Include="Renderer\Scene.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\CameraGui.cpp">
-      <Filter>GUI</Filter>
-    </ClCompile>
-    <ClCompile Include="GUI\DebugGui.cpp">
-      <Filter>GUI</Filter>
-    </ClCompile>
     <ClCompile Include="GUI\GuiHelpers.cpp">
-      <Filter>GUI</Filter>
-    </ClCompile>
-    <ClCompile Include="GUI\BaseGui.cpp">
-      <Filter>GUI</Filter>
-    </ClCompile>
-    <ClCompile Include="GUI\MaterialGui.cpp">
-      <Filter>GUI</Filter>
-    </ClCompile>
-    <ClCompile Include="GUI\StatGui.cpp">
-      <Filter>GUI</Filter>
-    </ClCompile>
-    <ClCompile Include="GUI\RendererGui.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
     <ClCompile Include="FileIO\Importer.cpp">
@@ -107,7 +89,7 @@
     <ClCompile Include="Resources\Resource.cpp">
       <Filter>Resources</Filter>
     </ClCompile>
-    <ClCompile Include="GUI\SceneGui.cpp">
+    <ClCompile Include="GUI\MainGui.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
   </ItemGroup>
@@ -255,25 +237,7 @@
     <ClInclude Include="Renderer\Scene.h">
       <Filter>Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\CameraGui.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="GUI\DebugGui.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
     <ClInclude Include="GUI\GuiHelpers.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="GUI\BaseGui.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="GUI\MaterialGui.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="GUI\StatGui.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="GUI\RendererGui.h">
       <Filter>GUI</Filter>
     </ClInclude>
     <ClInclude Include="FileIO\Importer.h">
@@ -327,14 +291,14 @@
     <ClInclude Include="CUDA\Shade\BSDF\Closure.h">
       <Filter>CUDA\Shade\BSDF</Filter>
     </ClInclude>
-    <ClInclude Include="GUI\SceneGui.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
     <ClInclude Include="CUDA\Shade\Tangent.h">
       <Filter>CUDA\Shade</Filter>
     </ClInclude>
     <ClInclude Include="CUDA\Shade\Bitangent.h">
       <Filter>CUDA\Shade</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\MainGui.h">
+      <Filter>GUI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

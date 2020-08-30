@@ -418,7 +418,7 @@ namespace Tracer
 		//case RenderModes::TextureCoordinate:
 		case RenderModes::Wireframe:
 		//case RenderModes::ZDepth:
-			return mDenoisingEnabled && (mLaunchParams.sampleCount >= mDenoiserSampleTreshold);
+			return mDenoisingEnabled && (mLaunchParams.sampleCount >= mDenoiserSampleThreshold);
 			break;
 
 		default:

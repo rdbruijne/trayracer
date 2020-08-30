@@ -76,8 +76,8 @@ namespace Tracer
 		inline bool DenoisingEnabled() const { return mDenoisingEnabled; }
 		inline void SetDenoiserEnabled(bool enabled) { mDenoisingEnabled = enabled; }
 
-		inline int32_t DenoiserSampleTreshold() const { return mDenoiserSampleTreshold; }
-		inline void SetDenoiserSampleTreshold(uint32_t treshold) { mDenoiserSampleTreshold = treshold; }
+		inline int32_t DenoiserSampleThreshold() const { return mDenoiserSampleThreshold; }
+		inline void SetDenoiserSampleThreshold(uint32_t Threshold) { mDenoiserSampleThreshold = Threshold; }
 
 		// kernel settings
 #define KERNEL_SETTING(type, name, func, reqClear)				\
@@ -165,7 +165,7 @@ namespace Tracer
 
 		bool mDenoisingEnabled = false;
 		bool mDenoisedFrame = false;
-		int32_t mDenoiserSampleTreshold = 10;
+		int32_t mDenoiserSampleThreshold = 10;
 
 		// Launch parameters
 		LaunchParams mLaunchParams = {};
