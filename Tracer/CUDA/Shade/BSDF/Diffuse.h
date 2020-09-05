@@ -52,27 +52,3 @@ Closure Diffuse_Closure(ShadingInfo& shadingInfo)
 	const BsdfResult sample = Diffuse_Sample(shadingInfo.wo, u1, u2);
 	return FinalizeClosure(shadingInfo, eval, sample);
 }
-
-
-
-static __device__
-Closure Diffuse_Closure(ShadingInfo& shadingInfo, const float3& N)
-{
-	const float u1 = rnd(shadingInfo.seed);
-	const float u2 = rnd(shadingInfo.seed);
-
-	const float3 X = make_float3(N.y, -N.x, N.z);
-	const float3 Y = N;
-	const float3 Z = make_float3(N.x, -N.z, N.y);
-
-	const float3 X3 = make_float3(X.x, Y.x, Z.x);
-	const float3 Y3 = make_float3(X.y, Y.y, Z.y);
-	const float3 Z3 = make_float3(X.z, Y.z, Z.z);
-
-	const float3 wo = X3 * shadingInfo.wo.x + Y3 * shadingInfo.wo.y + Z3 * shadingInfo.wo.z;
-	const float3 wi = X3 * shadingInfo.wi.x + Y3 * shadingInfo.wi.y + Z3 * shadingInfo.wi.z;
-
-	Closure closure = FinalizeClosure(shadingInfo, Diffuse_Eval(wo, wi), Diffuse_Sample(wo, u1, u2));
-	closure.extend.wi = X * closure.extend.wi.x + Y * closure.extend.wi.y + Z * closure.extend.wi.z;
-	return closure;
-}
