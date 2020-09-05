@@ -7,12 +7,7 @@ Personal path tracer project.
 ## GUI
 | GUI window | Key |
 |----|----|
-| Statistics | F1 |
-| Renderer | F2 |
-| Camera | F3 |
-| Material Editor | F4 |
-| Scene Editor | F5 |
-| Debug | F10 |
+| Main | F1 |
 
 ## Camera
 | Action | Key | Alt Key |
