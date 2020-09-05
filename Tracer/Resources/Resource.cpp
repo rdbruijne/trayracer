@@ -21,6 +21,9 @@ namespace Tracer
 
 	void Resource::AddDependency(std::shared_ptr<Resource> dependency)
 	{
+		if(!dependency)
+			return;
+
 		for(auto& w : mDependencies)
 			if(!w.expired() && w.lock() == dependency)
 				return;
@@ -31,6 +34,9 @@ namespace Tracer
 
 	void Resource::RemoveDependency(std::shared_ptr<Resource> dependency)
 	{
+		if(!dependency)
+			return;
+
 		for(auto it = mDependencies.begin(); it != mDependencies.end(); it++)
 		{
 			if(!it->expired() && it->lock() == dependency)

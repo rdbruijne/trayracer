@@ -28,8 +28,9 @@ namespace Tracer
 
 	void Material::SetDiffuseMap(std::shared_ptr<Texture> tex)
 	{
-		mDiffuseMap = tex;
-		AddDependency(tex);
+		RemoveDependency(mDiffuseMap);
+		mDiffuseMap = tex->IsValid() ? tex : nullptr;
+		AddDependency(mDiffuseMap);
 		MarkDirty();
 	}
 
@@ -37,8 +38,9 @@ namespace Tracer
 
 	void Material::SetNormalMap(std::shared_ptr<Texture> tex)
 	{
-		mNormalMap = tex;
-		AddDependency(tex);
+		RemoveDependency(mNormalMap);
+		mNormalMap = tex->IsValid() ? tex : nullptr;
+		AddDependency(mNormalMap);
 		MarkDirty();
 	}
 }

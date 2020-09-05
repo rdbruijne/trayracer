@@ -278,7 +278,7 @@ namespace Tracer
 				aiProcess_JoinIdenticalVertices |
 				//aiProcess_MakeLeftHanded |
 				aiProcess_Triangulate |
-				//aiProcess_RemoveComponent |
+				aiProcess_RemoveComponent |
 				//aiProcess_GenNormals |
 				aiProcess_GenSmoothNormals |
 				//aiProcess_SplitLargeMeshes |

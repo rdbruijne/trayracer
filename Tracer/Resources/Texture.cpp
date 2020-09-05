@@ -60,6 +60,15 @@ namespace Tracer
 		if(mCudaObject)
 			CUDA_CHECK(cudaDestroyTextureObject(mCudaObject));
 
+		// check for validity
+		if(!IsValid())
+		{
+			mCudaArray = nullptr;
+			mCudaObject = 0;
+			mRebuildGlTex = true;
+			return;
+		}
+
 		// create channel descriptor
 		constexpr uint32_t numComponents = 4;
 		const uint32_t width  = mResolution.x;

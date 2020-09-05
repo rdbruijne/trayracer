@@ -23,6 +23,7 @@ namespace Tracer
 
 		int2 Resolution() const { return mResolution; }
 		const std::vector<float4> Pixels() const { return mPixels; }
+		bool IsValid() const { return mResolution.x > 0 && mResolution.y > 0 && mPixels.size() > 0; }
 
 		// build
 		void Build();
