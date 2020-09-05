@@ -392,7 +392,7 @@ namespace Tracer
 		// allocate denoiser memory
 		OptixDenoiserSizes denoiserReturnSizes;
 		OPTIX_CHECK(optixDenoiserComputeMemoryResources(mDenoiser, resolution.x, resolution.y, &denoiserReturnSizes));
-		mDenoiserScratch.Resize(denoiserReturnSizes.recommendedScratchSizeInBytes);
+		mDenoiserScratch.Resize(denoiserReturnSizes.withoutOverlapScratchSizeInBytes);
 		mDenoiserState.Resize(denoiserReturnSizes.stateSizeInBytes);
 		OPTIX_CHECK(optixDenoiserSetup(mDenoiser, 0, resolution.x, resolution.y, mDenoiserState.DevicePtr(), mDenoiserState.Size(),
 									   mDenoiserScratch.DevicePtr(), mDenoiserScratch.Size()));
@@ -452,8 +452,7 @@ namespace Tracer
 	{
 		// create denoiser
 		OptixDenoiserOptions denoiserOptions;
-		denoiserOptions.inputKind   = OPTIX_DENOISER_INPUT_RGB;
-		denoiserOptions.pixelFormat = OPTIX_PIXEL_FORMAT_FLOAT4;
+		denoiserOptions.inputKind = OPTIX_DENOISER_INPUT_RGB;
 
 		mDenoiserHdrIntensity.Alloc(sizeof(float));
 
@@ -483,11 +482,11 @@ namespace Tracer
 		mPipelineCompileOptions.numAttributeValues               = 2;
 		mPipelineCompileOptions.exceptionFlags                   = OPTIX_EXCEPTION_FLAG_NONE;
 		mPipelineCompileOptions.pipelineLaunchParamsVariableName = "params";
+		mPipelineCompileOptions.usesPrimitiveTypeFlags           = static_cast<unsigned int>(OPTIX_PRIMITIVE_TYPE_FLAGS_TRIANGLE);
 
 		// pipeline link options
 		mPipelineLinkOptions.maxTraceDepth          = 1;
 		mPipelineLinkOptions.debugLevel             = OPTIX_COMPILE_DEBUG_LEVEL_NONE;
-		mPipelineLinkOptions.overrideUsesMotionBlur = 0;
 
 		// load PTX
 		const std::string ptxCode = ReadFile("ptx/optix.ptx");
