@@ -2,7 +2,7 @@
 
 #include "CudaUtility.h"
 
-__global__ void AmbientOcclusionKernel(uint32_t pathCount, float4* accumulator, float4* pathStates, uint4* hitData, float4* shadowRays, int2 resolution, uint32_t stride, uint32_t pathLength)
+__global__ void AmbientOcclusionKernel(DECLARE_KERNEL_PARAMS)
 {
 	const int jobIdx = threadIdx.x + (blockIdx.x * blockDim.x);
 	if(jobIdx >= pathCount)
@@ -40,6 +40,10 @@ __global__ void AmbientOcclusionKernel(uint32_t pathCount, float4* accumulator, 
 		const int32_t extendIx = atomicAdd(&counters->extendRays, 1);
 		pathStates[extendIx + (stride * 0)] = make_float4(newOrigin, __int_as_float(pathIx));
 		pathStates[extendIx + (stride * 1)] = make_float4(newDir, 0);
+
+		// denoiser data
+		albedo[pixelIx] = make_float4(1, 1, 1, 0);
+		normals[pixelIx] = make_float4(attrib.shadingNormal, 0);
 	}
 	else
 	{

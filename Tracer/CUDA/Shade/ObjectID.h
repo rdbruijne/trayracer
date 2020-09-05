@@ -2,7 +2,7 @@
 
 #include "CudaUtility.h"
 
-__global__ void ObjectIDKernel(uint32_t pathCount, float4* accumulator, float4* pathStates, uint4* hitData, float4* shadowRays, int2 resolution, uint32_t stride, uint32_t pathLength)
+__global__ void ObjectIDKernel(DECLARE_KERNEL_PARAMS)
 {
 	const int jobIdx = threadIdx.x + (blockIdx.x * blockDim.x);
 	if(jobIdx >= pathCount)

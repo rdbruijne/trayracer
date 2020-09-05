@@ -199,8 +199,9 @@ namespace Tracer
 			// shade
 			CUDA_CHECK(cudaDeviceSynchronize());
 			mShadeTimeEvents[pathLength].Start(mStream);
-			Shade(mRenderMode, pathCount, mAccumulator.Ptr<float4>(), mPathStates.Ptr<float4>(), mHitData.Ptr<uint4>(),
-				  mShadowRayData.Ptr<float4>(), make_int2(mLaunchParams.resX, mLaunchParams.resY), stride, pathLength);
+			Shade(mRenderMode, pathCount, mAccumulator.Ptr<float4>(), mAlbedoBuffer.Ptr<float4>(), mNormalBuffer.Ptr<float4>(),
+				  mPathStates.Ptr<float4>(), mHitData.Ptr<uint4>(), mShadowRayData.Ptr<float4>(),
+				  make_int2(mLaunchParams.resX, mLaunchParams.resY), stride, pathLength);
 			mShadeTimeEvents[pathLength].Stop(mStream);
 
 			// update counters
@@ -239,25 +240,44 @@ namespace Tracer
 			mDenoiseTimeEvents.Start(mStream);
 
 			// input
-			OptixImage2D inputLayer;
-			inputLayer.data = mColorBuffer.DevicePtr();
-			inputLayer.width = mLaunchParams.resX;
-			inputLayer.height = mLaunchParams.resY;
-			inputLayer.rowStrideInBytes = mLaunchParams.resX * sizeof(float4);
-			inputLayer.pixelStrideInBytes = sizeof(float4);
-			inputLayer.format = OPTIX_PIXEL_FORMAT_FLOAT4;
+			OptixImage2D inputLayers[3];
+
+			// rgb input
+			inputLayers[0].data               = mColorBuffer.DevicePtr();
+			inputLayers[0].width              = mLaunchParams.resX;
+			inputLayers[0].height             = mLaunchParams.resY;
+			inputLayers[0].rowStrideInBytes   = mLaunchParams.resX * sizeof(float4);
+			inputLayers[0].pixelStrideInBytes = sizeof(float4);
+			inputLayers[0].format             = OPTIX_PIXEL_FORMAT_FLOAT4;
+
+			// albedo input
+			inputLayers[1].data               = mAlbedoBuffer.DevicePtr();
+			inputLayers[1].width              = mLaunchParams.resX;
+			inputLayers[1].height             = mLaunchParams.resY;
+			inputLayers[1].rowStrideInBytes   = mLaunchParams.resX * sizeof(float4);
+			inputLayers[1].pixelStrideInBytes = sizeof(float4);
+			inputLayers[1].format             = OPTIX_PIXEL_FORMAT_FLOAT4;
+
+			// normal input
+			inputLayers[2].data               = mNormalBuffer.DevicePtr();
+			inputLayers[2].width              = mLaunchParams.resX;
+			inputLayers[2].height             = mLaunchParams.resY;
+			inputLayers[2].rowStrideInBytes   = mLaunchParams.resX * sizeof(float4);
+			inputLayers[2].pixelStrideInBytes = sizeof(float4);
+			inputLayers[2].format             = OPTIX_PIXEL_FORMAT_FLOAT4;
 
 			// output
 			OptixImage2D outputLayer;
-			outputLayer.data = mDenoisedBuffer.DevicePtr();
-			outputLayer.width = mLaunchParams.resX;
-			outputLayer.height = mLaunchParams.resY;
-			outputLayer.rowStrideInBytes = mLaunchParams.resX * sizeof(float4);
+			outputLayer.data               = mDenoisedBuffer.DevicePtr();
+			outputLayer.width              = mLaunchParams.resX;
+			outputLayer.height             = mLaunchParams.resY;
+			outputLayer.rowStrideInBytes   = mLaunchParams.resX * sizeof(float4);
 			outputLayer.pixelStrideInBytes = sizeof(float4);
-			outputLayer.format = OPTIX_PIXEL_FORMAT_FLOAT4;
+			outputLayer.format             = OPTIX_PIXEL_FORMAT_FLOAT4;
 
 			// calculate intensity
-			OPTIX_CHECK(optixDenoiserComputeIntensity(mDenoiser, mStream, &inputLayer, mDenoiserHdrIntensity.DevicePtr(), mDenoiserScratch.DevicePtr(), mDenoiserScratch.Size()));
+			OPTIX_CHECK(optixDenoiserComputeIntensity(mDenoiser, mStream, &inputLayers[0], mDenoiserHdrIntensity.DevicePtr(),
+													  mDenoiserScratch.DevicePtr(), mDenoiserScratch.Size()));
 
 			// denoise
 			OptixDenoiserParams denoiserParams;
@@ -266,7 +286,7 @@ namespace Tracer
 			denoiserParams.blendFactor  = 1.f / (mLaunchParams.sampleCount + 1);
 
 			OPTIX_CHECK(optixDenoiserInvoke(mDenoiser, mStream, &denoiserParams, mDenoiserState.DevicePtr(), mDenoiserState.Size(),
-											&inputLayer, 1, 0, 0, &outputLayer,
+											inputLayers, 3, 0, 0, &outputLayer,
 											mDenoiserScratch.DevicePtr(), mDenoiserScratch.Size()));
 			mDenoiseTimeEvents.Stop(mStream);
 
@@ -380,6 +400,8 @@ namespace Tracer
 	{
 		// resize buffers
 		mAccumulator.Resize(sizeof(float4) * resolution.x * resolution.y);
+		mAlbedoBuffer.Resize(sizeof(float4) * resolution.x * resolution.y);
+		mNormalBuffer.Resize(sizeof(float4) * resolution.x * resolution.y);
 		mColorBuffer.Resize(sizeof(float4) * resolution.x * resolution.y);
 		mDenoisedBuffer.Resize(sizeof(float4) * resolution.x * resolution.y);
 
@@ -408,16 +430,8 @@ namespace Tracer
 		{
 		case RenderModes::AmbientOcclusion:
 		case RenderModes::AmbientOcclusionShading:
-		//case RenderModes::DiffuseFilter:
 		case RenderModes::DirectLight:
-		//case RenderModes::GeometricNormal:
-		//case RenderModes::MaterialID:
-		//case RenderModes::ObjectID:
 		case RenderModes::PathTracing:
-		//case RenderModes::ShadingNormal:
-		//case RenderModes::TextureCoordinate:
-		case RenderModes::Wireframe:
-		//case RenderModes::ZDepth:
 			return mDenoisingEnabled && (mLaunchParams.sampleCount >= mDenoiserSampleThreshold);
 			break;
 
@@ -452,7 +466,7 @@ namespace Tracer
 	{
 		// create denoiser
 		OptixDenoiserOptions denoiserOptions;
-		denoiserOptions.inputKind = OPTIX_DENOISER_INPUT_RGB;
+		denoiserOptions.inputKind = OPTIX_DENOISER_INPUT_RGB_ALBEDO_NORMAL;
 
 		mDenoiserHdrIntensity.Alloc(sizeof(float));
 

@@ -5,7 +5,7 @@
 // Closures
 #include "BSDF/Diffuse.h"
 
-__global__ void PathTracingKernel(uint32_t pathCount, float4* accumulator, float4* pathStates, uint4* hitData, float4* shadowRays, int2 resolution, uint32_t stride, uint32_t pathLength)
+__global__ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 {
 	const int jobIdx = threadIdx.x + (blockIdx.x * blockDim.x);
 	if(jobIdx >= pathCount)
@@ -41,13 +41,25 @@ __global__ void PathTracingKernel(uint32_t pathCount, float4* accumulator, float
 	// fetch intersection info
 	const IntersectionAttributes attrib = GetIntersectionAttributes(instIx, primIx, bary);
 
+	// denoiser data
+	if(pathLength == 0)
+	{
+		albedo[pixelIx] = make_float4(attrib.diffuse, 0);
+		normals[pixelIx] = make_float4(attrib.shadingNormal, 0);
+	}
+
 	// emissive
 	if(attrib.emissive.x + attrib.emissive.y + attrib.emissive.z > Epsilon)
 	{
 		if(pathLength == 0)
+		{
 			accumulator[pixelIx] += make_float4(attrib.emissive, 0);
+			albedo[pixelIx] = make_float4(attrib.emissive, 0);
+		}
 		else
+		{
 			accumulator[pixelIx] += make_float4(T * attrib.emissive, 0);
+		}
 		return;
 	}
 

@@ -1,5 +1,4 @@
 #include "CudaUtilityKernels.h"
-#include "CudaUtility.h"
 
 // Shade kernels
 #include "Shade/AmbientOcclusion.h"
@@ -19,66 +18,67 @@
 
 
 
-__host__ void Shade(RenderModes renderMode, uint32_t pathCount, float4* accumulator, float4* pathStates, uint4* hitData, float4* shadowRays, int2 resolution, uint32_t stride, uint32_t pathLength)
+__host__ void Shade(RenderModes renderMode, DECLARE_KERNEL_PARAMS)
 {
 	const uint32_t threadsPerBlock = 128;
 	const uint32_t blockCount = DivRoundUp(pathCount, threadsPerBlock);
+
 	switch(renderMode)
 	{
 	case RenderModes::AmbientOcclusion:
-		AmbientOcclusionKernel<<<blockCount, threadsPerBlock>>>(pathCount, accumulator, pathStates, hitData, shadowRays, resolution, stride, pathLength);
+		AmbientOcclusionKernel<<<blockCount, threadsPerBlock>>>(PASS_KERNEL_PARAMS);
 		break;
 
 	case RenderModes::AmbientOcclusionShading:
-		AmbientOcclusionShadingKernel<<<blockCount, threadsPerBlock>>>(pathCount, accumulator, pathStates, hitData, shadowRays, resolution, stride, pathLength);
+		AmbientOcclusionShadingKernel<<<blockCount, threadsPerBlock>>>(PASS_KERNEL_PARAMS);
 		break;
 
 	case RenderModes::Bitangent:
-		BitangentKernel<<<blockCount, threadsPerBlock>>>(pathCount, accumulator, pathStates, hitData, shadowRays, resolution, stride, pathLength);
+		BitangentKernel<<<blockCount, threadsPerBlock>>>(PASS_KERNEL_PARAMS);
 		break;
 
 	case RenderModes::DiffuseFilter:
-		DiffuseFilterKernel<<<blockCount, threadsPerBlock>>>(pathCount, accumulator, pathStates, hitData, shadowRays, resolution, stride, pathLength);
+		DiffuseFilterKernel<<<blockCount, threadsPerBlock>>>(PASS_KERNEL_PARAMS);
 		break;
 
 	case RenderModes::DirectLight:
-		DirectLightKernel<<<blockCount, threadsPerBlock>>>(pathCount, accumulator, pathStates, hitData, shadowRays, resolution, stride, pathLength);
+		DirectLightKernel<<<blockCount, threadsPerBlock>>>(PASS_KERNEL_PARAMS);
 		break;
 
 	case RenderModes::GeometricNormal:
-		GeometricNormalKernel<<<blockCount, threadsPerBlock>>>(pathCount, accumulator, pathStates, hitData, shadowRays, resolution, stride, pathLength);
+		GeometricNormalKernel<<<blockCount, threadsPerBlock>>>(PASS_KERNEL_PARAMS);
 		break;
 
 	case RenderModes::MaterialID:
-		MaterialIDKernel<<<blockCount, threadsPerBlock>>>(pathCount, accumulator, pathStates, hitData, shadowRays, resolution, stride, pathLength);
+		MaterialIDKernel<<<blockCount, threadsPerBlock>>>(PASS_KERNEL_PARAMS);
 		break;
 
 	case RenderModes::ObjectID:
-		ObjectIDKernel<<<blockCount, threadsPerBlock>>>(pathCount, accumulator, pathStates, hitData, shadowRays, resolution, stride, pathLength);
+		ObjectIDKernel<<<blockCount, threadsPerBlock>>>(PASS_KERNEL_PARAMS);
 		break;
 
 	case RenderModes::PathTracing:
-		PathTracingKernel<<<blockCount, threadsPerBlock>>>(pathCount, accumulator, pathStates, hitData, shadowRays, resolution, stride, pathLength);
+		PathTracingKernel<<<blockCount, threadsPerBlock>>>(PASS_KERNEL_PARAMS);
 		break;
 
 	case RenderModes::ShadingNormal:
-		ShadingNormalKernel<<<blockCount, threadsPerBlock>>>(pathCount, accumulator, pathStates, hitData, shadowRays, resolution, stride, pathLength);
+		ShadingNormalKernel<<<blockCount, threadsPerBlock>>>(PASS_KERNEL_PARAMS);
 		break;
 
 	case RenderModes::Tangent:
-		TangentKernel<<<blockCount, threadsPerBlock>>>(pathCount, accumulator, pathStates, hitData, shadowRays, resolution, stride, pathLength);
+		TangentKernel<<<blockCount, threadsPerBlock>>>(PASS_KERNEL_PARAMS);
 		break;
 
 	case RenderModes::TextureCoordinate:
-		TextureCoordinateKernel<<<blockCount, threadsPerBlock>>>(pathCount, accumulator, pathStates, hitData, shadowRays, resolution, stride, pathLength);
+		TextureCoordinateKernel<<<blockCount, threadsPerBlock>>>(PASS_KERNEL_PARAMS);
 		break;
 
 	case RenderModes::Wireframe:
-		WireframeKernel<<<blockCount, threadsPerBlock>>>(pathCount, accumulator, pathStates, hitData, shadowRays, resolution, stride, pathLength);
+		WireframeKernel<<<blockCount, threadsPerBlock>>>(PASS_KERNEL_PARAMS);
 		break;
 
 	case RenderModes::ZDepth:
-		ZDepthKernel<<<blockCount, threadsPerBlock>>>(pathCount, accumulator, pathStates, hitData, shadowRays, resolution, stride, pathLength);
+		ZDepthKernel<<<blockCount, threadsPerBlock>>>(PASS_KERNEL_PARAMS);
 		break;
 
 	default:

@@ -17,6 +17,15 @@
 // C++
 #include <stdint.h>
 
+//------------------------------------------------------------------------------------------------------------------------------
+// params
+//------------------------------------------------------------------------------------------------------------------------------
+#define DECLARE_KERNEL_PARAMS	uint32_t pathCount, float4* accumulator, float4* albedo, float4* normals, float4* pathStates,\
+								uint4* hitData, float4* shadowRays, int2 resolution, uint32_t stride, uint32_t pathLength
+#define PASS_KERNEL_PARAMS		pathCount, accumulator, albedo, normals, pathStates, hitData, shadowRays, resolution, stride, pathLength
+
+
+
 enum RayTypes
 {
 	RayType_Surface = 0,

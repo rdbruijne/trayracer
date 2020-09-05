@@ -146,6 +146,8 @@ namespace Tracer
 
 		// Render buffer
 		CudaBuffer mAccumulator = {};
+		CudaBuffer mAlbedoBuffer = {};
+		CudaBuffer mNormalBuffer = {};
 		CudaBuffer mColorBuffer = {};
 		GLTexture* mRenderTarget = nullptr;
 		cudaGraphicsResource* mCudaGraphicsResource = nullptr;
