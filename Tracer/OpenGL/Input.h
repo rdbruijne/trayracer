@@ -14,7 +14,7 @@ namespace Tracer
 	namespace Input
 	{
 		// key codes (GLFW_KEY_<...>)
-		enum class Keys : uint32_t
+		enum class Keys : unsigned int
 		{
 			Unknown         = 0,
 
@@ -152,7 +152,7 @@ namespace Tracer
 
 
 		// modifiers
-		enum class ModifierKeys : uint32_t
+		enum class ModifierKeys : unsigned int
 		{
 			None  = 0x0,
 			Alt   = 0x1,
