@@ -7,6 +7,7 @@
 #include <stdint.h>
 
 __host__ void SetCudaCounters(Counters* data);
+__host__ void SetCudaInvTransforms(float4* data);
 __host__ void SetCudaLights(LightTriangle* data);
 __host__ void SetCudaLightCount(int32_t count);
 __host__ void SetCudaLightEnergy(float energy);

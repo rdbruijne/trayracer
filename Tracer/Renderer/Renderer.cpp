@@ -621,6 +621,7 @@ namespace Tracer
 		std::vector<OptixBuildInput> buildInputs;
 		std::vector<CudaMeshData> meshData;
 		std::vector<uint32_t> modelIndices;
+		std::vector<float3x4> invTransforms;
 
 		std::vector<OptixInstance> instances;
 
@@ -648,11 +649,13 @@ namespace Tracer
 			auto& sceneInstances = scene->Instances();
 			instances.reserve(sceneInstances.size());
 			meshData.reserve(sceneInstances.size());
+			invTransforms.reserve(sceneInstances.size());
 			for(auto& inst : sceneInstances)
 			{
 				const auto& model = inst->GetModel();
 				instances.push_back(model->InstanceData(instanceId++, inst->Transform()));
 				meshData.push_back(model->CudaMesh());
+				invTransforms.push_back(inverse(inst->Transform()));
 				rebuildLights = rebuildLights || (inst->IsDirty() && (model->LightCount() > 0));
 				inst->MarkClean();
 			}
@@ -670,6 +673,7 @@ namespace Tracer
 			mCudaLightsBuffer.Free();
 
 			SetCudaMeshData(nullptr);
+			SetCudaInvTransforms(nullptr);
 			SetCudaLights(nullptr);
 			SetCudaLightCount(0);
 			SetCudaLightEnergy(0);
@@ -679,6 +683,10 @@ namespace Tracer
 			// CUDA mesh data
 			mCudaMeshData.Upload(meshData, true);
 			SetCudaMeshData(mCudaMeshData.Ptr<CudaMeshData>());
+
+			// CUDA inverse instance transforms
+			mCudaInstanceInverseTransforms.Upload(invTransforms, true);
+			SetCudaInvTransforms(mCudaInstanceInverseTransforms.Ptr<float4>());
 
 			// upload instances
 			mInstancesBuffer.Upload(instances, true);

@@ -211,6 +211,7 @@ namespace Tracer
 		// Meshes
 		CudaBuffer mCudaMeshData = {};
 		CudaBuffer mCudaModelIndices = {};
+		CudaBuffer mCudaInstanceInverseTransforms = {};
 
 		// Materials
 		CudaBuffer mCudaMaterialData = {};

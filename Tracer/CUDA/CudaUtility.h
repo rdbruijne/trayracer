@@ -23,6 +23,7 @@ static __device__ Counters* counters = nullptr;
 
 __constant__ CudaMatarial* materialData = nullptr;
 __constant__ CudaMeshData* meshData = nullptr;
+__constant__ float4* invInstTransforms = nullptr;
 __constant__ int32_t lightCount = 0;
 __constant__ float lightEnergy = 0;
 __constant__ LightTriangle* lights = nullptr;
@@ -35,6 +36,13 @@ __constant__ uint32_t* modelIndices = nullptr;
 __host__ void SetCudaCounters(Counters* data)
 {
 	cudaMemcpyToSymbol(counters, &data, sizeof(void*));
+}
+
+
+
+__host__ void SetCudaInvTransforms(float4* data)
+{
+	cudaMemcpyToSymbol(invInstTransforms, &data, sizeof(void*));
 }
 
 
@@ -129,6 +137,32 @@ inline float3 IdToColor(uint32_t id)
 
 
 //------------------------------------------------------------------------------------------------------------------------------
+// math
+//------------------------------------------------------------------------------------------------------------------------------
+static __device__
+inline float3 transform(const float4& tx, const float4& ty, const float4& tz, const float3& v)
+{
+	return make_float3(
+		dot(v, make_float3(tx.x, ty.x, tz.x)),
+		dot(v, make_float3(tx.y, ty.y, tz.y)),
+		dot(v, make_float3(tx.z, ty.z, tz.z)));
+}
+
+
+
+static __device__
+inline float4 transform(const float4& tx, const float4& ty, const float4& tz, const float4& v)
+{
+	return make_float4(
+		dot(v, make_float4(tx.x, ty.x, tz.x, tx.w)),
+		dot(v, make_float4(tx.y, ty.y, tz.y, ty.w)),
+		dot(v, make_float4(tx.z, ty.z, tz.z, tz.w)),
+		v.w);
+}
+
+
+
+//------------------------------------------------------------------------------------------------------------------------------
 // Intersection
 //------------------------------------------------------------------------------------------------------------------------------
 static __device__
@@ -202,11 +236,12 @@ inline IntersectionAttributes GetIntersectionAttributes(uint32_t instIx, uint32_
 	attrib.texcoordX = texcoord.x;
 	attrib.texcoordY = texcoord.y;
 
-	// normals
+	// edges
 	const float3 e1 = tri.v1 - tri.v0;
 	const float3 e2 = tri.v2 - tri.v0;
 	attrib.area = length(cross(e1, e2)) * 0.5f;
 
+	// normals
 	attrib.shadingNormal = normalize(Barycentric(bary, tri.N0, tri.N1, tri.N2));
 	attrib.geometricNormal = tri.N;
 
@@ -219,7 +254,7 @@ inline IntersectionAttributes GetIntersectionAttributes(uint32_t instIx, uint32_
 
 	const float r = (s1 * t2) - (s2 * t1);
 
-	if(fabsf(r) < 1e-5f || true)
+	if(fabsf(r) < 1e-6f)
 	{
 		attrib.bitangent = normalize(cross(attrib.shadingNormal, e1));
 		attrib.tangent   = normalize(cross(attrib.shadingNormal, attrib.bitangent));
@@ -252,6 +287,16 @@ inline IntersectionAttributes GetIntersectionAttributes(uint32_t instIx, uint32_
 		attrib.shadingNormal = normalize(norMap.x * attrib.tangent + norMap.y * attrib.bitangent + norMap.z * attrib.shadingNormal);
 	}
 
+	// object -> worldspace
+	const float4 tx = invInstTransforms[(instIx * 3) + 0];
+	const float4 ty = invInstTransforms[(instIx * 3) + 1];
+	const float4 tz = invInstTransforms[(instIx * 3) + 2];
+
+	attrib.shadingNormal   = normalize(transform(tx, ty, tz, attrib.shadingNormal));
+	attrib.geometricNormal = normalize(transform(tx, ty, tz, attrib.geometricNormal));
+	attrib.bitangent       = normalize(transform(tx, ty, tz, attrib.bitangent));
+	attrib.tangent         = normalize(transform(tx, ty, tz, attrib.tangent));
+
 	return attrib;
 }
 
@@ -264,7 +309,7 @@ static __device__
 inline void GenerateCameraRay(float3& O, float3& D, int2 pixelIndex, uint32_t& seed)
 {
 	GenerateCameraRay(params->cameraPos, params->cameraForward, params->cameraSide, params->cameraUp, params->cameraFov,
-					   make_float2(params->resX, params->resY), O, D, pixelIndex, seed);
+					  make_float2(params->resX, params->resY), O, D, pixelIndex, seed);
 }
 
 
