@@ -1,13 +1,12 @@
 #pragma once
 
 // Project
+#include "Utility/Enum.h"
 #include "Utility/LinearMath.h"
 
 // C++
 #include <array>
-
-// Windows
-#include <Windows.h>
+#include <stdint.h>
 
 namespace Tracer
 {
@@ -159,7 +158,7 @@ namespace Tracer
 			Ctrl  = 0x2,
 			Shift = 0x4
 		};
-		DEFINE_ENUM_FLAG_OPERATORS(ModifierKeys);
+		ENUM_BITWISE_OPERATORS(ModifierKeys);
 
 
 

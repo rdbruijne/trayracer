@@ -300,6 +300,9 @@
     <ClInclude Include="GUI\MainGui.h">
       <Filter>GUI</Filter>
     </ClInclude>
+    <ClInclude Include="Utility\Enum.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Model.h">
