@@ -10,6 +10,7 @@
 #include "Resources/Texture.h"
 #include "Renderer/OptixError.h"
 #include "Utility/LinearMath.h"
+#include "Utility/Logger.h"
 #include "Utility/Utility.h"
 
 // SPT
@@ -67,7 +68,7 @@ namespace Tracer
 
 		void OptixLogCallback(unsigned int level, const char* tag, const char* message, void* cbdata) noexcept
 		{
-			printf("[%1u][%-12s]: %s\n", level, tag, message);
+			Logger::Info("[OptiX] %s: %s", tag, message);
 		}
 	}
 
@@ -452,7 +453,7 @@ namespace Tracer
 		CUDA_CHECK(cudaStreamCreate(&mStream));
 
 		CUDA_CHECK(cudaGetDeviceProperties(&mDeviceProperties, deviceID));
-		printf("Running on %s\n", mDeviceProperties.name);
+		Logger::Info("Running on %s", mDeviceProperties.name);
 
 		CUDA_CHECK(cuCtxGetCurrent(&mCudaContext));
 
@@ -510,7 +511,7 @@ namespace Tracer
 		size_t sizeof_log = sizeof(log);
 		OPTIX_CHECK(optixModuleCreateFromPTX(mOptixContext, &mModuleCompileOptions, &mPipelineCompileOptions, ptxCode.c_str(), ptxCode.size(), log, &sizeof_log, &mModule));
 		if(sizeof_log > 1)
-			printf("%s\n", log);
+			Logger::Info("%s", log);
 	}
 
 
@@ -524,7 +525,7 @@ namespace Tracer
 			OptixProgramGroup program {};
 			OPTIX_CHECK(optixProgramGroupCreate(mOptixContext, &desc, 1, &options, log, &logLength, &program));
 			if(logLength > 1)
-				printf("%s\n", log);
+				Logger::Info("%s", log);
 			return program;
 		};
 
@@ -570,7 +571,7 @@ namespace Tracer
 														 programGroups.data(), static_cast<unsigned int>(programGroups.size()),
 														 log, &logLength, &mPipeline));
 		if(logLength > 1)
-			printf("%s\n", log);
+			Logger::Info("%s", log);
 
 		// set stack sizes
 		OptixStackSizes stackSizes = {};

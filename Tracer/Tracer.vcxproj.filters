@@ -92,6 +92,9 @@
     <ClCompile Include="GUI\MainGui.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
+    <ClCompile Include="Utility\Logger.cpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">
@@ -299,6 +302,12 @@
     </ClInclude>
     <ClInclude Include="GUI\MainGui.h">
       <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\Logger.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\LogStream.h">
+      <Filter>Utility</Filter>
     </ClInclude>
     <ClInclude Include="Utility\Enum.h">
       <Filter>Utility</Filter>

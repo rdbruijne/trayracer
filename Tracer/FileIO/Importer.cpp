@@ -5,6 +5,7 @@
 #include "Resources/Material.h"
 #include "Resources/Model.h"
 #include "Resources/Texture.h"
+#include "Utility/Logger.h"
 #include "Utility/Stopwatch.h"
 #include "Utility/Utility.h"
 
@@ -35,7 +36,7 @@ namespace Tracer
 		public:
 			void write(const char* message)
 			{
-				printf("[ASSIMP] %s", message);
+				Logger::Info("[Assimp] %s", message);
 			}
 		};
 
@@ -247,7 +248,7 @@ namespace Tracer
 
 	std::shared_ptr<Model> Importer::ImportModel(Scene* scene, const std::string& filePath, const std::string& name)
 	{
-		printf("Importing \"%s\"\n", filePath.c_str());
+		Logger::Info("Importing \"%s\"", filePath.c_str());
 		try
 		{
 			Stopwatch sw;
@@ -268,7 +269,7 @@ namespace Tracer
 			Assimp::Importer importer;
 			if(!importer.IsExtensionSupported(FileExtension(filePath)))
 			{
-				printf("Filetype \"%s\" is not supported by the importer.\n", FileExtension(filePath).c_str());
+				Logger::Error("Filetype \"%s\" is not supported by the importer.\n", FileExtension(filePath).c_str());
 				return nullptr;
 			}
 
@@ -318,10 +319,10 @@ namespace Tracer
 			const aiScene* aScene = importer.ReadFile(filePath.c_str(), importFlags);
 			if(!aScene)
 				throw std::runtime_error(importer.GetErrorString());
-			printf("Imported \"%s\" in %s\n", filePath.c_str(), sw.ElapsedString().c_str());
+			Logger::Info("Imported \"%s\" in %s", filePath.c_str(), sw.ElapsedString().c_str());
 
 			// start parsing
-			printf("Parsing \"%s\"\n", filePath.c_str());
+			Logger::Info("Parsing \"%s\"", filePath.c_str());
 			sw.Reset();
 
 			// create model
@@ -340,17 +341,17 @@ namespace Tracer
 				polyCount += aScene->mMeshes[i]->mNumFaces;
 			}
 
-			printf("Parsed \"%s\" in %s:\n", filePath.c_str(), sw.ElapsedString().c_str());
-			printf("  Meshes   : %s\n", ThousandSeparators(aScene->mNumMeshes).c_str());
-			printf("  Materials: %s\n", ThousandSeparators(model->Materials().size()).c_str());
-			printf("  Textures : %s\n", ThousandSeparators(textures.size()).c_str());
-			printf("  Polygons : %s\n", ThousandSeparators(polyCount).c_str());
+			Logger::Info("Parsed \"%s\" in %s:", filePath.c_str(), sw.ElapsedString().c_str());
+			Logger::Info("  Meshes   : %s", ThousandSeparators(aScene->mNumMeshes).c_str());
+			Logger::Info("  Materials: %s", ThousandSeparators(model->Materials().size()).c_str());
+			Logger::Info("  Textures : %s", ThousandSeparators(textures.size()).c_str());
+			Logger::Info("  Polygons : %s", ThousandSeparators(polyCount).c_str());
 
 			return model;
 		}
 		catch(const std::exception& e)
 		{
-			printf("Failed to import \"%s\": %s\n", filePath.c_str(), e.what());
+			Logger::Error("Failed to import \"%s\": %s", filePath.c_str(), e.what());
 		}
 
 		return nullptr;

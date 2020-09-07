@@ -262,6 +262,7 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
     <ClCompile Include="Resources\Model.cpp" />
     <ClCompile Include="Resources\Resource.cpp" />
     <ClCompile Include="Resources\Texture.cpp" />
+    <ClCompile Include="Utility\Logger.cpp" />
     <ClCompile Include="Utility\Stopwatch.cpp" />
     <ClCompile Include="Utility\Utility.cpp" />
   </ItemGroup>
@@ -319,6 +320,8 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
     <ClInclude Include="Resources\Texture.h" />
     <ClInclude Include="Utility\Enum.h" />
     <ClInclude Include="Utility\LinearMath.h" />
+    <ClInclude Include="Utility\Logger.h" />
+    <ClInclude Include="Utility\LogStream.h" />
     <ClInclude Include="Utility\Stopwatch.h" />
     <ClInclude Include="Utility\Utility.h" />
   </ItemGroup>

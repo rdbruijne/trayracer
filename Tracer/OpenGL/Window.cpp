@@ -4,6 +4,7 @@
 #include "OpenGL/GLTexture.h"
 #include "OpenGL/Shader.h"
 #include "Utility/LinearMath.h"
+#include "Utility/Logger.h"
 #include "Utility/Utility.h"
 
 // GL
@@ -354,7 +355,7 @@ namespace Tracer
 	//--------------------------------------------------------------------------------------------------------------------------
 	void Window::ErrorCallback(int error, const char* description) noexcept
 	{
-		printf("GLFW error %i: %s\n", error, description);
+		Logger::Error("GLFW error %i: %s", error, description);
 	}
 
 

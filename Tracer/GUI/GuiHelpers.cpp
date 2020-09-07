@@ -2,6 +2,7 @@
 
 // project
 #include "OpenGL/Window.h"
+#include "Utility/Logger.h"
 
 // ImGUI
 #include "imgui/imgui.h"
@@ -45,7 +46,7 @@ namespace Tracer
 		IMGUI_CHECKVERSION();
 		if(!ImGui::CreateContext())
 		{
-			printf("Failed to create ImGUI context\n");
+			Logger::Error("Failed to create ImGUI context");
 			return false;
 		}
 

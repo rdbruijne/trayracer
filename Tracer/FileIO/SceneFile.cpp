@@ -9,6 +9,7 @@
 #include "Resources/Instance.h"
 #include "Resources/Material.h"
 #include "Resources/Model.h"
+#include "Utility/Logger.h"
 
 // RapidJson
 #pragma warning(push)
@@ -378,7 +379,7 @@ namespace Tracer
 				if(models.find(i.modelName) != models.end())
 					scene->Add(std::make_shared<Instance>(i.name, importedModels[i.modelName], i.transform));
 				else
-					printf("Model \"%s\" was not declared\n", i.modelName.c_str());
+					Logger::Error("Model \"%s\" was not declared\n", i.modelName.c_str());
 			}
 		}
 
@@ -610,7 +611,7 @@ namespace Tracer
 	//--------------------------------------------------------------------------------------------------------------------------
 	void SceneFile::Load(const std::string& sceneFile, Scene* scene, CameraNode* camNode, Renderer* renderer, Window* window)
 	{
-		printf("Loading scene from \"%s\"\n", sceneFile.c_str());
+		Logger::Info("Loading scene from \"%s\"", sceneFile.c_str());
 
 		// read file from disk
 		Document doc;
@@ -621,7 +622,7 @@ namespace Tracer
 			f.close();
 			if(!doc.IsObject())
 			{
-				printf("\"%s\" does not contain valid json code.", sceneFile.c_str());
+				Logger::Error("\"%s\" does not contain valid json code.", sceneFile.c_str());
 				return;
 			}
 		}
@@ -639,7 +640,7 @@ namespace Tracer
 
 	void SceneFile::Save(const std::string& sceneFile, Scene* scene, CameraNode* camNode, Renderer* renderer, Window* window)
 	{
-		printf("Saving scene to \"%s\"\n", sceneFile.c_str());
+		Logger::Info("Saving scene to \"%s\"", sceneFile.c_str());
 
 		// create json document
 		Document doc;
