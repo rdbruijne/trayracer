@@ -19,6 +19,9 @@
 #include <stdexcept>
 
 // Windows
+#ifdef APIENTRY
+#undef APIENTRY
+#endif
 #include <Windows.h>
 
 namespace Tracer

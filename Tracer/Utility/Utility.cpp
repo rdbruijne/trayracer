@@ -18,7 +18,6 @@ namespace Tracer
 		size_t n = strlen(fmt);
 		int final_n = -1;
 
-		std::string str;
 		std::unique_ptr<char[]> formatted;
 		va_list ap;
 		do
