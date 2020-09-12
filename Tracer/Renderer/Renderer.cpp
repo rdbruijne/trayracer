@@ -9,6 +9,7 @@
 #include "Resources/Model.h"
 #include "Resources/Texture.h"
 #include "Renderer/OptixError.h"
+#include "Renderer/Sky.h"
 #include "Utility/LinearMath.h"
 #include "Utility/Logger.h"
 #include "Utility/Utility.h"
@@ -114,6 +115,7 @@ namespace Tracer
 		// #NOTE: build order is important for dirty checks
 		BuildGeometry(scene);
 		BuildMaterials(scene);
+		BuildSky(scene);
 
 		mLaunchParams.sceneRoot = mSceneRoot;
 		mLaunchParams.sampleCount = 0;
@@ -806,6 +808,32 @@ namespace Tracer
 		SetCudaMatarialData(mCudaMaterialData.Ptr<CudaMatarial>());
 		SetCudaMatarialOffsets(mCudaMaterialOffsets.Ptr<uint32_t>());
 		SetCudaModelIndices(mCudaModelIndices.Ptr<uint32_t>());
+	}
+
+
+
+	void Renderer::BuildSky(Scene* scene)
+	{
+		auto sky = scene->GetSky();
+		if(sky->IsDirty())
+		{
+			sky->Build();
+
+			const SkyData& skyData = sky->CudaData();
+			const SkyState& skyStateX = sky->CudaStateX();
+			const SkyState& skyStateY = sky->CudaStateY();
+			const SkyState& skyStateZ = sky->CudaStateZ();
+
+			mSkyData.Upload(&skyData, 1, true);
+			mSkyStateX.Upload(&skyStateX, 1, true);
+			mSkyStateY.Upload(&skyStateY, 1, true);
+			mSkyStateZ.Upload(&skyStateZ, 1, true);
+
+			SetCudaSkyData(mSkyData.Ptr<SkyData>());
+			SetCudaSkyStateX(mSkyStateX.Ptr<SkyState>());
+			SetCudaSkyStateY(mSkyStateY.Ptr<SkyState>());
+			SetCudaSkyStateZ(mSkyStateZ.Ptr<SkyState>());
+		}
 	}
 
 

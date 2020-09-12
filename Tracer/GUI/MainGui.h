@@ -46,6 +46,7 @@ namespace Tracer
 		void MaterialElements();
 		void RendererElements();
 		void SceneElements();
+		void SkyElements();
 		void StatisticsElements();
 
 		// drawing
@@ -73,28 +74,7 @@ namespace Tracer
 		int mSelectedInstanceIx = 0;
 		char mInstanceName[mNameBufferSize];
 
-		// statistics
-		static constexpr size_t msGraphSize = 128;
-
 		float mFrameTimeMs = 0;
 		float mBuildTimeMs = 0;
-
-		size_t mGraphIx = 0;
-
-		std::array<float, msGraphSize> mFramerates;
-		std::array<float, msGraphSize> mFrameTimes;
-		std::array<float, msGraphSize> mBuildTimes;
-		std::array<float, msGraphSize> mPrimaryPathTimes;
-		std::array<float, msGraphSize> mSecondaryPathTimes;
-		std::array<float, msGraphSize> mDeepPathTimes;
-		std::array<float, msGraphSize> mShadowTimes;
-		std::array<float, msGraphSize> mShadeTimes;
-		std::array<float, msGraphSize> mDenoiseTimes;
-
-		std::array<float, msGraphSize> mPathCounts;
-		std::array<float, msGraphSize> mPrimaryPathCounts;
-		std::array<float, msGraphSize> mSecondaryPathCounts;
-		std::array<float, msGraphSize> mDeepPathCounts;
-		std::array<float, msGraphSize> mShadowRayCounts;
 	};
 }

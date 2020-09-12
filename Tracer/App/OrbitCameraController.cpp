@@ -134,7 +134,7 @@ namespace Tracer
 		const float3 dir = node.Target() - node.Position();
 		const float3 side = normalize(cross(dir, sPrevUp));
 		const float dst = length(dir);
-		const float3 diff = ((side * dst * pan.x) + (sPrevUp * dst * pan.y)) * tan(node.Fov() * DegToRad * .5f) * 2.8f;
+		const float3 diff = ((side * dst * pan.x) + (sPrevUp * dst * pan.y)) * tanf(node.Fov() * DegToRad * .5f) * 2.8f;
 
 		node.SetPosition(node.Position() + diff);
 		node.SetTarget(node.Target() + diff);

@@ -77,31 +77,6 @@ namespace Tracer
 
 	void Model::Build(OptixDeviceContext optixContext, CUstream stream)
 	{
-		// upload buffers
-		mVertexBuffer.Upload(mVertices, true);
-		mIndexBuffer.Upload(mIndices, true);
-
-		// prepare build input
-		mBuildInput = {};
-		mBuildInput.type = OPTIX_BUILD_INPUT_TYPE_TRIANGLES;
-
-		// vertices
-		mBuildInput.triangleArray.vertexFormat        = OPTIX_VERTEX_FORMAT_FLOAT3; // #TODO: float4 for better cache alignment?
-		mBuildInput.triangleArray.vertexStrideInBytes = sizeof(float3);
-		mBuildInput.triangleArray.numVertices         = static_cast<unsigned int>(mVertices.size());
-		mBuildInput.triangleArray.vertexBuffers       = mVertexBuffer.DevicePtrPtr();
-
-		// indices
-		mBuildInput.triangleArray.indexFormat        = OPTIX_INDICES_FORMAT_UNSIGNED_INT3;
-		mBuildInput.triangleArray.indexStrideInBytes = sizeof(uint3);
-		mBuildInput.triangleArray.numIndexTriplets   = static_cast<unsigned int>(mIndices.size());
-		mBuildInput.triangleArray.indexBuffer        = mIndexBuffer.DevicePtr();
-
-		// other
-		static uint32_t buildFlags[] = { 0 };
-		mBuildInput.triangleArray.flags              = buildFlags;
-		mBuildInput.triangleArray.numSbtRecords      = 1;
-
 		// make packed triangles
 		mPackedTriangles.reserve(mIndices.size());
 		for(size_t i = 0; i < mIndices.size(); i++)
@@ -140,7 +115,30 @@ namespace Tracer
 
 		// CUDA
 		mTriangleBuffer.Upload(mPackedTriangles, true);
-		mCudaMesh.triangles  = mTriangleBuffer.Ptr<PackedTriangle>();
+		mCudaMesh.triangles = mTriangleBuffer.Ptr<PackedTriangle>();
+
+		// prepare build input
+		mBuildInput = {};
+		mBuildInput.type = OPTIX_BUILD_INPUT_TYPE_TRIANGLES;
+
+		// vertices
+		mVertexBuffer.Upload(mVertices, true);
+		mBuildInput.triangleArray.vertexFormat        = OPTIX_VERTEX_FORMAT_FLOAT3;
+		mBuildInput.triangleArray.vertexStrideInBytes = sizeof(float3);
+		mBuildInput.triangleArray.numVertices         = static_cast<unsigned int>(mVertices.size());
+		mBuildInput.triangleArray.vertexBuffers       = mVertexBuffer.DevicePtrPtr();
+
+		// indices
+		mIndexBuffer.Upload(mIndices, true);
+		mBuildInput.triangleArray.indexFormat        = OPTIX_INDICES_FORMAT_UNSIGNED_INT3;
+		mBuildInput.triangleArray.indexStrideInBytes = sizeof(uint3);
+		mBuildInput.triangleArray.numIndexTriplets   = static_cast<unsigned int>(mIndices.size());
+		mBuildInput.triangleArray.indexBuffer        = mIndexBuffer.DevicePtr();
+
+		// other
+		static uint32_t buildFlags[] = { 0 };
+		mBuildInput.triangleArray.flags              = buildFlags;
+		mBuildInput.triangleArray.numSbtRecords      = 1;
 
 		// Acceleration setup
 		OptixAccelBuildOptions buildOptions = {};

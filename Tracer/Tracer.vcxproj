@@ -98,7 +98,7 @@
       <IgnoreSpecificDefaultLibraries>LIBCMT;MSVCRT</IgnoreSpecificDefaultLibraries>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
-      <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/ignore:4099 /ignore:4217 %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <CudaCompile>
       <Include>$(ProjectDir);$(SolutionDir)libraries</Include>
@@ -124,6 +124,7 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
     <PostBuildEvent>
       <Message>Copy resources</Message>
     </PostBuildEvent>
+    <ProjectReference />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -150,7 +151,7 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
       <AdditionalDependencies>assimp-vc142-mt.lib;IrrXML.lib;zlibstatic.lib;FreeImage.lib;cuda.lib;cudart.lib;opengl32.lib;glew32s.lib;glfw3.lib;nvrtc.lib;cudart_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)libraries\assimp;$(SolutionDir)libraries\FreeImage;$(SolutionDir)libraries\GL;$(SolutionDir)libraries\glfw;$(CUDA_PATH)\lib\x64;$(CudaToolkitLibDir)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBCMT</IgnoreSpecificDefaultLibraries>
-      <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/ignore:4099 /ignore:4217 %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <CudaCompile>
       <Include>$(ProjectDir);$(SolutionDir)libraries</Include>
@@ -176,6 +177,7 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
     <PostBuildEvent>
       <Message>Copy resources</Message>
     </PostBuildEvent>
+    <ProjectReference />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
     <ClCompile>
@@ -205,7 +207,7 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
       <AdditionalDependencies>assimp-vc142-mt.lib;IrrXML.lib;zlibstatic.lib;FreeImage.lib;cuda.lib;cudart.lib;opengl32.lib;glew32s.lib;glfw3.lib;nvrtc.lib;cudart_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)libraries\assimp;$(SolutionDir)libraries\FreeImage;$(SolutionDir)libraries\GL;$(SolutionDir)libraries\glfw;$(CUDA_PATH)\lib\x64;$(CudaToolkitLibDir)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBCMT</IgnoreSpecificDefaultLibraries>
-      <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/ignore:4099 /ignore:4217 %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <CudaCompile>
       <Include>$(ProjectDir);$(SolutionDir)libraries</Include>
@@ -231,13 +233,9 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
     <PostBuildEvent>
       <Message>Copy resources</Message>
     </PostBuildEvent>
+    <ProjectReference />
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\libraries\imgui\imgui.cpp" />
-    <ClCompile Include="..\libraries\imgui\imgui_draw.cpp" />
-    <ClCompile Include="..\libraries\imgui\imgui_impl_glfw.cpp" />
-    <ClCompile Include="..\libraries\imgui\imgui_impl_opengl3.cpp" />
-    <ClCompile Include="..\libraries\imgui\imgui_widgets.cpp" />
     <ClCompile Include="App\App.cpp" />
     <ClCompile Include="App\ControlScheme.cpp" />
     <ClCompile Include="App\OrbitCameraController.cpp" />
@@ -256,6 +254,7 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
     <ClCompile Include="Renderer\OptixError.cpp" />
     <ClCompile Include="Renderer\Renderer.cpp" />
     <ClCompile Include="Renderer\Scene.cpp" />
+    <ClCompile Include="Renderer\Sky.cpp" />
     <ClCompile Include="Resources\CameraNode.cpp" />
     <ClCompile Include="Resources\Instance.cpp" />
     <ClCompile Include="Resources\Material.cpp" />
@@ -267,14 +266,6 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
     <ClCompile Include="Utility\Utility.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\libraries\imgui\imconfig.h" />
-    <ClInclude Include="..\libraries\imgui\imgui.h" />
-    <ClInclude Include="..\libraries\imgui\imgui_impl_glfw.h" />
-    <ClInclude Include="..\libraries\imgui\imgui_impl_opengl3.h" />
-    <ClInclude Include="..\libraries\imgui\imgui_internal.h" />
-    <ClInclude Include="..\libraries\imgui\imstb_rectpack.h" />
-    <ClInclude Include="..\libraries\imgui\imstb_textedit.h" />
-    <ClInclude Include="..\libraries\imgui\imstb_truetype.h" />
     <ClInclude Include="App\App.h" />
     <ClInclude Include="App\ControlScheme.h" />
     <ClInclude Include="App\OrbitCameraController.h" />
@@ -299,6 +290,7 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
     <ClInclude Include="CUDA\Shade\TextureCoordinate.h" />
     <ClInclude Include="CUDA\Shade\Wireframe.h" />
     <ClInclude Include="CUDA\Shade\ZDepth.h" />
+    <ClInclude Include="CUDA\CudaSky.h" />
     <ClInclude Include="FileIO\Importer.h" />
     <ClInclude Include="FileIO\SceneFile.h" />
     <ClInclude Include="GUI\MainGui.h" />
@@ -313,6 +305,7 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
     <ClInclude Include="Renderer\OptixError.h" />
     <ClInclude Include="Renderer\Renderer.h" />
     <ClInclude Include="Renderer\Scene.h" />
+    <ClInclude Include="Renderer\Sky.h" />
     <ClInclude Include="Resources\CameraNode.h" />
     <ClInclude Include="Resources\Instance.h" />
     <ClInclude Include="Resources\Material.h" />
@@ -340,6 +333,11 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
       <NvccCompilation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ptx</NvccCompilation>
       <NvccCompilation Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">ptx</NvccCompilation>
     </CudaCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\libraries\Libraries.vcxproj">
+      <Project>{41519746-c932-42d0-a110-6b5bedae7ff8}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

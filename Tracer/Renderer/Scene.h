@@ -13,11 +13,14 @@ namespace Tracer
 	class Instance;
 	class Material;
 	class Model;
+	class Sky;
 	class Texture;
 	class Window;
 	class Scene
 	{
 	public:
+		Scene();
+
 		void Clear();
 
 		bool IsDirty() const;
@@ -40,9 +43,10 @@ namespace Tracer
 		void Remove(std::shared_ptr<Model> model);
 		void Remove(std::shared_ptr<Instance> instance);
 
+		std::shared_ptr<Sky> GetSky() const { return mSky; }
 		std::shared_ptr<Model> GetModel(const std::string& name) const;
-		std::shared_ptr<Material> GetMaterial(uint32_t instanceIx, uint32_t primIx);
-		std::shared_ptr<Texture> GetTexture(const std::string& path);
+		std::shared_ptr<Material> GetMaterial(uint32_t instanceIx, uint32_t primIx) const;
+		std::shared_ptr<Texture> GetTexture(const std::string& path) const;
 
 		inline const std::vector<std::shared_ptr<Model>>& Models() const { return mModels; }
 		inline const std::vector<std::shared_ptr<Texture>>& Textures() const { return mTextures; }
@@ -54,6 +58,9 @@ namespace Tracer
 	private:
 		// utility
 		bool mIsDirty = false;
+
+		// sky
+		std::shared_ptr<Sky> mSky = nullptr;
 
 		// resources
 		std::vector<std::shared_ptr<Model>> mModels;

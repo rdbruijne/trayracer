@@ -1,6 +1,7 @@
 #include "Scene.h"
 
 // Project
+#include "Renderer/Sky.h"
 #include "Resources/Model.h"
 #include "Resources/Instance.h"
 #include "Resources/Material.h"
@@ -12,6 +13,14 @@
 
 namespace Tracer
 {
+
+	Scene::Scene() :
+		mSky(std::make_shared<Sky>())
+	{
+
+	}
+
+
 
 	void Scene::Clear()
 	{
@@ -25,6 +34,9 @@ namespace Tracer
 	bool Scene::IsDirty() const
 	{
 		if(mIsDirty)
+			return true;
+
+		if(mSky->IsDirty())
 			return true;
 
 		for(auto& i : mInstances)
@@ -200,7 +212,7 @@ namespace Tracer
 
 
 
-	std::shared_ptr<Tracer::Material> Scene::GetMaterial(uint32_t instanceIx, uint32_t primIx)
+	std::shared_ptr<Tracer::Material> Scene::GetMaterial(uint32_t instanceIx, uint32_t primIx) const
 	{
 		if(instanceIx >= mInstances.size())
 			return nullptr;
@@ -209,7 +221,7 @@ namespace Tracer
 
 
 
-	std::shared_ptr<Tracer::Texture> Scene::GetTexture(const std::string& path)
+	std::shared_ptr<Tracer::Texture> Scene::GetTexture(const std::string& path) const
 	{
 		for(auto& t : mTextures)
 		{

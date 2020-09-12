@@ -20,21 +20,6 @@
     <ClCompile Include="App\OrbitCameraController.cpp">
       <Filter>App</Filter>
     </ClCompile>
-    <ClCompile Include="..\libraries\imgui\imgui.cpp">
-      <Filter>GUI\ImGUI</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libraries\imgui\imgui_impl_glfw.cpp">
-      <Filter>GUI\ImGUI</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libraries\imgui\imgui_widgets.cpp">
-      <Filter>GUI\ImGUI</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libraries\imgui\imgui_impl_opengl3.cpp">
-      <Filter>GUI\ImGUI</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libraries\imgui\imgui_draw.cpp">
-      <Filter>GUI\ImGUI</Filter>
-    </ClCompile>
     <ClCompile Include="Resources\Material.cpp">
       <Filter>Resources</Filter>
     </ClCompile>
@@ -95,6 +80,9 @@
     <ClCompile Include="Utility\Logger.cpp">
       <Filter>Utility</Filter>
     </ClCompile>
+    <ClCompile Include="Renderer\Sky.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">
@@ -117,9 +105,6 @@
     </Filter>
     <Filter Include="GUI">
       <UniqueIdentifier>{124cb1e1-b40c-4768-8d39-01e31eb370aa}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="GUI\ImGUI">
-      <UniqueIdentifier>{3bed6e0a-c36c-42c8-b836-f224fe202670}</UniqueIdentifier>
     </Filter>
     <Filter Include="Renderer">
       <UniqueIdentifier>{9853ed54-2a6f-41d5-bf8b-a49f4134ae5f}</UniqueIdentifier>
@@ -167,30 +152,6 @@
     </ClInclude>
     <ClInclude Include="OpenGL\Input.h">
       <Filter>OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libraries\imgui\imconfig.h">
-      <Filter>GUI\ImGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libraries\imgui\imgui.h">
-      <Filter>GUI\ImGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libraries\imgui\imgui_impl_glfw.h">
-      <Filter>GUI\ImGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libraries\imgui\imgui_internal.h">
-      <Filter>GUI\ImGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libraries\imgui\imstb_rectpack.h">
-      <Filter>GUI\ImGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libraries\imgui\imstb_textedit.h">
-      <Filter>GUI\ImGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libraries\imgui\imstb_truetype.h">
-      <Filter>GUI\ImGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libraries\imgui\imgui_impl_opengl3.h">
-      <Filter>GUI\ImGUI</Filter>
     </ClInclude>
     <ClInclude Include="Resources\Material.h">
       <Filter>Resources</Filter>
@@ -311,6 +272,15 @@
     </ClInclude>
     <ClInclude Include="Utility\Enum.h">
       <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\Shade\BSDF\Disney.h">
+      <Filter>CUDA\Shade\BSDF</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Sky.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\CudaSky.h">
+      <Filter>CUDA</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

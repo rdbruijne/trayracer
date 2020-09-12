@@ -115,6 +115,7 @@ namespace Tracer
 		// scene building
 		void BuildGeometry(Scene* scene);
 		void BuildMaterials(Scene* scene);
+		void BuildSky(Scene* scene);
 
 		// render mode
 		RenderModes mRenderMode = RenderModes::PathTracing;
@@ -219,6 +220,12 @@ namespace Tracer
 
 		// lights
 		CudaBuffer mCudaLightsBuffer = {};
+
+		// sky
+		CudaBuffer mSkyData = {};
+		CudaBuffer mSkyStateX = {};
+		CudaBuffer mSkyStateY = {};
+		CudaBuffer mSkyStateZ = {};
 
 		// Optix scene
 		OptixTraversableHandle mSceneRoot = 0;

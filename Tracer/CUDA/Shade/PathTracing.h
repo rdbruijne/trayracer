@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CudaSky.h"
 #include "CudaUtility.h"
 
 // Closures
@@ -31,7 +32,7 @@ __global__ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 	// didn't hit anything
 	if(primIx == ~0)
 	{
-		accumulator[pixelIx] += make_float4(T * SampleSky(O, D));
+		accumulator[pixelIx] += make_float4(T * SampleSky(D));
 		return;
 	}
 

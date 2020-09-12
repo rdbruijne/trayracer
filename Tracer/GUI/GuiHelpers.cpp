@@ -56,6 +56,7 @@ namespace Tracer
 		// style
 		ImGui::StyleColorsDark();
 		ImGuiStyle& style = ImGui::GetStyle();
+		style.Colors[ImGuiCol_Header] = ImVec4(.5f, .5f, .75f, 1.f);
 		memcpy(&sStyleBackup, &style, sizeof(ImGuiStyle));
 
 		// DPI

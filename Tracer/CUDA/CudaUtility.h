@@ -21,18 +21,35 @@ constexpr float Epsilon = 1e-3f;
 //------------------------------------------------------------------------------------------------------------------------------
 static __device__ Counters* counters = nullptr;
 
-__constant__ CudaMatarial* materialData = nullptr;
+__constant__ LaunchParams* params = nullptr;
+
+// geometry
 __constant__ CudaMeshData* meshData = nullptr;
+
+// materials
+__constant__ CudaMatarial* materialData = nullptr;
+__constant__ uint32_t* materialOffsets = nullptr;
+
+// instances
 __constant__ float4* invInstTransforms = nullptr;
+__constant__ uint32_t* modelIndices = nullptr;
+
+// lights
 __constant__ int32_t lightCount = 0;
 __constant__ float lightEnergy = 0;
 __constant__ LightTriangle* lights = nullptr;
-__constant__ LaunchParams* params = nullptr;
-__constant__ uint32_t* materialOffsets = nullptr;
-__constant__ uint32_t* modelIndices = nullptr;
+
+// sky
+__constant__ SkyData* skyData = nullptr;
+__constant__ SkyState* skyStateX = nullptr;
+__constant__ SkyState* skyStateY = nullptr;
+__constant__ SkyState* skyStateZ = nullptr;
 
 
 
+//------------------------------------------------------------------------------------------------------------------------------
+// Global setters
+//------------------------------------------------------------------------------------------------------------------------------
 __host__ void SetCudaCounters(Counters* data)
 {
 	cudaMemcpyToSymbol(counters, &data, sizeof(void*));
@@ -40,34 +57,22 @@ __host__ void SetCudaCounters(Counters* data)
 
 
 
-__host__ void SetCudaInvTransforms(float4* data)
+__host__ void SetCudaLaunchParams(LaunchParams* data)
 {
-	cudaMemcpyToSymbol(invInstTransforms, &data, sizeof(void*));
+	cudaMemcpyToSymbol(params, &data, sizeof(void*));
 }
 
 
 
-__host__ void SetCudaLights(LightTriangle* data)
+// geometry
+__host__ void SetCudaMeshData(CudaMeshData* data)
 {
-	cudaMemcpyToSymbol(lights, &data, sizeof(void*));
+	cudaMemcpyToSymbol(meshData, &data, sizeof(void*));
 }
 
 
 
-__host__ void SetCudaLightCount(int32_t count)
-{
-	cudaMemcpyToSymbol(lightCount, &count, sizeof(lightCount));
-}
-
-
-
-__host__ void SetCudaLightEnergy(float energy)
-{
-	cudaMemcpyToSymbol(lightEnergy, &energy, sizeof(lightEnergy));
-}
-
-
-
+// materials
 __host__ void SetCudaMatarialData(CudaMatarial* data)
 {
 	cudaMemcpyToSymbol(materialData, &data, sizeof(void*));
@@ -82,6 +87,14 @@ __host__ void SetCudaMatarialOffsets(uint32_t* data)
 
 
 
+// instances
+__host__ void SetCudaInvTransforms(float4* data)
+{
+	cudaMemcpyToSymbol(invInstTransforms, &data, sizeof(void*));
+}
+
+
+
 __host__ void SetCudaModelIndices(uint32_t* data)
 {
 	cudaMemcpyToSymbol(modelIndices, &data, sizeof(void*));
@@ -89,17 +102,57 @@ __host__ void SetCudaModelIndices(uint32_t* data)
 
 
 
-__host__ void SetCudaMeshData(CudaMeshData* data)
+// lights
+__host__ void SetCudaLightCount(int32_t count)
 {
-	cudaMemcpyToSymbol(meshData, &data, sizeof(void*));
+	cudaMemcpyToSymbol(lightCount, &count, sizeof(lightCount));
 }
 
 
 
-__host__ void SetCudaLaunchParams(LaunchParams* data)
+__host__ void SetCudaLightEnergy(float energy)
 {
-	cudaMemcpyToSymbol(params, &data, sizeof(void*));
+	cudaMemcpyToSymbol(lightEnergy, &energy, sizeof(lightEnergy));
 }
+
+
+
+__host__ void SetCudaLights(LightTriangle* data)
+{
+	cudaMemcpyToSymbol(lights, &data, sizeof(void*));
+}
+
+
+
+// sky
+__host__ void SetCudaSkyData(SkyData* data)
+{
+	cudaMemcpyToSymbol(skyData, &data, sizeof(void*));
+}
+
+
+
+__host__ void SetCudaSkyStateX(SkyState* data)
+{
+	cudaMemcpyToSymbol(skyStateX, &data, sizeof(void*));
+}
+
+
+
+__host__ void SetCudaSkyStateY(SkyState* data)
+{
+	cudaMemcpyToSymbol(skyStateY, &data, sizeof(void*));
+}
+
+
+
+__host__ void SetCudaSkyStateZ(SkyState* data)
+{
+	cudaMemcpyToSymbol(skyStateZ, &data, sizeof(void*));
+}
+
+
+
 
 
 
@@ -364,17 +417,6 @@ inline float3 SampleCosineHemisphere(const float3& normal, float u, float v)
 
 	const float3 f = SampleCosineHemisphere(u, v);
 	return f.x*tangent + f.y*bitangent + f.z*normal;
-}
-
-
-
-//------------------------------------------------------------------------------------------------------------------------------
-// Sky
-//------------------------------------------------------------------------------------------------------------------------------
-static __device__
-inline float3 SampleSky(const float3& O, const float3& D)
-{
-	return params->skyColor;
 }
 
 

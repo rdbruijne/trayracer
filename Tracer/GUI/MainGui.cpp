@@ -7,6 +7,7 @@
 #include "OpenGL/Window.h"
 #include "Renderer/Renderer.h"
 #include "Renderer/Scene.h"
+#include "Renderer/Sky.h"
 #include "Resources/CameraNode.h"
 #include "Resources/Instance.h"
 #include "Resources/Material.h"
@@ -21,6 +22,10 @@
 
 // ImGUI
 #include "imgui/imgui.h"
+#pragma warning(push)
+#pragma warning(disable: 4201 4263 4264 4458 5027 5038)
+#include "imGuIZMO.quat/imGuIZMOquat.h"
+#pragma warning(pop)
 
 // C++
 #include <functional>
@@ -155,63 +160,38 @@ namespace Tracer
 
 	void MainGui::DrawImpl()
 	{
-		// flags to enable scene tab by default
-		static int flags = ImGuiTabItemFlags_SetSelected;
-		bool sceneTab = true;
-
 		if(!ImGui::Begin("Tray Racer", &mEnabled))
 			return;
 
-		if(!ImGui::BeginTabBar("Elements", ImGuiTabItemFlags_SetSelected))
-			return;
-
 		// camera
-		if(ImGui::BeginTabItem("Camera"))
-		{
+		if(ImGui::CollapsingHeader("Camera"))
 			CameraElements();
-			ImGui::EndTabItem();
-		}
 
 		// material
-		if(ImGui::BeginTabItem("Material"))
-		{
+		if(ImGui::CollapsingHeader("Material"))
 			MaterialElements();
-			ImGui::EndTabItem();
-		}
 
 		// renderer
-		if(ImGui::BeginTabItem("Renderer"))
-		{
+		if(ImGui::CollapsingHeader("Renderer"))
 			RendererElements();
-			ImGui::EndTabItem();
-		}
 
 		// scene
-		if((flags == 0 && ImGui::BeginTabItem("Scene")) ||
-			(flags != 0 && ImGui::BeginTabItem("Scene", &sceneTab, flags)))
-		{
+		if(ImGui::CollapsingHeader("Scene"))
 			SceneElements();
-			ImGui::EndTabItem();
-		}
 
 		// statistics
-		if(ImGui::BeginTabItem("Statistics"))
-		{
+		if(ImGui::CollapsingHeader("Sky"))
+			SkyElements();
+
+		// statistics
+		if(ImGui::CollapsingHeader("Statistics"))
 			StatisticsElements();
-			ImGui::EndTabItem();
-		}
 
 		// debug
-		if(ImGui::BeginTabItem("Debug"))
-		{
+		if(ImGui::CollapsingHeader("Debug"))
 			DebugElements();
-			ImGui::EndTabItem();
-		}
 
-		ImGui::EndTabBar();
 		ImGui::End();
-
-		flags = 0;
 	}
 
 
@@ -271,6 +251,7 @@ namespace Tracer
 			ImGui::Text(kv.second.c_str());
 			ImGui::NextColumn();
 		}
+		ImGui::Columns();
 	}
 
 
@@ -293,6 +274,10 @@ namespace Tracer
 			float3 em = mat->Emissive();
 			if(ImGui::ColorEdit3("Emissive", reinterpret_cast<float*>(&em), ImGuiColorEditFlags_HDR))
 				mat->SetEmissive(em);
+
+			float shininess = mat->Shininess();
+			if(ImGui::InputFloat("Shininess", &shininess))
+				mat->SetShininess(shininess);
 
 			ShowTexture("Diffuse map", [=]() { return mat->DiffuseMap(); }, [=](std::shared_ptr<Texture> a) { mat->SetDiffuseMap(a); });
 			ShowTexture("Normal map", [=]() { return mat->NormalMap(); }, [=](std::shared_ptr<Texture> a) { mat->SetNormalMap(a); });
@@ -335,7 +320,7 @@ namespace Tracer
 				GuiHelpers::renderer->SetMultiSample(multiSample);
 
 			int maxDepth = GuiHelpers::renderer->MaxDepth();
-			if(ImGui::SliderInt("Max depth", &maxDepth, 0, 16))
+			if(ImGui::SliderInt("Max depth", &maxDepth, 1, 16))
 				GuiHelpers::renderer->SetMaxDepth(maxDepth);
 
 			float aoDist = GuiHelpers::renderer->AODist();
@@ -393,29 +378,65 @@ namespace Tracer
 
 
 
+	void MainGui::SkyElements()
+	{
+		auto sky = GuiHelpers::scene->GetSky();
+
+		// sun
+		ImGui::Text("Sun");
+
+		float3 sunDir = sky->SunDir();
+		vec3 l(sunDir.x, sunDir.y, sunDir.z);
+		if(ImGui::gizmo3D("##sunDir3D", l, 100, imguiGizmo::modeDirection))
+			sky->SetSunDir(make_float3(l.x, l.y, l.z));
+		if(ImGui::InputFloat3("Sun dir", reinterpret_cast<float*>(&l)))
+			sky->SetSunDir(make_float3(l.x, l.y, l.z));
+
+		bool drawSun = sky->DrawSun();
+		if(ImGui::Checkbox("Draw sun", &drawSun))
+			sky->SetDrawSun(drawSun);
+
+		float sunSize = sky->SunSize();
+		if(ImGui::SliderFloat("Sun size", &sunSize, 0.f, 1.f))
+			sky->SetSunSize(sunSize);
+
+		float3 sunColor = sky->SunColor();
+		if(ImGui::ColorEdit3("Sun color", reinterpret_cast<float*>(&sunColor), ImGuiColorEditFlags_HDR))
+			sky->SetSunColor(sunColor);
+
+		// tints
+		ImGui::Spacing();
+		ImGui::Text("Tint");
+		float3 skyTint = sky->SkyTint();
+		if(ImGui::ColorEdit3("sky tint", reinterpret_cast<float*>(&skyTint)))
+			sky->SetSkyTint(skyTint);
+
+		float3 sunTint = sky->SunTint();
+		if(ImGui::ColorEdit3("Sun tint", reinterpret_cast<float*>(&sunTint)))
+			sky->SetSunTint(sunTint);
+
+		// ground
+		ImGui::Spacing();
+		ImGui::Text("Ground");
+		float turbidity = sky->Turbidity();
+		if(ImGui::SliderFloat("Turbidity", &turbidity, 1.f, 10.f))
+			sky->SetTurbidity(turbidity);
+
+		float3 groundAlbedo = sky->GroundAlbedo();
+		if(ImGui::ColorEdit3("Ground albedo", reinterpret_cast<float*>(&groundAlbedo)))
+			sky->SetGroundAlbedo(groundAlbedo);
+	}
+
+
+
 	void MainGui::StatisticsElements()
 	{
-//#define USE_GRAPHS
-
-#ifdef USE_GRAPHS
-#define SPACE					\
-		ImGui::Spacing();		\
-		ImGui::NextColumn();	\
-		ImGui::Spacing();		\
-		ImGui::NextColumn();	\
-		ImGui::Separator();		\
-		ImGui::Spacing();		\
-		ImGui::NextColumn();	\
-		ImGui::Spacing();		\
-		ImGui::NextColumn();
-#else
 #define SPACE						\
 		for(int i = 0; i < 4; i++)	\
 		{							\
 			ImGui::Spacing();		\
 			ImGui::NextColumn();	\
 		}
-#endif
 
 #define ROW(s, ...)					\
 		ImGui::Text(s);				\
@@ -447,29 +468,6 @@ namespace Tracer
 			// fetch stats
 			const Renderer::RenderStats renderStats = GuiHelpers::renderer->Statistics();
 
-#ifdef USE_GRAPHS
-			// update graph times
-			mFramerates[mGraphIx]         = 1e3f / mFrameTimeMs;
-			mFrameTimes[mGraphIx]         = mFrameTimeMs;
-			mBuildTimes[mGraphIx]         = mBuildTimeMs;
-			mPrimaryPathTimes[mGraphIx]   = renderStats.primaryPathTimeMs;
-			mSecondaryPathTimes[mGraphIx] = renderStats.secondaryPathTimeMs;
-			mDeepPathTimes[mGraphIx]      = renderStats.deepPathTimeMs;
-			mShadowTimes[mGraphIx]        = renderStats.shadowTimeMs;
-			mShadeTimes[mGraphIx]         = renderStats.shadeTimeMs;
-			mDenoiseTimes[mGraphIx]       = renderStats.denoiseTimeMs;
-
-			// update pathcounts
-			mPathCounts[mGraphIx]          = PerSec(renderStats.pathCount, mFrameTimeMs) * 1e-6f;
-			mPrimaryPathCounts[mGraphIx]   = PerSec(renderStats.primaryPathCount, mFrameTimeMs) * 1e-6f;
-			mSecondaryPathCounts[mGraphIx] = PerSec(renderStats.secondaryPathCount, mFrameTimeMs) * 1e-6f;
-			mDeepPathCounts[mGraphIx]      = PerSec(renderStats.deepPathCount, mFrameTimeMs) * 1e-6f;
-			mShadowRayCounts[mGraphIx]     = PerSec(renderStats.shadowRayCount, mFrameTimeMs) * 1e-6f;
-
-			// increment graph ix
-			mGraphIx = (mGraphIx + 1) % msGraphSize;
-#endif
-
 			// init column layout
 			ImGui::Columns(2);
 
@@ -481,7 +479,7 @@ namespace Tracer
 #endif
 
 			// device
-			auto devProps = GuiHelpers::renderer->CudaDeviceProperties();
+			const auto& devProps = GuiHelpers::renderer->CudaDeviceProperties();
 			ROW("Device", devProps.name);
 			SPACE;
 
@@ -492,17 +490,6 @@ namespace Tracer
 			SPACE;
 
 			// times
-#ifdef USE_GRAPHS
-			GRAPH(mFramerates, "FPS", "%.1f", 1e3f / mFrameTimeMs);
-			GRAPH(mFrameTimes, "Frame time", "%.1f ms", mFrameTimeMs);
-			GRAPH(mBuildTimes, "Scene build", "%.1f ms", mBuildTimeMs);
-			GRAPH(mPrimaryPathTimes, "Primary rays", "%.1f ms", renderStats.primaryPathTimeMs);
-			GRAPH(mSecondaryPathTimes, "Secondary rays", "%.1f ms", renderStats.secondaryPathTimeMs);
-			GRAPH(mDeepPathTimes, "Deep rays", "%.1f ms", renderStats.deepPathTimeMs);
-			GRAPH(mShadowTimes, "Shadow rays", "%.1f ms", renderStats.shadowTimeMs);
-			GRAPH(mShadeTimes, "Shade time", "%.1f ms", renderStats.shadeTimeMs);
-			GRAPH(mDenoiseTimes, "Denoise time", "%.1f ms", renderStats.denoiseTimeMs);
-#else
 			ROW("FPS", "%.1f", 1e3f / mFrameTimeMs);
 			ROW("Frame time", "%.1f ms", mFrameTimeMs);
 			ROW("Scene build", "%.1f ms", mBuildTimeMs);
@@ -512,24 +499,15 @@ namespace Tracer
 			ROW("Shadow rays", "%.1f ms", renderStats.shadowTimeMs);
 			ROW("Shade time", "%.1f ms", renderStats.shadeTimeMs);
 			ROW("Denoise time", "%.1f ms", renderStats.denoiseTimeMs);
-#endif
 
 			SPACE;
 
 			// rays
-#ifdef USE_GRAPHS
-			GRAPH(mPathCounts, "Rays", "%.1f M (%.1f M/s)", renderStats.pathCount * 1e-6, PerSec(renderStats.pathCount, mFrameTimeMs) * 1e-6);
-			GRAPH(mPrimaryPathCounts, "Primaries", "%.1f M (%.1f M/s)", renderStats.primaryPathCount * 1e-6, PerSec(renderStats.primaryPathCount, renderStats.primaryPathTimeMs) * 1e-6);
-			GRAPH(mSecondaryPathCounts, "Secondaries", "%.1f M (%.1f M/s)", renderStats.secondaryPathCount * 1e-6f, PerSec(renderStats.secondaryPathCount, renderStats.secondaryPathTimeMs) * 1e-6f);
-			GRAPH(mDeepPathCounts, "Deep", "%.1f M (%.1f M/s)", renderStats.deepPathCount * 1e-6f, PerSec(renderStats.deepPathCount, renderStats.deepPathTimeMs) * 1e-6f);
-			GRAPH(mShadowRayCounts, "Shadow", "%.1f M (%.1f M/s)", renderStats.shadowRayCount * 1e-6f, PerSec(renderStats.shadowRayCount, renderStats.shadowTimeMs) * 1e-6f);
-#else
 			ROW("Rays", "%.1f M (%.1f M/s)", renderStats.pathCount * 1e-6, PerSec(renderStats.pathCount, mFrameTimeMs) * 1e-6);
 			ROW("Primaries", "%.1f M (%.1f M/s)", renderStats.primaryPathCount * 1e-6, PerSec(renderStats.primaryPathCount, renderStats.primaryPathTimeMs) * 1e-6);
 			ROW("Secondaries", "%.1f M (%.1f M/s)", renderStats.secondaryPathCount * 1e-6, PerSec(renderStats.secondaryPathCount, renderStats.secondaryPathTimeMs) * 1e-6);
 			ROW("Deep", "%.1f M (%.1f M/s)", renderStats.deepPathCount * 1e-6, PerSec(renderStats.deepPathCount, renderStats.deepPathTimeMs) * 1e-6);
 			ROW("Shadow", "%.1f M (%.1f M/s)", renderStats.shadowRayCount * 1e-6, PerSec(renderStats.shadowRayCount, renderStats.shadowTimeMs) * 1e-6);
-#endif
 
 			SPACE;
 
@@ -546,10 +524,6 @@ namespace Tracer
 
 #undef SPACE
 #undef ROW
-
-#ifdef USE_GRAPHS
-#undef USE_GRAPHS
-#endif
 	}
 
 
@@ -602,13 +576,9 @@ namespace Tracer
 			modelNames.push_back(m->Name().c_str());
 
 		// Model selection
-		ImGui::BeginChild("Model list", ImVec2(0, (ImGui::GetWindowHeight() - 100) * .45f));
 		if(ImGui::ListBox("Models", &mSelectedModelIx, modelNames.data(), static_cast<int>(modelNames.size())))
 			SelectModel(mSelectedModelIx);
-		ImGui::EndChild();
 		ImGui::NextColumn();
-
-		//free(modelNames);
 
 		// Import model
 		if(ImGui::Button("Import"))
@@ -664,10 +634,8 @@ namespace Tracer
 			instanceNames.push_back(m->Name().c_str());
 
 		// Instance selection
-		ImGui::BeginChild("Instance list", ImVec2(0, (ImGui::GetWindowHeight() - 100) * .45f));
 		if(ImGui::ListBox("Instances", &mSelectedInstanceIx, instanceNames.data(), static_cast<int>(instanceNames.size())))
 			SelectInstance(mSelectedInstanceIx);
-		ImGui::EndChild();
 		ImGui::NextColumn();
 
 		if(instances.size() > 0)

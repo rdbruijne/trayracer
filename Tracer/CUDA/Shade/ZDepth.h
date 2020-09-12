@@ -27,7 +27,7 @@ __global__ void ZDepthKernel(DECLARE_KERNEL_PARAMS)
 	// didn't hit anything
 	if(primIx == ~0)
 	{
-		accumulator[pixelIx] += make_float4(T * SampleSky(O, D));
+		accumulator[pixelIx] += make_float4(T * SampleSky(D));
 		return;
 	}
 
