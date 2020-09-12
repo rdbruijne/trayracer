@@ -69,6 +69,9 @@ namespace
 static __device__
 float3 SampleSky(const float3& dir)
 {
+	if(dir.y < 0)
+		return make_float3(0);
+
 	const float gamma = acosf(dot(dir, skyData->sunDir));
 	const float theta = acosf(dot(dir, make_float3(0, 1, 0)));
 
