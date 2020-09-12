@@ -64,9 +64,8 @@ namespace Tracer
 		std::vector<LightTriangle> mLightTriangles;
 
 		// build data
-		CudaBuffer mVertexBuffer = {};
-		CudaBuffer mIndexBuffer = {};
 		CudaBuffer mTriangleBuffer = {};
+		CudaBuffer mMaterialIndexBuffer = {};
 
 		OptixBuildInput mBuildInput = {};
 		OptixTraversableHandle mTraversableHandle = 0;

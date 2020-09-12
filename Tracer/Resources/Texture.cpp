@@ -4,6 +4,9 @@
 #include "Renderer/CudaError.h"
 #include "Utility/Utility.h"
 
+// CUDA
+#include <cuda_fp16.h>
+
 namespace Tracer
 {
 	Texture::Texture(const std::string& path, const int2& resolution, std::vector<float4> pixels) :
@@ -73,12 +76,23 @@ namespace Tracer
 		constexpr uint32_t numComponents = 4;
 		const uint32_t width  = mResolution.x;
 		const uint32_t height = mResolution.y;
-		const uint32_t pitch  = width * numComponents * sizeof(float);
-		cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float4>();
+		const uint32_t pitch  = width * numComponents * sizeof(half);
+		cudaChannelFormatDesc channelDesc = cudaCreateChannelDescHalf4();
+
+		// convert pixels to half
+		std::vector<half> halfPixels;
+		halfPixels.reserve(mPixels.size() * 4);
+		for(float4 p : mPixels)
+		{
+			halfPixels.push_back(__float2half(p.x));
+			halfPixels.push_back(__float2half(p.y));
+			halfPixels.push_back(__float2half(p.z));
+			halfPixels.push_back(__float2half(p.w));
+		}
 
 		// upload pixels
 		CUDA_CHECK(cudaMallocArray(&mCudaArray, &channelDesc, width, height));
-		CUDA_CHECK(cudaMemcpy2DToArray(mCudaArray, 0, 0, mPixels.data(), pitch, pitch, height, cudaMemcpyHostToDevice));
+		CUDA_CHECK(cudaMemcpy2DToArray(mCudaArray, 0, 0, halfPixels.data(), pitch, pitch, height, cudaMemcpyHostToDevice));
 
 		// resource descriptor
 		cudaResourceDesc resourceDesc = {};
@@ -95,7 +109,7 @@ namespace Tracer
 		texDesc.borderColor[0]      = 1.0f;
 		texDesc.normalizedCoords    = 1;
 		texDesc.maxAnisotropy       = 1;
-		texDesc.mipmapFilterMode    = cudaFilterModePoint;
+		texDesc.mipmapFilterMode    = cudaFilterModeLinear;
 		texDesc.minMipmapLevelClamp = 0;
 		texDesc.maxMipmapLevelClamp = 99;
 

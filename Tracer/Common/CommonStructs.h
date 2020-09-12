@@ -12,6 +12,7 @@
 #endif
 
 // CUDA
+#include <cuda_fp16.h>
 #include <cuda_runtime.h>
 
 // C++
@@ -149,28 +150,60 @@ struct Counters
 //------------------------------------------------------------------------------------------------------------------------------
 // Geometry
 //------------------------------------------------------------------------------------------------------------------------------
-struct alignas(16) PackedTriangle
+struct alignas(8) PackedTriangle
 {
-	float3 v0;	float uv0x;
-	float3 v1;	float uv0y;
-	float3 v2;	float uv1x;
+	// vertex 0
+	float v0x;
+	float v0y;
+	float v0z;
+	half uv0x;
+	half uv0y;
+	half N0x;
+	half N0y;
+	half N0z;
+	half Nx;
 
-	float3 N0;	float uv1y;
-	float3 N1;	float uv2x;
-	float3 N2;	float uv2y;
+	// vertex 1
+	float v1x;
+	float v1y;
+	float v1z;
+	half uv1x;
+	half uv1y;
+	half N1x;
+	half N1y;
+	half N1z;
+	half Ny;
 
-	float3 N;	uint32_t matIx;
+	// vertex 2
+	float v2x;
+	float v2y;
+	float v2z;
+	half uv2x;
+	half uv2y;
+	half N2x;
+	half N2y;
+	half N2z;
+	half Nz;
 };
 
 
 
 struct alignas(16) LightTriangle
 {
-	float3 V0; int32_t instIx;
-	float3 V1; int32_t triIx;
-	float3 V2; float area;
-	float3 N;  float energy;
-	float3 radiance; float sumEnergy;
+	float3 V0;
+	int32_t instIx;
+
+	float3 V1;
+	int32_t triIx;
+
+	float3 V2;
+	float area;
+
+	float3 N;
+	float energy;
+
+	float3 radiance;
+	float sumEnergy;
 };
 
 
@@ -178,6 +211,7 @@ struct alignas(16) LightTriangle
 struct CudaMeshData
 {
 	PackedTriangle* triangles;
+	uint32_t* materialIndices;
 };
 
 

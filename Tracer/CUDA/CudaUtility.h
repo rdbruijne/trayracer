@@ -279,31 +279,37 @@ inline IntersectionAttributes GetIntersectionAttributes(uint32_t instIx, uint32_
 
 	// set material index
 	const uint32_t modelIx = modelIndices[instIx];
-	attrib.matIx = tri.matIx + materialOffsets[modelIx];
+	attrib.matIx = md.materialIndices[primIx] + materialOffsets[modelIx];
 
 	// texcoords
-	const float2 uv0 = make_float2(tri.uv0x, tri.uv0y);
-	const float2 uv1 = make_float2(tri.uv1x, tri.uv1y);
-	const float2 uv2 = make_float2(tri.uv2x, tri.uv2y);
+	const float2 uv0 = make_float2(__half2float(tri.uv0x), __half2float(tri.uv0y));
+	const float2 uv1 = make_float2(__half2float(tri.uv1x), __half2float(tri.uv1y));
+	const float2 uv2 = make_float2(__half2float(tri.uv2x), __half2float(tri.uv2y));
 	const float2 texcoord = Barycentric(bary, uv0, uv1, uv2);
 	attrib.texcoordX = texcoord.x;
 	attrib.texcoordY = texcoord.y;
 
 	// edges
-	const float3 e1 = tri.v1 - tri.v0;
-	const float3 e2 = tri.v2 - tri.v0;
+	const float3 v0 = make_float3(tri.v0x, tri.v0y, tri.v0z);
+	const float3 v1 = make_float3(tri.v1x, tri.v1y, tri.v1z);
+	const float3 v2 = make_float3(tri.v2x, tri.v2y, tri.v2z);
+	const float3 e1 = v1 - v0;
+	const float3 e2 = v2 - v0;
 	attrib.area = length(cross(e1, e2)) * 0.5f;
 
 	// normals
-	attrib.shadingNormal = normalize(Barycentric(bary, tri.N0, tri.N1, tri.N2));
-	attrib.geometricNormal = tri.N;
+	const float3 N0 = make_float3(__half2float(tri.N0x), __half2float(tri.N0y), __half2float(tri.N0z));
+	const float3 N1 = make_float3(__half2float(tri.N1x), __half2float(tri.N1y), __half2float(tri.N1z));
+	const float3 N2 = make_float3(__half2float(tri.N2x), __half2float(tri.N2y), __half2float(tri.N2z));
+	attrib.shadingNormal = normalize(Barycentric(bary, N0, N1, N2));
+	attrib.geometricNormal = make_float3(__half2float(tri.Nx), __half2float(tri.Ny), __half2float(tri.Nz));
 
 	// calculate tangents
-	const float s1 = tri.uv1x - tri.uv0x;
-	const float t1 = tri.uv1y - tri.uv0y;
+	const float s1 = __half2float(tri.uv1x - tri.uv0x);
+	const float t1 = __half2float(tri.uv1y - tri.uv0y);
 
-	const float s2 = tri.uv2x - tri.uv0x;
-	const float t2 = tri.uv2y - tri.uv0y;
+	const float s2 = __half2float(tri.uv2x - tri.uv0x);
+	const float t2 = __half2float(tri.uv2y - tri.uv0y);
 
 	const float r = (s1 * t2) - (s2 * t1);
 

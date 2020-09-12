@@ -85,29 +85,54 @@ namespace Tracer
 			PackedTriangle t = {};
 
 			// vertex positions
-			t.v0 = mVertices[ix.x];
-			t.v1 = mVertices[ix.y];
-			t.v2 = mVertices[ix.z];
+			const float3& v0 = mVertices[ix.x];
+			t.v0x = v0.x;
+			t.v0y = v0.y;
+			t.v0z = v0.z;
+
+			const float3& v1 = mVertices[ix.y];
+			t.v1x = v1.x;
+			t.v1y = v1.y;
+			t.v1z = v1.z;
+
+			const float3& v2 = mVertices[ix.z];
+			t.v2x = v2.x;
+			t.v2y = v2.y;
+			t.v2z = v2.z;
 
 			// texcoords
-			t.uv0x = mTexCoords[ix.x].x;
-			t.uv0y = mTexCoords[ix.x].y;
+			const float2& uv0 = mTexCoords[ix.x];
+			t.uv0x = __float2half(uv0.x);
+			t.uv0y = __float2half(uv0.y);
 
-			t.uv1x = mTexCoords[ix.y].x;
-			t.uv1y = mTexCoords[ix.y].y;
+			const float2& uv1 = mTexCoords[ix.y];
+			t.uv1x = __float2half(uv1.x);
+			t.uv1y = __float2half(uv1.y);
 
-			t.uv2x = mTexCoords[ix.z].x;
-			t.uv2y = mTexCoords[ix.z].y;
+			const float2& uv2 = mTexCoords[ix.z];
+			t.uv2x = __float2half(uv2.x);
+			t.uv2y = __float2half(uv2.y);
 
 			// normals
-			t.N0 = mNormals[ix.x];
-			t.N1 = mNormals[ix.y];
-			t.N2 = mNormals[ix.z];
+			const float3& N0 = mNormals[ix.x];
+			t.N0x = __float2half(N0.x);
+			t.N0y = __float2half(N0.y);
+			t.N0z = __float2half(N0.z);
 
-			t.N = normalize(t.N0 + t.N1 + t.N2);
+			const float3& N1 = mNormals[ix.y];
+			t.N1x = __float2half(N1.x);
+			t.N1y = __float2half(N1.y);
+			t.N1z = __float2half(N1.z);
 
-			// mat ix
-			t.matIx = mMaterialIndices[i];
+			const float3& N2 = mNormals[ix.z];
+			t.N2x = __float2half(N2.x);
+			t.N2y = __float2half(N2.y);
+			t.N2z = __float2half(N2.z);
+
+			const float3 N = normalize(N0 + N1 + N2);
+			t.Nx = __float2half(N.x);
+			t.Ny = __float2half(N.y);
+			t.Nz = __float2half(N.z);
 
 			// add to the vector
 			mPackedTriangles.push_back(t);
@@ -115,25 +140,19 @@ namespace Tracer
 
 		// CUDA
 		mTriangleBuffer.Upload(mPackedTriangles, true);
+		mMaterialIndexBuffer.Upload(mMaterialIndices, true);
 		mCudaMesh.triangles = mTriangleBuffer.Ptr<PackedTriangle>();
+		mCudaMesh.materialIndices = mMaterialIndexBuffer.Ptr<uint32_t>();
 
 		// prepare build input
 		mBuildInput = {};
 		mBuildInput.type = OPTIX_BUILD_INPUT_TYPE_TRIANGLES;
 
 		// vertices
-		mVertexBuffer.Upload(mVertices, true);
 		mBuildInput.triangleArray.vertexFormat        = OPTIX_VERTEX_FORMAT_FLOAT3;
-		mBuildInput.triangleArray.vertexStrideInBytes = sizeof(float3);
-		mBuildInput.triangleArray.numVertices         = static_cast<unsigned int>(mVertices.size());
-		mBuildInput.triangleArray.vertexBuffers       = mVertexBuffer.DevicePtrPtr();
-
-		// indices
-		mIndexBuffer.Upload(mIndices, true);
-		mBuildInput.triangleArray.indexFormat        = OPTIX_INDICES_FORMAT_UNSIGNED_INT3;
-		mBuildInput.triangleArray.indexStrideInBytes = sizeof(uint3);
-		mBuildInput.triangleArray.numIndexTriplets   = static_cast<unsigned int>(mIndices.size());
-		mBuildInput.triangleArray.indexBuffer        = mIndexBuffer.DevicePtr();
+		mBuildInput.triangleArray.vertexStrideInBytes = sizeof(PackedTriangle) / 3;
+		mBuildInput.triangleArray.numVertices         = static_cast<unsigned int>(mPackedTriangles.size() * 3);
+		mBuildInput.triangleArray.vertexBuffers       = mTriangleBuffer.DevicePtrPtr();
 
 		// other
 		static uint32_t buildFlags[] = { 0 };
