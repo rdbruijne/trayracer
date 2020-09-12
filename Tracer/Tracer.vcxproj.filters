@@ -273,9 +273,6 @@
     <ClInclude Include="Utility\Enum.h">
       <Filter>Utility</Filter>
     </ClInclude>
-    <ClInclude Include="CUDA\Shade\BSDF\Disney.h">
-      <Filter>CUDA\Shade\BSDF</Filter>
-    </ClInclude>
     <ClInclude Include="Renderer\Sky.h">
       <Filter>Renderer</Filter>
     </ClInclude>
