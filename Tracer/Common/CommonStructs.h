@@ -134,7 +134,6 @@ struct LaunchParams
 	float epsilon;
 	float aoDist;
 	float zDepthMax;
-	float3 skyColor;
 };
 
 

@@ -47,12 +47,12 @@ namespace
 		const float cosTheta = cosf(theta);
 		const float cosGamma = cosf(gamma);
 
-		const float expM = exp(config[4] * gamma);
+		const float expM = expf(config[4] * gamma);
 		const float rayM = cosGamma * cosGamma;
 		const double mieM = (1.0f + cosGamma*cosGamma) / powf((1.0f + config[8]*config[8] - 2.0*config[8]*cosGamma), 1.5f);
 		const double zenith = sqrt(cosTheta);
 
-		return (1.0f + config[0] * exp(config[1] / (cosTheta + 0.01f))) * (config[2] + config[3] * expM + config[5] * rayM + config[6] * mieM + config[7] * zenith);
+		return (1.0f + config[0] * expf(config[1] / (cosTheta + 0.01f))) * (config[2] + config[3] * expM + config[5] * rayM + config[6] * mieM + config[7] * zenith);
 	}
 
 

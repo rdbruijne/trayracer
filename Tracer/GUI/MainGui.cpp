@@ -275,10 +275,6 @@ namespace Tracer
 			if(ImGui::ColorEdit3("Emissive", reinterpret_cast<float*>(&em), ImGuiColorEditFlags_HDR))
 				mat->SetEmissive(em);
 
-			float shininess = mat->Shininess();
-			if(ImGui::InputFloat("Shininess", &shininess))
-				mat->SetShininess(shininess);
-
 			ShowTexture("Diffuse map", [=]() { return mat->DiffuseMap(); }, [=](std::shared_ptr<Texture> a) { mat->SetDiffuseMap(a); });
 			ShowTexture("Normal map", [=]() { return mat->NormalMap(); }, [=](std::shared_ptr<Texture> a) { mat->SetNormalMap(a); });
 		}
@@ -330,10 +326,6 @@ namespace Tracer
 			float zDepthMax = GuiHelpers::renderer->ZDepthMax();
 			if(ImGui::SliderFloat("Z-Depth max", &zDepthMax, 0.f, 1e4f, "%.3f", 10.f))
 				GuiHelpers::renderer->SetZDepthMax(zDepthMax);
-
-			float3 skyColor = GuiHelpers::renderer->SkyColor();
-			if(ImGui::ColorEdit3("Sky color", reinterpret_cast<float*>(&skyColor)))
-				GuiHelpers::renderer->SetSkyColor(skyColor);
 
 			// post
 			if(GuiHelpers::window)

@@ -5,6 +5,7 @@
 #include "OpenGL/Window.h"
 #include "Renderer/Renderer.h"
 #include "Renderer/Scene.h"
+#include "Renderer/Sky.h"
 #include "Resources/CameraNode.h"
 #include "Resources/Instance.h"
 #include "Resources/Material.h"
@@ -37,6 +38,21 @@ namespace Tracer
 		//----------------------------------------------------------------------------------------------------------------------
 		// read helpers
 		//----------------------------------------------------------------------------------------------------------------------
+		bool Read(const Value& jsonValue, const char* memberName, bool& result)
+		{
+			if(!jsonValue.HasMember(memberName))
+				return false;
+
+			const Value& val = jsonValue[memberName];
+			if(!val.IsBool())
+				return false;
+
+			result = val.GetBool();
+			return true;
+		}
+
+
+
 		bool Read(const Value& jsonValue, const char* memberName, float& result)
 		{
 			if(!jsonValue.HasMember(memberName))
@@ -337,7 +353,6 @@ namespace Tracer
 			// reusable variables for JSON reading
 			int i;
 			float f;
-			float3 f3;
 
 			const Value& jsonRenderer = doc["renderer"];
 			if(Read(jsonRenderer, "multisample", i))
@@ -348,8 +363,37 @@ namespace Tracer
 				renderer->SetAODist(f);
 			if(Read(jsonRenderer, "zdepthmax", f))
 				renderer->SetZDepthMax(f);
-			if(Read(jsonRenderer, "skycolor", f3))
-				renderer->SetSkyColor(f3);
+		}
+
+
+
+		void ParseSkySettings(Sky* sky, const Document& doc)
+		{
+			if(!sky || !doc.HasMember("sky"))
+				return;
+
+			// reusable variables for JSON reading
+			bool b;
+			float f;
+			float3 f3;
+
+			const Value& jsonSky = doc["sky"];
+			if(Read(jsonSky, "drawsun", b))
+				sky->SetDrawSun(b);
+			if(Read(jsonSky, "sundir", f3))
+				sky->SetSunDir(f3);
+			if(Read(jsonSky, "sunsize", f))
+				sky->SetSunSize(f);
+			if(Read(jsonSky, "suncolor", f3))
+			   sky->SetSunColor(f3);
+			if(Read(jsonSky, "skytint", f3))
+				sky->SetSkyTint(f3);
+			if(Read(jsonSky, "suntint", f3))
+				sky->SetSunTint(f3);
+			if(Read(jsonSky, "turbidity", f))
+				sky->SetTurbidity(f);
+			if(Read(jsonSky, "groundalbedo", f3))
+				sky->SetGroundAlbedo(f3);
 		}
 
 
@@ -388,6 +432,15 @@ namespace Tracer
 		//----------------------------------------------------------------------------------------------------------------------
 		// write helpers
 		//----------------------------------------------------------------------------------------------------------------------
+		void Write(Value& jsonValue, Document::AllocatorType& allocator, const char* memberName, bool val)
+		{
+			Value v = Value(kObjectType);
+			v.SetBool(val);
+			jsonValue.AddMember(StringRef(memberName), v, allocator);
+		}
+
+
+
 		void Write(Value& jsonValue, Document::AllocatorType& allocator, const char* memberName, float val)
 		{
 			Value v = Value(kObjectType);
@@ -580,7 +633,6 @@ namespace Tracer
 			Write(jsonRenderer, allocator, "maxdepth", renderer->MaxDepth());
 			Write(jsonRenderer, allocator, "aodist", renderer->AODist());
 			Write(jsonRenderer, allocator, "zdepthmax", renderer->ZDepthMax());
-			Write(jsonRenderer, allocator, "skycolor", renderer->SkyColor());
 
 			// add new JSON node to the document
 			doc.AddMember("renderer", jsonRenderer, allocator);
@@ -588,7 +640,28 @@ namespace Tracer
 
 
 
-		void ExportPostSettings(Window*  window, Document& doc, Document::AllocatorType& allocator)
+		void ExportSkySettings(Sky* sky, Document& doc, Document::AllocatorType& allocator)
+		{
+			if(!sky)
+				return;
+
+			Value jsonRenderer = Value(kObjectType);
+			Write(jsonRenderer, allocator, "drawsun", sky->DrawSun());
+			Write(jsonRenderer, allocator, "sundir", sky->SunDir());
+			Write(jsonRenderer, allocator, "sunsize", sky->SunSize());
+			Write(jsonRenderer, allocator, "suncolor", sky->SunColor());
+			Write(jsonRenderer, allocator, "skytint", sky->SkyTint());
+			Write(jsonRenderer, allocator, "suntint", sky->SunTint());
+			Write(jsonRenderer, allocator, "turbidity", sky->Turbidity());
+			Write(jsonRenderer, allocator, "groundalbedo", sky->GroundAlbedo());
+
+			// add new JSON node to the document
+			doc.AddMember("sky", jsonRenderer, allocator);
+		}
+
+
+
+		void ExportPostSettings(Window* window, Document& doc, Document::AllocatorType& allocator)
 		{
 			if(!window)
 				return;
@@ -633,6 +706,7 @@ namespace Tracer
 		ParseMaterials(scene, doc);
 		ParseCamera(camNode, doc);
 		ParseRenderSettings(renderer, doc);
+		ParseSkySettings(scene->GetSky().get(), doc);
 		ParsePostSettings(window, doc);
 	}
 
@@ -667,6 +741,7 @@ namespace Tracer
 		ExportMaterials(scene, uniqueModelNames, doc, allocator);
 		ExportCamera(camNode, doc, allocator);
 		ExportRenderSettings(renderer, doc, allocator);
+		ExportSkySettings(scene->GetSky().get(), doc, allocator);
 		ExportPostSettings(window, doc, allocator);
 
 		// write to disk

@@ -96,7 +96,6 @@ namespace Tracer
 		mLaunchParams.epsilon      = Epsilon;
 		mLaunchParams.aoDist       = 1.f;
 		mLaunchParams.zDepthMax    = 1.f;
-		mLaunchParams.skyColor     = make_float3(1);
 	}
 
 
