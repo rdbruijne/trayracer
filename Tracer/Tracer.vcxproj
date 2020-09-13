@@ -93,7 +93,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>assimp-vc142-mt.lib;IrrXML.lib;zlibstatic.lib;FreeImage.lib;cuda.lib;cudart.lib;opengl32.lib;glew32s.lib;glfw3.lib;nvrtc.lib;cudart_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>assimp-vc142-mt.lib;IrrXML.lib;zlibstatic.lib;FreeImage.lib;cuda.lib;cudart.lib;opengl32.lib;glew32s.lib;glfw3.lib;nvrtc.lib;cudart_static.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)libraries\assimp;$(SolutionDir)libraries\FreeImage;$(SolutionDir)libraries\GL;$(SolutionDir)libraries\glfw;$(CUDA_PATH)\lib\x64;$(CudaToolkitLibDir)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBCMT;MSVCRT</IgnoreSpecificDefaultLibraries>
       <IgnoreAllDefaultLibraries>
@@ -148,7 +148,7 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>assimp-vc142-mt.lib;IrrXML.lib;zlibstatic.lib;FreeImage.lib;cuda.lib;cudart.lib;opengl32.lib;glew32s.lib;glfw3.lib;nvrtc.lib;cudart_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>assimp-vc142-mt.lib;IrrXML.lib;zlibstatic.lib;FreeImage.lib;cuda.lib;cudart.lib;opengl32.lib;glew32s.lib;glfw3.lib;nvrtc.lib;cudart_static.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)libraries\assimp;$(SolutionDir)libraries\FreeImage;$(SolutionDir)libraries\GL;$(SolutionDir)libraries\glfw;$(CUDA_PATH)\lib\x64;$(CudaToolkitLibDir)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBCMT</IgnoreSpecificDefaultLibraries>
       <AdditionalOptions>/ignore:4099 /ignore:4217 %(AdditionalOptions)</AdditionalOptions>
@@ -204,7 +204,7 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>assimp-vc142-mt.lib;IrrXML.lib;zlibstatic.lib;FreeImage.lib;cuda.lib;cudart.lib;opengl32.lib;glew32s.lib;glfw3.lib;nvrtc.lib;cudart_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>assimp-vc142-mt.lib;IrrXML.lib;zlibstatic.lib;FreeImage.lib;cuda.lib;cudart.lib;opengl32.lib;glew32s.lib;glfw3.lib;nvrtc.lib;cudart_static.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)libraries\assimp;$(SolutionDir)libraries\FreeImage;$(SolutionDir)libraries\GL;$(SolutionDir)libraries\glfw;$(CUDA_PATH)\lib\x64;$(CudaToolkitLibDir)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBCMT</IgnoreSpecificDefaultLibraries>
       <AdditionalOptions>/ignore:4099 /ignore:4217 %(AdditionalOptions)</AdditionalOptions>

@@ -29,6 +29,13 @@ namespace Tracer
 		inline size_t PolyCount() const { return mIndices.size(); }
 		inline size_t VertexCount() const { return mVertices.size(); }
 
+		// geometry
+		const std::vector<float3>& Vertices() const { return mVertices; }
+		const std::vector<float3>& Normals() const { return mNormals; }
+		const std::vector<float2>& TexCoords() const { return mTexCoords; }
+		const std::vector<uint3>& Indices() const { return mIndices; }
+		const std::vector<uint32_t>& MaterialIndices() const { return mMaterialIndices; }
+
 		// materials
 		std::shared_ptr<Material> GetMaterial(uint32_t primIx) const;
 		std::shared_ptr<Material> GetMaterial(const std::string& name) const;
@@ -39,6 +46,10 @@ namespace Tracer
 		void AddMesh(const std::vector<float3>& vertices, const std::vector<float3>& normals,
 					 const std::vector<float2>& texCoords, const std::vector<uint3>& indices,
 					 uint32_t materialIndex);
+
+		void Set(const std::vector<float3>& vertices, const std::vector<float3>& normals,
+				 const std::vector<float2>& texCoords, const std::vector<uint3>& indices,
+				 std::vector<uint32_t> materialIndices);
 
 		// build
 		void Build(OptixDeviceContext optixContext, CUstream stream);

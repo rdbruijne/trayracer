@@ -49,7 +49,6 @@ namespace Tracer
 		std::shared_ptr<Texture> GetTexture(const std::string& path) const;
 
 		inline const std::vector<std::shared_ptr<Model>>& Models() const { return mModels; }
-		inline const std::vector<std::shared_ptr<Texture>>& Textures() const { return mTextures; }
 		inline const std::vector<std::shared_ptr<Instance>>& Instances() const { return mInstances; }
 
 		const std::vector<LightTriangle>& Lights() const { return mLights; }
@@ -64,7 +63,6 @@ namespace Tracer
 
 		// resources
 		std::vector<std::shared_ptr<Model>> mModels;
-		std::vector<std::shared_ptr<Texture>> mTextures;
 		std::vector<std::shared_ptr<Instance>> mInstances;
 
 		// build data

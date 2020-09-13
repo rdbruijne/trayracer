@@ -9,6 +9,7 @@
 #include <sstream>
 
 // Windows
+#include <shlwapi.h>
 #include <Windows.h>
 
 namespace Tracer
@@ -122,6 +123,33 @@ namespace Tracer
 	{
 		const std::string fileName = FileName(filePath);
 		return fileName.substr(0, fileName.find_last_of('.'));
+	}
+
+
+
+	std::string CurrentDirectory()
+	{
+		char path[MAX_PATH] = {};
+		GetCurrentDirectoryA(MAX_PATH, path);
+		return std::string(path) + "\\";
+	}
+
+
+
+	std::string GlobalPath(const std::string& path)
+	{
+		char globalPath[MAX_PATH] = {};
+		GetFullPathNameA(path.c_str(), MAX_PATH, globalPath, NULL);
+		return std::string(globalPath);
+	}
+
+
+
+	std::string RelativeFilePath(const std::string& path)
+	{
+		char relPath[MAX_PATH] = {};
+		PathRelativePathToA(relPath, CurrentDirectory().c_str(), 0, path.c_str(), FILE_ATTRIBUTE_NORMAL);
+		return std::string(relPath);
 	}
 
 

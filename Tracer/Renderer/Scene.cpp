@@ -84,7 +84,19 @@ namespace Tracer
 
 	size_t Scene::TextureCount() const
 	{
-		return mTextures.size();
+		std::set<std::shared_ptr<Texture>> textures;
+		for(auto& mdl : mModels)
+		{
+			for(auto& mat : mdl->Materials())
+			{
+				if(mat->DiffuseMap())
+					textures.insert(mat->DiffuseMap());
+
+				if(mat->NormalMap())
+					textures.insert(mat->NormalMap());
+			}
+		}
+		return textures.size();
 	}
 
 
@@ -223,10 +235,16 @@ namespace Tracer
 
 	std::shared_ptr<Tracer::Texture> Scene::GetTexture(const std::string& path) const
 	{
-		for(auto& t : mTextures)
+		for(auto& mdl : mModels)
 		{
-			if(t->Path() == path)
-				return t;
+			for(auto& mat : mdl->Materials())
+			{
+				if(mat->DiffuseMap() && mat->DiffuseMap()->Path() == path)
+					return mat->DiffuseMap();
+
+				if(mat->NormalMap() && mat->NormalMap()->Path() == path)
+					return mat->NormalMap();
+			}
 		}
 		return nullptr;
 	}

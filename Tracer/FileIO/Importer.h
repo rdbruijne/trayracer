@@ -22,7 +22,7 @@ namespace Tracer
 		static const std::vector<Format>& SupportedModelFormats();
 		static const std::vector<Format>& SupportedTextureFormats();
 
-		static std::shared_ptr<Texture> ImportTexture(Scene* scene, const std::string& textureFile, const std::string& importDir = "");
+		static std::shared_ptr<Texture> ImportTexture(Scene* scene, const std::string& filePath, const std::string& importDir = "");
 		static std::shared_ptr<Model> ImportModel(Scene* scene, const std::string& filePath, const std::string& name = "");
 	};
 }

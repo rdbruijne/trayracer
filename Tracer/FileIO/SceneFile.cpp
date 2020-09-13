@@ -11,6 +11,7 @@
 #include "Resources/Material.h"
 #include "Resources/Model.h"
 #include "Utility/Logger.h"
+#include "Utility/Stopwatch.h"
 
 // RapidJson
 #pragma warning(push)
@@ -413,17 +414,20 @@ namespace Tracer
 			for(auto m : modelsToImport)
 			{
 				auto model = Importer::ImportModel(scene, models.at(m), m);
-				scene->Add(model);
-				importedModels[m] = model;
+				if(model)
+				{
+					scene->Add(model);
+					importedModels[m] = model;
+				}
 			}
 
 			// create instances
 			for(auto& i : instances)
 			{
-				if(models.find(i.modelName) != models.end())
+				if(models.find(i.modelName) == models.end())
+					Logger::Error("Model \"%s\" was not declared", i.modelName.c_str());
+				else if(importedModels.find(i.modelName) != importedModels.end())
 					scene->Add(std::make_shared<Instance>(i.name, importedModels[i.modelName], i.transform));
-				else
-					Logger::Error("Model \"%s\" was not declared\n", i.modelName.c_str());
 			}
 		}
 
@@ -611,7 +615,7 @@ namespace Tracer
 			{
 				Value jsonModel = Value(kObjectType);
 				Write(jsonModel, allocator, "name", m.second);
-				Write(jsonModel, allocator, "path", m.first->FilePath());
+				Write(jsonModel, allocator, "path", RelativeFilePath(m.first->FilePath()));
 
 				// add model to array
 				jsonModelList.PushBack(jsonModel, allocator);
@@ -685,6 +689,7 @@ namespace Tracer
 	void SceneFile::Load(const std::string& sceneFile, Scene* scene, CameraNode* camNode, Renderer* renderer, Window* window)
 	{
 		Logger::Info("Loading scene from \"%s\"", sceneFile.c_str());
+		Stopwatch sw;
 
 		// read file from disk
 		Document doc;
@@ -708,13 +713,20 @@ namespace Tracer
 		ParseRenderSettings(renderer, doc);
 		ParseSkySettings(scene->GetSky().get(), doc);
 		ParsePostSettings(window, doc);
+
+		Logger::Info("Loaded scene in %s", sw.ElapsedString().c_str());
 	}
 
 
 
 	void SceneFile::Save(const std::string& sceneFile, Scene* scene, CameraNode* camNode, Renderer* renderer, Window* window)
 	{
-		Logger::Info("Saving scene to \"%s\"", sceneFile.c_str());
+		std::string globalPath = GlobalPath(sceneFile);
+		if(ToLower(FileExtension(globalPath)) != ".json")
+			globalPath += ".json";
+
+		Logger::Info("Saving scene to \"%s\"", globalPath.c_str());
+		Stopwatch sw;
 
 		// create json document
 		Document doc;
@@ -745,11 +757,13 @@ namespace Tracer
 		ExportPostSettings(window, doc, allocator);
 
 		// write to disk
-		std::ofstream f(sceneFile);
+		std::ofstream f(globalPath);
 		OStreamWrapper osw(f);
 
 		PrettyWriter<OStreamWrapper> writer(osw);
 		writer.SetFormatOptions(PrettyFormatOptions::kFormatSingleLineArray);
 		doc.Accept(writer);
+
+		Logger::Info("Saved scene in %s", sw.ElapsedString().c_str());
 	}
 }

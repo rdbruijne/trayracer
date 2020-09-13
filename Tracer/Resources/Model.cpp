@@ -75,6 +75,19 @@ namespace Tracer
 
 
 
+	void Model::Set(const std::vector<float3>& vertices, const std::vector<float3>& normals, const std::vector<float2>& texCoords,
+					const std::vector<uint3>& indices, std::vector<uint32_t> materialIndices)
+	{
+		mVertices = vertices;
+		mNormals = normals;
+		mTexCoords = texCoords;
+		mIndices = indices;
+		mMaterialIndices = materialIndices;
+		MarkDirty();
+	}
+
+
+
 	void Model::Build(OptixDeviceContext optixContext, CUstream stream)
 	{
 		// make packed triangles

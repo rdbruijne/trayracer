@@ -23,6 +23,7 @@
 
 // C++
 #include <cassert>
+#include <filesystem>
 #include <stdexcept>
 #include <map>
 
@@ -154,6 +155,199 @@ namespace Tracer
 			// add the mesh
 			model->AddMesh(positions, normals, texcoords, indices, aMesh->mMaterialIndex);
 		}
+
+
+
+		//
+		// cache read helpers
+		//
+		template<typename TYPE>
+		TYPE Read(FILE* f)
+		{
+			TYPE val;
+			fread(&val, sizeof(TYPE), 1, f);
+			return val;
+		}
+
+
+
+		template<>
+		std::string Read<std::string>(FILE* f)
+		{
+			size_t len;
+			fread(&len, sizeof(size_t), 1, f);
+			std::string s(len, '\0');
+			fread(s.data(), sizeof(char), len, f);
+			return s;
+		}
+
+
+
+		template<typename TYPE>
+		std::vector<TYPE> ReadVec(FILE* f)
+		{
+			size_t elemCount;
+			fread(&elemCount, sizeof(size_t), 1, f);
+			std::vector<TYPE> v(elemCount);
+			fread(v.data(), sizeof(TYPE), elemCount, f);
+			return v;
+		}
+
+
+
+		//
+		// cache write helpers
+		//
+		template<typename TYPE>
+		void Write(FILE* f, const TYPE& data)
+		{
+			fwrite(&data, sizeof(TYPE), 1, f);
+		}
+
+
+
+		template<>
+		void Write(FILE* f, const std::string& s)
+		{
+			size_t len = s.length();
+			fwrite(&len, sizeof(size_t), 1, f);
+			fwrite(s.data(), sizeof(char), len, f);
+		}
+
+
+
+		template<typename TYPE>
+		void WriteVec(FILE* f, const std::vector<TYPE>& v)
+		{
+			size_t elemCount = v.size();
+			fwrite(&elemCount, sizeof(size_t), 1, f);
+			fwrite(v.data(), sizeof(TYPE), elemCount, f);
+		}
+
+
+
+		//
+		// Model cache
+		//
+		bool SaveToCache(std::shared_ptr<Model> model, const std::string& filePath)
+		{
+			const size_t pathHash = std::hash<std::string>{}(filePath);
+			const std::string cacheFile = "cache/" + std::to_string(pathHash);
+			std::filesystem::create_directory("cache");
+			FILE* f = nullptr;
+			if((fopen_s(&f, cacheFile.c_str(), "wb") != 0) || !f)
+				return false;
+
+			// vertices
+			WriteVec(f, model->Vertices());
+			WriteVec(f, model->Normals());
+			WriteVec(f, model->TexCoords());
+
+			// indices
+			WriteVec(f, model->Indices());
+			WriteVec(f, model->MaterialIndices());
+
+			// materials
+			const auto& mats = model->Materials();
+			Write(f, model->Materials().size());
+			for(auto& m : mats)
+			{
+				Write(f, m->Name());
+				Write(f, m->Diffuse());
+				Write(f, m->Emissive());
+				Write(f, m->DiffuseMap() ? m->DiffuseMap()->Path() : "");
+				Write(f, m->NormalMap() ? m->NormalMap()->Path() : "");
+			}
+
+			// close the file
+			fclose(f);
+
+			return true;
+		}
+
+
+
+		std::shared_ptr<Model> LoadModelFromCache(Scene* scene, const std::string& filePath, const std::string& name = "")
+		{
+			const size_t pathHash = std::hash<std::string>{}(filePath);
+			const std::string cacheFile = "cache/" + std::to_string(pathHash);
+			FILE* f = nullptr;
+			if((fopen_s(&f, cacheFile.c_str(), "rb") != 0) || !f)
+				return nullptr;
+
+			const std::string importDir = Directory(filePath);
+
+			// vertices
+			std::vector<float3> vertices = ReadVec<float3>(f);
+			std::vector<float3> normals = ReadVec<float3>(f);
+			std::vector<float2> texCoords = ReadVec<float2>(f);
+
+			// indices
+			std::vector<uint3> indices = ReadVec<uint3>(f);
+			std::vector<uint32_t> materialIndices = ReadVec<uint32_t>(f);
+
+			std::shared_ptr<Model> model = std::make_shared<Model>(filePath, name);
+			model->Set(vertices, normals, texCoords, indices, materialIndices);
+
+			// materials
+			size_t matCount = 0;
+			fread(&matCount, sizeof(size_t), 1, f);
+			for(size_t i = 0; i < matCount; i++)
+			{
+				std::string matName = Read<std::string>(f);
+				std::shared_ptr<Material> mat = std::make_shared<Material>(matName);
+
+				mat->SetDiffuse(Read<float3>(f));
+				mat->SetEmissive(Read<float3>(f));
+
+				std::string diffMap = Read<std::string>(f);
+				if(!diffMap.empty())
+					mat->SetDiffuseMap(Importer::ImportTexture(scene, diffMap));
+
+				std::string norMap = Read<std::string>(f);
+				if(!norMap.empty())
+					mat->SetNormalMap(Importer::ImportTexture(scene, norMap));
+
+				model->AddMaterial(mat);
+			}
+
+			return model;
+		}
+
+
+
+		//
+		// Texture cache
+		//
+		bool SaveToCache(std::shared_ptr<Texture> tex, const std::string& textureFile)
+		{
+			const size_t pathHash = std::hash<std::string>{}(textureFile);
+			const std::string cacheFile = "cache/" + std::to_string(pathHash);
+			std::filesystem::create_directory("cache");
+			FILE* f = nullptr;
+			if((fopen_s(&f, cacheFile.c_str(), "wb") != 0) || !f)
+				return false;
+
+			Write(f, tex->Resolution());
+			WriteVec(f, tex->Pixels());
+			fclose(f);
+			return true;
+		}
+
+
+
+		std::shared_ptr<Texture> LoadTextureFromCache(Scene* scene, const std::string& filePath, const std::string& importDir = "")
+		{
+			const size_t pathHash = std::hash<std::string>{}(filePath);
+			const std::string cacheFile = "cache/" + std::to_string(pathHash);
+			FILE* f = nullptr;
+			if((fopen_s(&f, cacheFile.c_str(), "rb") != 0) || !f)
+				return nullptr;
+
+			int2 res = Read<int2>(f);
+			std::vector<float4> pixels = ReadVec<float4>(f);
+			return std::make_shared<Texture>(filePath, res, pixels);
+		}
 	}
 
 
@@ -199,8 +393,8 @@ namespace Tracer
 				{
 					Format f;
 					f.name = FreeImage_GetFormatFromFIF(fif);
-					f.description  = FreeImage_GetFIFDescription(fif);
-					f.ext  = FreeImage_GetFIFExtensionList(fif);
+					f.description = FreeImage_GetFIFDescription(fif);
+					f.ext = FreeImage_GetFIFExtensionList(fif);
 					result.push_back(f);
 				}
 			}
@@ -210,22 +404,32 @@ namespace Tracer
 
 
 
-	std::shared_ptr<Texture> Importer::ImportTexture(Scene* scene, const std::string& textureFile, const std::string& importDir)
+	std::shared_ptr<Texture> Importer::ImportTexture(Scene* scene, const std::string& filePath, const std::string& importDir)
 	{
-		std::string texPath = textureFile;
+		std::string globalPath = filePath;
 		if(!importDir.empty())
-			texPath = importDir + "/" + textureFile;
+			globalPath = importDir + "/" + globalPath;
+		globalPath = GlobalPath(globalPath);
 
 		// check the scene for an existing texture
-		if(std::shared_ptr<Texture> tex = scene->GetTexture(texPath))
+		if(std::shared_ptr<Texture> tex = scene->GetTexture(globalPath))
 			return tex;
 
-		// load image
-		FREE_IMAGE_FORMAT fif = FreeImage_GetFileType(texPath.c_str(), 0);
-		if(fif == FIF_UNKNOWN)
-			fif = FreeImage_GetFIFFromFilename(texPath.c_str());
+		// check the cache
+		Stopwatch sw;
+		std::shared_ptr<Texture> tex = LoadTextureFromCache(scene, globalPath, importDir);
+		if(tex)
+		{
+			Logger::Info("Loaded \"%s\" from cache in %s", globalPath.c_str(), sw.ElapsedString().c_str());
+			return tex;
+		}
 
-		FIBITMAP* tmp = FreeImage_Load(fif, texPath.c_str());
+		// load image
+		FREE_IMAGE_FORMAT fif = FreeImage_GetFileType(globalPath.c_str(), 0);
+		if(fif == FIF_UNKNOWN)
+			fif = FreeImage_GetFIFFromFilename(globalPath.c_str());
+
+		FIBITMAP* tmp = FreeImage_Load(fif, globalPath.c_str());
 		//FIBITMAP* dib = FreeImage_ConvertTo32Bits(tmp);
 		FIBITMAP* dib = FreeImage_ConvertToRGBAF(tmp);
 		FreeImage_Unload(tmp);
@@ -241,119 +445,127 @@ namespace Tracer
 		FreeImage_Unload(dib);
 
 		// create texture
-		return std::make_shared<Texture>(texPath, make_int2(width, height), pixels);
+		tex = std::make_shared<Texture>(globalPath, make_int2(width, height), pixels);
+		Logger::Info("Imported \"%s\" in %s", globalPath.c_str(), sw.ElapsedString().c_str());
+
+		sw.Reset();
+		SaveToCache(tex, globalPath);
+		Logger::Debug("Saved \"%s\" to cache in %s", globalPath.c_str(), sw.ElapsedString().c_str());
+
+		return tex;
 	}
 
 
 
 	std::shared_ptr<Model> Importer::ImportModel(Scene* scene, const std::string& filePath, const std::string& name)
 	{
-		Logger::Info("Importing \"%s\"", filePath.c_str());
-		try
+		Stopwatch sw;
+		const std::string globalPath = GlobalPath(filePath);
+		std::shared_ptr<Model> model = LoadModelFromCache(scene, globalPath, name);
+		if(model)
 		{
-			Stopwatch sw;
-			const std::string importDir = Directory(filePath);
-
-#if false
-			// attach log stream
-			static Assimp::Logger* defaultLogger = nullptr;
-			if(!defaultLogger)
-			{
-				defaultLogger = Assimp::DefaultLogger::create();
-				//defaultLogger->setLogSeverity(Assimp::Logger::VERBOSE);
-				defaultLogger->attachStream(new ImportLogStream(), Assimp::Logger::Debugging | Assimp::Logger::Info | Assimp::Logger::Err | Assimp::Logger::Warn);
-			}
-#endif
-
-			// Importer
-			Assimp::Importer importer;
-			if(!importer.IsExtensionSupported(FileExtension(filePath)))
-			{
-				Logger::Error("Filetype \"%s\" is not supported by the importer.\n", FileExtension(filePath).c_str());
-				return nullptr;
-			}
-
-			// import flags
-			constexpr uint32_t importFlags =
-				//aiProcess_CalcTangentSpace |
-				aiProcess_JoinIdenticalVertices |
-				//aiProcess_MakeLeftHanded |
-				aiProcess_Triangulate |
-				aiProcess_RemoveComponent |
-				//aiProcess_GenNormals |
-				aiProcess_GenSmoothNormals |
-				//aiProcess_SplitLargeMeshes |
-				aiProcess_PreTransformVertices |
-				aiProcess_LimitBoneWeights |
-				aiProcess_ValidateDataStructure |
-				//aiProcess_ImproveCacheLocality |
-				aiProcess_RemoveRedundantMaterials |
-				aiProcess_FixInfacingNormals |
-				aiProcess_PopulateArmatureData |
-				aiProcess_SortByPType |
-				aiProcess_FindDegenerates |
-				aiProcess_FindInvalidData |
-				aiProcess_GenUVCoords |
-				//aiProcess_TransformUVCoords |
-				//aiProcess_FindInstances |
-				aiProcess_OptimizeMeshes |
-				//aiProcess_OptimizeGraph |
-				//aiProcess_FlipUVs |
-				//aiProcess_FlipWindingOrder |
-				//aiProcess_SplitByBoneCount |
-				//aiProcess_Debone |
-				//aiProcess_GlobalScale |
-				//aiProcess_EmbedTextures |
-				//aiProcess_ForceGenNormals |
-				//aiProcess_GenBoundingBoxes |
-				0u;
-			if(!importer.ValidateFlags(importFlags))
-				throw std::runtime_error(importer.GetErrorString());
-
-			// assimp properties
-			importer.SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE, aiPrimitiveType_LINE | aiPrimitiveType_POINT);
-			importer.SetPropertyInteger(AI_CONFIG_FAVOUR_SPEED, 1);
-			importer.SetPropertyInteger(AI_CONFIG_PP_LBW_MAX_WEIGHTS, 4);
-
-			// read the file
-			const aiScene* aScene = importer.ReadFile(filePath.c_str(), importFlags);
-			if(!aScene)
-				throw std::runtime_error(importer.GetErrorString());
-			Logger::Info("Imported \"%s\" in %s", filePath.c_str(), sw.ElapsedString().c_str());
-
-			// start parsing
-			Logger::Info("Parsing \"%s\"", filePath.c_str());
-			sw.Reset();
-
-			// create model
-			std::shared_ptr<Model> model = std::make_shared<Model>(filePath, name);
-
-			// import materials
-			std::map<std::string, std::shared_ptr<Texture>> textures;
-			for(uint32_t i = 0; i < aScene->mNumMaterials; i++)
-				model->AddMaterial(ImportMaterial(scene, importDir, aScene->mMaterials[i]));
-
-			// import meshes
-			uint32_t polyCount = 0;
-			for(uint32_t i = 0; i < aScene->mNumMeshes; i++)
-			{
-				ImportMesh(model, aScene->mMeshes[i], model->Materials());
-				polyCount += aScene->mMeshes[i]->mNumFaces;
-			}
-
-			Logger::Info("Parsed \"%s\" in %s:", filePath.c_str(), sw.ElapsedString().c_str());
-			Logger::Info("  Meshes   : %s", ThousandSeparators(aScene->mNumMeshes).c_str());
-			Logger::Info("  Materials: %s", ThousandSeparators(model->Materials().size()).c_str());
-			Logger::Info("  Textures : %s", ThousandSeparators(textures.size()).c_str());
-			Logger::Info("  Polygons : %s", ThousandSeparators(polyCount).c_str());
-
+			Logger::Info("Loaded \"%s\"from cache in %s", globalPath.c_str(), sw.ElapsedString().c_str());
 			return model;
 		}
-		catch(const std::exception& e)
+
+		const std::string importDir = Directory(globalPath);
+
+#if false
+		// attach log stream
+		static Assimp::Logger* defaultLogger = nullptr;
+		if(!defaultLogger)
 		{
-			Logger::Error("Failed to import \"%s\": %s", filePath.c_str(), e.what());
+			defaultLogger = Assimp::DefaultLogger::create();
+			//defaultLogger->setLogSeverity(Assimp::Logger::VERBOSE);
+			defaultLogger->attachStream(new ImportLogStream(), Assimp::Logger::Debugging | Assimp::Logger::Info | Assimp::Logger::Err | Assimp::Logger::Warn);
+		}
+#endif
+
+
+		// Importer
+		Assimp::Importer importer;
+		if(!importer.IsExtensionSupported(FileExtension(globalPath)))
+		{
+			Logger::Error("Filetype \"%s\" is not supported by the importer.\n", FileExtension(globalPath).c_str());
+			return nullptr;
 		}
 
-		return nullptr;
+		// import flags
+		constexpr uint32_t importFlags =
+			//aiProcess_CalcTangentSpace |
+			aiProcess_JoinIdenticalVertices |
+			//aiProcess_MakeLeftHanded |
+			aiProcess_Triangulate |
+			aiProcess_RemoveComponent |
+			//aiProcess_GenNormals |
+			aiProcess_GenSmoothNormals |
+			//aiProcess_SplitLargeMeshes |
+			aiProcess_PreTransformVertices |
+			aiProcess_LimitBoneWeights |
+			aiProcess_ValidateDataStructure |
+			//aiProcess_ImproveCacheLocality |
+			aiProcess_RemoveRedundantMaterials |
+			aiProcess_FixInfacingNormals |
+			aiProcess_PopulateArmatureData |
+			aiProcess_SortByPType |
+			aiProcess_FindDegenerates |
+			aiProcess_FindInvalidData |
+			aiProcess_GenUVCoords |
+			//aiProcess_TransformUVCoords |
+			//aiProcess_FindInstances |
+			aiProcess_OptimizeMeshes |
+			//aiProcess_OptimizeGraph |
+			//aiProcess_FlipUVs |
+			//aiProcess_FlipWindingOrder |
+			//aiProcess_SplitByBoneCount |
+			//aiProcess_Debone |
+			//aiProcess_GlobalScale |
+			//aiProcess_EmbedTextures |
+			//aiProcess_ForceGenNormals |
+			//aiProcess_GenBoundingBoxes |
+			0u;
+		if(!importer.ValidateFlags(importFlags))
+			throw std::runtime_error(importer.GetErrorString());
+
+		// assimp properties
+		importer.SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE, aiPrimitiveType_LINE | aiPrimitiveType_POINT);
+		importer.SetPropertyInteger(AI_CONFIG_FAVOUR_SPEED, 1);
+		importer.SetPropertyInteger(AI_CONFIG_PP_LBW_MAX_WEIGHTS, 4);
+
+		// read the file
+		const aiScene* aScene = importer.ReadFile(globalPath.c_str(), importFlags);
+		if(!aScene)
+		{
+			Logger::Error("Failed to import \"%s\": %s", globalPath.c_str(), importer.GetErrorString());
+			return nullptr;
+		}
+
+		// create model
+		model = std::make_shared<Model>(globalPath, name);
+
+		// import materials
+		std::map<std::string, std::shared_ptr<Texture>> textures;
+		for(uint32_t i = 0; i < aScene->mNumMaterials; i++)
+			model->AddMaterial(ImportMaterial(scene, importDir, aScene->mMaterials[i]));
+
+		// import meshes
+		uint32_t polyCount = 0;
+		for(uint32_t i = 0; i < aScene->mNumMeshes; i++)
+		{
+			ImportMesh(model, aScene->mMeshes[i], model->Materials());
+			polyCount += aScene->mMeshes[i]->mNumFaces;
+		}
+
+		Logger::Info("Imported \"%s\" in %s", globalPath.c_str(), sw.ElapsedString().c_str());
+		Logger::Debug("  Meshes   : %s", ThousandSeparators(aScene->mNumMeshes).c_str());
+		Logger::Debug("  Materials: %s", ThousandSeparators(model->Materials().size()).c_str());
+		Logger::Debug("  Textures : %s", ThousandSeparators(textures.size()).c_str());
+		Logger::Debug("  Polygons : %s", ThousandSeparators(polyCount).c_str());
+
+		sw.Reset();
+		SaveToCache(model, globalPath);
+		Logger::Debug("Saved \"%s\" to cache in %s", globalPath.c_str(), sw.ElapsedString().c_str());
+
+		return model;
 	}
 }
