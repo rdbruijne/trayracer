@@ -37,7 +37,7 @@ __global__ void AmbientOcclusionShadingKernel(DECLARE_KERNEL_PARAMS)
 		// bounce ray
 		uint32_t seed = tea<2>(pathIx, params->sampleCount + pathLength + 1);
 		const float3 newOrigin = O + (D * tmax);
-		const float3 newDir = SampleCosineHemisphere(attrib.geometricNormal, rnd(seed), rnd(seed));
+		const float3 newDir = SampleCosineHemisphere(attrib.shadingNormal, rnd(seed), rnd(seed));
 
 		// update path states
 		const int32_t extendIx = atomicAdd(&counters->extendRays, 1);

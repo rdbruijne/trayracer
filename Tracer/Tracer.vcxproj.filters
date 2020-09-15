@@ -279,6 +279,9 @@
     <ClInclude Include="CUDA\CudaSky.h">
       <Filter>CUDA</Filter>
     </ClInclude>
+    <ClInclude Include="CUDA\CudaGlobals.h">
+      <Filter>CUDA</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Model.h">

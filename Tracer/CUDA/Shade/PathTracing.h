@@ -71,12 +71,9 @@ __global__ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 	const float3 I = O + D * tmax;
 	float lightProb;
 	float lightPdf;
+	float lightDist;
 	float3 lightRadiance;
-	const float3 lightPoint = SampleLight(seed, I, attrib.shadingNormal, lightProb, lightPdf, lightRadiance);
-
-	float3 L = lightPoint - I;
-	const float lDist = length(L);
-	L *= 1.f / lDist;
+	const float3 L = SampleLight(seed, I, attrib.shadingNormal, lightProb, lightPdf, lightRadiance, lightDist);
 	const float NdotL = dot(L, attrib.shadingNormal);
 
 	// hit -> eye
@@ -95,20 +92,22 @@ __global__ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 	info.T    = throughput;
 
 	Closure closure = Diffuse_Closure(info);
+	seed = info.seed;
 
 	// extend ray
 	const float3 extend = normalize(closure.extend.wi.x * attrib.tangent + closure.extend.wi.y * attrib.bitangent + closure.extend.wi.z * attrib.geometricNormal);
 
 	// shadow ray
-	if(NdotL > 0 && lightPdf > 0)
+	if(NdotL > 0 && lightPdf > 0)//Epsilon && closure.shadow.pdf > Epsilon)
 	{
 		// fire shadow ray
 		const int32_t shadowIx = atomicAdd(&counters->shadowRays, 1);
 		shadowRays[shadowIx + (stride * 0)] = make_float4(I, __int_as_float(pixelIx));
-		shadowRays[shadowIx + (stride * 1)] = make_float4(L, lDist);
+		shadowRays[shadowIx + (stride * 1)] = make_float4(L, lightDist);
 		shadowRays[shadowIx + (stride * 2)] = make_float4(closure.shadow.T * lightRadiance * NdotL, 0);
 		//shadowRays[shadowIx + (stride * 2)] = make_float4((throughput * lightRadiance * NdotL) / (lightProb * lightPdf), 0);
 	}
+
 
 	// Russian roulette
 	if(pathLength > 0)

@@ -3,7 +3,8 @@
 
 #pragma once
 
-#include "Common/CommonStructs.h"
+#include "CudaGlobals.h"
+#include "CUDA/helper_math.h"
 
 namespace
 {
@@ -44,15 +45,25 @@ namespace
 	static __device__
 	float ArHosekSkyModel_GetRadianceInternal(float* config, float theta, float gamma)
 	{
+		const float A = config[0];
+		const float B = config[1];
+		const float C = config[2];
+		const float D = config[3];
+		const float E = config[4];
+		const float F = config[5];
+		const float G = config[6];
+		const float H = config[7];
+		const float I = config[8];
+
 		const float cosTheta = cosf(theta);
 		const float cosGamma = cosf(gamma);
 
-		const float expM = expf(config[4] * gamma);
+		const float expM = expf(E * gamma);
 		const float rayM = cosGamma * cosGamma;
-		const double mieM = (1.0f + cosGamma*cosGamma) / powf((1.0f + config[8]*config[8] - 2.0*config[8]*cosGamma), 1.5f);
+		const double mieM = (1.0f + cosGamma*cosGamma) / powf((1.0f + I*I - 2.0f*I*cosGamma), 1.5f);
 		const double zenith = sqrt(cosTheta);
 
-		return (1.0f + config[0] * expf(config[1] / (cosTheta + 0.01f))) * (config[2] + config[3] * expM + config[5] * rayM + config[6] * mieM + config[7] * zenith);
+		return (1.0f + A * expf(B / (cosTheta + 0.01f))) * (C + (D * expM) + (F * rayM) + (G * mieM) + (H * zenith));
 	}
 
 
@@ -69,8 +80,9 @@ namespace
 static __device__
 float3 SampleSky(float3 dir)
 {
-	if(dir.y <= 1e-4f)
+	if(dir.y < 1e-4f)
 		dir.y = 1e-4f;
+	dir = normalize(dir);
 
 	const float gamma = acosf(dot(dir, skyData->sunDir));
 	const float theta = acosf(dot(dir, make_float3(0, 1, 0)));
@@ -86,5 +98,8 @@ float3 SampleSky(float3 dir)
 		radiance += skyData->sunColor * skyData->sunTint;
 
 	radiance = ACES2065_1_to_sRGB(radiance);
+	if(isnan(radiance.x) || isnan(radiance.y) || isnan(radiance.z))
+		return make_float3(0, 0, 0);
+
 	return radiance * .05f;
 }

@@ -45,26 +45,20 @@ __global__ void DirectLightKernel(DECLARE_KERNEL_PARAMS)
 	const float3 throughput = attrib.diffuse;
 
 	// next event
-	if(lightCount > 0)
+	const float3 I = O + D * tmax;
+	float lightProb;
+	float lightPdf;
+	float lightDist;
+	float3 lightRadiance;
+	const float3 L = SampleLight(seed, I, attrib.shadingNormal, lightProb, lightPdf, lightRadiance, lightDist);
+	const float NdotL = dot(L, attrib.shadingNormal);
+	if(NdotL > 0 && lightPdf > 0)
 	{
-		const float3 I = O + D * tmax;
-		float lightProb;
-		float lightPdf;
-		float3 lightRadiance;
-		const float3 lightPoint = SampleLight(seed, I, attrib.shadingNormal, lightProb, lightPdf, lightRadiance);
-
-		float3 L = lightPoint - I;
-		const float lDist = length(L);
-		L *= 1.f / lDist;
-		const float NdotL = dot(L, attrib.shadingNormal);
-		if(NdotL > 0)// && lightPdf > 0)
-		{
-			// fire shadow ray
-			const int32_t shadowIx = atomicAdd(&counters->shadowRays, 1);
-			shadowRays[shadowIx + (stride * 0)] = make_float4(I, __int_as_float(pixelIx));
-			shadowRays[shadowIx + (stride * 1)] = make_float4(L, lDist);
-			shadowRays[shadowIx + (stride * 2)] = make_float4(throughput * lightRadiance * NdotL/** (NdotL / (lightProb * lightPdf))*/, 0);
-		}
+		// fire shadow ray
+		const int32_t shadowIx = atomicAdd(&counters->shadowRays, 1);
+		shadowRays[shadowIx + (stride * 0)] = make_float4(I, __int_as_float(pixelIx));
+		shadowRays[shadowIx + (stride * 1)] = make_float4(L, lightDist);
+		shadowRays[shadowIx + (stride * 2)] = make_float4(throughput * lightRadiance * NdotL/** (NdotL / (lightProb * lightPdf))*/, 0);
 	}
 
 	// denoiser data

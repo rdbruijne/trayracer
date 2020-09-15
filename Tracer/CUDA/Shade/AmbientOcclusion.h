@@ -34,7 +34,7 @@ __global__ void AmbientOcclusionKernel(DECLARE_KERNEL_PARAMS)
 
 		// fix infacing normal
 		const float3 newOrigin = O + (D * tmax);
-		const float3 newDir = SampleCosineHemisphere(attrib.geometricNormal, rnd(seed), rnd(seed));
+		const float3 newDir = SampleCosineHemisphere(attrib.shadingNormal, rnd(seed), rnd(seed));
 
 		// update path states
 		const int32_t extendIx = atomicAdd(&counters->extendRays, 1);
