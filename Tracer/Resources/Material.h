@@ -29,7 +29,6 @@ namespace Tracer
 		//----------------
 		// getters
 		//----------------
-
 		const float3& Diffuse() const { return mDiffuse; }
 		const float3& Emissive() const { return mEmissive; }
 

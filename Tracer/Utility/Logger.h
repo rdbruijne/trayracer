@@ -59,13 +59,7 @@ namespace Tracer
 	private:
 		static void HandleLog(Severity severity, const char* fmt, ...);
 
-		static inline std::map<Severity, std::vector<std::shared_ptr<LogStream>>> msStreams =
-		{
-			{ Severity::Debug, {} },
-			{ Severity::Info, {} },
-			{ Severity::Warning, {} },
-			{ Severity::Error, {} },
-		};
+		static inline std::map<Severity, std::vector<std::shared_ptr<LogStream>>> msStreams;
 	};
 
 	ENUM_BITWISE_OPERATORS(Logger::Severity);

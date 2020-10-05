@@ -1,7 +1,6 @@
 #pragma once
 
-// Project
-#include "App/ControlScheme.h"
+#include "Renderer/Scene.h"
 #include "Resources/CameraNode.h"
 
 // C++
@@ -10,25 +9,24 @@
 namespace Tracer
 {
 	class Renderer;
-	class Scene;
 	class Window;
 	class App
 	{
 	public:
-		void Init(Renderer* renderer, Window* window);
-		void DeInit(Renderer* renderer, Window* window);
-		void Tick(Renderer* renderer, Window* window, float dt);
+		App() = default;
+		virtual ~App() = default;
 
-		Scene* GetScene() { return mScene.get(); }
-		Scene* GetScene() const { return mScene.get(); }
+		virtual void Init(Tracer::Renderer* renderer, Tracer::Window* window) = 0;
+		virtual void DeInit(Tracer::Renderer* renderer, Tracer::Window* window) = 0;
+		virtual void Tick(Tracer::Renderer* renderer, Tracer::Window* window, float dt) = 0;
 
-		CameraNode* GetCameraNode() { return &mCamera; }
+		virtual Scene* GetScene() { return mScene.get(); }
+		virtual Scene* GetScene() const { return mScene.get(); }
 
-	private:
+		virtual CameraNode* GetCameraNode() { return &mCamera; }
+
+	protected:
 		std::unique_ptr<Scene> mScene = nullptr;
-
-		// Camera
 		CameraNode mCamera;
-		ControlScheme mControlScheme;
 	};
 }

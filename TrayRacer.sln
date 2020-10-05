@@ -10,6 +10,15 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Tracer", "Tracer\Tracer.vcx
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Libraries", "libraries\Libraries.vcxproj", "{41519746-C932-42D0-A110-6B5BEDAE7FF8}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Demo", "Apps\Demo\Demo.vcxproj", "{EE7B195B-6C05-4EFE-B850-DCC3E0778122}"
+	ProjectSection(ProjectDependencies) = postProject
+		{AD79D7B9-264E-42A5-A77D-FFB6B3B056EF} = {AD79D7B9-264E-42A5-A77D-FFB6B3B056EF}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Apps", "Apps", "{901D201B-C222-4D2C-A8A0-8EEC9A12B70E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Third Party", "Third Party", "{A03259A9-4E18-4045-ADCD-509AA87F02A4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -29,9 +38,19 @@ Global
 		{41519746-C932-42D0-A110-6B5BEDAE7FF8}.Release|x64.Build.0 = Release|x64
 		{41519746-C932-42D0-A110-6B5BEDAE7FF8}.RelWithDebInfo|x64.ActiveCfg = RelWithDebInfo|x64
 		{41519746-C932-42D0-A110-6B5BEDAE7FF8}.RelWithDebInfo|x64.Build.0 = RelWithDebInfo|x64
+		{EE7B195B-6C05-4EFE-B850-DCC3E0778122}.Debug|x64.ActiveCfg = Debug|x64
+		{EE7B195B-6C05-4EFE-B850-DCC3E0778122}.Debug|x64.Build.0 = Debug|x64
+		{EE7B195B-6C05-4EFE-B850-DCC3E0778122}.Release|x64.ActiveCfg = Release|x64
+		{EE7B195B-6C05-4EFE-B850-DCC3E0778122}.Release|x64.Build.0 = Release|x64
+		{EE7B195B-6C05-4EFE-B850-DCC3E0778122}.RelWithDebInfo|x64.ActiveCfg = RelWithDebInfo|x64
+		{EE7B195B-6C05-4EFE-B850-DCC3E0778122}.RelWithDebInfo|x64.Build.0 = RelWithDebInfo|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{41519746-C932-42D0-A110-6B5BEDAE7FF8} = {A03259A9-4E18-4045-ADCD-509AA87F02A4}
+		{EE7B195B-6C05-4EFE-B850-DCC3E0778122} = {901D201B-C222-4D2C-A8A0-8EEC9A12B70E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1473797E-7405-48DA-95A4-2B895E4993D1}

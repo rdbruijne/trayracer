@@ -15,6 +15,9 @@ namespace Tracer
 	{
 		auto add = [stream, severities](Severity sev)
 		{
+			if(msStreams.find(sev) == msStreams.end())
+				msStreams[sev] = {};
+
 			auto& s = msStreams[sev];
 			if((severities & sev) == sev)
 				if(std::find(s.begin(), s.end(), stream) == s.end())

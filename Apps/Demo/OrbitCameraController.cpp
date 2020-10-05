@@ -1,10 +1,13 @@
-#include "App/OrbitCameraController.h"
+#include "OrbitCameraController.h"
 
 // Project
-#include "App/ControlScheme.h"
-#include "Resources/CameraNode.h"
+#include "ControlScheme.h"
 
-namespace Tracer
+// Tracer
+#include "Tracer/Resources/CameraNode.h"
+
+using namespace Tracer;
+namespace Demo
 {
 	float3 OrbitCameraController::sPrevUp = make_float3(0, 1, 0);
 

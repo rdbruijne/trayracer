@@ -42,4 +42,7 @@ namespace Tracer
 	// Windows
 	bool OpenFileDialog(const char* filter, const std::string& title, bool mustExist, std::string& result);
 	bool SaveFileDialog(const char* filter, const std::string& title, std::string& result);
+
+	// mark variables as used
+	inline void MarkVariablesUsed(...) {}
 }

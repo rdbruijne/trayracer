@@ -16,7 +16,7 @@
 
 // Magic Enum
 #pragma warning(push)
-#pragma warning(disable: 5027)
+#pragma warning(disable: 4346 5027)
 #include "magic_enum/magic_enum.hpp"
 #pragma warning(pop)
 
@@ -389,7 +389,7 @@ namespace Tracer
 			sky->SetDrawSun(drawSun);
 
 		float sunSize = sky->SunSize();
-		if(ImGui::SliderFloat("Sun size", &sunSize, 0.f, 1.f))
+		if(ImGui::SliderFloat("Sun size", &sunSize, 0.f, static_cast<float>(M_PI)))
 			sky->SetSunSize(sunSize);
 
 		float3 sunColor = sky->SunColor();

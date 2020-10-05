@@ -1,14 +1,19 @@
-#include "App/App.h"
+#include "App.h"
 
 // Project
-#include "App/OrbitCameraController.h"
-#include "GUI/MainGui.h"
-#include "OpenGL/Window.h"
-#include "Renderer/Scene.h"
-#include "Renderer/Renderer.h"
-#include "Resources/Instance.h"
+#include "OrbitCameraController.h"
 
-namespace Tracer
+// Tracer
+#include "Tracer/FileIO/SceneFile.h"
+#include "Tracer/GUI/MainGui.h"
+#include "Tracer/OpenGL/Window.h"
+#include "Tracer/Renderer/Scene.h"
+#include "Tracer/Renderer/Renderer.h"
+#include "Tracer/Resources/Instance.h"
+#include "Tracer/Utility/LinearMath.h"
+
+using namespace Tracer;
+namespace Demo
 {
 	void App::Init(Renderer* renderer, Window* window)
 	{
@@ -19,17 +24,21 @@ namespace Tracer
 
 		// update camera
 		renderer->SetCamera(mCamera);
+
+		// load a scene
+		//SceneFile::Load("../Resources/scenes/toad_on_a_plane.json", mScene.get(), &mCamera, renderer, window);
+		MarkVariablesUsed(window);
 	}
 
 
 
-	void App::DeInit(Renderer* renderer, Window* window)
+	void App::DeInit(Renderer* /*renderer*/, Window* /*window*/)
 	{
 	}
 
 
 
-	void App::Tick(Renderer* renderer, Window* window, float dt)
+	void App::Tick(Renderer* renderer, Window* window, float /*dt*/)
 	{
 		// handle camera controller
 		OrbitCameraController::HandleInput(mCamera, &mControlScheme, window);
@@ -57,16 +66,5 @@ namespace Tracer
 
 		// set the camera
 		renderer->SetCamera(mCamera);
-
-		// find a toad to rotate
-		/*
-		for(auto& inst : mScene->Instances())
-		{
-			if(inst->Name() == "toad")
-			{
-				inst->SetTransform(inst->Transform() * rotate_y_3x4(static_cast<float>(M_PI) * .05f * dt));
-			}
-		}
-		/**/
 	}
 }

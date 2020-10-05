@@ -1,9 +1,10 @@
-#include "App/ControlScheme.h"
+#include "ControlScheme.h"
 
-// Project
-#include "OpenGL/Window.h"
+// Tracer
+#include "Tracer/OpenGL/Window.h"
 
-namespace Tracer
+using namespace Tracer;
+namespace Demo
 {
 	namespace
 	{
@@ -34,6 +35,13 @@ namespace Tracer
 		OrbitCameraRoll     = Entry(Input::Keys::Mouse_Right, Input::ModifierKeys::Alt, .01f);
 		OrbitCameraDolly    = Entry(Input::Keys::Mouse_Right, .01f);
 		OrbitCameraDollyAlt = Entry(Input::Keys::Mouse_Scroll, -.1f);
+	}
+
+
+
+	ControlScheme::Entry::Entry(Input::Keys key, float scalar) :
+		Entry(key, Tracer::Input::ModifierKeys::None, scalar)
+	{
 	}
 
 

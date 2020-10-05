@@ -7,7 +7,7 @@
 
 // Magic Enum
 #pragma warning(push)
-#pragma warning(disable: 5027)
+#pragma warning(disable: 4346 5027)
 #include "magic_enum/magic_enum.hpp"
 #pragma warning(pop)
 
@@ -64,7 +64,7 @@ namespace Tracer
 			float denoiseTimeMs = 0;
 		};
 		inline RenderStats Statistics() const { return mRenderStats; }
-		inline int SampleCount() const { return mLaunchParams.sampleCount; }
+		inline uint32_t SampleCount() const { return mLaunchParams.sampleCount; }
 
 		// ray picking
 		RayPickResult PickRay(int2 pixelIndex);
@@ -76,7 +76,7 @@ namespace Tracer
 		inline bool DenoisingEnabled() const { return mDenoisingEnabled; }
 		inline void SetDenoiserEnabled(bool enabled) { mDenoisingEnabled = enabled; }
 
-		inline int32_t DenoiserSampleThreshold() const { return mDenoiserSampleThreshold; }
+		inline uint32_t DenoiserSampleThreshold() const { return mDenoiserSampleThreshold; }
 		inline void SetDenoiserSampleThreshold(uint32_t Threshold) { mDenoiserSampleThreshold = Threshold; }
 
 		// kernel settings
@@ -167,7 +167,7 @@ namespace Tracer
 
 		bool mDenoisingEnabled = false;
 		bool mDenoisedFrame = false;
-		int32_t mDenoiserSampleThreshold = 10;
+		uint32_t mDenoiserSampleThreshold = 10;
 
 		// Launch parameters
 		LaunchParams mLaunchParams = {};

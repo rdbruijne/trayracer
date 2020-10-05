@@ -1,10 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="Main.cpp" />
-    <ClCompile Include="App\App.cpp">
-      <Filter>App</Filter>
-    </ClCompile>
     <ClCompile Include="OpenGL\Window.cpp">
       <Filter>OpenGL</Filter>
     </ClCompile>
@@ -13,12 +9,6 @@
     </ClCompile>
     <ClCompile Include="Utility\Utility.cpp">
       <Filter>Utility</Filter>
-    </ClCompile>
-    <ClCompile Include="App\ControlScheme.cpp">
-      <Filter>App</Filter>
-    </ClCompile>
-    <ClCompile Include="App\OrbitCameraController.cpp">
-      <Filter>App</Filter>
     </ClCompile>
     <ClCompile Include="Resources\Material.cpp">
       <Filter>Resources</Filter>
@@ -83,6 +73,9 @@
     <ClCompile Include="Renderer\Sky.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="App\RunApp.cpp">
+      <Filter>App</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">
@@ -126,9 +119,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="App\App.h">
-      <Filter>App</Filter>
-    </ClInclude>
     <ClInclude Include="Common\CommonStructs.h">
       <Filter>Common</Filter>
     </ClInclude>
@@ -143,12 +133,6 @@
     </ClInclude>
     <ClInclude Include="Utility\Utility.h">
       <Filter>Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="App\ControlScheme.h">
-      <Filter>App</Filter>
-    </ClInclude>
-    <ClInclude Include="App\OrbitCameraController.h">
-      <Filter>App</Filter>
     </ClInclude>
     <ClInclude Include="OpenGL\Input.h">
       <Filter>OpenGL</Filter>
@@ -281,6 +265,12 @@
     </ClInclude>
     <ClInclude Include="CUDA\CudaGlobals.h">
       <Filter>CUDA</Filter>
+    </ClInclude>
+    <ClInclude Include="App\App.h">
+      <Filter>App</Filter>
+    </ClInclude>
+    <ClInclude Include="App\RunApp.h">
+      <Filter>App</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

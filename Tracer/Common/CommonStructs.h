@@ -6,7 +6,7 @@
 #ifndef __CUDACC__
 // Magic Enum
 #pragma warning(push)
-#pragma warning(disable: 5027)
+#pragma warning(disable: 4346 5027)
 #include "magic_enum/magic_enum.hpp"
 #pragma warning(pop)
 #endif
@@ -110,7 +110,7 @@ struct LaunchParams
 	float cameraFov;
 
 	float3 cameraForward;
-	int32_t sampleCount;
+	uint32_t sampleCount;
 
 	OptixTraversableHandle sceneRoot;
 	float4* accumulator;
