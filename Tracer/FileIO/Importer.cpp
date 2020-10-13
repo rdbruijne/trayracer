@@ -231,8 +231,11 @@ namespace Tracer
 		//
 		bool SaveToCache(std::shared_ptr<Model> model, const std::string& filePath)
 		{
+			// determine cache file name
 			const size_t pathHash = std::hash<std::string>{}(filePath);
 			const std::string cacheFile = "cache/" + std::to_string(pathHash);
+
+			// create directory & file
 			std::filesystem::create_directory("cache");
 			FILE* f = nullptr;
 			if((fopen_s(&f, cacheFile.c_str(), "wb") != 0) || !f)
@@ -269,8 +272,15 @@ namespace Tracer
 
 		std::shared_ptr<Model> LoadModelFromCache(Scene* scene, const std::string& filePath, const std::string& name = "")
 		{
+			// determine cache file name
 			const size_t pathHash = std::hash<std::string>{}(filePath);
 			const std::string cacheFile = "cache/" + std::to_string(pathHash);
+
+			// compare write times
+			if(!FileExists(cacheFile) || FileLastWriteTime(filePath) > FileLastWriteTime(cacheFile))
+				return nullptr;
+
+			// open cache file
 			FILE* f = nullptr;
 			if((fopen_s(&f, cacheFile.c_str(), "rb") != 0) || !f)
 				return nullptr;
@@ -321,16 +331,21 @@ namespace Tracer
 		//
 		bool SaveToCache(std::shared_ptr<Texture> tex, const std::string& textureFile)
 		{
+			// determine cache file name
 			const size_t pathHash = std::hash<std::string>{}(textureFile);
 			const std::string cacheFile = "cache/" + std::to_string(pathHash);
+
+			// create directory & file
 			std::filesystem::create_directory("cache");
 			FILE* f = nullptr;
 			if((fopen_s(&f, cacheFile.c_str(), "wb") != 0) || !f)
 				return false;
 
+			// write content
 			Write(f, tex->Resolution());
 			WriteVec(f, tex->Pixels());
 			fclose(f);
+
 			return true;
 		}
 
@@ -338,12 +353,20 @@ namespace Tracer
 
 		std::shared_ptr<Texture> LoadTextureFromCache(Scene* scene, const std::string& filePath, const std::string& importDir = "")
 		{
+			// determine cache file name
 			const size_t pathHash = std::hash<std::string>{}(filePath);
 			const std::string cacheFile = "cache/" + std::to_string(pathHash);
+
+			// compare write times
+			if(!FileExists(cacheFile) || FileLastWriteTime(filePath) > FileLastWriteTime(cacheFile))
+				return nullptr;
+
+			// open cache file
 			FILE* f = nullptr;
 			if((fopen_s(&f, cacheFile.c_str(), "rb") != 0) || !f)
 				return nullptr;
 
+			// read content
 			int2 res = Read<int2>(f);
 			std::vector<float4> pixels = ReadVec<float4>(f);
 			return std::make_shared<Texture>(filePath, res, pixels);

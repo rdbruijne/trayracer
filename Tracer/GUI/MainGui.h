@@ -69,10 +69,10 @@ namespace Tracer
 		static constexpr int mNameBufferSize = 128;
 
 		int mSelectedModelIx = 0;
-		char mModelName[mNameBufferSize];
+		char mModelName[mNameBufferSize] = {};
 
 		int mSelectedInstanceIx = 0;
-		char mInstanceName[mNameBufferSize];
+		char mInstanceName[mNameBufferSize] = {};
 
 		float mFrameTimeMs = 0;
 		float mBuildTimeMs = 0;

@@ -192,6 +192,46 @@ namespace Tracer
 
 
 
+	uint64_t FileCreateTime(const std::string& filePath)
+	{
+		WIN32_FILE_ATTRIBUTE_DATA info = {};
+		if(!GetFileAttributesExA(filePath.c_str(), GetFileExInfoStandard, &info))
+			return 0;
+		return static_cast<uint64_t>(info.ftCreationTime.dwHighDateTime) << 32 | static_cast<uint64_t>(info.ftCreationTime.dwLowDateTime);
+	}
+
+
+
+	uint64_t FileLastAccessTime(const std::string& filePath)
+	{
+		WIN32_FILE_ATTRIBUTE_DATA info = {};
+		if(!GetFileAttributesExA(filePath.c_str(), GetFileExInfoStandard, &info))
+			return 0;
+		return static_cast<uint64_t>(info.ftLastAccessTime.dwHighDateTime) << 32 | static_cast<uint64_t>(info.ftLastAccessTime.dwLowDateTime);
+	}
+
+
+
+	uint64_t FileLastWriteTime(const std::string& filePath)
+	{
+		WIN32_FILE_ATTRIBUTE_DATA info = {};
+		if(!GetFileAttributesExA(filePath.c_str(), GetFileExInfoStandard, &info))
+			return 0;
+		return static_cast<uint64_t>(info.ftLastWriteTime.dwHighDateTime) << 32 | static_cast<uint64_t>(info.ftLastWriteTime.dwLowDateTime);
+	}
+
+
+
+	uint64_t FileSize(const std::string& filePath)
+	{
+		WIN32_FILE_ATTRIBUTE_DATA info = {};
+		if(!GetFileAttributesExA(filePath.c_str(), GetFileExInfoStandard, &info))
+			return 0;
+		return static_cast<uint64_t>(info.nFileSizeHigh) << 32 | static_cast<uint64_t>(info.nFileSizeLow);
+	}
+
+
+
 	std::string TimeString(int64_t elapsedNs)
 	{
 		if(elapsedNs < 1'000)

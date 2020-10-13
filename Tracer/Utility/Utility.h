@@ -35,6 +35,11 @@ namespace Tracer
 	void WriteFile(const std::string filePath, const std::string& text);
 	bool FileExists(const std::string& filePath);
 
+	uint64_t FileCreateTime(const std::string& filePath);
+	uint64_t FileLastAccessTime(const std::string& filePath);
+	uint64_t FileLastWriteTime(const std::string& filePath);
+	uint64_t FileSize(const std::string& filePath);
+
 	// stringify
 	std::string TimeString(int64_t elapsedNs);
 	std::string ThousandSeparators(uint64_t val, const std::string& separator = ",");
