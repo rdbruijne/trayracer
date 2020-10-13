@@ -222,10 +222,12 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
     <ClInclude Include="Resources\Material.h" />
     <ClInclude Include="Resources\Resource.h" />
     <ClInclude Include="Resources\Texture.h" />
+    <ClInclude Include="Utility\Defilable.h" />
     <ClInclude Include="Utility\Enum.h" />
     <ClInclude Include="Utility\LinearMath.h" />
     <ClInclude Include="Utility\Logger.h" />
     <ClInclude Include="Utility\LogStream.h" />
+    <ClInclude Include="Utility\Named.h" />
     <ClInclude Include="Utility\Stopwatch.h" />
     <ClInclude Include="Utility\Utility.h" />
   </ItemGroup>

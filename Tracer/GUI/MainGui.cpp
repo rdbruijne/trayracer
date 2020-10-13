@@ -93,14 +93,14 @@ namespace Tracer
 
 
 
-		void ShowTexture(const std::string& name, std::function<std::shared_ptr<Texture>()> getTex, std::function<void(std::shared_ptr<Texture>)> setTex)
+		void ShowTexture(std::shared_ptr<Material> mat, const std::string& name, Material::PropertyIds id)
 		{
 			// #TODO: decent layout
 
 			ImGui::Spacing();
 			ImGui::Spacing();
 
-			auto tex = getTex();
+			auto tex = mat->GetTextureMap(id);
 			if(!tex)
 			{
 				ImGui::Text("%s: N/A", name.c_str());
@@ -109,7 +109,7 @@ namespace Tracer
 				{
 					std::string texFile = ImportTextureDialog();
 					if(!texFile.empty())
-						setTex(Importer::ImportTexture(GuiHelpers::scene, texFile));
+						mat->Set(id, Importer::ImportTexture(GuiHelpers::scene, texFile));
 				}
 			}
 			else
@@ -134,14 +134,14 @@ namespace Tracer
 				{
 					std::string texFile = ImportTextureDialog();
 					if(!texFile.empty())
-						setTex(Importer::ImportTexture(GuiHelpers::scene, texFile));
+						mat->Set(id, Importer::ImportTexture(GuiHelpers::scene, texFile));
 				}
 				ImGui::NextColumn();
 
 				// remove texture button
 				const std::string buttonName = format("Remove##%s", name.c_str());
 				if(ImGui::Button(buttonName.c_str()))
-					setTex(nullptr);
+					mat->Set(id, nullptr);
 
 				ImGui::Columns(1);
 			}
@@ -267,16 +267,24 @@ namespace Tracer
 			std::shared_ptr<Material> mat = mSelectedMaterial.lock();
 			ImGui::Text(mat->Name().c_str());
 
-			float3 diff = mat->Diffuse();
-			if(ImGui::ColorEdit3("Diffuse", reinterpret_cast<float*>(&diff)))
-				mat->SetDiffuse(diff);
+			for(size_t i = 0; i < magic_enum::enum_count<Material::PropertyIds>(); i++)
+			{
+				const Material::PropertyIds id = static_cast<Material::PropertyIds>(i);
+				const std::string propName = ToString(id);
 
-			float3 em = mat->Emissive();
-			if(ImGui::ColorEdit3("Emissive", reinterpret_cast<float*>(&em), ImGuiColorEditFlags_HDR))
-				mat->SetEmissive(em);
+				ImGui::Spacing();
+				if(mat->IsColorEnabled(id))
+				{
+					float3 c = mat->GetColor(id);
+					if(ImGui::ColorEdit3(propName.c_str(), reinterpret_cast<float*>(&c)))
+						mat->Set(id, c);
+				}
 
-			ShowTexture("Diffuse map", [=]() { return mat->DiffuseMap(); }, [=](std::shared_ptr<Texture> a) { mat->SetDiffuseMap(a); });
-			ShowTexture("Normal map", [=]() { return mat->NormalMap(); }, [=](std::shared_ptr<Texture> a) { mat->SetNormalMap(a); });
+				if(mat->IsTextureEnabled(id))
+				{
+					ShowTexture(mat, propName + " map", id);
+				}
+			}
 		}
 	}
 
@@ -295,7 +303,7 @@ namespace Tracer
 			const std::string rmName = ToString(activeRenderMode);
 			if(ImGui::BeginCombo("Render Mode", rmName.c_str()))
 			{
-				for(size_t i = 0; i <magic_enum::enum_count<RenderModes>(); i++)
+				for(size_t i = 0; i < magic_enum::enum_count<RenderModes>(); i++)
 				{
 					const RenderModes mode = static_cast<RenderModes>(i);
 					const std::string itemName = ToString(mode);

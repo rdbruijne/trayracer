@@ -34,7 +34,7 @@
                     "diffuse": [1.0, 1.0, 1.0],
                     "emissive": [0.0, 0.0, 0.0],
                     "diffuseMap": "../Resources/models/toad/BugBack_Diffuse.png",
-                    "normalMap": "R:\\code\\TrayRacer\\Resources\\models\\toad\\BugBack_Normals.png"
+                    "normalMap": "../Resources/models/toad/BugBack_Normals.png"
                 }]
         }],
     "camera": {

@@ -729,7 +729,6 @@ namespace Tracer
 
 	void Renderer::BuildMaterials(Scene* scene)
 	{
-		// #TODO: only build dirty materials
 		const size_t modelCount = scene ? scene->MaterialCount() : 0;
 		if(modelCount == 0)
 		{
@@ -757,39 +756,12 @@ namespace Tracer
 				{
 					for(auto& mat : model->Materials())
 					{
-						CudaMatarial m = {};
-
-						// simple properties
-						m.diffuse = mat->Diffuse();
-						m.emissive = mat->Emissive();
-
-						// diffuse map
-						if(mat->DiffuseMap())
+						if(mat->IsDirty())
 						{
-							if(mat->DiffuseMap()->IsDirty())
-							{
-								mat->DiffuseMap()->Build();
-								mat->DiffuseMap()->MarkClean();
-							}
-							m.textures |= Texture_DiffuseMap;
-							m.diffuseMap = mat->DiffuseMap()->CudaObject();
+							mat->Build();
+							mat->MarkClean();
 						}
-
-						// normal map
-						if(mat->NormalMap())
-						{
-							if(mat->NormalMap()->IsDirty())
-							{
-								mat->NormalMap()->Build();
-								mat->NormalMap()->MarkClean();
-							}
-							m.textures |= Texture_NormalMap;
-							m.normalMap = mat->NormalMap()->CudaObject();
-						}
-
-						// finalize mat
-						mat->MarkClean();
-						materialData.push_back(m);
+						materialData.push_back(mat->CudaMaterial());
 					}
 
 					materialOffsets.push_back(lastMaterialOffset);

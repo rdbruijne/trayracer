@@ -67,13 +67,13 @@ namespace Tracer
 			//	mat->SetRefractI(r);
 
 			if (!aMat->Get(AI_MATKEY_COLOR_DIFFUSE, c3))
-				mat->SetDiffuse(make_float3(c3.r, c3.g, c3.b));
+				mat->Set(Material::PropertyIds::Diffuse, make_float3(c3.r, c3.g, c3.b));
 
 			//if (!aMat->Get(AI_MATKEY_COLOR_SPECULAR, c3))
 			//	mat->SetSpecular(make_float3(c3.r, c3.g, c3.b));
 
 			if (!aMat->Get(AI_MATKEY_COLOR_EMISSIVE, c3))
-				mat->SetEmissive(make_float3(c3.r, c3.g, c3.b));
+				mat->Set(Material::PropertyIds::Emissive, make_float3(c3.r, c3.g, c3.b));
 
 			//if (!aMat->Get(AI_MATKEY_COLOR_TRANSPARENT, c3))
 			//	mat->SetTransparent(make_float3(c3.r, c3.g, c3.b));
@@ -82,7 +82,7 @@ namespace Tracer
 
 			aiString texPath;
 			if(aMat->GetTexture(aiTextureType_DIFFUSE, 0, &texPath) == aiReturn_SUCCESS)
-				mat->SetDiffuseMap(Importer::ImportTexture(scene, texPath.C_Str(), importDir));
+				mat->Set(Material::PropertyIds::Diffuse, Importer::ImportTexture(scene, texPath.C_Str(), importDir));
 
 			//if(aMat->GetTexture(aiTextureType_SPECULAR, 0, &texPath) == aiReturn_SUCCESS)
 			//	mat->SetSpecularMap(Importer::ImportTexture(scene, texPath.C_Str(), importDir));
@@ -94,7 +94,7 @@ namespace Tracer
 			//	mat->SetHeightMap(Importer::ImportTexture(scene, texPath.C_Str(), importDir));
 
 			if(aMat->GetTexture(aiTextureType_NORMALS, 0, &texPath) == aiReturn_SUCCESS)
-				mat->SetNormalMap(Importer::ImportTexture(scene, texPath.C_Str(), importDir));
+				mat->Set(Material::PropertyIds::Normal, Importer::ImportTexture(scene, texPath.C_Str(), importDir));
 
 			//if(aMat->GetTexture(aiTextureType_SHININESS, 0, &texPath) == aiReturn_SUCCESS)
 			//	mat->SetShininessMap(Importer::ImportTexture(scene, texPath.C_Str(), importDir));
@@ -251,15 +251,19 @@ namespace Tracer
 			WriteVec(f, model->MaterialIndices());
 
 			// materials
-			const auto& mats = model->Materials();
+			const auto& materials = model->Materials();
 			Write(f, model->Materials().size());
-			for(auto& m : mats)
+			for(auto& mat : materials)
 			{
-				Write(f, m->Name());
-				Write(f, m->Diffuse());
-				Write(f, m->Emissive());
-				Write(f, m->DiffuseMap() ? m->DiffuseMap()->Path() : "");
-				Write(f, m->NormalMap() ? m->NormalMap()->Path() : "");
+				Write(f, mat->Name());
+				for(size_t i = 0; i < magic_enum::enum_count<Material::PropertyIds>(); i++)
+				{
+					const Material::PropertyIds id = static_cast<Material::PropertyIds>(i);
+					if(mat->IsColorEnabled(id))
+						Write(f, mat->GetColor(id));
+					if(mat->IsTextureEnabled(id))
+						Write(f, mat->GetTextureMap(id) ? mat->GetTextureMap(id)->Path() : "");
+				}
 			}
 
 			// close the file
@@ -302,21 +306,25 @@ namespace Tracer
 			// materials
 			size_t matCount = 0;
 			fread(&matCount, sizeof(size_t), 1, f);
-			for(size_t i = 0; i < matCount; i++)
+			for(size_t matIx = 0; matIx < matCount; matIx++)
 			{
 				std::string matName = Read<std::string>(f);
 				std::shared_ptr<Material> mat = std::make_shared<Material>(matName);
 
-				mat->SetDiffuse(Read<float3>(f));
-				mat->SetEmissive(Read<float3>(f));
+				for(size_t propIx = 0; propIx < magic_enum::enum_count<Material::PropertyIds>(); propIx++)
+				{
+					const Material::PropertyIds id = static_cast<Material::PropertyIds>(propIx);
 
-				std::string diffMap = Read<std::string>(f);
-				if(!diffMap.empty())
-					mat->SetDiffuseMap(Importer::ImportTexture(scene, diffMap));
+					if(mat->IsColorEnabled(id))
+						mat->Set(id, Read<float3>(f));
 
-				std::string norMap = Read<std::string>(f);
-				if(!norMap.empty())
-					mat->SetNormalMap(Importer::ImportTexture(scene, norMap));
+					if(mat->IsTextureEnabled(id))
+					{
+						const std::string texPath = Read<std::string>(f);
+						if(!texPath.empty())
+							mat->Set(id, Importer::ImportTexture(scene, texPath));
+					}
+				}
 
 				model->AddMaterial(mat);
 			}
@@ -453,6 +461,9 @@ namespace Tracer
 			fif = FreeImage_GetFIFFromFilename(globalPath.c_str());
 
 		FIBITMAP* tmp = FreeImage_Load(fif, globalPath.c_str());
+		if(!tmp)
+			return nullptr;
+
 		//FIBITMAP* dib = FreeImage_ConvertTo32Bits(tmp);
 		FIBITMAP* dib = FreeImage_ConvertToRGBAF(tmp);
 		FreeImage_Unload(tmp);

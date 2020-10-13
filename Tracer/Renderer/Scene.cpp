@@ -89,11 +89,12 @@ namespace Tracer
 		{
 			for(auto& mat : mdl->Materials())
 			{
-				if(mat->DiffuseMap())
-					textures.insert(mat->DiffuseMap());
-
-				if(mat->NormalMap())
-					textures.insert(mat->NormalMap());
+				for(size_t i = 0; i < magic_enum::enum_count<Material::PropertyIds>(); i++)
+				{
+					auto tex = mat->GetTextureMap(static_cast<Material::PropertyIds>(i));
+					if(tex)
+						textures.insert(tex);
+				}
 			}
 		}
 		return textures.size();
@@ -239,11 +240,12 @@ namespace Tracer
 		{
 			for(auto& mat : mdl->Materials())
 			{
-				if(mat->DiffuseMap() && mat->DiffuseMap()->Path() == path)
-					return mat->DiffuseMap();
-
-				if(mat->NormalMap() && mat->NormalMap()->Path() == path)
-					return mat->NormalMap();
+				for(size_t i = 0; i < magic_enum::enum_count<Material::PropertyIds>(); i++)
+				{
+					auto tex = mat->GetTextureMap(static_cast<Material::PropertyIds>(i));
+					if(tex && tex->Path() == path)
+						return tex;
+				}
 			}
 		}
 		return nullptr;

@@ -272,6 +272,12 @@
     <ClInclude Include="App\RunApp.h">
       <Filter>App</Filter>
     </ClInclude>
+    <ClInclude Include="Utility\Named.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\Defilable.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Model.h">

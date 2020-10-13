@@ -1,5 +1,9 @@
 #pragma once
 
+// Project
+#include "Utility/Defilable.h"
+#include "Utility/Named.h"
+
 // C++
 #include <memory>
 #include <string>
@@ -7,27 +11,22 @@
 
 namespace Tracer
 {
-	class Resource
+	class Resource : public Defilable, public Named
 	{
 	public:
 		Resource() = default;
-		explicit Resource(const std::string& name) : mName(name) {}
+		explicit Resource(const std::string& name) : Named(name) {}
 		virtual ~Resource() {}
 
-		const std::string& Name() const { return mName; }
-		virtual void SetName(const std::string& name) { mName = name; }
+		// dirty
+		bool IsDirty() const override { return IsDirty(true); }
+		bool IsDirty(bool parseDependencies) const;
 
-		bool IsDirty(bool parseDependencies = true) const;
-		inline void MarkDirty() { mIsDirty = true; }
-		inline void MarkClean() { mIsDirty = false; }
-
+		// dependencies
 		void AddDependency(std::shared_ptr<Resource> dependency);
 		void RemoveDependency(std::shared_ptr<Resource> dependency);
 
 	protected:
-		std::string mName = "";
-		bool mIsDirty = true;
-
 		std::vector<std::weak_ptr<Resource>> mDependencies;
 	};
 }

@@ -219,16 +219,24 @@ struct CudaMeshData
 //------------------------------------------------------------------------------------------------------------------------------
 // Material
 //------------------------------------------------------------------------------------------------------------------------------
+struct alignas(16) CudaMaterialProperty
+{
+	cudaTextureObject_t textureMap;
+	half r;
+	half g;
+	half b;
+	uint8_t useColor;
+	uint8_t useTexture;
+};
+
+
+
 struct alignas(16) CudaMatarial
 {
-	float3 diffuse;
-	uint32_t textures;
-
-	float3 emissive;
-	int pad0;
-
-	cudaTextureObject_t diffuseMap;
-	cudaTextureObject_t normalMap;
+	CudaMaterialProperty diffuse;
+	CudaMaterialProperty emissive;
+	CudaMaterialProperty normal;
+	CudaMaterialProperty dummy;
 };
 
 

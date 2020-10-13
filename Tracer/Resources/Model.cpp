@@ -207,7 +207,6 @@ namespace Tracer
 
 	bool Model::BuildLights()
 	{
-
 		// check for emissive changes
 		bool emissiveChanged = false;
 		bool hasEmissiveMaterial = false;
@@ -218,7 +217,7 @@ namespace Tracer
 				emissiveChanged = true;
 				break;
 			}
-			const float3& em = mat->Emissive();
+			const float3 em = mat->GetColor(Material::PropertyIds::Emissive);
 			if(em.x + em.y + em.z > Epsilon)
 				hasEmissiveMaterial = true;
 		}
@@ -238,7 +237,7 @@ namespace Tracer
 			const uint32_t matIx = mMaterialIndices[i];
 			auto& mat = mMaterials[matIx];
 
-			const float3& em = mat->Emissive();
+			const float3 em = mat->GetColor(Material::PropertyIds::Emissive);
 			if(em.x + em.y + em.z > Epsilon)
 			{
 				LightTriangle lt = {};

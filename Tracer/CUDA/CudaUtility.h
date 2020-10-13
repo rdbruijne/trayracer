@@ -66,7 +66,23 @@ inline float4 transform(const float4& tx, const float4& ty, const float4& tz, co
 
 
 //------------------------------------------------------------------------------------------------------------------------------
-// Intersection
+// Material property
+//------------------------------------------------------------------------------------------------------------------------------
+static __device__
+inline float3 GetColor(const CudaMaterialProperty& prop, float2 uv)
+{
+	float3 result = make_float3(1.f);
+	if(prop.useColor != 0)
+		result = make_float3(__half2float(prop.r), __half2float(prop.g), __half2float(prop.b));
+	if(prop.useTexture != 0 && prop.textureMap != 0)
+		result *= make_float3(tex2D<float4>(prop.textureMap, uv.x, uv.y));
+	return result;
+}
+
+
+
+//------------------------------------------------------------------------------------------------------------------------------
+// Barycentrics
 //------------------------------------------------------------------------------------------------------------------------------
 static __device__
 inline float2 Barycentric(float2 bc, const float2& v0, const float2& v1, const float2& v2)
@@ -94,6 +110,9 @@ inline float2 DecodeBarycentrics(uint32_t barycentrics)
 
 
 
+//------------------------------------------------------------------------------------------------------------------------------
+// Intersection
+//------------------------------------------------------------------------------------------------------------------------------
 struct IntersectionAttributes
 {
 	float3 geometricNormal;
@@ -182,17 +201,14 @@ inline IntersectionAttributes GetIntersectionAttributes(uint32_t instIx, uint32_
 	const CudaMatarial& mat = materialData[attrib.matIx];
 
 	// diffuse
-	attrib.diffuse = mat.diffuse;
-	if(mat.textures & Texture_DiffuseMap)
-		attrib.diffuse *= make_float3(tex2D<float4>(mat.diffuseMap, attrib.texcoordX, attrib.texcoordY));
+	attrib.diffuse  = GetColor(mat.diffuse, texcoord);
+	attrib.emissive = GetColor(mat.emissive, texcoord);
+	const float3 normalMap = GetColor(mat.normal, texcoord);
 
-	// emissive
-	attrib.emissive = mat.emissive;
-
-	// normal map
-	if(mat.textures & Texture_NormalMap)
+	// apply normal map
+	if(normalMap.x > 0.f || normalMap.y > 0.f || normalMap.z > 0.f)
 	{
-		const float3 norMap = (make_float3(tex2D<float4>(mat.normalMap, attrib.texcoordX, attrib.texcoordY)) * 2.f) - make_float3(1.f);
+		const float3 norMap = (normalMap * 2.f) - make_float3(1.f);
 		attrib.shadingNormal = normalize(norMap.x * attrib.tangent + norMap.y * attrib.bitangent + norMap.z * attrib.shadingNormal);
 	}
 

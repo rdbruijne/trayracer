@@ -27,8 +27,7 @@
 #include <map>
 #include <set>
 #include <streambuf>
-
-// #TODO: clean code by adding helper functions in nameless namespace
+#include <string_view>
 
 using namespace rapidjson;
 
@@ -39,12 +38,12 @@ namespace Tracer
 		//----------------------------------------------------------------------------------------------------------------------
 		// read helpers
 		//----------------------------------------------------------------------------------------------------------------------
-		bool Read(const Value& jsonValue, const char* memberName, bool& result)
+		bool Read(const Value& jsonValue, const std::string_view& memberName, bool& result)
 		{
-			if(!jsonValue.HasMember(memberName))
+			if(!jsonValue.HasMember(memberName.data()))
 				return false;
 
-			const Value& val = jsonValue[memberName];
+			const Value& val = jsonValue[memberName.data()];
 			if(!val.IsBool())
 				return false;
 
@@ -54,12 +53,12 @@ namespace Tracer
 
 
 
-		bool Read(const Value& jsonValue, const char* memberName, float& result)
+		bool Read(const Value& jsonValue, const std::string_view& memberName, float& result)
 		{
-			if(!jsonValue.HasMember(memberName))
+			if(!jsonValue.HasMember(memberName.data()))
 				return false;
 
-			const Value& val = jsonValue[memberName];
+			const Value& val = jsonValue[memberName.data()];
 			if(!val.IsNumber())
 				return false;
 
@@ -69,12 +68,12 @@ namespace Tracer
 
 
 
-		bool Read(const Value& jsonValue, const char* memberName, int& result)
+		bool Read(const Value& jsonValue, const std::string_view& memberName, int& result)
 		{
-			if(!jsonValue.HasMember(memberName))
+			if(!jsonValue.HasMember(memberName.data()))
 				return false;
 
-			const Value& val = jsonValue[memberName];
+			const Value& val = jsonValue[memberName.data()];
 			if(!val.IsNumber())
 				return false;
 
@@ -84,12 +83,12 @@ namespace Tracer
 
 
 
-		bool Read(const Value& jsonValue, const char* memberName, float3& result)
+		bool Read(const Value& jsonValue, const std::string_view& memberName, float3& result)
 		{
-			if(!jsonValue.HasMember(memberName))
+			if(!jsonValue.HasMember(memberName.data()))
 				return false;
 
-			const Value& val = jsonValue[memberName];
+			const Value& val = jsonValue[memberName.data()];
 			if(!val.IsArray() || val.Size() != 3 || !val[0].IsNumber() || !val[1].IsNumber() || !val[2].IsNumber())
 				return false;
 
@@ -99,12 +98,12 @@ namespace Tracer
 
 
 
-		bool Read(const Value& jsonValue, const char* memberName, float3x4& result)
+		bool Read(const Value& jsonValue, const std::string_view& memberName, float3x4& result)
 		{
-			if(!jsonValue.HasMember(memberName))
+			if(!jsonValue.HasMember(memberName.data()))
 				return false;
 
-			const Value& val = jsonValue[memberName];
+			const Value& val = jsonValue[memberName.data()];
 			if(!val.IsArray() || val.Size() != 12)
 				return false;
 
@@ -121,12 +120,12 @@ namespace Tracer
 		}
 
 
-		bool Read(const Value& jsonValue, const char* memberName, std::string& result)
+		bool Read(const Value& jsonValue, const std::string_view& memberName, std::string& result)
 		{
-			if(!jsonValue.HasMember(memberName))
+			if(!jsonValue.HasMember(memberName.data()))
 				return false;
 
-			const Value& val = jsonValue[memberName];
+			const Value& val = jsonValue[memberName.data()];
 			if(!val.IsString())
 				return false;
 
@@ -277,22 +276,19 @@ namespace Tracer
 					if(!mat)
 						continue;
 
-					// reusable variables for JSON reading
-					//float f;
-					float3 f3;
-					std::string s;
+					for(size_t i = 0; i < magic_enum::enum_count<Material::PropertyIds>(); i++)
+					{
+						const Material::PropertyIds id = static_cast<Material::PropertyIds>(i);
+						const std::string propName = ToLower(ToString(id));
 
-					// properties
-					if(Read(jsonMat, "diffuse", f3))
-						mat->SetDiffuse(f3);
-					if(Read(jsonMat, "emissive", f3))
-						mat->SetEmissive(f3);
+						float3 f3;
+						if(Read(jsonMat, propName.c_str(), f3))
+							mat->Set(id, f3);
 
-					// textures
-					if(Read(jsonMat, "diffuseMap", s))
-						mat->SetDiffuseMap(Importer::ImportTexture(scene, s));
-					if(Read(jsonMat, "normalMap", s))
-						mat->SetNormalMap(Importer::ImportTexture(scene, s));
+						std::string s;
+						if(Read(jsonMat, (propName + "Map").c_str(), s))
+							mat->Set(id, Importer::ImportTexture(scene, s));
+					}
 				}
 			}
 		}
@@ -436,46 +432,53 @@ namespace Tracer
 		//----------------------------------------------------------------------------------------------------------------------
 		// write helpers
 		//----------------------------------------------------------------------------------------------------------------------
-		void Write(Value& jsonValue, Document::AllocatorType& allocator, const char* memberName, bool val)
+		void Write(Value& jsonValue, Document::AllocatorType& allocator, const std::string_view& memberName, bool val)
 		{
 			Value v = Value(kObjectType);
 			v.SetBool(val);
-			jsonValue.AddMember(StringRef(memberName), v, allocator);
+
+			Value key = Value(memberName.data(), allocator);
+			jsonValue.AddMember(key, v, allocator);
 		}
 
 
 
-		void Write(Value& jsonValue, Document::AllocatorType& allocator, const char* memberName, float val)
+		void Write(Value& jsonValue, Document::AllocatorType& allocator, const std::string_view& memberName, float val)
 		{
 			Value v = Value(kObjectType);
 			v.SetFloat(val);
-			jsonValue.AddMember(StringRef(memberName), v, allocator);
+
+			Value key = Value(memberName.data(), allocator);
+			jsonValue.AddMember(key, v, allocator);
 		}
 
 
 
-		void Write(Value& jsonValue, Document::AllocatorType& allocator, const char* memberName, int val)
+		void Write(Value& jsonValue, Document::AllocatorType& allocator,const std::string_view& memberName, int val)
 		{
 			Value v = Value(kObjectType);
 			v.SetInt(val);
-			jsonValue.AddMember(StringRef(memberName), v, allocator);
+
+			Value key = Value(memberName.data(), allocator);
+			jsonValue.AddMember(key, v, allocator);
 		}
 
 
 
-		void Write(Value& jsonValue, Document::AllocatorType& allocator, const char* memberName, float3 val)
+		void Write(Value& jsonValue, Document::AllocatorType& allocator, const std::string_view& memberName, float3 val)
 		{
 			Value jsonVector = Value(kArrayType);
 			jsonVector.PushBack(val.x, allocator);
 			jsonVector.PushBack(val.y, allocator);
 			jsonVector.PushBack(val.z, allocator);
 
-			jsonValue.AddMember(StringRef(memberName), jsonVector, allocator);
+			Value key = Value(memberName.data(), allocator);
+			jsonValue.AddMember(key, jsonVector, allocator);
 		}
 
 
 
-		void Write(Value& jsonValue, Document::AllocatorType& allocator, const char* memberName, float3x4 val)
+		void Write(Value& jsonValue, Document::AllocatorType& allocator, const std::string_view& memberName, float3x4 val)
 		{
 			const float tempVals[12] =
 			{
@@ -493,16 +496,19 @@ namespace Tracer
 				jsonMatrix.PushBack(f, allocator);
 			}
 
-			jsonValue.AddMember(StringRef(memberName), jsonMatrix, allocator);
+			Value key = Value(memberName.data(), allocator);
+			jsonValue.AddMember(key, jsonMatrix, allocator);
 		}
 
 
 
-		void Write(Value& jsonValue, Document::AllocatorType& allocator, const char* memberName, const std::string& val)
+		void Write(Value& jsonValue, Document::AllocatorType& allocator, const std::string_view& memberName, const std::string& val)
 		{
 			Value v = Value(kObjectType);
 			v.SetString(val.c_str(), static_cast<SizeType>(val.length()), allocator);
-			jsonValue.AddMember(StringRef(memberName), v, allocator);
+
+			Value key = Value(memberName.data(), allocator);
+			jsonValue.AddMember(key, v, allocator);
 		}
 
 
@@ -580,16 +586,21 @@ namespace Tracer
 				{
 					Value jsonMat = Value(kObjectType);
 
-					// properties
+					// name
 					Write(jsonMat, allocator, "name", mat->Name());
-					Write(jsonMat, allocator, "diffuse", mat->Diffuse());
-					Write(jsonMat, allocator, "emissive", mat->Emissive());
 
-					// textures
-					if (mat->DiffuseMap())
-						Write(jsonMat, allocator, "diffuseMap", mat->DiffuseMap()->Path());
-					if (mat->NormalMap())
-						Write(jsonMat, allocator, "normalMap", mat->NormalMap()->Path());
+					// properties
+					for(size_t i = 0; i < magic_enum::enum_count<Material::PropertyIds>(); i++)
+					{
+						const Material::PropertyIds id = static_cast<Material::PropertyIds>(i);
+						const std::string propName = ToLower(ToString(id));
+
+						if(mat->IsColorEnabled(id))
+							Write(jsonMat, allocator, propName, mat->GetColor(id));
+
+						if(mat->IsTextureEnabled(id) && mat->GetTextureMap(id))
+							Write(jsonMat, allocator, propName + "Map", ReplaceAll(RelativeFilePath(mat->GetTextureMap(id)->Path()), "\\", "/"));
+					}
 
 					// add mat to model material array
 					jsonMaterialList.PushBack(jsonMat, allocator);
@@ -615,7 +626,7 @@ namespace Tracer
 			{
 				Value jsonModel = Value(kObjectType);
 				Write(jsonModel, allocator, "name", m.second);
-				Write(jsonModel, allocator, "path", RelativeFilePath(m.first->FilePath()));
+				Write(jsonModel, allocator, "path", ReplaceAll(RelativeFilePath(m.first->FilePath()), "\\", "/"));
 
 				// add model to array
 				jsonModelList.PushBack(jsonModel, allocator);
