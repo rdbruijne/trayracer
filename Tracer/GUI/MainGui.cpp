@@ -90,62 +90,6 @@ namespace Tracer
 		{
 			return (count == 0 || elapsedMs == 0) ? 0 : (static_cast<float>(count) / (elapsedMs * 1e-3f));
 		}
-
-
-
-		void ShowTexture(std::shared_ptr<Material> mat, const std::string& name, Material::PropertyIds id)
-		{
-			// #TODO: decent layout
-
-			ImGui::Spacing();
-			ImGui::Spacing();
-
-			auto tex = mat->GetTextureMap(id);
-			if(!tex)
-			{
-				ImGui::Text("%s: N/A", name.c_str());
-				const std::string buttonName = format("Load texture##%s", name.c_str());
-				if(ImGui::Button(buttonName.c_str()))
-				{
-					std::string texFile = ImportTextureDialog();
-					if(!texFile.empty())
-						mat->Set(id, Importer::ImportTexture(GuiHelpers::scene, texFile));
-				}
-			}
-			else
-			{
-				tex->MakeGlTex();
-
-				// tex ID
-				size_t texId = static_cast<size_t>(tex->GLTex()->ID());
-
-				// resolution
-				const ImVec2 res = ImVec2(100, 100);
-
-				// display
-				const float dpiScale = ImGui::GetIO().FontGlobalScale;
-				ImGui::Text("%s", name.c_str(), tex->Name().c_str());
-				ImGui::Columns(3);
-
-				ImGui::Text(tex->Name().c_str());
-				ImGui::NextColumn();
-
-				if(ImGui::ImageButton(reinterpret_cast<ImTextureID>(texId), ImVec2(res.x * dpiScale, res.y * dpiScale)))
-				{
-					std::string texFile = ImportTextureDialog();
-					if(!texFile.empty())
-						mat->Set(id, Importer::ImportTexture(GuiHelpers::scene, texFile));
-				}
-				ImGui::NextColumn();
-
-				// remove texture button
-				const std::string buttonName = format("Remove##%s", name.c_str());
-				if(ImGui::Button(buttonName.c_str()))
-					mat->Set(id, nullptr);
-
-				ImGui::Columns(1);
-			}
-		}
 	}
 
 
@@ -264,26 +208,84 @@ namespace Tracer
 		}
 		else
 		{
-			std::shared_ptr<Material> mat = mSelectedMaterial.lock();
-			ImGui::Text(mat->Name().c_str());
+			// texture resolution
+			const ImVec2 textureDisplayRes = ImVec2(100, 100) * ImGui::GetIO().FontGlobalScale;
 
+			// fetch material
+			std::shared_ptr<Material> mat = mSelectedMaterial.lock();
+
+			// name
+			ImGui::Columns(2);
+			ImGui::Text(mat->Name().c_str());
+			ImGui::NextColumn();
+			ImGui::Text("Name");
+			ImGui::Columns(1);
+
+			// properties
 			for(size_t i = 0; i < magic_enum::enum_count<Material::PropertyIds>(); i++)
 			{
 				const Material::PropertyIds id = static_cast<Material::PropertyIds>(i);
 				const std::string propName = ToString(id);
 
 				ImGui::Spacing();
+				ImGui::Spacing();
+				ImGui::Columns(2);
+
+				// color
 				if(mat->IsColorEnabled(id))
 				{
+					const std::string colorName = "##" + propName;
+					const ImGuiColorEditFlags colorFlags =
+						ImGuiColorEditFlags_HDR |
+						ImGuiColorEditFlags_Float |
+						ImGuiColorEditFlags_PickerHueWheel;
 					float3 c = mat->GetColor(id);
-					if(ImGui::ColorEdit3(propName.c_str(), reinterpret_cast<float*>(&c)))
+					if(ImGui::ColorEdit3(colorName.c_str(), reinterpret_cast<float*>(&c), colorFlags))
 						mat->Set(id, c);
 				}
 
+				// texture
 				if(mat->IsTextureEnabled(id))
 				{
-					ShowTexture(mat, propName + " map", id);
+					const std::string texName = "##" + propName + "map";
+					std::shared_ptr<Texture> tex = mat->GetTextureMap(id);
+
+					if(!tex)
+					{
+						// load button
+						const std::string buttonName = "Load texture" + texName;
+						if(ImGui::Button(buttonName.c_str()))
+						{
+							std::string texFile = ImportTextureDialog();
+							if(!texFile.empty())
+								mat->Set(id, Importer::ImportTexture(GuiHelpers::scene, texFile));
+						}
+					}
+					else
+					{
+						// display texture
+						tex->MakeGlTex();
+						const size_t texId = static_cast<size_t>(tex->GLTex()->ID());
+						if(ImGui::ImageButton(reinterpret_cast<ImTextureID>(texId), textureDisplayRes))
+						{
+							std::string texFile = ImportTextureDialog();
+							if(!texFile.empty())
+								mat->Set(id, Importer::ImportTexture(GuiHelpers::scene, texFile));
+						}
+
+						// remove texture button
+						const std::string buttonName = "X" + texName;
+						ImGui::SameLine();
+						if(ImGui::Button(buttonName.c_str()))
+							mat->Set(id, nullptr);
+					}
 				}
+				ImGui::NextColumn();
+
+				// property name
+				ImGui::Text(propName.c_str());
+
+				ImGui::Columns(1);
 			}
 		}
 	}
