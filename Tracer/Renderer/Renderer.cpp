@@ -105,6 +105,8 @@ namespace Tracer
 		// #TODO: proper cleanup
 		if(mCudaGraphicsResource)
 			CUDA_CHECK(cudaGraphicsUnregisterResource(mCudaGraphicsResource));
+
+		optixModuleDestroy(mModule);
 	}
 
 

@@ -84,6 +84,7 @@ float3 SampleSky(float3 dir)
 		dir.y = 1e-4f;
 	dir = normalize(dir);
 
+	const float3 sunDir = normalize(skyData->sunDir);
 	const float gamma = acosf(dot(dir, skyData->sunDir));
 	const float theta = acosf(dot(dir, make_float3(0, 1, 0)));
 
@@ -94,7 +95,7 @@ float3 SampleSky(float3 dir)
 	radiance = XYZ_to_ACES2065_1(radiance);
 
 	radiance *= skyData->skyTint;
-	if(skyData->enableSun && dot(dir, skyData->sunDir) >= skyData->sunSize)
+	if(skyData->enableSun && dot(dir, sunDir) >= skyData->sunSize)
 		radiance += skyData->sunColor * skyData->sunTint;
 
 	radiance = ACES2065_1_to_sRGB(radiance);
