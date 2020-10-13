@@ -45,12 +45,12 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)bin\</OutDir>
+    <OutDir>$(SolutionDir)build\$(ProjectName)_$(Platform)_$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)build\$(ProjectName)_$(Platform)_$(Configuration)\</IntDir>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(CudaToolkitIncludeDir)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)bin\</OutDir>
+    <OutDir>$(SolutionDir)build\$(ProjectName)_$(Platform)_$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)build\$(ProjectName)_$(Platform)_$(Configuration)\</IntDir>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(CudaToolkitIncludeDir)</IncludePath>
   </PropertyGroup>
@@ -239,9 +239,9 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
   <ItemGroup>
     <CudaCompile Include="CUDA\cuda.cu" />
     <CudaCompile Include="Optix\optix.cu">
-      <CompileOut Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)ptx\%(Filename).ptx</CompileOut>
+      <CompileOut Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)bin\ptx\%(Filename).ptx</CompileOut>
       <NvccCompilation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ptx</NvccCompilation>
-      <CompileOut Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)ptx\%(Filename).ptx</CompileOut>
+      <CompileOut Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)bin\ptx\%(Filename).ptx</CompileOut>
       <NvccCompilation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ptx</NvccCompilation>
     </CudaCompile>
   </ItemGroup>

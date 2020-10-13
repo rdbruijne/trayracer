@@ -4,7 +4,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <OutDir>$(SolutionDir)bin\</OutDir>
-    <IntDir>$(SolutionDir)build\bin\$(ProjectName)_$(Platform)_$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)build\$(ProjectName)_$(Platform)_$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)_$(Platform)_$(Configuration)</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup>
