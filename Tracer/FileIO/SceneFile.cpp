@@ -1,7 +1,8 @@
 #include "SceneFile.h"
 
 // Project
-#include "FileIO/Importer.h"
+#include "FileIO/ModelFile.h"
+#include "FileIO/TextureFile.h"
 #include "OpenGL/Window.h"
 #include "Renderer/Renderer.h"
 #include "Renderer/Scene.h"
@@ -287,7 +288,7 @@ namespace Tracer
 
 						std::string s;
 						if(Read(jsonMat, (propName + "Map").c_str(), s))
-							mat->Set(id, Importer::ImportTexture(scene, s));
+							mat->Set(id, TextureFile::Import(scene, s));
 					}
 				}
 			}
@@ -409,7 +410,7 @@ namespace Tracer
 			std::map<std::string, std::shared_ptr<Model>> importedModels;
 			for(auto m : modelsToImport)
 			{
-				auto model = Importer::ImportModel(scene, models.at(m), m);
+				auto model = ModelFile::Import(scene, models.at(m), m);
 				if(model)
 				{
 					scene->Add(model);

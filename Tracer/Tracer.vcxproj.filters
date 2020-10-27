@@ -55,9 +55,6 @@
     <ClCompile Include="GUI\GuiHelpers.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="FileIO\Importer.cpp">
-      <Filter>FileIO</Filter>
-    </ClCompile>
     <ClCompile Include="FileIO\SceneFile.cpp">
       <Filter>FileIO</Filter>
     </ClCompile>
@@ -75,6 +72,12 @@
     </ClCompile>
     <ClCompile Include="App\RunApp.cpp">
       <Filter>App</Filter>
+    </ClCompile>
+    <ClCompile Include="FileIO\ModelFile.cpp">
+      <Filter>FileIO</Filter>
+    </ClCompile>
+    <ClCompile Include="FileIO\TextureFile.cpp">
+      <Filter>FileIO</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -188,9 +191,6 @@
     <ClInclude Include="GUI\GuiHelpers.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="FileIO\Importer.h">
-      <Filter>FileIO</Filter>
-    </ClInclude>
     <ClInclude Include="FileIO\SceneFile.h">
       <Filter>FileIO</Filter>
     </ClInclude>
@@ -277,6 +277,15 @@
     </ClInclude>
     <ClInclude Include="Utility\Defilable.h">
       <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="FileIO\ModelFile.h">
+      <Filter>FileIO</Filter>
+    </ClInclude>
+    <ClInclude Include="FileIO\TextureFile.h">
+      <Filter>FileIO</Filter>
+    </ClInclude>
+    <ClInclude Include="FileIO\FileInfo.h">
+      <Filter>FileIO</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -1,8 +1,9 @@
 #include "MainGui.h"
 
 // Project
-#include "FileIO/Importer.h"
+#include "FileIO/ModelFile.h"
 #include "FileIO/SceneFile.h"
+#include "FileIO/TextureFile.h"
 #include "GUI/GuiHelpers.h"
 #include "OpenGL/Window.h"
 #include "Renderer/Renderer.h"
@@ -41,9 +42,9 @@ namespace Tracer
 			static std::string filter = "";
 			if(filter.empty())
 			{
-				const std::vector<Importer::Format>& formats = Importer::SupportedModelFormats();
+				const std::vector<FileInfo>& info = ModelFile::SupportedFormats();
 				std::string extensions = "";
-				for(auto f : formats)
+				for(auto f : info)
 				{
 					std::vector<std::string> extParts = Split(f.ext, ',');
 					for(auto e : extParts)
@@ -66,9 +67,9 @@ namespace Tracer
 			static std::string filter = "";
 			if(filter.empty())
 			{
-				const std::vector<Importer::Format>& texFormats = Importer::SupportedTextureFormats();
+				const std::vector<FileInfo>& info = TextureFile::SupportedFormats();
 				std::string extensions = "";
-				for(auto f : texFormats)
+				for(auto f : info)
 				{
 					std::vector<std::string> extParts = Split(f.ext, ',');
 					for(auto e : extParts)
@@ -258,7 +259,7 @@ namespace Tracer
 						{
 							std::string texFile = ImportTextureDialog();
 							if(!texFile.empty())
-								mat->Set(id, Importer::ImportTexture(GuiHelpers::scene, texFile));
+								mat->Set(id, TextureFile::Import(GuiHelpers::scene, texFile));
 						}
 					}
 					else
@@ -270,7 +271,7 @@ namespace Tracer
 						{
 							std::string texFile = ImportTextureDialog();
 							if(!texFile.empty())
-								mat->Set(id, Importer::ImportTexture(GuiHelpers::scene, texFile));
+								mat->Set(id, TextureFile::Import(GuiHelpers::scene, texFile));
 						}
 
 						// remove texture button
@@ -516,6 +517,7 @@ namespace Tracer
 			// scene
 			ROW("Instance count", "%lld", GuiHelpers::scene->InstanceCount());
 			ROW("Model count", "%lld", GuiHelpers::scene->InstancedModelCount());
+			ROW("Texture count", "%lld", GuiHelpers::scene->TextureCount());
 			ROW("Triangle count", "%s", ThousandSeparators(GuiHelpers::scene->TriangleCount()).c_str());
 			ROW("Unique triangle count", "%s", ThousandSeparators(GuiHelpers::scene->UniqueTriangleCount()).c_str());
 			ROW("Lights", "%s", ThousandSeparators(GuiHelpers::scene->LightCount()).c_str());
@@ -588,7 +590,7 @@ namespace Tracer
 			std::string modelFile = ImportModelDialog();
 			if(!modelFile.empty())
 			{
-				std::shared_ptr<Model> model = Importer::ImportModel(GuiHelpers::scene, modelFile);
+				std::shared_ptr<Model> model = ModelFile::Import(GuiHelpers::scene, modelFile);
 				if(model)
 					GuiHelpers::scene->Add(model);
 

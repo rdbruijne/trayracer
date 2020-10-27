@@ -152,8 +152,9 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
   <ItemGroup>
     <ClCompile Include="App\RunApp.cpp" />
     <ClCompile Include="Common\CommonStructs.cpp" />
-    <ClCompile Include="FileIO\Importer.cpp" />
+    <ClCompile Include="FileIO\ModelFile.cpp" />
     <ClCompile Include="FileIO\SceneFile.cpp" />
+    <ClCompile Include="FileIO\TextureFile.cpp" />
     <ClCompile Include="GUI\MainGui.cpp" />
     <ClCompile Include="GUI\GuiHelpers.cpp" />
     <ClCompile Include="OpenGL\GLHelpers.cpp" />
@@ -202,8 +203,10 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
     <ClInclude Include="CUDA\Shade\Wireframe.h" />
     <ClInclude Include="CUDA\Shade\ZDepth.h" />
     <ClInclude Include="CUDA\CudaSky.h" />
-    <ClInclude Include="FileIO\Importer.h" />
+    <ClInclude Include="FileIO\FileInfo.h" />
+    <ClInclude Include="FileIO\ModelFile.h" />
     <ClInclude Include="FileIO\SceneFile.h" />
+    <ClInclude Include="FileIO\TextureFile.h" />
     <ClInclude Include="GUI\MainGui.h" />
     <ClInclude Include="GUI\GuiHelpers.h" />
     <ClInclude Include="OpenGL\GLHelpers.h" />

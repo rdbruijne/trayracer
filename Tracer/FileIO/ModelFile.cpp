@@ -1,6 +1,7 @@
-#include "Importer.h"
+#include "ModelFile.h"
 
 // Project
+#include "FileIO/TextureFile.h"
 #include "Renderer/Scene.h"
 #include "Resources/Material.h"
 #include "Resources/Model.h"
@@ -18,14 +19,8 @@
 #include "assimp/postprocess.h"
 #pragma warning(pop)
 
-// FreeImage
-#include "FreeImage/FreeImage.h"
-
 // C++
-#include <cassert>
 #include <filesystem>
-#include <stdexcept>
-#include <map>
 
 namespace Tracer
 {
@@ -40,121 +35,6 @@ namespace Tracer
 				Logger::Info("[Assimp] %s", message);
 			}
 		};
-
-
-
-		std::shared_ptr<Material> ImportMaterial(Scene* scene, const std::string& importDir, const aiMaterial* aMat)
-		{
-			// name
-			aiString name;
-			if(aMat->Get(AI_MATKEY_NAME, name) != AI_SUCCESS)
-				return nullptr;
-
-			// create material
-			std::shared_ptr<Material> mat = std::make_shared<Material>(name.C_Str());
-
-			// parse properties
-			//ai_real r;
-			aiColor3D c3;
-
-			//if (!aMat->Get(AI_MATKEY_OPACITY, r))
-			//	mat->SetOpacity(r);
-
-			//if (!aMat->Get(AI_MATKEY_SHININESS, r))
-			//	mat->SetShininess(r);
-
-			//if (!aMat->Get(AI_MATKEY_REFRACTI, r))
-			//	mat->SetRefractI(r);
-
-			if (!aMat->Get(AI_MATKEY_COLOR_DIFFUSE, c3))
-				mat->Set(Material::PropertyIds::Diffuse, make_float3(c3.r, c3.g, c3.b));
-
-			//if (!aMat->Get(AI_MATKEY_COLOR_SPECULAR, c3))
-			//	mat->SetSpecular(make_float3(c3.r, c3.g, c3.b));
-
-			if (!aMat->Get(AI_MATKEY_COLOR_EMISSIVE, c3))
-				mat->Set(Material::PropertyIds::Emissive, make_float3(c3.r, c3.g, c3.b));
-
-			//if (!aMat->Get(AI_MATKEY_COLOR_TRANSPARENT, c3))
-			//	mat->SetTransparent(make_float3(c3.r, c3.g, c3.b));
-
-			// parse textures
-
-			aiString texPath;
-			if(aMat->GetTexture(aiTextureType_DIFFUSE, 0, &texPath) == aiReturn_SUCCESS)
-				mat->Set(Material::PropertyIds::Diffuse, Importer::ImportTexture(scene, texPath.C_Str(), importDir));
-
-			//if(aMat->GetTexture(aiTextureType_SPECULAR, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->SetSpecularMap(Importer::ImportTexture(scene, texPath.C_Str(), importDir));
-
-			//if(aMat->GetTexture(aiTextureType_EMISSIVE, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->SetEmissiveMap(Importer::ImportTexture(scene, texPath.C_Str(), importDir));
-
-			//if(aMat->GetTexture(aiTextureType_HEIGHT, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->SetHeightMap(Importer::ImportTexture(scene, texPath.C_Str(), importDir));
-
-			if(aMat->GetTexture(aiTextureType_NORMALS, 0, &texPath) == aiReturn_SUCCESS)
-				mat->Set(Material::PropertyIds::Normal, Importer::ImportTexture(scene, texPath.C_Str(), importDir));
-
-			//if(aMat->GetTexture(aiTextureType_SHININESS, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->SetShininessMap(Importer::ImportTexture(scene, texPath.C_Str(), importDir));
-
-			//if(aMat->GetTexture(aiTextureType_OPACITY, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->SetOpacityMap(Importer::ImportTexture(scene, texPath.C_Str(), importDir));
-
-			//if(aMat->GetTexture(aiTextureType_DISPLACEMENT, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->SetDisplacementMap(Importer::ImportTexture(scene, texPath.C_Str(), importDir));
-
-			//if(aMat->GetTexture(aiTextureType_BASE_COLOR, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->SetBaseColorMap(Importer::ImportTexture(scene, texPath.C_Str(), importDir));
-
-			//if(aMat->GetTexture(aiTextureType_EMISSION_COLOR, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->SetEmissionColorMap(Importer::ImportTexture(scene, texPath.C_Str(), importDir));
-
-			//if(aMat->GetTexture(aiTextureType_METALNESS, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->SetMetalnessMap(Importer::ImportTexture(scene, texPath.C_Str(), importDir));
-
-			//if(aMat->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->SetDiffuseRoughnessMap(Importer::ImportTexture(scene, texPath.C_Str(), importDir));
-
-			return mat;
-		}
-
-
-
-		void ImportMesh(std::shared_ptr<Model> model, aiMesh* aMesh, const std::vector<std::shared_ptr<Material>>& materials)
-		{
-			// vertices
-			std::vector<float3> positions(aMesh->mNumVertices, make_float3(0));
-			std::vector<float3> normals(aMesh->mNumVertices, make_float3(0));
-			std::vector<float2> texcoords(aMesh->mNumVertices, make_float2(0));
-
-			for(unsigned int i = 0; i < aMesh->mNumVertices; i++)
-			{
-				if(aMesh->mVertices)
-					positions[i] = *reinterpret_cast<float3*>(aMesh->mVertices + i);
-
-				if(aMesh->mNormals)
-					normals[i] = *reinterpret_cast<float3*>(aMesh->mNormals + i);
-
-				if(aMesh->mTextureCoords[0])
-					texcoords[i] = *reinterpret_cast<float2*>(aMesh->mTextureCoords[0] + i);
-			}
-
-			// indices
-			std::vector<uint3> indices;
-			indices.reserve(aMesh->mNumFaces);
-			for(unsigned int i = 0; i < aMesh->mNumFaces; i++)
-			{
-				aiFace f = aMesh->mFaces[i];
-				if(f.mNumIndices != 3)
-					throw std::runtime_error("Encountered non-triangulated face during import");
-				indices.push_back(make_uint3(f.mIndices[0], f.mIndices[1], f.mIndices[2]));
-			}
-
-			// add the mesh
-			model->AddMesh(positions, normals, texcoords, indices, aMesh->mMaterialIndex);
-		}
 
 
 
@@ -322,7 +202,7 @@ namespace Tracer
 					{
 						const std::string texPath = Read<std::string>(f);
 						if(!texPath.empty())
-							mat->Set(id, Importer::ImportTexture(scene, texPath));
+							mat->Set(id, TextureFile::Import(scene, texPath));
 					}
 				}
 
@@ -335,57 +215,127 @@ namespace Tracer
 
 
 		//
-		// Texture cache
+		// import
 		//
-		bool SaveToCache(std::shared_ptr<Texture> tex, const std::string& textureFile)
+		std::shared_ptr<Material> ImportMaterial(Scene* scene, const std::string& importDir, const aiMaterial* aMat)
 		{
-			// determine cache file name
-			const size_t pathHash = std::hash<std::string>{}(textureFile);
-			const std::string cacheFile = "cache/" + std::to_string(pathHash);
+			// name
+			aiString name;
+			if(aMat->Get(AI_MATKEY_NAME, name) != AI_SUCCESS)
+				return nullptr;
 
-			// create directory & file
-			std::filesystem::create_directory("cache");
-			FILE* f = nullptr;
-			if((fopen_s(&f, cacheFile.c_str(), "wb") != 0) || !f)
-				return false;
+			// create material
+			std::shared_ptr<Material> mat = std::make_shared<Material>(name.C_Str());
 
-			// write content
-			Write(f, tex->Resolution());
-			WriteVec(f, tex->Pixels());
-			fclose(f);
+			// parse properties
+			//ai_real r;
+			aiColor3D c3;
 
-			return true;
+			//if (!aMat->Get(AI_MATKEY_OPACITY, r))
+			//	mat->SetOpacity(r);
+
+			//if (!aMat->Get(AI_MATKEY_SHININESS, r))
+			//	mat->SetShininess(r);
+
+			//if (!aMat->Get(AI_MATKEY_REFRACTI, r))
+			//	mat->SetRefractI(r);
+
+			if (!aMat->Get(AI_MATKEY_COLOR_DIFFUSE, c3))
+				mat->Set(Material::PropertyIds::Diffuse, make_float3(c3.r, c3.g, c3.b));
+
+			//if (!aMat->Get(AI_MATKEY_COLOR_SPECULAR, c3))
+			//	mat->SetSpecular(make_float3(c3.r, c3.g, c3.b));
+
+			if (!aMat->Get(AI_MATKEY_COLOR_EMISSIVE, c3))
+				mat->Set(Material::PropertyIds::Emissive, make_float3(c3.r, c3.g, c3.b));
+
+			//if (!aMat->Get(AI_MATKEY_COLOR_TRANSPARENT, c3))
+			//	mat->SetTransparent(make_float3(c3.r, c3.g, c3.b));
+
+			// parse textures
+
+			aiString texPath;
+			if(aMat->GetTexture(aiTextureType_DIFFUSE, 0, &texPath) == aiReturn_SUCCESS)
+				mat->Set(Material::PropertyIds::Diffuse, TextureFile::Import(scene, texPath.C_Str(), importDir));
+
+			//if(aMat->GetTexture(aiTextureType_SPECULAR, 0, &texPath) == aiReturn_SUCCESS)
+			//	mat->SetSpecularMap(TextureFile::Import(scene, texPath.C_Str(), importDir));
+
+			//if(aMat->GetTexture(aiTextureType_EMISSIVE, 0, &texPath) == aiReturn_SUCCESS)
+			//	mat->SetEmissiveMap(TextureFile::Import(scene, texPath.C_Str(), importDir));
+
+			//if(aMat->GetTexture(aiTextureType_HEIGHT, 0, &texPath) == aiReturn_SUCCESS)
+			//	mat->SetHeightMap(TextureFile::Import(scene, texPath.C_Str(), importDir));
+
+			if(aMat->GetTexture(aiTextureType_NORMALS, 0, &texPath) == aiReturn_SUCCESS)
+				mat->Set(Material::PropertyIds::Normal, TextureFile::Import(scene, texPath.C_Str(), importDir));
+
+			//if(aMat->GetTexture(aiTextureType_SHININESS, 0, &texPath) == aiReturn_SUCCESS)
+			//	mat->SetShininessMap(TextureFile::Import(scene, texPath.C_Str(), importDir));
+
+			//if(aMat->GetTexture(aiTextureType_OPACITY, 0, &texPath) == aiReturn_SUCCESS)
+			//	mat->SetOpacityMap(TextureFile::Import(scene, texPath.C_Str(), importDir));
+
+			//if(aMat->GetTexture(aiTextureType_DISPLACEMENT, 0, &texPath) == aiReturn_SUCCESS)
+			//	mat->SetDisplacementMap(TextureFile::Import(scene, texPath.C_Str(), importDir));
+
+			//if(aMat->GetTexture(aiTextureType_BASE_COLOR, 0, &texPath) == aiReturn_SUCCESS)
+			//	mat->SetBaseColorMap(TextureFile::Import(scene, texPath.C_Str(), importDir));
+
+			//if(aMat->GetTexture(aiTextureType_EMISSION_COLOR, 0, &texPath) == aiReturn_SUCCESS)
+			//	mat->SetEmissionColorMap(TextureFile::Import(scene, texPath.C_Str(), importDir));
+
+			//if(aMat->GetTexture(aiTextureType_METALNESS, 0, &texPath) == aiReturn_SUCCESS)
+			//	mat->SetMetalnessMap(TextureFile::Import(scene, texPath.C_Str(), importDir));
+
+			//if(aMat->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &texPath) == aiReturn_SUCCESS)
+			//	mat->SetDiffuseRoughnessMap(TextureFile::Import(scene, texPath.C_Str(), importDir));
+
+			return mat;
 		}
 
 
 
-		std::shared_ptr<Texture> LoadTextureFromCache(Scene* scene, const std::string& filePath, const std::string& importDir = "")
+		void ImportMesh(std::shared_ptr<Model> model, aiMesh* aMesh, const std::vector<std::shared_ptr<Material>>& materials)
 		{
-			// determine cache file name
-			const size_t pathHash = std::hash<std::string>{}(filePath);
-			const std::string cacheFile = "cache/" + std::to_string(pathHash);
+			// vertices
+			std::vector<float3> positions(aMesh->mNumVertices, make_float3(0));
+			std::vector<float3> normals(aMesh->mNumVertices, make_float3(0));
+			std::vector<float2> texcoords(aMesh->mNumVertices, make_float2(0));
 
-			// compare write times
-			if(!FileExists(cacheFile) || FileLastWriteTime(filePath) > FileLastWriteTime(cacheFile))
-				return nullptr;
+			for(unsigned int i = 0; i < aMesh->mNumVertices; i++)
+			{
+				if(aMesh->mVertices)
+					positions[i] = *reinterpret_cast<float3*>(aMesh->mVertices + i);
 
-			// open cache file
-			FILE* f = nullptr;
-			if((fopen_s(&f, cacheFile.c_str(), "rb") != 0) || !f)
-				return nullptr;
+				if(aMesh->mNormals)
+					normals[i] = *reinterpret_cast<float3*>(aMesh->mNormals + i);
 
-			// read content
-			int2 res = Read<int2>(f);
-			std::vector<float4> pixels = ReadVec<float4>(f);
-			return std::make_shared<Texture>(filePath, res, pixels);
+				if(aMesh->mTextureCoords[0])
+					texcoords[i] = *reinterpret_cast<float2*>(aMesh->mTextureCoords[0] + i);
+			}
+
+			// indices
+			std::vector<uint3> indices;
+			indices.reserve(aMesh->mNumFaces);
+			for(unsigned int i = 0; i < aMesh->mNumFaces; i++)
+			{
+				aiFace f = aMesh->mFaces[i];
+				if(f.mNumIndices != 3)
+					throw std::runtime_error("Encountered non-triangulated face during import");
+				indices.push_back(make_uint3(f.mIndices[0], f.mIndices[1], f.mIndices[2]));
+			}
+
+			// add the mesh
+			model->AddMesh(positions, normals, texcoords, indices, aMesh->mMaterialIndex);
 		}
 	}
 
 
 
-	const std::vector<Importer::Format>& Importer::SupportedModelFormats()
+	const std::vector<FileInfo>& ModelFile::SupportedFormats()
 	{
-		static std::vector<Format> result;
+		static std::vector<FileInfo> result;
 		if(result.size() == 0)
 		{
 			Assimp::Importer importer;
@@ -398,11 +348,11 @@ namespace Tracer
 			{
 				const std::string ext = e.substr(2);
 
-				Format f;
-				f.name = ext;
-				f.description = ext;
-				f.ext = ext;
-				result.push_back(f);
+				FileInfo fi;
+				fi.name = ext;
+				fi.description = ext;
+				fi.ext = ext;
+				result.push_back(fi);
 			}
 		}
 		return result;
@@ -410,88 +360,7 @@ namespace Tracer
 
 
 
-	const std::vector<Importer::Format>& Importer::SupportedTextureFormats()
-	{
-		static std::vector<Format> result;
-		if(result.size() == 0)
-		{
-			const int formatCount = FreeImage_GetFIFCount();
-			result.reserve(formatCount);
-			for(int i = 0; i < formatCount; i++)
-			{
-				FREE_IMAGE_FORMAT fif = static_cast<FREE_IMAGE_FORMAT>(i);
-				if(FreeImage_FIFSupportsReading(fif))
-				{
-					Format f;
-					f.name = FreeImage_GetFormatFromFIF(fif);
-					f.description = FreeImage_GetFIFDescription(fif);
-					f.ext = FreeImage_GetFIFExtensionList(fif);
-					result.push_back(f);
-				}
-			}
-		}
-		return result;
-	}
-
-
-
-	std::shared_ptr<Texture> Importer::ImportTexture(Scene* scene, const std::string& filePath, const std::string& importDir)
-	{
-		std::string globalPath = filePath;
-		if(!importDir.empty())
-			globalPath = importDir + "/" + globalPath;
-		globalPath = GlobalPath(globalPath);
-
-		// check the scene for an existing texture
-		if(std::shared_ptr<Texture> tex = scene->GetTexture(globalPath))
-			return tex;
-
-		// check the cache
-		Stopwatch sw;
-		std::shared_ptr<Texture> tex = LoadTextureFromCache(scene, globalPath, importDir);
-		if(tex)
-		{
-			Logger::Info("Loaded \"%s\" from cache in %s", globalPath.c_str(), sw.ElapsedString().c_str());
-			return tex;
-		}
-
-		// load image
-		FREE_IMAGE_FORMAT fif = FreeImage_GetFileType(globalPath.c_str(), 0);
-		if(fif == FIF_UNKNOWN)
-			fif = FreeImage_GetFIFFromFilename(globalPath.c_str());
-
-		FIBITMAP* tmp = FreeImage_Load(fif, globalPath.c_str());
-		if(!tmp)
-			return nullptr;
-
-		//FIBITMAP* dib = FreeImage_ConvertTo32Bits(tmp);
-		FIBITMAP* dib = FreeImage_ConvertToRGBAF(tmp);
-		FreeImage_Unload(tmp);
-
-		const uint32_t width  = FreeImage_GetWidth(dib);
-		const uint32_t height = FreeImage_GetHeight(dib);
-		std::vector<float4> pixels(width * height);
-		for(uint32_t y = 0; y < height; y++)
-		{
-			const uint8_t* line = FreeImage_GetScanLine(dib, y);
-			memcpy(pixels.data() + (y * width), line, width * sizeof(float4));
-		}
-		FreeImage_Unload(dib);
-
-		// create texture
-		tex = std::make_shared<Texture>(globalPath, make_int2(width, height), pixels);
-		Logger::Info("Imported \"%s\" in %s", globalPath.c_str(), sw.ElapsedString().c_str());
-
-		sw.Reset();
-		SaveToCache(tex, globalPath);
-		Logger::Debug("Saved \"%s\" to cache in %s", globalPath.c_str(), sw.ElapsedString().c_str());
-
-		return tex;
-	}
-
-
-
-	std::shared_ptr<Model> Importer::ImportModel(Scene* scene, const std::string& filePath, const std::string& name)
+	std::shared_ptr<Tracer::Model> ModelFile::Import(Scene* scene, const std::string& filePath, const std::string& name)
 	{
 		Stopwatch sw;
 		const std::string globalPath = GlobalPath(filePath);
