@@ -357,16 +357,19 @@ inline float3 SampleLight(uint32_t& seed, const float3& I, const float3& N, floa
 	const float3 bary = make_float3(rnd(seed), rnd(seed), rnd(seed));
 	const float3 pointOnLight = (bary.x * tri.V0) + (bary.y * tri.V1) + (bary.z * tri.V2);
 
-	// sample direction
+	// sample direction (light -> hit)
 	float3 L = I - pointOnLight;
 	const float sqDist = dot(L, L);
 	L = normalize(L);
 	const float LNdotL = dot(tri.N, L);
 	const float NdotL = dot(N, L);
 
+	// set output parameters
 	prob = tri.energy / totalEnergy;
 	pdf = (NdotL < 0 && LNdotL > 0) ? sqDist / (tri.area * LNdotL) : 0;
 	dist = sqrtf(sqDist);
 	radiance = tri.radiance;
-	return L;
+
+	// return hit -> light
+	return -L;
 }
