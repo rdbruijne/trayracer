@@ -1,5 +1,7 @@
 # TrayRacer
 
+![Bistro](Screenshots/bistro.png)
+
 Personal path tracer project.
 
 # Controls
@@ -20,7 +22,7 @@ Personal path tracer project.
 
 # Dependencies
 
-* [CUDA Toolkit 10.2](https://developer.nvidia.com/cuda-10.2-download-archive)
+* [CUDA Toolkit 11.1](https://developer.nvidia.com/cuda-11.1.0-download-archive)
 * [Windows 10.0 SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk/)
 
 # Resources
