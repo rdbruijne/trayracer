@@ -1,3 +1,6 @@
 .vs/
 bin/
 build/
+
+# Ignore scene files not explicitly added
+Resources/scenes/*.json
