@@ -71,7 +71,7 @@ inline float4 transform(const float4& tx, const float4& ty, const float4& tz, co
 static __device__
 inline float3 GetColor(const CudaMaterialProperty& prop, float2 uv)
 {
-	float3 result = make_float3(1.f);
+	float3 result = make_float3(0);
 	if(prop.useColor != 0)
 		result = make_float3(__half2float(prop.r), __half2float(prop.g), __half2float(prop.b));
 	if(prop.useTexture != 0 && prop.textureMap != 0)

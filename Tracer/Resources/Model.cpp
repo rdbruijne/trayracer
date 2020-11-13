@@ -168,6 +168,7 @@ namespace Tracer
 		mBuildInput.type = OPTIX_BUILD_INPUT_TYPE_TRIANGLES;
 
 		// vertices
+		static_assert(sizeof(PackedTriangle) % 3 == 0, "Size of PackedTriangle must multiple of 3");
 		mBuildInput.triangleArray.vertexFormat        = OPTIX_VERTEX_FORMAT_FLOAT3;
 		mBuildInput.triangleArray.vertexStrideInBytes = sizeof(PackedTriangle) / 3;
 		mBuildInput.triangleArray.numVertices         = static_cast<unsigned int>(mPackedTriangles.size() * 3);

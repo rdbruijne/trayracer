@@ -600,6 +600,8 @@ namespace Tracer
 			}
 		}
 
+		if(mSelectedModelIx >= static_cast<int>(models.size()))
+			mSelectedModelIx = 0;
 		auto model = models.size() > 0 ? models[mSelectedModelIx] : nullptr;
 
 		// delete
