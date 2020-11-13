@@ -5,6 +5,21 @@ namespace Tracer
 	//----------------------------------------------------------------------------------------------------------------------------
 	// Material Property
 	//----------------------------------------------------------------------------------------------------------------------------
+	Material::Property& Material::Property::operator =(const Property& p)
+	{
+		// color
+		mColorEnabled = p.mColorEnabled;
+		mColor = p.mColor;
+
+		// texture map
+		mTextureEnabled = p.mTextureEnabled;
+		mTexture = p.mTexture;
+
+		return *this;
+	}
+
+
+
 	void Material::Property::Set(const float3& color)
 	{
 		assert(mColorEnabled);
@@ -25,18 +40,26 @@ namespace Tracer
 
 	void Material::Property::Build()
 	{
-		if(mTexture && mTexture->IsDirty())
-		{
-			mTexture->Build();
-			mTexture->MarkClean();
-		}
+		std::lock_guard<std::mutex> l(mBuildMutex);
 
+		// dirty check
+		if(!IsDirty())
+			return;
+
+		// build texture
+		if(mTexture && mTexture->IsDirty())
+			mTexture->Build();
+
+		// assign data
 		mCudaProperty.r = __float2half(mColor.x);
 		mCudaProperty.g = __float2half(mColor.y);
 		mCudaProperty.b = __float2half(mColor.z);
 		mCudaProperty.textureMap = mTexture ? mTexture->CudaObject() : 0;
 		mCudaProperty.useColor = mColorEnabled ? 1 : 0;
 		mCudaProperty.useTexture = mTextureEnabled ? 1 : 0;
+
+		// mark clean
+		MarkClean();
 	}
 
 
@@ -76,18 +99,24 @@ namespace Tracer
 
 	void Material::Build()
 	{
-		for(size_t i = 0; i < magic_enum::enum_count<Material::PropertyIds>(); i++)
-		{
-			if(mProperties[i].IsDirty())
-			{
-				mProperties[i].Build();
-				mProperties[i].MarkClean();
-			}
+		std::lock_guard<std::mutex> l(mBuildMutex);
 
-		}
+		// dirty check
+		if(!IsDirty())
+			return;
+
+		// build properties
+		for(size_t i = 0; i < magic_enum::enum_count<Material::PropertyIds>(); i++)
+			if(mProperties[i].IsDirty())
+				mProperties[i].Build();
+
+		// assign properties
 		mCudaMaterial.diffuse = mProperties[static_cast<size_t>(PropertyIds::Diffuse)].CudaProperty();
 		mCudaMaterial.emissive = mProperties[static_cast<size_t>(PropertyIds::Emissive)].CudaProperty();
 		mCudaMaterial.normal = mProperties[static_cast<size_t>(PropertyIds::Normal)].CudaProperty();
+
+		// mark clean
+		MarkClean();
 	}
 
 
@@ -103,7 +132,7 @@ namespace Tracer
 	{
 		const size_t szId = static_cast<size_t>(id);
 		RemoveDependency(mProperties[szId].TextureMap());
-		mProperties[static_cast<size_t>(id)] = prop;
+		mProperties[static_cast<size_t>(id)] = std::move(prop);
 		AddDependency(mProperties[szId].TextureMap());
 		MarkDirty();
 	}

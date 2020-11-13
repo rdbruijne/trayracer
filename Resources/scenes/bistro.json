@@ -2,23 +2,12 @@
 	"models":
 	[
 		{ "name": "bistro-interior", "path": "../Resources/models/bistro/BistroInterior.fbx" },
-		{ "name": "bistro-exterior", "path": "../Resources/models/bistro/BistroExterior.fbx" },
-		{ "name": "toad", "path": "../Resources/models/toad/toad.obj" }
+		{ "name": "bistro-exterior", "path": "../Resources/models/bistro/BistroExterior.fbx" }
 	],
 	"instances":
 	[
 		{ "model": "bistro-interior" },
-		{ "model": "bistro-exterior" },
-		{
-			"model": "toad",
-			"transform":
-			[
-				{ "translate": [0, 1.69, 0] },
-				{ "scale": 0.75 },
-				{ "rotate-y": 90 },
-				{ "translate": [-12, 0.29, -1] }
-			]
-		}
+		{ "model": "bistro-exterior" }
 	],
 	"camera":
 	{

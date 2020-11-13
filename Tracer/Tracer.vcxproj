@@ -152,6 +152,8 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
   <ItemGroup>
     <ClCompile Include="App\RunApp.cpp" />
     <ClCompile Include="Common\CommonStructs.cpp" />
+    <ClCompile Include="CUDA\CudaBuffer.cpp" />
+    <ClCompile Include="CUDA\CudaError.cpp" />
     <ClCompile Include="FileIO\ModelFile.cpp" />
     <ClCompile Include="FileIO\SceneFile.cpp" />
     <ClCompile Include="FileIO\TextureFile.cpp" />
@@ -161,9 +163,7 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
     <ClCompile Include="OpenGL\GLTexture.cpp" />
     <ClCompile Include="OpenGL\Shader.cpp" />
     <ClCompile Include="OpenGL\Window.cpp" />
-    <ClCompile Include="Renderer\CudaBuffer.cpp" />
-    <ClCompile Include="Renderer\CudaError.cpp" />
-    <ClCompile Include="Renderer\OptixError.cpp" />
+    <ClCompile Include="Optix\OptixError.cpp" />
     <ClCompile Include="Renderer\Renderer.cpp" />
     <ClCompile Include="Renderer\Scene.cpp" />
     <ClCompile Include="Renderer\Sky.cpp" />
@@ -182,27 +182,29 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
     <ClInclude Include="App\RunApp.h" />
     <ClInclude Include="Common\CommonStructs.h" />
     <ClInclude Include="Common\CommonUtility.h" />
-    <ClInclude Include="CUDA\CudaFwd.h" />
-    <ClInclude Include="CUDA\CudaGlobals.h" />
-    <ClInclude Include="CUDA\CudaUtility.h" />
-    <ClInclude Include="CUDA\CudaUtilityKernels.h" />
-    <ClInclude Include="CUDA\Shade\AmbientOcclusion.h" />
-    <ClInclude Include="CUDA\Shade\AmbientOcclusionShading.h" />
-    <ClInclude Include="CUDA\Shade\Bitangent.h" />
-    <ClInclude Include="CUDA\Shade\BSDF\Closure.h" />
-    <ClInclude Include="CUDA\Shade\BSDF\Diffuse.h" />
-    <ClInclude Include="CUDA\Shade\DiffuseFilter.h" />
-    <ClInclude Include="CUDA\Shade\DirectLight.h" />
-    <ClInclude Include="CUDA\Shade\GeometricNormal.h" />
-    <ClInclude Include="CUDA\Shade\MaterialID.h" />
-    <ClInclude Include="CUDA\Shade\ObjectID.h" />
-    <ClInclude Include="CUDA\Shade\PathTracing.h" />
-    <ClInclude Include="CUDA\Shade\ShadingNormal.h" />
-    <ClInclude Include="CUDA\Shade\Tangent.h" />
-    <ClInclude Include="CUDA\Shade\TextureCoordinate.h" />
-    <ClInclude Include="CUDA\Shade\Wireframe.h" />
-    <ClInclude Include="CUDA\Shade\ZDepth.h" />
-    <ClInclude Include="CUDA\CudaSky.h" />
+    <ClInclude Include="CUDA\CudaBuffer.h" />
+    <ClInclude Include="CUDA\CudaError.h" />
+    <ClInclude Include="CUDA\GPU\CudaFwd.h" />
+    <ClInclude Include="CUDA\GPU\CudaGlobals.h" />
+    <ClInclude Include="CUDA\GPU\CudaSky.h" />
+    <ClInclude Include="CUDA\GPU\CudaUtility.h" />
+    <ClInclude Include="CUDA\GPU\CudaUtilityKernels.h" />
+    <ClInclude Include="CUDA\GPU\Shade\AmbientOcclusion.h" />
+    <ClInclude Include="CUDA\GPU\Shade\AmbientOcclusionShading.h" />
+    <ClInclude Include="CUDA\GPU\Shade\Bitangent.h" />
+    <ClInclude Include="CUDA\GPU\Shade\BSDF\Closure.h" />
+    <ClInclude Include="CUDA\GPU\Shade\BSDF\Diffuse.h" />
+    <ClInclude Include="CUDA\GPU\Shade\DiffuseFilter.h" />
+    <ClInclude Include="CUDA\GPU\Shade\DirectLight.h" />
+    <ClInclude Include="CUDA\GPU\Shade\GeometricNormal.h" />
+    <ClInclude Include="CUDA\GPU\Shade\MaterialID.h" />
+    <ClInclude Include="CUDA\GPU\Shade\ObjectID.h" />
+    <ClInclude Include="CUDA\GPU\Shade\PathTracing.h" />
+    <ClInclude Include="CUDA\GPU\Shade\ShadingNormal.h" />
+    <ClInclude Include="CUDA\GPU\Shade\Tangent.h" />
+    <ClInclude Include="CUDA\GPU\Shade\TextureCoordinate.h" />
+    <ClInclude Include="CUDA\GPU\Shade\Wireframe.h" />
+    <ClInclude Include="CUDA\GPU\Shade\ZDepth.h" />
     <ClInclude Include="FileIO\FileInfo.h" />
     <ClInclude Include="FileIO\ModelFile.h" />
     <ClInclude Include="FileIO\SceneFile.h" />
@@ -214,9 +216,7 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
     <ClInclude Include="OpenGL\Input.h" />
     <ClInclude Include="OpenGL\Shader.h" />
     <ClInclude Include="OpenGL\Window.h" />
-    <ClInclude Include="Renderer\CudaBuffer.h" />
-    <ClInclude Include="Renderer\CudaError.h" />
-    <ClInclude Include="Renderer\OptixError.h" />
+    <ClInclude Include="Optix\OptixError.h" />
     <ClInclude Include="Renderer\Renderer.h" />
     <ClInclude Include="Renderer\Scene.h" />
     <ClInclude Include="Renderer\Sky.h" />
@@ -235,17 +235,18 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
     <ClInclude Include="Utility\Utility.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="CUDA\CudaBuffer.inl" />
     <None Include="glsl\FullScreenQuad.frag" />
     <None Include="glsl\FullScreenQuad.vert" />
     <None Include="Resources\Model.h" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="CUDA\cuda.cu" />
-    <CudaCompile Include="Optix\optix.cu">
-      <CompileOut Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)bin\ptx\%(Filename).ptx</CompileOut>
-      <NvccCompilation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ptx</NvccCompilation>
-      <CompileOut Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)bin\ptx\%(Filename).ptx</CompileOut>
+    <CudaCompile Include="CUDA\GPU\cuda.cu" />
+    <CudaCompile Include="Optix\GPU\optix.cu">
+      <CompileOut Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)bin\%(Filename).ptx</CompileOut>
       <NvccCompilation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ptx</NvccCompilation>
+      <CompileOut Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)bin\%(Filename).ptx</CompileOut>
+      <NvccCompilation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ptx</NvccCompilation>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>

@@ -1,7 +1,7 @@
 #include "Texture.h"
 
 // Project
-#include "Renderer/CudaError.h"
+#include "CUDA/CudaError.h"
 #include "Utility/Utility.h"
 
 // CUDA
@@ -54,6 +54,9 @@ namespace Tracer
 
 	void Texture::Build()
 	{
+		std::lock_guard<std::mutex> l(mBuildMutex);
+
+		// dirty check
 		if(!IsDirty())
 			return;
 
@@ -92,7 +95,7 @@ namespace Tracer
 
 		// upload pixels
 		CUDA_CHECK(cudaMallocArray(&mCudaArray, &channelDesc, width, height));
-		CUDA_CHECK(cudaMemcpy2DToArray(mCudaArray, 0, 0, halfPixels.data(), pitch, pitch, height, cudaMemcpyHostToDevice));
+		CUDA_CHECK(cudaMemcpy2DToArrayAsync(mCudaArray, 0, 0, halfPixels.data(), pitch, pitch, height, cudaMemcpyHostToDevice));
 
 		// resource descriptor
 		cudaResourceDesc resourceDesc = {};
@@ -118,5 +121,8 @@ namespace Tracer
 
 		// signal for OpenGL texture rebuild
 		mRebuildGlTex = true;
+
+		// mark clean
+		MarkClean();
 	}
 }

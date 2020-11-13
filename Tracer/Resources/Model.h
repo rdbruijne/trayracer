@@ -2,7 +2,7 @@
 
 // Project
 #include "Common/CommonStructs.h"
-#include "Renderer/CudaBuffer.h"
+#include "CUDA/CudaBuffer.h"
 #include "Resources/Resource.h"
 #include "Utility/LinearMath.h"
 
@@ -11,6 +11,7 @@
 
 // C++
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -22,6 +23,8 @@ namespace Tracer
 	public:
 		Model() = default;
 		explicit Model(const std::string& filePath, const std::string& name = "");
+
+		Model& operator =(const Model& m) = delete;
 
 		// info
 		const std::string& FilePath() const { return mFilePath; }
@@ -75,6 +78,8 @@ namespace Tracer
 		std::vector<LightTriangle> mLightTriangles;
 
 		// build data
+		std::mutex mBuildMutex;
+
 		CudaBuffer mTriangleBuffer = {};
 		CudaBuffer mMaterialIndexBuffer = {};
 

@@ -1,21 +1,23 @@
 #include "Renderer/Renderer.h"
 
 // Project
+#include "GUI/MainGui.h"
 #include "OpenGL/GLTexture.h"
+#include "Optix/OptixError.h"
 #include "Renderer/Scene.h"
 #include "Resources/CameraNode.h"
 #include "Resources/Instance.h"
 #include "Resources/Material.h"
 #include "Resources/Model.h"
 #include "Resources/Texture.h"
-#include "Renderer/OptixError.h"
 #include "Renderer/Sky.h"
 #include "Utility/LinearMath.h"
 #include "Utility/Logger.h"
+#include "Utility/Stopwatch.h"
 #include "Utility/Utility.h"
 
 // SPT
-#include "CUDA/CudaFwd.h"
+#include "CUDA/GPU/CudaFwd.h"
 
 // Optix
 #pragma warning(push)
@@ -35,6 +37,7 @@
 #include <assert.h>
 #include <set>
 #include <string>
+#include <thread>
 
 namespace Tracer
 {
@@ -120,6 +123,8 @@ namespace Tracer
 
 		mLaunchParams.sceneRoot = mSceneRoot;
 		mLaunchParams.sampleCount = 0;
+
+		CUDA_CHECK(cudaDeviceSynchronize());
 	}
 
 
@@ -201,7 +206,6 @@ namespace Tracer
 			mTraceTimeEvents[pathLength].Stop(mStream);
 
 			// shade
-			CUDA_CHECK(cudaDeviceSynchronize());
 			mShadeTimeEvents[pathLength].Start(mStream);
 			Shade(mRenderMode, pathCount, mAccumulator.Ptr<float4>(), mAlbedoBuffer.Ptr<float4>(), mNormalBuffer.Ptr<float4>(),
 				  mPathStates.Ptr<float4>(), mHitData.Ptr<uint4>(), mShadowRayData.Ptr<float4>(),
@@ -209,7 +213,6 @@ namespace Tracer
 			mShadeTimeEvents[pathLength].Stop(mStream);
 
 			// update counters
-			CUDA_CHECK(cudaDeviceSynchronize());
 			mCountersBuffer.Download(&counters, 1);
 			pathCount = counters.extendRays;
 
@@ -389,7 +392,6 @@ namespace Tracer
 
 		// launch the kernel
 		OPTIX_CHECK(optixLaunch(mPipeline, mStream, mLaunchParamsBuffer.DevicePtr(), mLaunchParamsBuffer.Size(), &mShaderBindingTable, 1, 1, 1));
-		CUDA_CHECK(cudaDeviceSynchronize());
 
 		// read the raypick result
 		RayPickResult result;
@@ -507,7 +509,7 @@ namespace Tracer
 		mPipelineLinkOptions.debugLevel             = OPTIX_COMPILE_DEBUG_LEVEL_NONE;
 
 		// load PTX
-		const std::string ptxCode = ReadFile("ptx/optix.ptx");
+		const std::string ptxCode = ReadFile("optix.ptx");
 		assert(!ptxCode.empty());
 
 		char log[2048];
@@ -622,7 +624,6 @@ namespace Tracer
 
 	void Renderer::BuildGeometry(Scene* scene)
 	{
-		std::vector<OptixBuildInput> buildInputs;
 		std::vector<CudaMeshData> meshData;
 		std::vector<uint32_t> modelIndices;
 		std::vector<float3x4> invTransforms;
@@ -636,17 +637,28 @@ namespace Tracer
 
 			// build models
 			auto& models = scene->Models();
-			for(auto& m : models)
+			std::vector<std::thread> modelBuilders;
+			std::atomic_size_t modelIx = 0;
+			for(size_t i = 0; i < std::thread::hardware_concurrency(); i++)
 			{
-				if(m->IsDirty())
+				modelBuilders.push_back(std::thread([this, &modelIx, &models, &rebuildLights]()
 				{
-					if(m->IsDirty(false))
-						m->Build(mOptixContext, mStream);
-					if(m->BuildLights())
-						rebuildLights = true;
-					m->MarkClean();
-				}
+					size_t ix = modelIx++;
+					while(ix < models.size())
+					{
+						auto& m = models[ix];
+						if(m->IsDirty())
+						{
+							if(m->IsDirty(false))
+								m->Build(mOptixContext, mStream);
+							rebuildLights = rebuildLights || m->BuildLights();
+						}
+						ix = modelIx++;
+					}
+				}));
 			}
+			for(std::thread& b : modelBuilders)
+				b.join();
 
 			// place instances
 			uint32_t instanceId = 0;
@@ -685,19 +697,19 @@ namespace Tracer
 		else
 		{
 			// CUDA mesh data
-			mCudaMeshData.Upload(meshData, true);
+			mCudaMeshData.UploadAsync(meshData, true);
 			SetCudaMeshData(mCudaMeshData.Ptr<CudaMeshData>());
 
 			// CUDA inverse instance transforms
-			mCudaInstanceInverseTransforms.Upload(invTransforms, true);
+			mCudaInstanceInverseTransforms.UploadAsync(invTransforms, true);
 			SetCudaInvTransforms(mCudaInstanceInverseTransforms.Ptr<float4>());
 
 			// upload instances
-			mInstancesBuffer.Upload(instances, true);
+			mInstancesBuffer.UploadAsync(instances, true);
 
 			// upload lights
 			const std::vector<LightTriangle>& lightData = scene->Lights();
-			mCudaLightsBuffer.Upload(lightData, true);
+			mCudaLightsBuffer.UploadAsync(lightData, true);
 			SetCudaLights(mCudaLightsBuffer.Ptr<LightTriangle>());
 			SetCudaLightCount(static_cast<int32_t>(lightData.size()));
 			SetCudaLightEnergy(lightData.size() == 0 ? 0 : lightData.back().sumEnergy);
@@ -707,7 +719,6 @@ namespace Tracer
 			instanceBuildInput.type = OPTIX_BUILD_INPUT_TYPE_INSTANCES;
 			instanceBuildInput.instanceArray.instances    = mInstancesBuffer.DevicePtr();
 			instanceBuildInput.instanceArray.numInstances = static_cast<unsigned int>(instances.size());
-			buildInputs.push_back(instanceBuildInput);
 
 			// Acceleration setup
 			OptixAccelBuildOptions buildOptions = {};
@@ -715,15 +726,15 @@ namespace Tracer
 			buildOptions.operation  = OPTIX_BUILD_OPERATION_BUILD;
 
 			OptixAccelBufferSizes accelBufferSizes = {};
-			OPTIX_CHECK(optixAccelComputeMemoryUsage(mOptixContext, &buildOptions, buildInputs.data(), static_cast<unsigned int>(buildInputs.size()), &accelBufferSizes));
+			OPTIX_CHECK(optixAccelComputeMemoryUsage(mOptixContext, &buildOptions, &instanceBuildInput, 1, &accelBufferSizes));
 
 			// Execute build
 			CudaBuffer tempBuffer(accelBufferSizes.tempSizeInBytes);
 			mAccelBuffer.Resize(accelBufferSizes.outputSizeInBytes);
-			OPTIX_CHECK(optixAccelBuild(mOptixContext, nullptr, &buildOptions, buildInputs.data(), static_cast<unsigned int>(buildInputs.size()),
-										tempBuffer.DevicePtr(), tempBuffer.Size(), mAccelBuffer.DevicePtr(), mAccelBuffer.Size(), &mSceneRoot, nullptr, 0));
-
 			CUDA_CHECK(cudaDeviceSynchronize());
+			OPTIX_CHECK(optixAccelBuild(mOptixContext, nullptr, &buildOptions, &instanceBuildInput, 1,
+										tempBuffer.DevicePtr(), tempBuffer.Size(), mAccelBuffer.DevicePtr(), mAccelBuffer.Size(),
+										&mSceneRoot, nullptr, 0));
 		}
 	}
 
@@ -740,32 +751,34 @@ namespace Tracer
 		else
 		{
 			uint32_t lastMaterialOffset = 0;
-			std::vector<CudaMatarial> materialData;
 			std::vector<uint32_t> materialOffsets;
-
 			std::vector<uint32_t> modelIndices;
 			std::vector<std::shared_ptr<Model>> parsedModels;
 
+			materialOffsets.reserve(scene->Instances().size());
+			modelIndices.reserve(scene->Instances().size());
+			parsedModels.reserve(scene->Instances().size());
+
+			// gather materials to build
+			std::atomic_size_t matIx = 0;
+			std::vector<std::shared_ptr<Material>> materials;
 			for(auto& inst : scene->Instances())
 			{
+				// find the model
 				const auto& model = inst->GetModel();
 				auto it = std::find(parsedModels.begin(), parsedModels.end(), model);
 				if(it != parsedModels.end())
 				{
+					// model already parsed
 					modelIndices.push_back(static_cast<uint32_t>(std::distance(parsedModels.begin(), it)));
 				}
 				else
 				{
-					for(auto& mat : model->Materials())
-					{
-						if(mat->IsDirty())
-						{
-							mat->Build();
-							mat->MarkClean();
-						}
-						materialData.push_back(mat->CudaMaterial());
-					}
+					// add materials
+					auto& modelMats = model->Materials();
+					materials.insert(materials.end(), modelMats.begin(), modelMats.end());
 
+					// increment offsets
 					materialOffsets.push_back(lastMaterialOffset);
 					lastMaterialOffset += static_cast<uint32_t>(model->Materials().size());
 
@@ -773,11 +786,38 @@ namespace Tracer
 					parsedModels.push_back(model);
 				}
 			}
-			mCudaMaterialOffsets.Upload(materialOffsets, true);
-			mCudaMaterialData.Upload(materialData, true);
-			mCudaModelIndices.Upload(modelIndices, true);
+
+			// build the materials
+			std::vector<CudaMatarial> materialData;
+			materialData.resize(materials.size());
+
+			matIx = 0;
+			std::vector<std::thread> materialBuilders;
+			for(size_t i = 0; i < std::thread::hardware_concurrency(); i++)
+			{
+				materialBuilders.push_back(std::thread([&matIx, &materials, &materialData]()
+				{
+					size_t ix = matIx++;
+					while(ix < materials.size())
+					{
+						auto mat = materials[ix];
+						if(mat->IsDirty())
+							mat->Build();
+						materialData[ix] = mat->CudaMaterial();
+						ix = matIx++;
+					}
+				}));
+			}
+			for(auto& b : materialBuilders)
+				b.join();
+
+			// upload data
+			mCudaMaterialOffsets.UploadAsync(materialOffsets, true);
+			mCudaMaterialData.UploadAsync(materialData, true);
+			mCudaModelIndices.UploadAsync(modelIndices, true);
 		}
 
+		// assign to cuda
 		SetCudaMatarialData(mCudaMaterialData.Ptr<CudaMatarial>());
 		SetCudaMatarialOffsets(mCudaMaterialOffsets.Ptr<uint32_t>());
 		SetCudaModelIndices(mCudaModelIndices.Ptr<uint32_t>());
@@ -797,10 +837,10 @@ namespace Tracer
 			const SkyState& skyStateY = sky->CudaStateY();
 			const SkyState& skyStateZ = sky->CudaStateZ();
 
-			mSkyData.Upload(&skyData, 1, true);
-			mSkyStateX.Upload(&skyStateX, 1, true);
-			mSkyStateY.Upload(&skyStateY, 1, true);
-			mSkyStateZ.Upload(&skyStateZ, 1, true);
+			mSkyData.UploadAsync(&skyData, 1, true);
+			mSkyStateX.UploadAsync(&skyStateX, 1, true);
+			mSkyStateY.UploadAsync(&skyStateY, 1, true);
+			mSkyStateZ.UploadAsync(&skyStateZ, 1, true);
 
 			SetCudaSkyData(mSkyData.Ptr<SkyData>());
 			SetCudaSkyStateX(mSkyStateX.Ptr<SkyState>());
@@ -853,5 +893,4 @@ namespace Tracer
 		CUDA_CHECK(cudaEventElapsedTime(&elapsed, mStart, mEnd));
 		return elapsed;
 	}
-
 }

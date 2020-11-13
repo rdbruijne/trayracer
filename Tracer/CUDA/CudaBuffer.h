@@ -1,7 +1,7 @@
 #pragma once
 
 // Project
-#include "Renderer/CudaError.h"
+#include "CUDA/CudaError.h"
 #include "Utility/Utility.h"
 
 // C++
@@ -26,51 +26,32 @@ namespace Tracer
 
 		// Upload
 		template<typename TYPE>
-		void Upload(const TYPE* data, size_t count = 1, bool allowResize = false)
-		{
-			if(count == 0)
-			{
-				if(allowResize)
-					Free();
-			}
-			else
-			{
-				const size_t size = count * sizeof(TYPE);
-				if(allowResize && (!mPtr || mSize != size))
-					Resize(size);
-
-				assert(mPtr != nullptr);
-				assert(mSize == size);
-				CUDA_CHECK(cudaMemcpy(mPtr, static_cast<const void*>(data), size, cudaMemcpyHostToDevice));
-			}
-		}
+		void Upload(const TYPE* data, size_t count = 1, bool allowResize = false);
+		template<typename TYPE>
+		void Upload(const std::vector<TYPE>& data, bool allowResize = false);
 
 		template<typename TYPE>
-		void Upload(const std::vector<TYPE>& data, bool allowResize = false)
-		{
-			Upload(data.data(), data.size(), allowResize);
-		}
+		void UploadAsync(const TYPE* data, size_t count = 1, bool allowResize = false);
+		template<typename TYPE>
+		void UploadAsync(const std::vector<TYPE>& data, bool allowResize = false);
 
 		// Download
 		template<typename TYPE>
-		void Download(TYPE* data, size_t count = 1) const
-		{
-			assert(mPtr != nullptr);
-			assert(mSize == sizeof(TYPE) * count);
-			CUDA_CHECK(cudaMemcpy(static_cast<void*>(data), mPtr, sizeof(TYPE) * count, cudaMemcpyDeviceToHost));
-		}
+		void Download(TYPE* data, size_t count = 1) const;
+		template<typename TYPE>
+		void Download(std::vector<TYPE>& data) const;
 
 		template<typename TYPE>
-		void Download(std::vector<TYPE>& data) const
-		{
-			Download(data.data(), data.size());
-		}
+		void DownloadAsync(TYPE* data, size_t count = 1) const;
+		template<typename TYPE>
+		void DownloadAsync(std::vector<TYPE>& data) const;
 
 		// members
 		inline size_t Size() const { return mSize; }
 
 		template<typename TYPE = void>
 		inline TYPE* Ptr() { return reinterpret_cast<TYPE*>(mPtr); }
+
 		template<typename TYPE = void>
 		inline const TYPE* Ptr() const { return reinterpret_cast<TYPE*>(mPtr); }
 
@@ -83,3 +64,5 @@ namespace Tracer
 		void* mPtr = nullptr;
 	};
 }
+
+#include "CudaBuffer.inl"

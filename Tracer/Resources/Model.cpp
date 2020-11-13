@@ -1,7 +1,7 @@
 #include "Model.h"
 
 // project
-#include "Renderer/OptixError.h"
+#include "Optix/OptixError.h"
 #include "Resources/Material.h"
 
 // Optix
@@ -90,6 +90,12 @@ namespace Tracer
 
 	void Model::Build(OptixDeviceContext optixContext, CUstream stream)
 	{
+		std::lock_guard<std::mutex> l(mBuildMutex);
+
+		// dirty check
+		if(!IsDirty())
+			return;
+
 		// make packed triangles
 		mPackedTriangles.reserve(mIndices.size());
 		for(size_t i = 0; i < mIndices.size(); i++)
@@ -201,6 +207,9 @@ namespace Tracer
 			mAccelBuffer.Alloc(compactedSize);
 		OPTIX_CHECK(optixAccelCompact(optixContext, stream, mTraversableHandle, mAccelBuffer.DevicePtr(), mAccelBuffer.Size(), &mTraversableHandle));
 		CUDA_CHECK(cudaDeviceSynchronize());
+
+		// mark clean
+		MarkClean();
 	}
 
 

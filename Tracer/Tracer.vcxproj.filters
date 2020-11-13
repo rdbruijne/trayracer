@@ -31,20 +31,11 @@
     <ClCompile Include="Resources\CameraNode.cpp">
       <Filter>Resources</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer\CudaBuffer.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
     <ClCompile Include="Renderer\Renderer.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\CudaError.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
     <ClCompile Include="Common\CommonStructs.cpp">
       <Filter>Common</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer\OptixError.cpp">
-      <Filter>Renderer</Filter>
     </ClCompile>
     <ClCompile Include="Resources\Instance.cpp">
       <Filter>Resources</Filter>
@@ -78,6 +69,15 @@
     </ClCompile>
     <ClCompile Include="FileIO\TextureFile.cpp">
       <Filter>FileIO</Filter>
+    </ClCompile>
+    <ClCompile Include="CUDA\CudaBuffer.cpp">
+      <Filter>CUDA</Filter>
+    </ClCompile>
+    <ClCompile Include="CUDA\CudaError.cpp">
+      <Filter>CUDA</Filter>
+    </ClCompile>
+    <ClCompile Include="Optix\OptixError.cpp">
+      <Filter>Optix</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -114,11 +114,17 @@
     <Filter Include="glsl">
       <UniqueIdentifier>{c7f6896a-605e-4a32-b74e-cd48bbda9032}</UniqueIdentifier>
     </Filter>
-    <Filter Include="CUDA\Shade">
-      <UniqueIdentifier>{92818293-8462-4654-b751-3d676b92fe2c}</UniqueIdentifier>
+    <Filter Include="Optix\GPU">
+      <UniqueIdentifier>{e1b0efc4-ed84-4d98-9488-3d58e8fc4e2b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="CUDA\Shade\BSDF">
-      <UniqueIdentifier>{d251a70f-af72-4786-8d9e-76e72c57e072}</UniqueIdentifier>
+    <Filter Include="CUDA\GPU">
+      <UniqueIdentifier>{189067c2-d511-4a8a-8944-5ed76f36bc39}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CUDA\GPU\Shade">
+      <UniqueIdentifier>{b93d2fe3-e89b-4b0e-a4c4-f8366b827012}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CUDA\GPU\Shade\BSDF">
+      <UniqueIdentifier>{554e0a88-70d6-4981-b2be-dc8a3826a0ae}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -158,26 +164,11 @@
     <ClInclude Include="Resources\CameraNode.h">
       <Filter>Resources</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer\CudaBuffer.h">
-      <Filter>Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="Renderer\Renderer.h">
       <Filter>Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer\CudaError.h">
-      <Filter>Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="CUDA\CudaUtility.h">
-      <Filter>CUDA</Filter>
-    </ClInclude>
-    <ClInclude Include="CUDA\CudaFwd.h">
-      <Filter>CUDA</Filter>
-    </ClInclude>
     <ClInclude Include="Common\CommonUtility.h">
       <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer\OptixError.h">
-      <Filter>Renderer</Filter>
     </ClInclude>
     <ClInclude Include="Resources\Resource.h">
       <Filter>Resources</Filter>
@@ -194,57 +185,6 @@
     <ClInclude Include="FileIO\SceneFile.h">
       <Filter>FileIO</Filter>
     </ClInclude>
-    <ClInclude Include="CUDA\CudaUtilityKernels.h">
-      <Filter>CUDA</Filter>
-    </ClInclude>
-    <ClInclude Include="CUDA\Shade\AmbientOcclusion.h">
-      <Filter>CUDA\Shade</Filter>
-    </ClInclude>
-    <ClInclude Include="CUDA\Shade\AmbientOcclusionShading.h">
-      <Filter>CUDA\Shade</Filter>
-    </ClInclude>
-    <ClInclude Include="CUDA\Shade\DiffuseFilter.h">
-      <Filter>CUDA\Shade</Filter>
-    </ClInclude>
-    <ClInclude Include="CUDA\Shade\DirectLight.h">
-      <Filter>CUDA\Shade</Filter>
-    </ClInclude>
-    <ClInclude Include="CUDA\Shade\GeometricNormal.h">
-      <Filter>CUDA\Shade</Filter>
-    </ClInclude>
-    <ClInclude Include="CUDA\Shade\MaterialID.h">
-      <Filter>CUDA\Shade</Filter>
-    </ClInclude>
-    <ClInclude Include="CUDA\Shade\ObjectID.h">
-      <Filter>CUDA\Shade</Filter>
-    </ClInclude>
-    <ClInclude Include="CUDA\Shade\PathTracing.h">
-      <Filter>CUDA\Shade</Filter>
-    </ClInclude>
-    <ClInclude Include="CUDA\Shade\ShadingNormal.h">
-      <Filter>CUDA\Shade</Filter>
-    </ClInclude>
-    <ClInclude Include="CUDA\Shade\TextureCoordinate.h">
-      <Filter>CUDA\Shade</Filter>
-    </ClInclude>
-    <ClInclude Include="CUDA\Shade\Wireframe.h">
-      <Filter>CUDA\Shade</Filter>
-    </ClInclude>
-    <ClInclude Include="CUDA\Shade\ZDepth.h">
-      <Filter>CUDA\Shade</Filter>
-    </ClInclude>
-    <ClInclude Include="CUDA\Shade\BSDF\Diffuse.h">
-      <Filter>CUDA\Shade\BSDF</Filter>
-    </ClInclude>
-    <ClInclude Include="CUDA\Shade\BSDF\Closure.h">
-      <Filter>CUDA\Shade\BSDF</Filter>
-    </ClInclude>
-    <ClInclude Include="CUDA\Shade\Tangent.h">
-      <Filter>CUDA\Shade</Filter>
-    </ClInclude>
-    <ClInclude Include="CUDA\Shade\Bitangent.h">
-      <Filter>CUDA\Shade</Filter>
-    </ClInclude>
     <ClInclude Include="GUI\MainGui.h">
       <Filter>GUI</Filter>
     </ClInclude>
@@ -259,12 +199,6 @@
     </ClInclude>
     <ClInclude Include="Renderer\Sky.h">
       <Filter>Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="CUDA\CudaSky.h">
-      <Filter>CUDA</Filter>
-    </ClInclude>
-    <ClInclude Include="CUDA\CudaGlobals.h">
-      <Filter>CUDA</Filter>
     </ClInclude>
     <ClInclude Include="App\App.h">
       <Filter>App</Filter>
@@ -287,6 +221,78 @@
     <ClInclude Include="FileIO\FileInfo.h">
       <Filter>FileIO</Filter>
     </ClInclude>
+    <ClInclude Include="CUDA\GPU\Shade\AmbientOcclusion.h">
+      <Filter>CUDA\GPU\Shade</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\GPU\Shade\AmbientOcclusionShading.h">
+      <Filter>CUDA\GPU\Shade</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\GPU\Shade\Bitangent.h">
+      <Filter>CUDA\GPU\Shade</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\GPU\Shade\DiffuseFilter.h">
+      <Filter>CUDA\GPU\Shade</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\GPU\Shade\DirectLight.h">
+      <Filter>CUDA\GPU\Shade</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\GPU\Shade\GeometricNormal.h">
+      <Filter>CUDA\GPU\Shade</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\GPU\Shade\MaterialID.h">
+      <Filter>CUDA\GPU\Shade</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\GPU\Shade\ObjectID.h">
+      <Filter>CUDA\GPU\Shade</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\GPU\Shade\PathTracing.h">
+      <Filter>CUDA\GPU\Shade</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\GPU\Shade\ShadingNormal.h">
+      <Filter>CUDA\GPU\Shade</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\GPU\Shade\Tangent.h">
+      <Filter>CUDA\GPU\Shade</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\GPU\Shade\TextureCoordinate.h">
+      <Filter>CUDA\GPU\Shade</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\GPU\Shade\Wireframe.h">
+      <Filter>CUDA\GPU\Shade</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\GPU\Shade\ZDepth.h">
+      <Filter>CUDA\GPU\Shade</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\GPU\Shade\BSDF\Closure.h">
+      <Filter>CUDA\GPU\Shade\BSDF</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\GPU\Shade\BSDF\Diffuse.h">
+      <Filter>CUDA\GPU\Shade\BSDF</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\GPU\CudaFwd.h">
+      <Filter>CUDA\GPU</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\GPU\CudaGlobals.h">
+      <Filter>CUDA\GPU</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\GPU\CudaSky.h">
+      <Filter>CUDA\GPU</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\GPU\CudaUtility.h">
+      <Filter>CUDA\GPU</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\GPU\CudaUtilityKernels.h">
+      <Filter>CUDA\GPU</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\CudaBuffer.h">
+      <Filter>CUDA</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\CudaError.h">
+      <Filter>CUDA</Filter>
+    </ClInclude>
+    <ClInclude Include="Optix\OptixError.h">
+      <Filter>Optix</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Model.h">
@@ -298,13 +304,16 @@
     <None Include="glsl\FullScreenQuad.vert">
       <Filter>glsl</Filter>
     </None>
+    <None Include="CUDA\CudaBuffer.inl">
+      <Filter>CUDA</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="Optix\optix.cu">
-      <Filter>Optix</Filter>
+    <CudaCompile Include="Optix\GPU\optix.cu">
+      <Filter>Optix\GPU</Filter>
     </CudaCompile>
-    <CudaCompile Include="CUDA\cuda.cu">
-      <Filter>CUDA</Filter>
+    <CudaCompile Include="CUDA\GPU\cuda.cu">
+      <Filter>CUDA\GPU</Filter>
     </CudaCompile>
   </ItemGroup>
 </Project>

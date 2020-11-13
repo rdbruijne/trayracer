@@ -8,9 +8,8 @@
 
 // C++
 #include <memory>
+#include <mutex>
 #include <string>
-
-
 
 namespace Tracer
 {
@@ -25,6 +24,8 @@ namespace Tracer
 			explicit Property(const float3& c) : mColorEnabled(true), mColor(c) {}
 			explicit Property(std::shared_ptr<Texture> t) : mTextureEnabled(true), mTexture(t) {}
 			explicit Property(const float3& c, std::shared_ptr<Texture> t) : mColorEnabled(true), mColor(c), mTextureEnabled(true), mTexture(t) {}
+
+			Property& operator =(const Property& p);
 
 			// color
 			inline bool IsColorEnabled() const { return mColorEnabled; }
@@ -50,12 +51,15 @@ namespace Tracer
 			std::shared_ptr<Texture> mTexture = nullptr;
 
 			// build data
+			std::mutex mBuildMutex;
 			CudaMaterialProperty mCudaProperty;
 		};
 
 	public:
 		// construction
 		explicit Material(const std::string& name);
+
+		Material& operator =(const Material& t) = delete;
 
 		// properties
 		enum class PropertyIds
@@ -89,6 +93,7 @@ namespace Tracer
 		std::array<Property, magic_enum::enum_count<Material::PropertyIds>()> mProperties = {};
 
 		// build data
+		std::mutex mBuildMutex;
 		CudaMatarial mCudaMaterial = {};
 	};
 

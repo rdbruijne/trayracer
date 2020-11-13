@@ -2,7 +2,7 @@
 
 // Project
 #include "Common/CommonStructs.h"
-#include "Renderer/CudaBuffer.h"
+#include "CUDA/CudaBuffer.h"
 #include "Utility/LinearMath.h"
 
 // Magic Enum

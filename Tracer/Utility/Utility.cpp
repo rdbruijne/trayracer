@@ -140,7 +140,7 @@ namespace Tracer
 	{
 		char globalPath[MAX_PATH] = {};
 		GetFullPathNameA(path.c_str(), MAX_PATH, globalPath, NULL);
-		return std::string(globalPath);
+		return strlen(globalPath) == 0 ? path : globalPath;
 	}
 
 
@@ -149,7 +149,7 @@ namespace Tracer
 	{
 		char relPath[MAX_PATH] = {};
 		PathRelativePathToA(relPath, CurrentDirectory().c_str(), 0, path.c_str(), FILE_ATTRIBUTE_NORMAL);
-		return std::string(relPath);
+		return strlen(relPath) == 0 ? path : relPath;
 	}
 
 

@@ -97,6 +97,13 @@ namespace Tracer
 
 
 
+	void Window::Close()
+	{
+		glfwSetWindowShouldClose(mHandle, 1);
+	}
+
+
+
 	bool Window::IsClosed() const
 	{
 		return glfwWindowShouldClose(mHandle) != 0;

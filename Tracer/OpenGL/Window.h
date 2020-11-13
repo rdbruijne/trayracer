@@ -19,7 +19,8 @@ namespace Tracer
 		explicit Window(const std::string& title, const int2& resolution, bool fullscreen = false);
 		~Window();
 
-		// Info
+		// Closed
+		void Close();
 		bool IsClosed() const;
 
 		// Title

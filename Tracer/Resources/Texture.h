@@ -7,6 +7,7 @@
 
 // C++
 #include <string>
+#include <mutex>
 #include <vector>
 
 namespace Tracer
@@ -17,6 +18,8 @@ namespace Tracer
 		Texture() = default;
 		explicit Texture(const std::string& path, const int2& resolution, std::vector<float4> pixels);
 		~Texture();
+
+		Texture& operator =(const Texture& t) = delete;
 
 		std::string Path() { return mPath; }
 		const std::string& Path() const { return mPath; }
@@ -42,6 +45,7 @@ namespace Tracer
 		std::vector<float4> mPixels;
 
 		// build data
+		std::mutex mBuildMutex;
 		cudaArray_t mCudaArray = nullptr;
 		cudaTextureObject_t mCudaObject = 0;
 

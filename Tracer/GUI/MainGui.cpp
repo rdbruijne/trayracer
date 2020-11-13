@@ -644,6 +644,9 @@ namespace Tracer
 
 		if(instances.size() > 0)
 		{
+			if(mSelectedInstanceIx >= static_cast<int>(instances.size()))
+				mSelectedInstanceIx = 0;
+
 			auto inst = instances[mSelectedInstanceIx];
 			auto model = inst->GetModel();
 
