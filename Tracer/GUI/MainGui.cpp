@@ -495,13 +495,19 @@ namespace Tracer
 			// times
 			ROW("FPS", "%.1f", 1e3f / mFrameTimeMs);
 			ROW("Frame time", "%.1f ms", mFrameTimeMs);
-			ROW("Scene build", "%.1f ms", mBuildTimeMs);
+			SPACE;
 			ROW("Primary rays", "%.1f ms", renderStats.primaryPathTimeMs);
 			ROW("Secondary rays", "%.1f ms", renderStats.secondaryPathTimeMs);
 			ROW("Deep rays", "%.1f ms", renderStats.deepPathTimeMs);
 			ROW("Shadow rays", "%.1f ms", renderStats.shadowTimeMs);
+			SPACE;
 			ROW("Shade time", "%.1f ms", renderStats.shadeTimeMs);
 			ROW("Denoise time", "%.1f ms", renderStats.denoiseTimeMs);
+			SPACE;
+			ROW("Build time", "%.1f ms", renderStats.buildTimeMs);
+			ROW("Geometry build time", "%.1f ms", renderStats.geoBuildTimeMs);
+			ROW("Material build time", "%.1f ms", renderStats.matBuildTimeMs);
+			ROW("Sky build time", "%.1f ms", renderStats.skyBuildTimeMs);
 
 			SPACE;
 

@@ -31,10 +31,9 @@ namespace Tracer
 		inline void SelectMaterial(std::weak_ptr<Material> material) { mSelectedMaterial = material; }
 
 		// statistics
-		inline void UpdateStats(float frameTimeMs, float buildTimeMs)
+		inline void UpdateStats(float frameTimeMs)
 		{
 			mFrameTimeMs = frameTimeMs;
-			mBuildTimeMs = buildTimeMs;
 		}
 
 	private:
@@ -75,6 +74,5 @@ namespace Tracer
 		char mInstanceName[mNameBufferSize] = {};
 
 		float mFrameTimeMs = 0;
-		float mBuildTimeMs = 0;
 	};
 }

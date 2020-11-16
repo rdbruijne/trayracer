@@ -117,14 +117,26 @@ namespace Tracer
 	void Renderer::BuildScene(Scene* scene)
 	{
 		// #NOTE: build order is important for dirty checks
+		Stopwatch sw;
+
+		Stopwatch sw2;
 		BuildGeometry(scene);
+		mRenderStats.geoBuildTimeMs = sw2.ElapsedMs();
+
+		sw2.Reset();
 		BuildMaterials(scene);
+		mRenderStats.matBuildTimeMs = sw2.ElapsedMs();
+
+		sw2.Reset();
 		BuildSky(scene);
+		mRenderStats.skyBuildTimeMs = sw2.ElapsedMs();
 
 		mLaunchParams.sceneRoot = mSceneRoot;
 		mLaunchParams.sampleCount = 0;
 
 		CUDA_CHECK(cudaDeviceSynchronize());
+
+		mRenderStats.buildTimeMs = sw.ElapsedMs();
 	}
 
 

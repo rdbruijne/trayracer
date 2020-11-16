@@ -62,6 +62,11 @@ namespace Tracer
 			float shadowTimeMs = 0;
 			float shadeTimeMs = 0;
 			float denoiseTimeMs = 0;
+
+			float buildTimeMs = 0;
+			float geoBuildTimeMs = 0;
+			float matBuildTimeMs = 0;
+			float skyBuildTimeMs = 0;
 		};
 		inline RenderStats Statistics() const { return mRenderStats; }
 		inline uint32_t SampleCount() const { return mLaunchParams.sampleCount; }

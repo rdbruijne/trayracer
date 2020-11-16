@@ -82,7 +82,7 @@ namespace Tracer
 				GuiHelpers::scene    = app->GetScene();
 				if(useMainGui)
 				{
-					MainGui::Get()->UpdateStats(frameTimeMs, buildTime);
+					MainGui::Get()->UpdateStats(frameTimeMs);
 					if(window->WasKeyPressed(Input::Keys::F1))
 						MainGui::Get()->SetEnabled(!MainGui::Get()->IsEnabled());
 					MainGui::Get()->Draw();
