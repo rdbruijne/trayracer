@@ -79,6 +79,9 @@
     <ClCompile Include="Optix\OptixError.cpp">
       <Filter>Optix</Filter>
     </ClCompile>
+    <ClCompile Include="FileIO\BinaryFile.cpp">
+      <Filter>FileIO</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">
@@ -293,6 +296,9 @@
     <ClInclude Include="Optix\OptixError.h">
       <Filter>Optix</Filter>
     </ClInclude>
+    <ClInclude Include="FileIO\BinaryFile.h">
+      <Filter>FileIO</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Model.h">
@@ -306,6 +312,9 @@
     </None>
     <None Include="CUDA\CudaBuffer.inl">
       <Filter>CUDA</Filter>
+    </None>
+    <None Include="FileIO\BinaryFile.inl">
+      <Filter>FileIO</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

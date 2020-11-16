@@ -1,7 +1,7 @@
-#include "ModelFile.h"
+#include "TextureFile.h"
 
 // Project
-#include "FileIO/TextureFile.h"
+#include "FileIO/BinaryFile.h"
 #include "Renderer/Scene.h"
 #include "Resources/Material.h"
 #include "Resources/Texture.h"
@@ -15,121 +15,66 @@
 // C++
 #include <filesystem>
 
+#define TEXTURE_CHACHE_ID_0			'T'
+#define TEXTURE_CHACHE_ID_1			'E'
+#define TEXTURE_CHACHE_ID_2			'X'
+#define TEXTURE_CACHE_ID			{ TEXTURE_CHACHE_ID_0, TEXTURE_CHACHE_ID_1, TEXTURE_CHACHE_ID_2 }
+#define TEXTURE_CACHE_VERSION		1
+
 namespace Tracer
 {
 	namespace
 	{
 		//
-		// cache read helpers
-		//
-		template<typename TYPE>
-		TYPE Read(FILE* f)
-		{
-			TYPE val;
-			fread(&val, sizeof(TYPE), 1, f);
-			return val;
-		}
-
-
-
-		template<>
-		std::string Read<std::string>(FILE* f)
-		{
-			size_t len;
-			fread(&len, sizeof(size_t), 1, f);
-			std::string s(len, '\0');
-			fread(s.data(), sizeof(char), len, f);
-			return s;
-		}
-
-
-
-		template<typename TYPE>
-		std::vector<TYPE> ReadVec(FILE* f)
-		{
-			size_t elemCount;
-			fread(&elemCount, sizeof(size_t), 1, f);
-			std::vector<TYPE> v(elemCount);
-			fread(v.data(), sizeof(TYPE), elemCount, f);
-			return v;
-		}
-
-
-
-		//
-		// cache write helpers
-		//
-		template<typename TYPE>
-		void Write(FILE* f, const TYPE& data)
-		{
-			fwrite(&data, sizeof(TYPE), 1, f);
-		}
-
-
-
-		template<>
-		void Write(FILE* f, const std::string& s)
-		{
-			size_t len = s.length();
-			fwrite(&len, sizeof(size_t), 1, f);
-			fwrite(s.data(), sizeof(char), len, f);
-		}
-
-
-
-		template<typename TYPE>
-		void WriteVec(FILE* f, const std::vector<TYPE>& v)
-		{
-			size_t elemCount = v.size();
-			fwrite(&elemCount, sizeof(size_t), 1, f);
-			fwrite(v.data(), sizeof(TYPE), elemCount, f);
-		}
-
-
-
-		//
 		// Texture cache
 		//
-		bool SaveToCache(std::shared_ptr<Texture> tex, const std::string& textureFile)
+		bool SaveToCache(std::shared_ptr<Texture> tex, const std::string& filePath)
 		{
-			// determine cache file name
-			const size_t pathHash = std::hash<std::string>{}(textureFile);
-			const std::string cacheFile = "cache/" + std::to_string(pathHash);
+			// create file
+			const std::string cacheFile = BinaryFile::GenFilename(filePath);
+			BinaryFile f(cacheFile, BinaryFile::FileMode::Write);
 
-			// create directory & file
-			std::filesystem::create_directory("cache");
-			FILE* f = nullptr;
-			if((fopen_s(&f, cacheFile.c_str(), "wb") != 0) || !f)
-				return false;
+			// write the header
+			BinaryFile::Header header = { TEXTURE_CACHE_ID, TEXTURE_CACHE_VERSION };
+			f.Write(header);
 
 			// write content
-			Write(f, tex->Resolution());
-			WriteVec(f, tex->Pixels());
-			fclose(f);
+			f.Write(tex->Resolution());
+			f.WriteVec(tex->Pixels());
 
 			return true;
 		}
 
 
 
-		std::shared_ptr<Texture> LoadTextureFromCache(Scene* scene, const std::string& filePath, const std::string& importDir = "")
+		std::shared_ptr<Texture> LoadFromCache(Scene* scene, const std::string& filePath, const std::string& importDir = "")
 		{
-			// determine cache file name
-			const size_t pathHash = std::hash<std::string>{}(filePath);
-			const std::string cacheFile = "cache/" + std::to_string(pathHash);
+			// cache file name
+			const std::string cacheFile = BinaryFile::GenFilename(filePath);
 
 			// compare write times
 			if(!FileExists(cacheFile) || FileLastWriteTime(filePath) > FileLastWriteTime(cacheFile))
 				return nullptr;
 
 			// open cache file
-			FILE* f = nullptr;
-			if((fopen_s(&f, cacheFile.c_str(), "rb") != 0) || !f)
+			BinaryFile f(cacheFile, BinaryFile::FileMode::Read);
+
+			// check the header
+			BinaryFile::Header header = f.Read<BinaryFile::Header>();
+			if((header.type[0] != TEXTURE_CHACHE_ID_0) || (header.type[1] != TEXTURE_CHACHE_ID_1) ||
+			   (header.type[2] != TEXTURE_CHACHE_ID_2) || (header.version != TEXTURE_CACHE_VERSION))
+			{
+				Logger::Error("Invalid cache file for \"%s\" (%s): found %c%c%c %d, expected %c%c%c %d",
+							  filePath.c_str(), cacheFile.c_str(),
+							  header.type[0], header.type[1], header.type[2], header.version,
+							  TEXTURE_CHACHE_ID_0, TEXTURE_CHACHE_ID_1, TEXTURE_CHACHE_ID_2, TEXTURE_CACHE_VERSION);
 				return nullptr;
+			}
 
 			// read content
-			int2 res = Read<int2>(f);
-			std::vector<float4> pixels = ReadVec<float4>(f);
+			int2 res = f.Read<int2>();
+			std::vector<float4> pixels = f.ReadVec<float4>();
+
 			return std::make_shared<Texture>(filePath, res, pixels);
 		}
 	}
@@ -174,7 +119,7 @@ namespace Tracer
 
 		// check the cache
 		Stopwatch sw;
-		std::shared_ptr<Texture> tex = LoadTextureFromCache(scene, globalPath, importDir);
+		std::shared_ptr<Texture> tex = LoadFromCache(scene, globalPath, importDir);
 		if(tex)
 		{
 			Logger::Info("Loaded \"%s\" from cache in %s", globalPath.c_str(), sw.ElapsedString().c_str());

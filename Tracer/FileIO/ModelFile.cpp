@@ -1,6 +1,7 @@
 #include "ModelFile.h"
 
 // Project
+#include "FileIO/BinaryFile.h"
 #include "FileIO/TextureFile.h"
 #include "Renderer/Scene.h"
 #include "Resources/Material.h"
@@ -22,6 +23,14 @@
 // C++
 #include <filesystem>
 
+#define MODEL_CHACHE_ID_0		'M'
+#define MODEL_CHACHE_ID_1		'D'
+#define MODEL_CHACHE_ID_2		'L'
+#define MODEL_CACHE_ID			{ MODEL_CHACHE_ID_0, MODEL_CHACHE_ID_1, MODEL_CHACHE_ID_2 }
+#define MODEL_CACHE_VERSION		1
+
+
+
 namespace Tracer
 {
 	namespace
@@ -39,156 +48,92 @@ namespace Tracer
 
 
 		//
-		// cache read helpers
-		//
-		template<typename TYPE>
-		TYPE Read(FILE* f)
-		{
-			TYPE val;
-			fread(&val, sizeof(TYPE), 1, f);
-			return val;
-		}
-
-
-
-		template<>
-		std::string Read<std::string>(FILE* f)
-		{
-			size_t len;
-			fread(&len, sizeof(size_t), 1, f);
-			std::string s(len, '\0');
-			fread(s.data(), sizeof(char), len, f);
-			return s;
-		}
-
-
-
-		template<typename TYPE>
-		std::vector<TYPE> ReadVec(FILE* f)
-		{
-			size_t elemCount;
-			fread(&elemCount, sizeof(size_t), 1, f);
-			std::vector<TYPE> v(elemCount);
-			fread(v.data(), sizeof(TYPE), elemCount, f);
-			return v;
-		}
-
-
-
-		//
-		// cache write helpers
-		//
-		template<typename TYPE>
-		void Write(FILE* f, const TYPE& data)
-		{
-			fwrite(&data, sizeof(TYPE), 1, f);
-		}
-
-
-
-		template<>
-		void Write(FILE* f, const std::string& s)
-		{
-			size_t len = s.length();
-			fwrite(&len, sizeof(size_t), 1, f);
-			fwrite(s.data(), sizeof(char), len, f);
-		}
-
-
-
-		template<typename TYPE>
-		void WriteVec(FILE* f, const std::vector<TYPE>& v)
-		{
-			size_t elemCount = v.size();
-			fwrite(&elemCount, sizeof(size_t), 1, f);
-			fwrite(v.data(), sizeof(TYPE), elemCount, f);
-		}
-
-
-
-		//
 		// Model cache
 		//
 		bool SaveToCache(std::shared_ptr<Model> model, const std::string& filePath)
 		{
-			// determine cache file name
-			const size_t pathHash = std::hash<std::string>{}(filePath);
-			const std::string cacheFile = "cache/" + std::to_string(pathHash);
+			// create file
+			const std::string cacheFile = BinaryFile::GenFilename(filePath);
+			BinaryFile f(cacheFile, BinaryFile::FileMode::Write);
 
-			// create directory & file
-			std::filesystem::create_directory("cache");
-			FILE* f = nullptr;
-			if((fopen_s(&f, cacheFile.c_str(), "wb") != 0) || !f)
-				return false;
+			// write the header
+			BinaryFile::Header header = { MODEL_CACHE_ID, MODEL_CACHE_VERSION };
+			f.Write(header);
 
 			// vertices
-			WriteVec(f, model->Vertices());
-			WriteVec(f, model->Normals());
-			WriteVec(f, model->TexCoords());
+			f.WriteVec(model->Vertices());
+			f.WriteVec(model->Normals());
+			f.WriteVec(model->TexCoords());
 
 			// indices
-			WriteVec(f, model->Indices());
-			WriteVec(f, model->MaterialIndices());
+			f.WriteVec(model->Indices());
+			f.WriteVec(model->MaterialIndices());
 
 			// materials
 			const auto& materials = model->Materials();
-			Write(f, model->Materials().size());
+			f.Write(model->Materials().size());
 			for(auto& mat : materials)
 			{
-				Write(f, mat->Name());
+				f.Write(mat->Name());
 				for(size_t i = 0; i < magic_enum::enum_count<Material::PropertyIds>(); i++)
 				{
 					const Material::PropertyIds id = static_cast<Material::PropertyIds>(i);
 					if(mat->IsColorEnabled(id))
-						Write(f, mat->GetColor(id));
+						f.Write(mat->GetColor(id));
 					if(mat->IsTextureEnabled(id))
-						Write(f, mat->GetTextureMap(id) ? mat->GetTextureMap(id)->Path() : "");
+						f.Write(mat->GetTextureMap(id) ? mat->GetTextureMap(id)->Path() : "");
 				}
 			}
 
-			// close the file
-			fclose(f);
+			f.Flush();
 
 			return true;
 		}
 
 
 
-		std::shared_ptr<Model> LoadModelFromCache(Scene* scene, const std::string& filePath, const std::string& name = "")
+		std::shared_ptr<Model> LoadFromCache(Scene* scene, const std::string& filePath, const std::string& name = "")
 		{
-			// determine cache file name
-			const size_t pathHash = std::hash<std::string>{}(filePath);
-			const std::string cacheFile = "cache/" + std::to_string(pathHash);
+			// cache file name
+			const std::string cacheFile = BinaryFile::GenFilename(filePath);
 
 			// compare write times
 			if(!FileExists(cacheFile) || FileLastWriteTime(filePath) > FileLastWriteTime(cacheFile))
 				return nullptr;
 
 			// open cache file
-			FILE* f = nullptr;
-			if((fopen_s(&f, cacheFile.c_str(), "rb") != 0) || !f)
-				return nullptr;
+			BinaryFile f(cacheFile, BinaryFile::FileMode::Read);
 
-			const std::string importDir = Directory(filePath);
+			// check the header
+			BinaryFile::Header header = f.Read<BinaryFile::Header>();
+			if((header.type[0] != MODEL_CHACHE_ID_0) || (header.type[1] != MODEL_CHACHE_ID_1) ||
+			   (header.type[2] != MODEL_CHACHE_ID_2) || (header.version != MODEL_CACHE_VERSION))
+			{
+				Logger::Error("Invalid cache file for \"%s\" (%s): found %c%c%c %d, expected %c%c%c %d",
+							  filePath.c_str(), cacheFile.c_str(),
+							  header.type[0], header.type[1], header.type[2], header.version,
+							  MODEL_CHACHE_ID_0, MODEL_CHACHE_ID_1, MODEL_CHACHE_ID_2, MODEL_CACHE_VERSION);
+				return nullptr;
+			}
 
 			// vertices
-			std::vector<float3> vertices = ReadVec<float3>(f);
-			std::vector<float3> normals = ReadVec<float3>(f);
-			std::vector<float2> texCoords = ReadVec<float2>(f);
+			std::vector<float3> vertices  = f.ReadVec<float3>();
+			std::vector<float3> normals   = f.ReadVec<float3>();
+			std::vector<float2> texCoords = f.ReadVec<float2>();
 
 			// indices
-			std::vector<uint3> indices = ReadVec<uint3>(f);
-			std::vector<uint32_t> materialIndices = ReadVec<uint32_t>(f);
+			std::vector<uint3> indices = f.ReadVec<uint3>();
+			std::vector<uint32_t> materialIndices = f.ReadVec<uint32_t>();
 
+			// initialize the model
 			std::shared_ptr<Model> model = std::make_shared<Model>(filePath, name);
 			model->Set(vertices, normals, texCoords, indices, materialIndices);
 
 			// materials
-			size_t matCount = 0;
-			fread(&matCount, sizeof(size_t), 1, f);
+			size_t matCount = f.Read<size_t>();
 			for(size_t matIx = 0; matIx < matCount; matIx++)
 			{
-				std::string matName = Read<std::string>(f);
+				std::string matName = f.Read<std::string>();
 				std::shared_ptr<Material> mat = std::make_shared<Material>(matName);
 
 				for(size_t propIx = 0; propIx < magic_enum::enum_count<Material::PropertyIds>(); propIx++)
@@ -196,11 +141,11 @@ namespace Tracer
 					const Material::PropertyIds id = static_cast<Material::PropertyIds>(propIx);
 
 					if(mat->IsColorEnabled(id))
-						mat->Set(id, Read<float3>(f));
+						mat->Set(id, f.Read<float3>());
 
 					if(mat->IsTextureEnabled(id))
 					{
-						const std::string texPath = Read<std::string>(f);
+						const std::string texPath = f.Read<std::string>();
 						if(!texPath.empty())
 							mat->Set(id, TextureFile::Import(scene, texPath));
 					}
@@ -364,10 +309,10 @@ namespace Tracer
 	{
 		Stopwatch sw;
 		const std::string globalPath = GlobalPath(filePath);
-		std::shared_ptr<Model> model = LoadModelFromCache(scene, globalPath, name);
+		std::shared_ptr<Model> model = LoadFromCache(scene, globalPath, name);
 		if(model)
 		{
-			Logger::Info("Loaded \"%s\"from cache in %s", globalPath.c_str(), sw.ElapsedString().c_str());
+			Logger::Info("Loaded \"%s\" from cache in %s", globalPath.c_str(), sw.ElapsedString().c_str());
 			return model;
 		}
 

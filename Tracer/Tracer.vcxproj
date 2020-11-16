@@ -154,6 +154,7 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
     <ClCompile Include="Common\CommonStructs.cpp" />
     <ClCompile Include="CUDA\CudaBuffer.cpp" />
     <ClCompile Include="CUDA\CudaError.cpp" />
+    <ClCompile Include="FileIO\BinaryFile.cpp" />
     <ClCompile Include="FileIO\ModelFile.cpp" />
     <ClCompile Include="FileIO\SceneFile.cpp" />
     <ClCompile Include="FileIO\TextureFile.cpp" />
@@ -205,6 +206,7 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
     <ClInclude Include="CUDA\GPU\Shade\TextureCoordinate.h" />
     <ClInclude Include="CUDA\GPU\Shade\Wireframe.h" />
     <ClInclude Include="CUDA\GPU\Shade\ZDepth.h" />
+    <ClInclude Include="FileIO\BinaryFile.h" />
     <ClInclude Include="FileIO\FileInfo.h" />
     <ClInclude Include="FileIO\ModelFile.h" />
     <ClInclude Include="FileIO\SceneFile.h" />
@@ -236,6 +238,7 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
   </ItemGroup>
   <ItemGroup>
     <None Include="CUDA\CudaBuffer.inl" />
+    <None Include="FileIO\BinaryFile.inl" />
     <None Include="glsl\FullScreenQuad.frag" />
     <None Include="glsl\FullScreenQuad.vert" />
     <None Include="Resources\Model.h" />

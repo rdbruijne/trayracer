@@ -6,9 +6,7 @@
 
 #define NO_COPY_ALLOWED(c)				\
 	c(const c&) = delete;				\
-	c& operator =(const c&) = delete;	\
-	c(c&& a) = default;					\
-	c& operator =(c&& a) = default;
+	c& operator =(const c&) = delete;
 
 namespace Tracer
 {
