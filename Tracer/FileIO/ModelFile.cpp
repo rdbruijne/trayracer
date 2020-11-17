@@ -57,7 +57,7 @@ namespace Tracer
 			BinaryFile f(cacheFile, BinaryFile::FileMode::Write);
 
 			// write the header
-			BinaryFile::Header header = { MODEL_CACHE_ID, MODEL_CACHE_VERSION };
+			const BinaryFile::Header header = { MODEL_CACHE_ID, MODEL_CACHE_VERSION };
 			f.Write(header);
 
 			// vertices
@@ -117,13 +117,13 @@ namespace Tracer
 			}
 
 			// vertices
-			std::vector<float3> vertices  = f.ReadVec<float3>();
-			std::vector<float3> normals   = f.ReadVec<float3>();
-			std::vector<float2> texCoords = f.ReadVec<float2>();
+			const std::vector<float3> vertices  = f.ReadVec<float3>();
+			const std::vector<float3> normals   = f.ReadVec<float3>();
+			const std::vector<float2> texCoords = f.ReadVec<float2>();
 
 			// indices
-			std::vector<uint3> indices = f.ReadVec<uint3>();
-			std::vector<uint32_t> materialIndices = f.ReadVec<uint32_t>();
+			const std::vector<uint3> indices = f.ReadVec<uint3>();
+			const std::vector<uint32_t> materialIndices = f.ReadVec<uint32_t>();
 
 			// initialize the model
 			std::shared_ptr<Model> model = std::make_shared<Model>(filePath, name);
@@ -133,7 +133,7 @@ namespace Tracer
 			size_t matCount = f.Read<size_t>();
 			for(size_t matIx = 0; matIx < matCount; matIx++)
 			{
-				std::string matName = f.Read<std::string>();
+				const std::string matName = f.Read<std::string>();
 				std::shared_ptr<Material> mat = std::make_shared<Material>(matName);
 
 				for(size_t propIx = 0; propIx < magic_enum::enum_count<Material::PropertyIds>(); propIx++)

@@ -9,12 +9,25 @@
 
 namespace Tracer
 {
-	Texture::Texture(const std::string& path, const int2& resolution, std::vector<float4> pixels) :
+	Texture::Texture(const std::string& path, const int2& resolution, const std::vector<half4>& pixels) :
 		Resource(FileName(path)),
 		mPath(path),
 		mResolution(resolution),
 		mPixels(pixels)
 	{
+	}
+
+
+
+	Texture::Texture(const std::string& path, const int2& resolution, const std::vector<float4>& pixels) :
+		Resource(FileName(path)),
+		mPath(path),
+		mResolution(resolution)
+	{
+		// convert pixels to half
+		mPixels.reserve(pixels.size());
+		for(const float4& p : pixels)
+			mPixels.push_back(make_half4(p));
 	}
 
 
@@ -41,7 +54,7 @@ namespace Tracer
 
 			// create new if no texture exists
 			if(!mGlTexture)
-				mGlTexture = new GLTexture(mResolution, GLTexture::Types::Float4);
+				mGlTexture = new GLTexture(mResolution, GLTexture::Types::Half4);
 
 			// upload pixels
 			mGlTexture->Upload(mPixels);
@@ -82,20 +95,9 @@ namespace Tracer
 		const uint32_t pitch  = width * numComponents * sizeof(half);
 		cudaChannelFormatDesc channelDesc = cudaCreateChannelDescHalf4();
 
-		// convert pixels to half
-		std::vector<half> halfPixels;
-		halfPixels.reserve(mPixels.size() * 4);
-		for(float4 p : mPixels)
-		{
-			halfPixels.push_back(__float2half(p.x));
-			halfPixels.push_back(__float2half(p.y));
-			halfPixels.push_back(__float2half(p.z));
-			halfPixels.push_back(__float2half(p.w));
-		}
-
 		// upload pixels
 		CUDA_CHECK(cudaMallocArray(&mCudaArray, &channelDesc, width, height));
-		CUDA_CHECK(cudaMemcpy2DToArrayAsync(mCudaArray, 0, 0, halfPixels.data(), pitch, pitch, height, cudaMemcpyHostToDevice));
+		CUDA_CHECK(cudaMemcpy2DToArrayAsync(mCudaArray, 0, 0, mPixels.data(), pitch, pitch, height, cudaMemcpyHostToDevice));
 
 		// resource descriptor
 		cudaResourceDesc resourceDesc = {};

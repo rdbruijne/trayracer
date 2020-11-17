@@ -31,6 +31,10 @@ namespace Tracer
 		case Types::Float4:
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mResolution.x, mResolution.y, 0, GL_RGBA, GL_FLOAT, nullptr);
 			break;
+
+		case Types::Half4:
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, mResolution.x, mResolution.y, 0, GL_RGBA, GL_FLOAT, nullptr);
+			break;
 		}
 
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -76,6 +80,17 @@ namespace Tracer
 		assert(pixels.size() == static_cast<size_t>(mResolution.x) * mResolution.y);
 		Bind();
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, mResolution.x, mResolution.y, 0, GL_RGBA, GL_FLOAT, pixels.data());
+		Unbind();
+	}
+
+
+
+	void GLTexture::Upload(const std::vector<half4>& pixels)
+	{
+		assert(mType == Types::Half4);
+		assert(pixels.size() == static_cast<size_t>(mResolution.x) * mResolution.y);
+		Bind();
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, mResolution.x, mResolution.y, 0, GL_RGBA, GL_FLOAT, pixels.data());
 		Unbind();
 	}
 }

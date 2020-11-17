@@ -15,7 +15,8 @@ namespace Tracer
 		enum class Types
 		{
 			Byte4,
-			Float4
+			Float4,
+			Half4
 		};
 
 		explicit GLTexture(const int2& resolution, Types type);
@@ -26,6 +27,7 @@ namespace Tracer
 
 		void Upload(const std::vector<uint32_t>& pixels);
 		void Upload(const std::vector<float4>& pixels);
+		void Upload(const std::vector<half4>& pixels);
 
 		inline uint32_t ID() const { return mId; }
 		inline Types Type() const { return mType; }

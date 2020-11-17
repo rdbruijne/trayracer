@@ -16,7 +16,8 @@ namespace Tracer
 	{
 	public:
 		Texture() = default;
-		explicit Texture(const std::string& path, const int2& resolution, std::vector<float4> pixels);
+		explicit Texture(const std::string& path, const int2& resolution, const std::vector<half4>& pixels);
+		explicit Texture(const std::string& path, const int2& resolution, const std::vector<float4>& pixels);
 		~Texture();
 
 		Texture& operator =(const Texture& t) = delete;
@@ -25,7 +26,7 @@ namespace Tracer
 		const std::string& Path() const { return mPath; }
 
 		const int2& Resolution() const { return mResolution; }
-		const std::vector<float4>& Pixels() const { return mPixels; }
+		const std::vector<half4>& Pixels() const { return mPixels; }
 		bool IsValid() const { return mResolution.x > 0 && mResolution.y > 0 && mPixels.size() > 0; }
 
 		// build
@@ -42,7 +43,7 @@ namespace Tracer
 	private:
 		std::string mPath = "";
 		int2 mResolution = make_int2(0, 0);
-		std::vector<float4> mPixels;
+		std::vector<half4> mPixels;
 
 		// build data
 		std::mutex mBuildMutex;

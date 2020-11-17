@@ -19,7 +19,7 @@
 #define TEXTURE_CHACHE_ID_1			'E'
 #define TEXTURE_CHACHE_ID_2			'X'
 #define TEXTURE_CACHE_ID			{ TEXTURE_CHACHE_ID_0, TEXTURE_CHACHE_ID_1, TEXTURE_CHACHE_ID_2 }
-#define TEXTURE_CACHE_VERSION		1
+#define TEXTURE_CACHE_VERSION		2
 
 namespace Tracer
 {
@@ -35,7 +35,7 @@ namespace Tracer
 			BinaryFile f(cacheFile, BinaryFile::FileMode::Write);
 
 			// write the header
-			BinaryFile::Header header = { TEXTURE_CACHE_ID, TEXTURE_CACHE_VERSION };
+			const BinaryFile::Header header = { TEXTURE_CACHE_ID, TEXTURE_CACHE_VERSION };
 			f.Write(header);
 
 			// write content
@@ -60,7 +60,7 @@ namespace Tracer
 			BinaryFile f(cacheFile, BinaryFile::FileMode::Read);
 
 			// check the header
-			BinaryFile::Header header = f.Read<BinaryFile::Header>();
+			const BinaryFile::Header header = f.Read<BinaryFile::Header>();
 			if((header.type[0] != TEXTURE_CHACHE_ID_0) || (header.type[1] != TEXTURE_CHACHE_ID_1) ||
 			   (header.type[2] != TEXTURE_CHACHE_ID_2) || (header.version != TEXTURE_CACHE_VERSION))
 			{
@@ -72,8 +72,8 @@ namespace Tracer
 			}
 
 			// read content
-			int2 res = f.Read<int2>();
-			std::vector<float4> pixels = f.ReadVec<float4>();
+			const int2 res = f.Read<int2>();
+			const std::vector<half4> pixels = f.ReadVec<half4>();
 
 			return std::make_shared<Texture>(filePath, res, pixels);
 		}

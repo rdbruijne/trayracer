@@ -8,15 +8,18 @@
 #include "CUDA/helper_math.h"
 #pragma warning(pop)
 
+// CUDA
+#include <cuda_fp16.h>
+
 // C++
 #define _USE_MATH_DEFINES
 #include <math.h>
 
 namespace Tracer
 {
-	//
+	//--------------------------------------------------------------------------------------------------------------------------
 	// extra constants
-	//
+	//--------------------------------------------------------------------------------------------------------------------------
 	constexpr float Pi = 3.14159265358979323846f;
 	constexpr float Epsilon  = 1e-3f;
 	constexpr float DegToRad = 3.14159265359f / 180.f;
@@ -24,9 +27,9 @@ namespace Tracer
 
 
 
-	//
+	//--------------------------------------------------------------------------------------------------------------------------
 	// extension functions
-	//
+	//--------------------------------------------------------------------------------------------------------------------------
 	inline int2 operator -(const int2& a) { return make_int2(-a.x, -a.y); }
 	inline int3 operator -(const int3& a) { return make_int3(-a.x, -a.y, -a.z); }
 	inline int4 operator -(const int4& a) { return make_int4(-a.x, -a.y, -a.z, -a.w); }
@@ -60,9 +63,9 @@ namespace Tracer
 
 
 
-	//
+	//--------------------------------------------------------------------------------------------------------------------------
 	// vector math
-	//
+	//--------------------------------------------------------------------------------------------------------------------------
 	inline float3 RotateAroundAxis(float3 v, float3 axis, float radians)
 	{
 		// https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
@@ -87,9 +90,58 @@ namespace Tracer
 
 
 
-	//
+	//--------------------------------------------------------------------------------------------------------------------------
+	// half4
+	//--------------------------------------------------------------------------------------------------------------------------
+	struct half4
+	{
+		half x;
+		half y;
+		half z;
+		half w;
+	};
+
+
+
+	inline half4 make_half4(half x, half y, half z, half w)
+	{
+		half4 t;
+		t.x = x;
+		t.y = y;
+		t.z = z;
+		t.w = w;
+		return t;
+	}
+
+
+
+	inline half4 make_half4(float x, float y, float z, float w)
+	{
+		half4 t;
+		t.x = __float2half(x);
+		t.y = __float2half(y);
+		t.z = __float2half(z);
+		t.w = __float2half(w);
+		return t;
+	}
+
+
+
+	inline half4 make_half4(const float4& f4)
+	{
+		half4 t;
+		t.x = __float2half(f4.x);
+		t.y = __float2half(f4.y);
+		t.z = __float2half(f4.z);
+		t.w = __float2half(f4.w);
+		return t;
+	}
+
+
+
+	//--------------------------------------------------------------------------------------------------------------------------
 	// float3x4
-	//
+	//--------------------------------------------------------------------------------------------------------------------------
 	struct alignas(16) float3x4
 	{
 		float3 x; float tx;
