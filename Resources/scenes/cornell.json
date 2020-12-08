@@ -58,11 +58,18 @@
         "multisample": 1,
         "maxdepth": 16,
         "aodist": 231.4510040283203,
-        "zdepthmax": 883.1489868164063,
-        "skycolor": [0.0, 0.0, 0.0]
+        "zdepthmax": 883.1489868164063
+    },
+    "sky": {
+        "enabled": false,
+        "drawsun": true,
+        "dir": [0.0, 1.0, 0.0],
+        "angulardiameter": 32.0,
+        "intensity": 1000.0,
+        "turbidity": 4.0
     },
     "post": {
-        "exposure": 1.0,
+        "exposure": 15.0,
         "gamma": 2.200000047683716
     }
 }

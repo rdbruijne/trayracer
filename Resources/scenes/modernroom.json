@@ -258,7 +258,14 @@
         "maxdepth": 16,
         "aodist": 6.947999954223633,
         "zdepthmax": 42.70899963378906,
-        "skycolor": [9.999999974752428e-7, 9.999899930335233e-7, 9.999899930335233e-7]
+    },
+    "sky": {
+        "enabled": false,
+        "drawsun": true,
+        "dir": [0.0, 1.0, 0.0],
+        "angulardiameter": 32.0,
+        "intensity": 1000.0,
+        "turbidity": 4.0
     },
     "post": {
         "exposure": 0.5,
