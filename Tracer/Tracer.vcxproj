@@ -187,6 +187,7 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
     <ClInclude Include="CUDA\CudaError.h" />
     <ClInclude Include="CUDA\GPU\CudaFwd.h" />
     <ClInclude Include="CUDA\GPU\CudaGlobals.h" />
+    <ClInclude Include="CUDA\GPU\CudaLinearMath.h" />
     <ClInclude Include="CUDA\GPU\CudaSky.h" />
     <ClInclude Include="CUDA\GPU\CudaUtility.h" />
     <ClInclude Include="CUDA\GPU\CudaUtilityKernels.h" />

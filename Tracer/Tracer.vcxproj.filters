@@ -299,6 +299,9 @@
     <ClInclude Include="FileIO\BinaryFile.h">
       <Filter>FileIO</Filter>
     </ClInclude>
+    <ClInclude Include="CUDA\GPU\CudaLinearMath.h">
+      <Filter>CUDA\GPU</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Model.h">

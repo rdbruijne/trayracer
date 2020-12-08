@@ -1,6 +1,5 @@
 #pragma once
 
-#include "CudaSky.h"
 #include "CudaUtility.h"
 
 // Closures
@@ -32,7 +31,8 @@ __global__ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 	// didn't hit anything
 	if(primIx == ~0)
 	{
-		accumulator[pixelIx] += make_float4(T * SampleSky(D));
+		if(pathLength == 0)
+			accumulator[pixelIx] += make_float4(T * SampleSky(D, skyData->drawSun));
 		return;
 	}
 
@@ -56,10 +56,6 @@ __global__ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 		{
 			accumulator[pixelIx] += make_float4(attrib.emissive, 0);
 			albedo[pixelIx] = make_float4(attrib.emissive, 0);
-		}
-		else
-		{
-			accumulator[pixelIx] += make_float4(T * attrib.emissive, 0);
 		}
 		return;
 	}
@@ -107,7 +103,6 @@ __global__ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 		shadowRays[shadowIx + (stride * 2)] = make_float4(closure.shadow.T * lightRadiance * NdotL, 0);
 		//shadowRays[shadowIx + (stride * 2)] = make_float4((throughput * lightRadiance * NdotL) / (lightProb * lightPdf), 0);
 	}
-
 
 	// Russian roulette
 	if(pathLength > 0)

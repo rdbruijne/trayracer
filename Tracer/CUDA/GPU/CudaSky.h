@@ -1,106 +1,157 @@
 // Hosek-Wilkie Sky Model
-// Adapted from ArHosekSkyModel.cpp
+// Adapted from https://github.com/Tw1ddle/Sky-Shader/blob/master/src/shaders/glsl/sky.fragment
 
 #pragma once
 
 #include "CudaGlobals.h"
-#include "CUDA/helper_math.h"
+#include "CudaLinearMath.h"
 
-namespace
+// mie
+#define SKY_MIE_COEFFICIENT						0.005f
+#define SKY_MIE_DIRECTIONAL_G					0.80f
+#define SKY_MIE_K_COEFFICIENT					make_float3(0.686f, 0.678f, 0.666f)
+#define SKY_MIE_V								4.f
+#define SKY_MIE_ZENITH_LENGTH					1.25e3f
+
+// Rayleigh
+#define SKY_RAYLEIGH_COEFFICIENT				2.5f
+#define SKY_RAYLEIGH_ZENITH_LENGTH				8.4e3f
+
+// atmospheric scattering
+#define SKY_DEPOLARIZATION_FACTOR				0.031f
+#define SKY_NUM_MOLECULES						2.545e25f
+#define SKY_REFRACTIVE_INDEX					1.0003f
+
+// wavelength for primaries
+#define SKY_PRIMARY_WAVE_LENGTHS				make_float3(620e-9f, 492e-9f, 390e-9f)
+
+// sun
+//#define SKY_SUN_ANGULAR_DIAMETER_COS			0.99995541f	// cos(32 arc minutes)
+//#define SKY_SUN_INTENSITY						1000.f
+
+// Earth shadow hack
+#define SKY_SUN_FALLOFF_ANGLE					(Pi / 1.95f)
+#define SKY_SUN_INTENSITY_FALLOFF_STEEPNESS		1.5f
+
+// other
+#define SKY_LUMINANCE							1.f
+
+// world info
+#define SKY_UP									make_float3(0.f, 1.f, 0.f)
+
+
+
+static __device__
+inline float3 TotalRayleigh(const float3& lambda)
 {
-	static __device__
-	float3 XYZ_to_ACES2065_1(const float3& color)
-	{
-		return make_float3(
-			color.x *  1.0498110175f + color.y * 0.0000000000f + color.z * -0.0000974845f,
-			color.x * -0.4959030231f + color.y * 1.3733130458f + color.z *  0.0982400361f,
-			color.x *  0.0000000000f + color.y * 0.0000000000f + color.z *  0.9912520182f);
-	}
-
-
-
-	static __device__
-	float3 ACES2065_1_to_ACEScg(const float3& color)
-	{
-		return make_float3(
-			color.x *  1.4514393161f + color.y * -0.2365107469f + color.z * -0.2149285693f,
-			color.x * -0.0765537733f + color.y *  1.1762296998f + color.z * -0.0996759265f,
-			color.x *  0.0083161484f + color.y * -0.0060324498f + color.z *  0.9977163014f);
-	}
-
-
-
-	static __device__
-	float3 ACES2065_1_to_sRGB(const float3& color)
-	{
-		return make_float3(
-			color.x *  2.5216494298f + color.y * -1.1368885542f + color.z * -0.3849175932f,
-			color.x * -0.2752135512f + color.y *  1.3697051510f + color.z * -0.0943924508f,
-			color.x * -0.0159250101f + color.y * -0.1478063681f + color.z *  1.1638058159f);
-	}
-
-
-
-
-	static __device__
-	float ArHosekSkyModel_GetRadianceInternal(float* config, float theta, float gamma)
-	{
-		const float A = config[0];
-		const float B = config[1];
-		const float C = config[2];
-		const float D = config[3];
-		const float E = config[4];
-		const float F = config[5];
-		const float G = config[6];
-		const float H = config[7];
-		const float I = config[8];
-
-		const float cosTheta = cosf(theta);
-		const float cosGamma = cosf(gamma);
-
-		const float expM = expf(E * gamma);
-		const float rayM = cosGamma * cosGamma;
-		const double mieM = (1.0f + cosGamma*cosGamma) / powf((1.0f + I*I - 2.0f*I*cosGamma), 1.5f);
-		const double zenith = sqrt(cosTheta);
-
-		return (1.0f + A * expf(B / (cosTheta + 0.01f))) * (C + (D * expM) + (F * rayM) + (G * mieM) + (H * zenith));
-	}
-
-
-
-	static __device__
-	float ArHosekTristimSkymodel_Radiance(SkyState* state, float theta, float gamma, int channel)
-	{
-		return ArHosekSkyModel_GetRadianceInternal(state->configs[channel], theta, gamma) * state->radiances[channel];
-	}
+	return	(make_float3(8.f * powf(Pi, 3.f) * powf(powf(SKY_REFRACTIVE_INDEX, 2.f) - 1.f, 2.f) * (6.f + 3.f * SKY_DEPOLARIZATION_FACTOR))) /
+			(make_float3(3.f * SKY_NUM_MOLECULES) * pow(lambda, 4.f) * make_float3(6.f - 7.f * SKY_DEPOLARIZATION_FACTOR));
 }
 
 
 
 static __device__
-float3 SampleSky(float3 dir)
+inline float RayleighPhase(float cosTheta)
 {
-	if(dir.y < 1e-4f)
-		dir.y = 1e-4f;
-	dir = normalize(dir);
+	return (3.f / (16.f * Pi)) * (1.f + powf(cosTheta, 2.f));
+}
 
-	const float3 sunDir = normalize(skyData->sunDir);
-	const float gamma = acosf(dot(dir, skyData->sunDir));
-	const float theta = acosf(dot(dir, make_float3(0, 1, 0)));
 
-	float3 radiance;
-	radiance.x = ArHosekTristimSkymodel_Radiance(skyStateX, theta, gamma, 0);
-	radiance.y = ArHosekTristimSkymodel_Radiance(skyStateY, theta, gamma, 1);
-	radiance.z = ArHosekTristimSkymodel_Radiance(skyStateZ, theta, gamma, 2);
-	radiance = XYZ_to_ACES2065_1(radiance);
 
-	radiance *= skyData->skyTint;
-	if(skyData->enableSun && dot(dir, sunDir) >= skyData->sunSize)
-		radiance += skyData->sunColor * skyData->sunTint;
+static __device__
+inline float3 TotalMie(const float3& lambda, const float3& K, float T)
+{
+	const float c = 0.2f * T * 10e-18f;
+	return 0.434f * c * Pi * pow((2.f * Pi) / lambda, SKY_MIE_V - 2.f) * K;
+}
 
-	radiance = ACES2065_1_to_sRGB(radiance);
-	if(isnan(radiance.x) || isnan(radiance.y) || isnan(radiance.z))
-		return make_float3(0, 0, 0);
 
-	return radiance * .05f;
+
+static __device__
+inline float HenyeyGreensteinPhase(float cosTheta, float g)
+{
+	return (1.f / (4.f * Pi)) * ((1.f - powf(g, 2.f)) / powf(1.f - 2.f * g * cosTheta + pow(g, 2.f), 1.5f));
+}
+
+
+
+static __device__
+inline float SunIntensity(float zenithAngleCos)
+{
+	return skyData->sunIntensity * max(0.f, 1.f - expf(-((SKY_SUN_FALLOFF_ANGLE - acosf(zenithAngleCos)) / SKY_SUN_INTENSITY_FALLOFF_STEEPNESS)));
+}
+
+
+
+static __device__
+inline float3 Tonemap(const float3& color)
+{
+	return (color * (1.f + color / 1000.f)) / (color + 128.f);
+}
+
+
+
+static __device__
+inline float3 Saturation(const float3& L0)
+{
+	const float3 lumaPix = make_float3(0.299f, 0.587f, 0.114f);
+	const float dotLuma = dot(L0, lumaPix);
+	return mix(make_float3(dotLuma, dotLuma, dotLuma), L0, 0.5f);
+}
+
+
+
+
+static __device__
+inline float3 SampleSky(const float3& sampleDir, bool drawSun)
+{
+	// return black when the sky is disabled
+	if(skyData->skyEnabled == 0)
+		return make_float3(0);
+
+	// cache local
+	const float3 sunDir = skyData->sunDir;
+	const float sunAngularDiameterCos = skyData->cosSunAngularDiameter;
+
+	// cos angles
+	const float cosSunUpAngle = dot(sunDir, SKY_UP);
+
+	// Rayleigh coefficient
+	float sunfade = 1.f - saturate(1.f - expf(-sunDir.z / 500.f));
+	const float rayleighCoefficient = SKY_RAYLEIGH_COEFFICIENT - (1.f * (1.f - sunfade));
+	const float3 betaR = TotalRayleigh(SKY_PRIMARY_WAVE_LENGTHS) * rayleighCoefficient;
+
+	// Mie coefficient
+	//const float turbidity = mix(2.2f, 0.2f, max(sampleDir.y, 0.f));
+	const float turbidity = skyData->turbidity;
+	const float3 betaM = TotalMie(SKY_PRIMARY_WAVE_LENGTHS, SKY_MIE_K_COEFFICIENT, turbidity) * SKY_MIE_COEFFICIENT;
+
+	// Optical length, cutoff angle at 90 to avoid singularity
+	float zenithAngle = acosf(max(dot(SKY_UP, sampleDir), 0.f));
+	const float denom = cos(zenithAngle) + 0.15f * pow(93.885f - ((zenithAngle * 180.f) / Pi), -1.253f);
+	const float sR = SKY_RAYLEIGH_ZENITH_LENGTH / denom;
+	const float sM = SKY_MIE_ZENITH_LENGTH / denom;
+
+	// Combined extinction factor
+	const float3 Fex = expf(-(betaR * sR + betaM * sM));
+
+	// In-scattering
+	const float cosTheta = dot(sampleDir, sunDir);
+	const float3 betaRTheta = betaR * RayleighPhase(cosTheta * 0.5f + 0.5f);
+	const float3 betaMTheta = betaM * HenyeyGreensteinPhase(cosTheta, SKY_MIE_DIRECTIONAL_G);
+	const float sunE = SunIntensity(cosSunUpAngle);
+	float3 Lin = pow(sunE * ((betaRTheta + betaMTheta) / (betaR + betaM)) * (1.f - Fex), 1.5f);
+	Lin *= mix(make_float3(1.f),
+			   pow(sunE * ((betaRTheta + betaMTheta) / (betaR + betaM)) * Fex, 0.5f),
+			   saturate(powf(1.f - cosSunUpAngle, 5.f)));
+
+	// Composition + solar disc
+	const float sundisk = smoothstep(sunAngularDiameterCos, sunAngularDiameterCos + 2e-5f, cosTheta);
+	float3 L0 = (make_float3(0.1f) * Fex) + (sunE * 19000.f * Fex * sundisk * drawSun);
+	L0 = Saturation(L0);
+
+	// Tonemapping
+	const float3 color = max(make_float3(0.f), Tonemap(Lin + L0));
+	sunfade *= mix(1.f, 0.9f, max(sunDir.y, 0.f));
+	return pow(color, 1.f / (1.f + (sunfade)));
 }

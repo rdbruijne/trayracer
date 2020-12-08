@@ -845,19 +845,8 @@ namespace Tracer
 			sky->Build();
 
 			const SkyData& skyData = sky->CudaData();
-			const SkyState& skyStateX = sky->CudaStateX();
-			const SkyState& skyStateY = sky->CudaStateY();
-			const SkyState& skyStateZ = sky->CudaStateZ();
-
 			mSkyData.UploadAsync(&skyData, 1, true);
-			mSkyStateX.UploadAsync(&skyStateX, 1, true);
-			mSkyStateY.UploadAsync(&skyStateY, 1, true);
-			mSkyStateZ.UploadAsync(&skyStateZ, 1, true);
-
 			SetCudaSkyData(mSkyData.Ptr<SkyData>());
-			SetCudaSkyStateX(mSkyStateX.Ptr<SkyState>());
-			SetCudaSkyStateY(mSkyStateY.Ptr<SkyState>());
-			SetCudaSkyStateZ(mSkyStateZ.Ptr<SkyState>());
 		}
 	}
 

@@ -32,6 +32,42 @@
 
 using namespace rapidjson;
 
+// Keys
+#define Key_AngularDiameter    "angulardiameter"
+#define Key_AoDist             "aodist"
+#define Key_Camera             "camera"
+#define Key_Dir                "dir"
+#define Key_DrawSun            "drawsun"
+#define Key_Enabled            "enabled"
+#define Key_Exposure           "exposure"
+#define Key_Fov                "fov"
+#define Key_Gamma              "gamma"
+#define Key_Instances          "instances"
+#define Key_Intensity          "intensity"
+#define Key_Map                "Map"
+#define Key_Materials          "materials"
+#define Key_Matrix             "matrix"
+#define Key_MaxDepth           "maxdepth"
+#define Key_Model              "model"
+#define Key_Models             "models"
+#define Key_MultiSample        "multisample"
+#define Key_Name               "name"
+#define Key_Path               "path"
+#define Key_Position           "position"
+#define Key_Post               "post"
+#define Key_Renderer           "renderer"
+#define Key_RotateX            "rotate-x"
+#define Key_RotateY            "rotate-y"
+#define Key_RotateZ            "rotate-z"
+#define Key_Scale              "scale"
+#define Key_Sky                "sky"
+#define Key_Target             "target"
+#define Key_Transform          "transform"
+#define Key_Translate          "translate"
+#define Key_Turbidity          "turbidity"
+#define Key_Up                 "up"
+#define Key_ZDepthMax          "zdepthmax"
+
 namespace Tracer
 {
 	namespace
@@ -141,20 +177,20 @@ namespace Tracer
 		//----------------------------------------------------------------------------------------------------------------------
 		void ParseCamera(CameraNode* camNode, const Document& doc)
 		{
-			if(!camNode || !doc.HasMember("camera"))
+			if(!camNode || !doc.HasMember(Key_Camera))
 				return;
 
-			const Value& jsonCamera = doc["camera"];
+			const Value& jsonCamera = doc[Key_Camera];
 
 			float3 pos = make_float3(0, 0, -1);
 			float3 target = make_float3(0, 0, 0);
 			float3 up = make_float3(0, 1, 0);
 			float fov = 90.f;
 
-			Read(jsonCamera, "position", pos);
-			Read(jsonCamera, "target", target);
-			Read(jsonCamera, "up", up);
-			Read(jsonCamera, "fov", fov);
+			Read(jsonCamera, Key_Position, pos);
+			Read(jsonCamera, Key_Target, target);
+			Read(jsonCamera, Key_Up, up);
+			Read(jsonCamera, Key_Fov, fov);
 
 			// corrections
 			fov = fminf(fmaxf(fov, .1f), 179.9f);
@@ -181,10 +217,10 @@ namespace Tracer
 		{
 			std::vector<InstanceInfo> importedInstances;
 
-			if(!doc.HasMember("instances"))
+			if(!doc.HasMember(Key_Instances))
 				return importedInstances;
 
-			const Value& jsonInstanceList = doc["instances"];
+			const Value& jsonInstanceList = doc[Key_Instances];
 			if(!jsonInstanceList.IsArray())
 				return importedInstances;
 
@@ -193,39 +229,39 @@ namespace Tracer
 				const Value& jsonInstance = jsonInstanceList[instanceIx];
 
 				std::string modelName;
-				if(!Read(jsonInstance, "model", modelName))
+				if(!Read(jsonInstance, Key_Model, modelName))
 					continue;
 
 				std::string name = modelName;
-				Read(jsonInstance, "name", name);
+				Read(jsonInstance, Key_Name, name);
 
 				float3x4 trans = make_float3x4();
-				if(jsonInstance.HasMember("transform"))
+				if(jsonInstance.HasMember(Key_Transform))
 				{
 					// reusable variables for JSON reading
 					float f;
 					float3 f3;
 					float3x4 f3x4;
 
-					const Value& jsonTransformOperations = jsonInstance["transform"];
+					const Value& jsonTransformOperations = jsonInstance[Key_Transform];
 					if(jsonTransformOperations.IsArray())
 					{
 						for(SizeType transOpIx = 0; transOpIx < jsonTransformOperations.Size(); transOpIx++)
 						{
 							const Value& op = jsonTransformOperations[transOpIx];
-							if(Read(op, "matrix", f3x4))
+							if(Read(op, Key_Matrix, f3x4))
 								trans *= f3x4;
-							else if(Read(op, "translate", f3))
+							else if(Read(op, Key_Translate, f3))
 								trans *= translate_3x4(f3);
-							else if(Read(op, "rotate-x", f))
+							else if(Read(op, Key_RotateX, f))
 								trans *= rotate_x_3x4(f * DegToRad);
-							else if(Read(op, "rotate-y", f))
+							else if(Read(op, Key_RotateY, f))
 								trans *= rotate_y_3x4(f * DegToRad);
-							else if(Read(op, "rotate-z", f))
+							else if(Read(op, Key_RotateZ, f))
 								trans *= rotate_z_3x4(f * DegToRad);
-							else if(Read(op, "scale", f))
+							else if(Read(op, Key_Scale, f))
 								trans *= scale_3x4(f);
-							else if(Read(op, "scale", f3))
+							else if(Read(op, Key_Scale, f3))
 								trans *= scale_3x4(f3);
 						}
 					}
@@ -243,10 +279,10 @@ namespace Tracer
 		{
 			// #TODO: complete implementation
 
-			if(!scene || !doc.HasMember("materials"))
+			if(!scene || !doc.HasMember(Key_Materials))
 				return;
 
-			const Value& jsonModelList = doc["materials"];
+			const Value& jsonModelList = doc[Key_Materials];
 			if(!jsonModelList.IsArray())
 				return;
 
@@ -256,7 +292,7 @@ namespace Tracer
 				const Value& jsonModel = jsonModelList[modelIx];
 
 				std::string modelName;
-				if(!Read(jsonModel, "model", modelName))
+				if(!Read(jsonModel, Key_Model, modelName))
 					continue;
 
 				auto model = scene->GetModel(modelName);
@@ -264,13 +300,13 @@ namespace Tracer
 					continue;
 
 				// for each material
-				const Value& jsonMaterialList = jsonModel["materials"];
+				const Value& jsonMaterialList = jsonModel[Key_Materials];
 				for(SizeType matIx = 0; matIx < jsonMaterialList.Size(); matIx++)
 				{
 					const Value& jsonMat = jsonMaterialList[matIx];
 
 					std::string matName;
-					if(!Read(jsonMat, "name", matName))
+					if(!Read(jsonMat, Key_Name, matName))
 						continue;
 
 					auto mat = model->GetMaterial(matName);
@@ -287,7 +323,7 @@ namespace Tracer
 							mat->Set(id, f3);
 
 						std::string s;
-						if(Read(jsonMat, (propName + "Map").c_str(), s))
+						if(Read(jsonMat, (propName + Key_Map).c_str(), s))
 							mat->Set(id, TextureFile::Import(scene, s));
 					}
 				}
@@ -300,10 +336,10 @@ namespace Tracer
 		{
 			std::map<std::string, std::string> importedModels;
 
-			if(!doc.HasMember("models"))
+			if(!doc.HasMember(Key_Models))
 				return importedModels;
 
-			const Value& jsonModelList = doc["models"];
+			const Value& jsonModelList = doc[Key_Models];
 			if(!jsonModelList.IsArray())
 				return importedModels;
 
@@ -312,11 +348,11 @@ namespace Tracer
 				const Value& jsonModel = jsonModelList[modelIx];
 
 				std::string name;
-				if(!Read(jsonModel, "name", name))
+				if(!Read(jsonModel, Key_Name, name))
 					continue;
 
 				std::string path;
-				if(!Read(jsonModel, "path", path))
+				if(!Read(jsonModel, Key_Path, path))
 					continue;
 
 				importedModels[name] = path;
@@ -329,14 +365,14 @@ namespace Tracer
 
 		void ParsePostSettings(Window* window, const Document& doc)
 		{
-			if(!window || !doc.HasMember("post"))
+			if(!window || !doc.HasMember(Key_Post))
 				return;
 
 			Window::ShaderProperties postProps = window->PostShaderProperties();
-			const Value& jsonPost = doc["post"];
+			const Value& jsonPost = doc[Key_Post];
 
-			Read(jsonPost, "exposure", postProps.exposure);
-			Read(jsonPost, "gamma", postProps.gamma);
+			Read(jsonPost, Key_Exposure, postProps.exposure);
+			Read(jsonPost, Key_Gamma, postProps.gamma);
 
 			window->SetPostShaderProperties(postProps);
 		}
@@ -345,21 +381,21 @@ namespace Tracer
 
 		void ParseRenderSettings(Renderer* renderer, const Document& doc)
 		{
-			if(!renderer || !doc.HasMember("renderer"))
+			if(!renderer || !doc.HasMember(Key_Renderer))
 				return;
 
 			// reusable variables for JSON reading
 			int i;
 			float f;
 
-			const Value& jsonRenderer = doc["renderer"];
-			if(Read(jsonRenderer, "multisample", i))
+			const Value& jsonRenderer = doc[Key_Renderer];
+			if(Read(jsonRenderer, Key_MultiSample, i))
 				renderer->SetMultiSample(i);
-			if(Read(jsonRenderer, "maxdepth", i))
+			if(Read(jsonRenderer, Key_MaxDepth, i))
 				renderer->SetMaxDepth(i);
-			if(Read(jsonRenderer, "aodist", f))
+			if(Read(jsonRenderer, Key_AoDist, f))
 				renderer->SetAODist(f);
-			if(Read(jsonRenderer, "zdepthmax", f))
+			if(Read(jsonRenderer, Key_ZDepthMax, f))
 				renderer->SetZDepthMax(f);
 		}
 
@@ -367,7 +403,7 @@ namespace Tracer
 
 		void ParseSkySettings(Sky* sky, const Document& doc)
 		{
-			if(!sky || !doc.HasMember("sky"))
+			if(!sky || !doc.HasMember(Key_Sky))
 				return;
 
 			// reusable variables for JSON reading
@@ -375,23 +411,19 @@ namespace Tracer
 			float f;
 			float3 f3;
 
-			const Value& jsonSky = doc["sky"];
-			if(Read(jsonSky, "drawsun", b))
+			const Value& jsonSky = doc[Key_Sky];
+			if(Read(jsonSky, Key_Enabled, b))
+				sky->SetEnabled(b);
+			if(Read(jsonSky, Key_DrawSun, b))
 				sky->SetDrawSun(b);
-			if(Read(jsonSky, "sundir", f3))
+			if(Read(jsonSky, Key_Dir, f3))
 				sky->SetSunDir(f3);
-			if(Read(jsonSky, "sunsize", f))
-				sky->SetSunSize(f);
-			if(Read(jsonSky, "suncolor", f3))
-			   sky->SetSunColor(f3);
-			if(Read(jsonSky, "skytint", f3))
-				sky->SetSkyTint(f3);
-			if(Read(jsonSky, "suntint", f3))
-				sky->SetSunTint(f3);
-			if(Read(jsonSky, "turbidity", f))
+			if(Read(jsonSky, Key_AngularDiameter, f))
+				sky->SetSunAngularDiameter(f);
+			if(Read(jsonSky, Key_Intensity, f))
+				sky->SetSunIntensity(f);
+			if(Read(jsonSky, Key_Turbidity, f))
 				sky->SetTurbidity(f);
-			if(Read(jsonSky, "groundalbedo", f3))
-				sky->SetGroundAlbedo(f3);
 		}
 
 
@@ -523,13 +555,13 @@ namespace Tracer
 				return;
 
 			Value jsonCam = Value(kObjectType);
-			Write(jsonCam, allocator, "position", camNode->Position());
-			Write(jsonCam, allocator, "target", camNode->Target());
-			Write(jsonCam, allocator, "up", camNode->Up());
-			Write(jsonCam, allocator, "fov", camNode->Fov() * RadToDeg);
+			Write(jsonCam, allocator, Key_Position, camNode->Position());
+			Write(jsonCam, allocator, Key_Target, camNode->Target());
+			Write(jsonCam, allocator, Key_Up, camNode->Up());
+			Write(jsonCam, allocator, Key_Fov, camNode->Fov() * RadToDeg);
 
 			// add new JSON node to the document
-			doc.AddMember("camera", jsonCam, allocator);
+			doc.AddMember(Key_Camera, jsonCam, allocator);
 		}
 
 
@@ -551,20 +583,20 @@ namespace Tracer
 
 				// instance
 				Value jsonInst = Value(kObjectType);
-				Write(jsonInst, allocator, "name", inst->Name());
-				Write(jsonInst, allocator, "model", uniqueModelNames[inst->GetModel()]);
+				Write(jsonInst, allocator, Key_Name, inst->Name());
+				Write(jsonInst, allocator, Key_Model, uniqueModelNames[inst->GetModel()]);
 				Value jsonMatrix = Value(kObjectType);
-				Write(jsonMatrix, allocator, "matrix", inst->Transform());
+				Write(jsonMatrix, allocator, Key_Matrix, inst->Transform());
 				Value jsonTransform = Value(kArrayType);
 				jsonTransform.PushBack(jsonMatrix, allocator);
-				jsonInst.AddMember("transform", jsonTransform, allocator);
+				jsonInst.AddMember(Key_Transform, jsonTransform, allocator);
 
 				// add model to array
 				jsonInstanceList.PushBack(jsonInst, allocator);
 			}
 
 			// add new JSON node to the document
-			doc.AddMember("instances", jsonInstanceList, allocator);
+			doc.AddMember(Key_Instances, jsonInstanceList, allocator);
 		}
 
 
@@ -588,7 +620,7 @@ namespace Tracer
 					Value jsonMat = Value(kObjectType);
 
 					// name
-					Write(jsonMat, allocator, "name", mat->Name());
+					Write(jsonMat, allocator, Key_Name, mat->Name());
 
 					// properties
 					for(size_t i = 0; i < magic_enum::enum_count<Material::PropertyIds>(); i++)
@@ -600,7 +632,7 @@ namespace Tracer
 							Write(jsonMat, allocator, propName, mat->GetColor(id));
 
 						if(mat->IsTextureEnabled(id) && mat->GetTextureMap(id))
-							Write(jsonMat, allocator, propName + "Map", ReplaceAll(RelativeFilePath(mat->GetTextureMap(id)->Path()), "\\", "/"));
+							Write(jsonMat, allocator, propName + Key_Map, ReplaceAll(RelativeFilePath(mat->GetTextureMap(id)->Path()), "\\", "/"));
 					}
 
 					// add mat to model material array
@@ -609,13 +641,13 @@ namespace Tracer
 
 				// add model to array
 				Value jsonModel = Value(kObjectType);
-				Write(jsonModel, allocator, "model", uniqueModelNames[model]);
-				jsonModel.AddMember("materials", jsonMaterialList, allocator);
+				Write(jsonModel, allocator, Key_Model, uniqueModelNames[model]);
+				jsonModel.AddMember(Key_Materials, jsonMaterialList, allocator);
 				jsonModelList.PushBack(jsonModel, allocator);
 			}
 
 			// add new JSON node to the document
-			doc.AddMember("materials", jsonModelList, allocator);
+			doc.AddMember(Key_Materials, jsonModelList, allocator);
 		}
 
 
@@ -626,15 +658,15 @@ namespace Tracer
 			for(const auto& m : uniqueModelNames)
 			{
 				Value jsonModel = Value(kObjectType);
-				Write(jsonModel, allocator, "name", m.second);
-				Write(jsonModel, allocator, "path", ReplaceAll(RelativeFilePath(m.first->FilePath()), "\\", "/"));
+				Write(jsonModel, allocator, Key_Name, m.second);
+				Write(jsonModel, allocator, Key_Path, ReplaceAll(RelativeFilePath(m.first->FilePath()), "\\", "/"));
 
 				// add model to array
 				jsonModelList.PushBack(jsonModel, allocator);
 			}
 
 			// add new JSON node to the document
-			doc.AddMember("models", jsonModelList, allocator);
+			doc.AddMember(Key_Models, jsonModelList, allocator);
 		}
 
 
@@ -645,13 +677,13 @@ namespace Tracer
 				return;
 
 			Value jsonRenderer = Value(kObjectType);
-			Write(jsonRenderer, allocator, "multisample", renderer->MultiSample());
-			Write(jsonRenderer, allocator, "maxdepth", renderer->MaxDepth());
-			Write(jsonRenderer, allocator, "aodist", renderer->AODist());
-			Write(jsonRenderer, allocator, "zdepthmax", renderer->ZDepthMax());
+			Write(jsonRenderer, allocator, Key_MultiSample, renderer->MultiSample());
+			Write(jsonRenderer, allocator, Key_MaxDepth, renderer->MaxDepth());
+			Write(jsonRenderer, allocator, Key_AoDist, renderer->AODist());
+			Write(jsonRenderer, allocator, Key_ZDepthMax, renderer->ZDepthMax());
 
 			// add new JSON node to the document
-			doc.AddMember("renderer", jsonRenderer, allocator);
+			doc.AddMember(Key_Renderer, jsonRenderer, allocator);
 		}
 
 
@@ -662,17 +694,15 @@ namespace Tracer
 				return;
 
 			Value jsonRenderer = Value(kObjectType);
-			Write(jsonRenderer, allocator, "drawsun", sky->DrawSun());
-			Write(jsonRenderer, allocator, "sundir", sky->SunDir());
-			Write(jsonRenderer, allocator, "sunsize", sky->SunSize());
-			Write(jsonRenderer, allocator, "suncolor", sky->SunColor());
-			Write(jsonRenderer, allocator, "skytint", sky->SkyTint());
-			Write(jsonRenderer, allocator, "suntint", sky->SunTint());
-			Write(jsonRenderer, allocator, "turbidity", sky->Turbidity());
-			Write(jsonRenderer, allocator, "groundalbedo", sky->GroundAlbedo());
+			Write(jsonRenderer, allocator, Key_Enabled, sky->Enabled());
+			Write(jsonRenderer, allocator, Key_DrawSun, sky->DrawSun());
+			Write(jsonRenderer, allocator, Key_Dir, sky->SunDir());
+			Write(jsonRenderer, allocator, Key_AngularDiameter, sky->SunAngularDiameter());
+			Write(jsonRenderer, allocator, Key_Intensity, sky->SunIntensity());
+			Write(jsonRenderer, allocator, Key_Turbidity, sky->Turbidity());
 
 			// add new JSON node to the document
-			doc.AddMember("sky", jsonRenderer, allocator);
+			doc.AddMember(Key_Sky, jsonRenderer, allocator);
 		}
 
 
@@ -685,11 +715,11 @@ namespace Tracer
 			const Window::ShaderProperties& postProps = window->PostShaderProperties();
 
 			Value jsonPost = Value(kObjectType);
-			Write(jsonPost, allocator, "exposure", postProps.exposure);
-			Write(jsonPost, allocator, "gamma", postProps.gamma);
+			Write(jsonPost, allocator, Key_Exposure, postProps.exposure);
+			Write(jsonPost, allocator, Key_Gamma, postProps.gamma);
 
 			// add new JSON node to the document
-			doc.AddMember("post", jsonPost, allocator);
+			doc.AddMember(Key_Post, jsonPost, allocator);
 		}
 	}
 

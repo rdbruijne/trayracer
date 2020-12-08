@@ -248,29 +248,12 @@ struct alignas(16) CudaMatarial
 struct SkyData
 {
 	float3 sunDir;
-	float sunSize;
+	int skyEnabled;
 
-	float3 sunColor;
-	int enableSun;
+	float drawSun;
+	float sunArea;
+	float cosSunAngularDiameter;
+	float sunIntensity;
 
-	float3 groundAlbedo;
 	float turbidity;
-
-	float3 skyTint;
-	float dummy;
-
-	float3 sunTint;
-	float dummy2;
-};
-
-
-
-struct SkyState
-{
-	float configs[3][9];
-	float radiances[3];
-	float turbidity;
-	float solarRadius;
-	float albedo;
-	float elevation;
 };

@@ -7,17 +7,6 @@
 
 
 //------------------------------------------------------------------------------------------------------------------------------
-// Math
-//------------------------------------------------------------------------------------------------------------------------------
-static __host__ inline uint32_t DivRoundUp(uint32_t a, uint32_t b) { return (a + b - 1) / b; }
-
-static __device__ inline float2 operator -(const float2& a) { return make_float2(-a.x, -a.y); }
-static __device__ inline float3 operator -(const float3& a) { return make_float3(-a.x, -a.y, -a.z); }
-static __device__ inline float4 operator -(const float4& a) { return make_float4(-a.x, -a.y, -a.z, -a.w); }
-
-
-
-//------------------------------------------------------------------------------------------------------------------------------
 // Colors
 //------------------------------------------------------------------------------------------------------------------------------
 // Convert an object ID to a color
@@ -35,32 +24,6 @@ inline float3 IdToColor(uint32_t id)
 	}
 
 	return make_float3(c[0] * (1.f / 255.f), c[1] * (1.f / 255.f), c[2] * (1.f / 255.f));
-}
-
-
-
-//------------------------------------------------------------------------------------------------------------------------------
-// math
-//------------------------------------------------------------------------------------------------------------------------------
-static __device__
-inline float3 transform(const float4& tx, const float4& ty, const float4& tz, const float3& v)
-{
-	return make_float3(
-		dot(v, make_float3(tx.x, ty.x, tz.x)),
-		dot(v, make_float3(tx.y, ty.y, tz.y)),
-		dot(v, make_float3(tx.z, ty.z, tz.z)));
-}
-
-
-
-static __device__
-inline float4 transform(const float4& tx, const float4& ty, const float4& tz, const float4& v)
-{
-	return make_float4(
-		dot(v, make_float4(tx.x, ty.x, tz.x, tx.w)),
-		dot(v, make_float4(tx.y, ty.y, tz.y, ty.w)),
-		dot(v, make_float4(tx.z, ty.z, tz.z, tz.w)),
-		v.w);
 }
 
 
@@ -324,10 +287,9 @@ int32_t SelectLight(uint32_t& seed)
 static __device__
 inline float3 SampleLight(uint32_t& seed, const float3& I, const float3& N, float& prob, float& pdf, float3& radiance, float& dist)
 {
-	// sun energy (precalc?)
-	const float3 sunRadiance = SampleSky(skyData->sunDir);
-	const float sunArea = skyData->sunSize * skyData->sunSize * Pi; // magical constant?
-	const float sunEnergy = (sunRadiance.x + sunRadiance.y + sunRadiance.z) * sunArea;
+	// sun energy
+	const float3 sunRadiance = SampleSky(skyData->sunDir, false);
+	const float sunEnergy = (sunRadiance.x + sunRadiance.y + sunRadiance.z) * skyData->sunArea;
 	const float totalEnergy = sunEnergy + lightEnergy;
 
 	// check for any energy
@@ -342,10 +304,10 @@ inline float3 SampleLight(uint32_t& seed, const float3& I, const float3& N, floa
 	// try to pick the sun
 	if(rnd(seed) * totalEnergy <= sunEnergy)
 	{
-		prob = sunEnergy / totalEnergy;
-		pdf = 1.f;
+		prob     = sunEnergy / totalEnergy;
+		pdf      = 1.f;
 		radiance = sunRadiance;
-		dist = 1e20f;
+		dist     = 1e20f;
 		return skyData->sunDir;
 	}
 

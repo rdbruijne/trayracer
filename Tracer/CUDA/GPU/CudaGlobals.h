@@ -5,9 +5,6 @@
 //------------------------------------------------------------------------------------------------------------------------------
 // Constants
 //------------------------------------------------------------------------------------------------------------------------------
-// math
-constexpr float Pi = 3.14159265358979323846f;
-
 // rendering
 constexpr float DstMax = 1e30f;
 constexpr float Epsilon = 1e-3f;
@@ -39,9 +36,6 @@ __constant__ LightTriangle* lights = nullptr;
 
 // sky
 __constant__ SkyData* skyData = nullptr;
-__constant__ SkyState* skyStateX = nullptr;
-__constant__ SkyState* skyStateY = nullptr;
-__constant__ SkyState* skyStateZ = nullptr;
 
 
 
@@ -126,25 +120,4 @@ __host__ void SetCudaLights(LightTriangle* data)
 __host__ void SetCudaSkyData(SkyData* data)
 {
 	cudaMemcpyToSymbol(skyData, &data, sizeof(void*));
-}
-
-
-
-__host__ void SetCudaSkyStateX(SkyState* data)
-{
-	cudaMemcpyToSymbol(skyStateX, &data, sizeof(void*));
-}
-
-
-
-__host__ void SetCudaSkyStateY(SkyState* data)
-{
-	cudaMemcpyToSymbol(skyStateY, &data, sizeof(void*));
-}
-
-
-
-__host__ void SetCudaSkyStateZ(SkyState* data)
-{
-	cudaMemcpyToSymbol(skyStateZ, &data, sizeof(void*));
 }

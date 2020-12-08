@@ -161,7 +161,7 @@ namespace Tracer
 			hasChanged = ImGui::InputFloat3("Position", camPos) || hasChanged;
 			hasChanged = ImGui::InputFloat3("Target", camTarget) || hasChanged;
 			hasChanged = ImGui::InputFloat3("Up", camUp) || hasChanged;
-			hasChanged = ImGui::SliderFloat("Fov", &camFov, 1, 179) || hasChanged;
+			hasChanged = ImGui::SliderFloat("Fov", &camFov, 1.f, 179.f) || hasChanged;
 			ImGui::EndGroup();
 
 			if(hasChanged)
@@ -346,7 +346,7 @@ namespace Tracer
 
 				Window::ShaderProperties shaderProps = GuiHelpers::window->PostShaderProperties();
 				ImGui::SliderFloat("Exposure", &shaderProps.exposure, 0.f, 100.f, "%.3f", 10.f);
-				ImGui::SliderFloat("Gamma", &shaderProps.gamma, 0.f, 4.f, "%.3f", 1.f);
+				ImGui::SliderFloat("Gamma", &shaderProps.gamma, 0.f, 4.f);
 				GuiHelpers::window->SetPostShaderProperties(shaderProps);
 			}
 
@@ -385,8 +385,16 @@ namespace Tracer
 	{
 		auto sky = GuiHelpers::scene->GetSky();
 
+		bool enabled = sky->Enabled();
+		if(ImGui::Checkbox("Enabled", &enabled))
+			sky->SetEnabled(enabled);
+
 		// sun
 		ImGui::Text("Sun");
+
+		bool drawSun = sky->DrawSun();
+		if(ImGui::Checkbox("Draw sun", &drawSun))
+			sky->SetDrawSun(drawSun);
 
 		float3 sunDir = sky->SunDir();
 		vec3 l(sunDir.x, sunDir.y, sunDir.z);
@@ -395,39 +403,21 @@ namespace Tracer
 		if(ImGui::InputFloat3("Sun dir", reinterpret_cast<float*>(&l)))
 			sky->SetSunDir(make_float3(l.x, l.y, l.z));
 
-		bool drawSun = sky->DrawSun();
-		if(ImGui::Checkbox("Draw sun", &drawSun))
-			sky->SetDrawSun(drawSun);
+		float sunSize = sky->SunAngularDiameter();
+		if(ImGui::SliderFloat("Sun size (arc minutes)", &sunSize, 1.f, 10800.f, "%.3f", 10.f))
+			sky->SetSunAngularDiameter(sunSize);
 
-		float sunSize = sky->SunSize();
-		if(ImGui::SliderFloat("Sun size", &sunSize, 0.f, static_cast<float>(M_PI)))
-			sky->SetSunSize(sunSize);
-
-		float3 sunColor = sky->SunColor();
-		if(ImGui::ColorEdit3("Sun color", reinterpret_cast<float*>(&sunColor), ImGuiColorEditFlags_HDR))
-			sky->SetSunColor(sunColor);
-
-		// tints
-		ImGui::Spacing();
-		ImGui::Text("Tint");
-		float3 skyTint = sky->SkyTint();
-		if(ImGui::ColorEdit3("sky tint", reinterpret_cast<float*>(&skyTint)))
-			sky->SetSkyTint(skyTint);
-
-		float3 sunTint = sky->SunTint();
-		if(ImGui::ColorEdit3("Sun tint", reinterpret_cast<float*>(&sunTint)))
-			sky->SetSunTint(sunTint);
+		float sunIntensity = sky->SunIntensity();
+		if(ImGui::SliderFloat("Sun intensity", &sunIntensity, 0.f, 1e6f, "%.3f", 10.f))
+			sky->SetSunIntensity(sunIntensity);
 
 		// ground
-		ImGui::Spacing();
 		ImGui::Text("Ground");
+
 		float turbidity = sky->Turbidity();
 		if(ImGui::SliderFloat("Turbidity", &turbidity, 1.f, 10.f))
 			sky->SetTurbidity(turbidity);
 
-		float3 groundAlbedo = sky->GroundAlbedo();
-		if(ImGui::ColorEdit3("Ground albedo", reinterpret_cast<float*>(&groundAlbedo)))
-			sky->SetGroundAlbedo(groundAlbedo);
 	}
 
 

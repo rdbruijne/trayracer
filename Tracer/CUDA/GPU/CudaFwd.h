@@ -27,11 +27,6 @@ __host__ void SetCudaLights(LightTriangle* data);
 
 // sky
 __host__ void SetCudaSkyData(SkyData* data);
-__host__ void SetCudaSkyStateX(SkyState* data);
-__host__ void SetCudaSkyStateY(SkyState* data);
-__host__ void SetCudaSkyStateZ(SkyState* data);
-
-
 
 // rendering
 __host__ void InitCudaCounters();
