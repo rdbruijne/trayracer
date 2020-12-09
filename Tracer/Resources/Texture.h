@@ -38,6 +38,7 @@ namespace Tracer
 		cudaTextureObject_t CudaObject() const { return mCudaObject; }
 
 		// ImGui
+		void DestroyGLTex() { delete mGlTexture; }
 		const GLTexture* GLTex() const { return mGlTexture; }
 
 	private:

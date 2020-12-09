@@ -28,7 +28,7 @@ namespace Tracer
 		inline void UnsetDebug(const std::string& name) { mDebugItems.erase(name); }
 
 		// material
-		inline void SelectMaterial(std::weak_ptr<Material> material) { mSelectedMaterial = material; }
+		void SelectMaterial(std::weak_ptr<Material> material);
 
 		// statistics
 		inline void UpdateStats(float frameTimeMs)

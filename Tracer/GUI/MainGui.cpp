@@ -103,6 +103,31 @@ namespace Tracer
 
 
 
+	void MainGui::SelectMaterial(std::weak_ptr<Material> material)
+	{
+		// check if the material is already selected
+		if(!material.owner_before(mSelectedMaterial) && !mSelectedMaterial.owner_before(material))
+			return;
+
+		// delete GlTextures for old material
+		if(!mSelectedMaterial.expired())
+		{
+			auto mat = mSelectedMaterial.lock();
+			for(size_t i = 0; i < magic_enum::enum_count<Material::PropertyIds>(); i++)
+			{
+				const Material::PropertyIds id = static_cast<Material::PropertyIds>(i);
+				auto tex = mat->GetTextureMap(id);
+				if(tex)
+					tex->DestroyGLTex();
+			}
+		}
+
+		// assign new material
+		mSelectedMaterial = material;
+	}
+
+
+
 	void MainGui::DrawImpl()
 	{
 		if(!ImGui::Begin("Tray Racer", &mEnabled))
