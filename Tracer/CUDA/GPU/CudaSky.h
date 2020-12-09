@@ -101,7 +101,6 @@ inline float3 Saturation(const float3& L0)
 
 
 
-
 static __device__
 inline float3 SampleSky(const float3& sampleDir, bool drawSun)
 {

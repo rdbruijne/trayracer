@@ -149,42 +149,45 @@ namespace Tracer
 		}
 		else
 		{
-			bool hasChanged = false;
+			ImGui::BeginGroup();
 
 			// transformation
-			float pos[] = {GuiHelpers::camNode->Position().x, GuiHelpers::camNode->Position().y, GuiHelpers::camNode->Position().z};
-			float target[] = {GuiHelpers::camNode->Target().x, GuiHelpers::camNode->Target().y, GuiHelpers::camNode->Target().z};
-			float up[] = {GuiHelpers::camNode->Up().x, GuiHelpers::camNode->Up().y, GuiHelpers::camNode->Up().z};
-
-			float aperture = GuiHelpers::camNode->Aperture();
-			float distortion = GuiHelpers::camNode->Distortion();
-			float focalDist = GuiHelpers::camNode->FocalDist();
-			float fov = GuiHelpers::camNode->Fov() * RadToDeg;
-
-			ImGui::BeginGroup();
 			ImGui::Text("Transformation");
-			hasChanged = ImGui::InputFloat3("Position", pos) || hasChanged;
-			hasChanged = ImGui::InputFloat3("Target", target) || hasChanged;
-			hasChanged = ImGui::InputFloat3("Up", up) || hasChanged;
+
+			float pos[] = {GuiHelpers::camNode->Position().x, GuiHelpers::camNode->Position().y, GuiHelpers::camNode->Position().z};
+			if(ImGui::InputFloat3("Position", pos))
+				GuiHelpers::camNode->SetPosition(make_float3(pos[0], pos[1], pos[2]));
+
+			float target[] = {GuiHelpers::camNode->Target().x, GuiHelpers::camNode->Target().y, GuiHelpers::camNode->Target().z};
+			if(ImGui::InputFloat3("Target", target))
+				GuiHelpers::camNode->SetTarget(make_float3(target[0], target[1], target[2]));
+
+			float up[] = {GuiHelpers::camNode->Up().x, GuiHelpers::camNode->Up().y, GuiHelpers::camNode->Up().z};
+			if(ImGui::InputFloat3("Up", up))
+				GuiHelpers::camNode->SetUp(make_float3(up[0], up[1], up[2]));
+
 			ImGui::Spacing();
 
+			// lens
 			ImGui::Text("Lens");
-			hasChanged = ImGui::SliderFloat("Aperture", &aperture, 0.f, 10.f) || hasChanged;
-			hasChanged = ImGui::SliderFloat("Distortion", &distortion, 0.f, 10.f) || hasChanged;
-			hasChanged = ImGui::SliderFloat("Focal dist", &focalDist, 1.f, 1e6f, "%.3f", 10.f) || hasChanged;
-			hasChanged = ImGui::SliderFloat("Fov", &fov, 1.f, 179.f) || hasChanged;
-			ImGui::EndGroup();
 
-			if(hasChanged)
-			{
-				GuiHelpers::camNode->SetPosition(make_float3(pos[0], pos[1], pos[2]));
-				GuiHelpers::camNode->SetTarget(make_float3(target[0], target[1], target[2]));
-				GuiHelpers::camNode->SetUp(make_float3(up[0], up[1], up[2]));
+			float aperture = GuiHelpers::camNode->Aperture();
+			if(ImGui::SliderFloat("Aperture", &aperture, 0.f, 10.f, "%.3f", 10.f))
 				GuiHelpers::camNode->SetAperture(aperture);
+
+			float distortion = GuiHelpers::camNode->Distortion();
+			if(ImGui::SliderFloat("Distortion", &distortion, 0.f, 10.f))
 				GuiHelpers::camNode->SetDistortion(distortion);
+
+			float focalDist = GuiHelpers::camNode->FocalDist();
+			if(ImGui::SliderFloat("Focal dist", &focalDist, 1.f, 1e6f, "%.3f", 10.f))
 				GuiHelpers::camNode->SetFocalDist(focalDist);
+
+			float fov = GuiHelpers::camNode->Fov() * RadToDeg;
+			if(ImGui::SliderFloat("Fov", &fov, 1.f, 179.f))
 				GuiHelpers::camNode->SetFov(fov * DegToRad);
-			}
+
+			ImGui::EndGroup();
 		}
 	}
 

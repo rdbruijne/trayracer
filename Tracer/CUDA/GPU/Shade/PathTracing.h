@@ -11,17 +11,20 @@ __global__ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 	if(jobIdx >= pathCount)
 		return;
 
-	// gather data
+	// gather path data
 	const float4 O4 = pathStates[jobIdx + (stride * 0)];
 	const float4 D4 = pathStates[jobIdx + (stride * 1)];
 	const float4 T4 = pathStates[jobIdx + (stride * 2)];
 
+	// extract path data
 	const float3 O = make_float3(O4);
 	const float3 D = make_float3(D4);
 	const float3 T = make_float3(T4);
 	const int32_t pathIx = __float_as_int(O4.w);
+	const int32_t onSensor = __float_as_int(D4.w);
 	const int32_t pixelIx = pathIx % (resolution.x * resolution.y);
 
+	// hit data
 	const uint4 hd = hitData[pathIx];
 	const float2 bary = DecodeBarycentrics(hd.x);
 	const uint32_t instIx = hd.y;

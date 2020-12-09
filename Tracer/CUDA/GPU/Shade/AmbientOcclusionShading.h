@@ -8,15 +8,17 @@ __global__ void AmbientOcclusionShadingKernel(DECLARE_KERNEL_PARAMS)
 	if(jobIdx >= pathCount)
 		return;
 
-	// gather data
+	// gather path data
 	const float4 O4 = pathStates[jobIdx + (stride * 0)];
 	const float4 D4 = pathStates[jobIdx + (stride * 1)];
 
+	// extract path data
 	const float3 O = make_float3(O4);
 	const float3 D = make_float3(D4);
 	const int32_t pathIx = __float_as_int(O4.w);
 	const int32_t pixelIx = pathIx % (resolution.x * resolution.y);
 
+	// hit data
 	const uint4 hd = hitData[pathIx];
 	const float2 bary = DecodeBarycentrics(hd.x);
 	const uint32_t instIx = hd.y;
@@ -25,6 +27,7 @@ __global__ void AmbientOcclusionShadingKernel(DECLARE_KERNEL_PARAMS)
 
 	if(pathLength == 0)
 	{
+		// didn't hit anything
 		if(primIx == ~0)
 			return;
 

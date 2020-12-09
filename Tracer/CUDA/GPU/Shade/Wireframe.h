@@ -8,11 +8,14 @@ __global__ void WireframeKernel(DECLARE_KERNEL_PARAMS)
 	if(jobIdx >= pathCount)
 		return;
 
-	// gather data
+	// gather path data
 	const float4 O4 = pathStates[jobIdx + (stride * 0)];
 	const float4 D4 = pathStates[jobIdx + (stride * 1)];
 
+	// extract path data
 	const int32_t pathIx = __float_as_int(O4.w);
+
+	// hit data
 	const uint4 hd = hitData[pathIx];
 	const uint32_t primIx = hd.z;
 

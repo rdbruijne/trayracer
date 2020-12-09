@@ -8,11 +8,14 @@ __global__ void MaterialIDKernel(DECLARE_KERNEL_PARAMS)
 	if(jobIdx >= pathCount)
 		return;
 
+	// gather path data
 	const float4 O4 = pathStates[jobIdx + (stride * 0)];
+
+	// extract path data
 	const int32_t pathIx = __float_as_int(O4.w);
 	const int32_t pixelIx = pathIx % (resolution.x * resolution.y);
 
-	// gather data
+	// hit data
 	const uint4 hd = hitData[pathIx];
 	const float2 bary = DecodeBarycentrics(hd.x);
 	const uint32_t instIx = hd.y;
