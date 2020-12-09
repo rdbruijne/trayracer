@@ -49,6 +49,13 @@ namespace Demo
 			const float2 cursorPos = window->CursorPos();
 			const int2 cursorPosI2 = make_int2(static_cast<int32_t>(cursorPos.x), static_cast<int32_t>(cursorPos.y));
 
+			// camera focal distance
+			if(window->IsKeyDown(Input::Keys::F))
+			{
+				const RayPickResult result = renderer->PickRay(cursorPosI2);
+				mCamera.SetFocalDist(result.tmax);
+			}
+
 			// camera target
 			if(window->IsKeyDown(Input::Keys::T))
 			{

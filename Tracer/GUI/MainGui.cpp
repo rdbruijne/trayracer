@@ -152,24 +152,38 @@ namespace Tracer
 			bool hasChanged = false;
 
 			// transformation
-			float camPos[] = {GuiHelpers::camNode->Position().x, GuiHelpers::camNode->Position().y, GuiHelpers::camNode->Position().z};
-			float camTarget[] = {GuiHelpers::camNode->Target().x, GuiHelpers::camNode->Target().y, GuiHelpers::camNode->Target().z};
-			float camUp[] = {GuiHelpers::camNode->Up().x, GuiHelpers::camNode->Up().y, GuiHelpers::camNode->Up().z};
-			float camFov = GuiHelpers::camNode->Fov() * RadToDeg;
+			float pos[] = {GuiHelpers::camNode->Position().x, GuiHelpers::camNode->Position().y, GuiHelpers::camNode->Position().z};
+			float target[] = {GuiHelpers::camNode->Target().x, GuiHelpers::camNode->Target().y, GuiHelpers::camNode->Target().z};
+			float up[] = {GuiHelpers::camNode->Up().x, GuiHelpers::camNode->Up().y, GuiHelpers::camNode->Up().z};
+
+			float aperture = GuiHelpers::camNode->Aperture();
+			float distortion = GuiHelpers::camNode->Distortion();
+			float focalDist = GuiHelpers::camNode->FocalDist();
+			float fov = GuiHelpers::camNode->Fov() * RadToDeg;
 
 			ImGui::BeginGroup();
-			hasChanged = ImGui::InputFloat3("Position", camPos) || hasChanged;
-			hasChanged = ImGui::InputFloat3("Target", camTarget) || hasChanged;
-			hasChanged = ImGui::InputFloat3("Up", camUp) || hasChanged;
-			hasChanged = ImGui::SliderFloat("Fov", &camFov, 1.f, 179.f) || hasChanged;
+			ImGui::Text("Transformation");
+			hasChanged = ImGui::InputFloat3("Position", pos) || hasChanged;
+			hasChanged = ImGui::InputFloat3("Target", target) || hasChanged;
+			hasChanged = ImGui::InputFloat3("Up", up) || hasChanged;
+			ImGui::Spacing();
+
+			ImGui::Text("Lens");
+			hasChanged = ImGui::SliderFloat("Aperture", &aperture, 0.f, 10.f) || hasChanged;
+			hasChanged = ImGui::SliderFloat("Distortion", &distortion, 0.f, 10.f) || hasChanged;
+			hasChanged = ImGui::SliderFloat("Focal dist", &focalDist, 1.f, 1e6f, "%.3f", 10.f) || hasChanged;
+			hasChanged = ImGui::SliderFloat("Fov", &fov, 1.f, 179.f) || hasChanged;
 			ImGui::EndGroup();
 
 			if(hasChanged)
 			{
-				GuiHelpers::camNode->SetPosition(make_float3(camPos[0], camPos[1], camPos[2]));
-				GuiHelpers::camNode->SetTarget(make_float3(camTarget[0], camTarget[1], camTarget[2]));
-				GuiHelpers::camNode->SetUp(make_float3(camUp[0], camUp[1], camUp[2]));
-				GuiHelpers::camNode->SetFov(camFov * DegToRad);
+				GuiHelpers::camNode->SetPosition(make_float3(pos[0], pos[1], pos[2]));
+				GuiHelpers::camNode->SetTarget(make_float3(target[0], target[1], target[2]));
+				GuiHelpers::camNode->SetUp(make_float3(up[0], up[1], up[2]));
+				GuiHelpers::camNode->SetAperture(aperture);
+				GuiHelpers::camNode->SetDistortion(distortion);
+				GuiHelpers::camNode->SetFocalDist(focalDist);
+				GuiHelpers::camNode->SetFov(fov * DegToRad);
 			}
 		}
 	}

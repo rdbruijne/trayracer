@@ -2,7 +2,7 @@
 
 namespace Tracer
 {
-	CameraNode::CameraNode(const float3& position, const float3& target, const float3& up, const float fov) :
+	CameraNode::CameraNode(const float3& position, const float3& target, const float3& up, float fov) :
 		Resource(""),
 		mPosition(position),
 		mTarget(target),
@@ -10,6 +10,8 @@ namespace Tracer
 		mFov(fov)
 	{
 	}
+
+
 
 	void CameraNode::SetPosition(const float3& position)
 	{
@@ -20,6 +22,8 @@ namespace Tracer
 		}
 	}
 
+
+
 	void CameraNode::SetTarget(const float3& target)
 	{
 		if(mTarget != target)
@@ -28,6 +32,8 @@ namespace Tracer
 			MarkDirty();
 		}
 	}
+
+
 
 	void CameraNode::SetUp(const float3& up)
 	{
@@ -38,7 +44,42 @@ namespace Tracer
 		}
 	}
 
-	void CameraNode::SetFov(const float& fov)
+
+
+	void CameraNode::SetAperture(float aperture)
+	{
+		if(mAperture != aperture)
+		{
+			mAperture = aperture;
+			MarkDirty();
+		}
+	}
+
+
+
+	void CameraNode::SetDistortion(float distortion)
+	{
+		if(mDistortion != distortion)
+		{
+			mDistortion = distortion;
+			MarkDirty();
+		}
+	}
+
+
+
+	void CameraNode::SetFocalDist(float dist)
+	{
+		if(mFocalDist != dist)
+		{
+			mFocalDist = dist;
+			MarkDirty();
+		}
+	}
+
+
+
+	void CameraNode::SetFov(float fov)
 	{
 		if(mFov != fov)
 		{

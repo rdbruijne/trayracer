@@ -39,7 +39,6 @@ namespace Tracer
 
 		// camera
 		void SetCamera(CameraNode& camNode);
-		void SetCamera(const float3& cameraPos, const float3& cameraForward, const float3& cameraUp, float camFov);
 
 		// render mode
 		inline RenderModes RenderMode() const { return mRenderMode; }
@@ -158,7 +157,7 @@ namespace Tracer
 		cudaGraphicsResource* mCudaGraphicsResource = nullptr;
 
 		// SPT
-		CudaBuffer mPathStates = {};		// (O.xyz, pathIx)[], (D.xyz, -)[], (throughput, pdf)[]
+		CudaBuffer mPathStates = {};		// (O.xyz, pathIx)[], (D.xyz, onSensor)[], (throughput, pdf)[]
 		CudaBuffer mHitData = {};			// ((bary.x, bary.y), instIx, primIx, tmin)[]
 		CudaBuffer mShadowRayData = {};		// (O.xyz, pixelIx)[], (D.xyz, dist)[], (radiance, ?)[]
 		CudaBuffer mCountersBuffer = {};

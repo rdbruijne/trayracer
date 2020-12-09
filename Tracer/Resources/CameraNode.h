@@ -10,7 +10,7 @@ namespace Tracer
 	{
 	public:
 		CameraNode() = default;
-		explicit CameraNode(const float3& position, const float3& target, const float3& up, const float fov);
+		explicit CameraNode(const float3& position, const float3& target, const float3& up, float fov);
 
 		// position
 		const float3& Position() const { return mPosition; }
@@ -24,14 +24,30 @@ namespace Tracer
 		const float3& Up() const { return mUp; }
 		void SetUp(const float3& up);
 
+		// aperture
+		float Aperture() const { return mAperture; }
+		void SetAperture(float aperture);
+
+		// distortion
+		float Distortion() const { return mDistortion; }
+		void SetDistortion(float distortion);
+
+		// focal dist
+		float FocalDist() const { return mFocalDist; }
+		void SetFocalDist(float dist);
+
 		// fov
 		float Fov() const { return mFov; }
-		void SetFov(const float& fov);
+		void SetFov(float fov);
 
 	private:
 		float3 mPosition = make_float3(0, 0, -1);
 		float3 mTarget = make_float3(0, 0, 0);
 		float3 mUp = make_float3(0, 1, 0);
+
+		float mAperture = 0;
+		float mDistortion = 0;
+		float mFocalDist = 1e5f;
 		float mFov = 1.57079633f;
 	};
 }

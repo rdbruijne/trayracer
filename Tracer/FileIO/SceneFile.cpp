@@ -34,12 +34,15 @@ using namespace rapidjson;
 
 // Keys
 #define Key_AngularDiameter    "angulardiameter"
+#define Key_Aperture           "aperture"
 #define Key_AoDist             "aodist"
 #define Key_Camera             "camera"
 #define Key_Dir                "dir"
+#define Key_Distortion         "distortion"
 #define Key_DrawSun            "drawsun"
 #define Key_Enabled            "enabled"
 #define Key_Exposure           "exposure"
+#define Key_FocalDist          "focaldist"
 #define Key_Fov                "fov"
 #define Key_Gamma              "gamma"
 #define Key_Instances          "instances"
@@ -185,11 +188,17 @@ namespace Tracer
 			float3 pos = make_float3(0, 0, -1);
 			float3 target = make_float3(0, 0, 0);
 			float3 up = make_float3(0, 1, 0);
+			float aperture = 0;
+			float distortion = 0;
+			float focalDist = 1e5f;
 			float fov = 90.f;
 
 			Read(jsonCamera, Key_Position, pos);
 			Read(jsonCamera, Key_Target, target);
 			Read(jsonCamera, Key_Up, up);
+			Read(jsonCamera, Key_Aperture, aperture);
+			Read(jsonCamera, Key_Distortion, distortion);
+			Read(jsonCamera, Key_FocalDist, focalDist);
 			Read(jsonCamera, Key_Fov, fov);
 
 			// corrections
@@ -200,6 +209,9 @@ namespace Tracer
 
 			// set camera
 			*camNode = CameraNode(pos, target, up, fov * DegToRad);
+			camNode->SetAperture(aperture);
+			camNode->SetDistortion(distortion);
+			camNode->SetFocalDist(focalDist);
 		}
 
 
@@ -558,6 +570,9 @@ namespace Tracer
 			Write(jsonCam, allocator, Key_Position, camNode->Position());
 			Write(jsonCam, allocator, Key_Target, camNode->Target());
 			Write(jsonCam, allocator, Key_Up, camNode->Up());
+			Write(jsonCam, allocator, Key_Aperture, camNode->Aperture());
+			Write(jsonCam, allocator, Key_Distortion, camNode->Distortion());
+			Write(jsonCam, allocator, Key_FocalDist, camNode->FocalDist());
 			Write(jsonCam, allocator, Key_Fov, camNode->Fov() * RadToDeg);
 
 			// add new JSON node to the document

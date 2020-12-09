@@ -33,21 +33,65 @@ static __device__ uint32_t EncodeBarycentrics(const float2& barycentrics)
 // Camera ray
 //------------------------------------------------------------------------------------------------------------------------------
 static __device__
-inline void GenerateCameraRay(float3& O, float3& D, int2 pixelIndex, uint32_t& seed)
+inline bool Distort(float2& lensCoord, float tanFov2, float distortion)
 {
+	// the center is never distorted
+	if(lensCoord.x == 0 && lensCoord.y == 0)
+		return true;
+
+	// only distort for positive values
+	if(distortion <= 0)
+		return true;
+
+	// distort based on distance from center
+	const float scale = length(lensCoord);
+	const float d = (tanFov2 * distortion) * .5f;
+	const float distorted = (scale * distortion * atanf(d)) / d;
+
+	// distortions larger than (Pi / 2) don't hit the sensor
+	if(distorted >= 1.57079632679f)
+		return false;
+
+	lensCoord *= tanf(distorted) / (scale * distortion);
+	return true;
+}
+
+
+
+static __device__
+inline bool GenerateCameraRay(float3& O, float3& D, float& T, int2 pixelIndex, uint32_t& seed)
+{
+	// locations
 	const float2 index = make_float2(pixelIndex);
 	const float2 jitter = make_float2(rnd(seed), rnd(seed));
 
+	// rescale resolution to (-1, 1) range
 	const float2 res = make_float2(params.resX, params.resY);
 	const float aspect = res.x / res.y;
 	float2 screen = (((index + jitter) / res) * 2.0f) - make_float2(1, 1);
 	screen.y /= aspect;
 
+	// fov
 	const float tanFov2 = tanf(params.cameraFov / 2.0f);
-	const float2 lensCoord = tanFov2 * screen;
 
-	O = params.cameraPos;
+	// lens coordinate
+	const float2 ccdCoord = make_float2((rnd(seed) * 2.f) - 1.f, (rnd(seed) * 2.f) - 1.f) * params.cameraAperture;
+	float2 lensCoord = (tanFov2 * screen) - (ccdCoord / params.cameraFocalDist);
+
+	// lens distortion
+	if(!Distort(lensCoord, tanFov2, params.cameraDistortion))
+		return false;
+
+	// generate ray
 	D = normalize(params.cameraForward + (lensCoord.x * params.cameraSide) + (lensCoord.y * params.cameraUp));
+	O = params.cameraPos + (params.cameraSide * ccdCoord.x) + (params.cameraUp * ccdCoord.y);
+
+	// vignetting
+	const float v = max(0.f, dot(D, params.cameraForward));
+	const float v2 = v * v;
+	T = v2 * v2;
+
+	return true;
 }
 
 
@@ -130,17 +174,22 @@ void __raygen__()
 			uint32_t tmax = __float_as_uint(DST_MAX);
 
 			// generate ray
-			float3 O, D;
-			GenerateCameraRay(O, D, make_int2(ix, iy), seed);
+			float3 O = params.cameraPos;
+			float3 D = params.cameraForward;
+			float T = 1.f;
+			bool onSensor = GenerateCameraRay(O, D, T, make_int2(ix, iy), seed);
 
 			// trace the ray
-			optixTrace(params.sceneRoot, O, D, params.epsilon, DST_MAX, 0.f, 0xFF, OPTIX_RAY_FLAG_DISABLE_ANYHIT,
-					   RayType_Surface, RayType_Count, RayType_Surface, bary, instIx, primIx, tmax);
+			if(onSensor)
+			{
+				optixTrace(params.sceneRoot, O, D, params.epsilon, DST_MAX, 0.f, 0xFF, OPTIX_RAY_FLAG_DISABLE_ANYHIT,
+						   RayType_Surface, RayType_Count, RayType_Surface, bary, instIx, primIx, tmax);
+			}
 
 			// set path data
 			params.pathStates[pathIx + (stride * 0)] = make_float4(O, __int_as_float(pathIx));
-			params.pathStates[pathIx + (stride * 1)] = make_float4(D);
-			//params.pathStates[pathIx + (stride * 2)] = make_float4(1, 1, 1, 0);
+			params.pathStates[pathIx + (stride * 1)] = make_float4(D, __int_as_float(onSensor ? 1 : 0));
+			params.pathStates[pathIx + (stride * 2)] = make_float4(T, T, T, 0);
 
 			// set hit data
 			params.hitData[pathIx] = make_uint4(bary, instIx, primIx, tmax);
@@ -166,7 +215,8 @@ void __raygen__()
 			{
 				const int32_t pixelIx = pathIx % (params.resX * params.resY);
 				uint32_t seed = tea<2>(pathIx, (params.sampleCount << 1) | 1);
-				GenerateCameraRay(O, D, make_int2(pixelIx % params.resX, pixelIx / params.resX), seed);
+				float T;
+				GenerateCameraRay(O, D, T, make_int2(pixelIx % params.resX, pixelIx / params.resX), seed);
 			}
 
 			// prepare the payload
@@ -220,8 +270,10 @@ void __raygen__()
 			uint32_t seed = 0;
 			const int ix = params.rayPickPixel.x;
 			const int iy = params.resY - params.rayPickPixel.y;
-			float3 O, D;
-			GenerateCameraRay(O, D, make_int2(ix, iy), seed);
+			float3 O = params.cameraPos;
+			float3 D = params.cameraForward;
+			float T;
+			const bool onSensor = GenerateCameraRay(O, D, T, make_int2(ix, iy), seed);
 
 			// prepare the payload
 			uint32_t bary = 0;
@@ -230,9 +282,13 @@ void __raygen__()
 			uint32_t tmax = __float_as_uint(DST_MAX);
 
 			// trace the ray
-			optixTrace(params.sceneRoot, O, D, params.epsilon, DST_MAX, 0.f, OptixVisibilityMask(255), OPTIX_RAY_FLAG_DISABLE_ANYHIT,
-					   RayType_Surface, RayType_Count, RayType_Surface, bary, instIx, primIx, tmax);
+			if(onSensor)
+			{
+				optixTrace(params.sceneRoot, O, D, params.epsilon, DST_MAX, 0.f, OptixVisibilityMask(255), OPTIX_RAY_FLAG_DISABLE_ANYHIT,
+						   RayType_Surface, RayType_Count, RayType_Surface, bary, instIx, primIx, tmax);
+			}
 
+			// fill result
 			RayPickResult& r = *params.rayPickResult;
 			r.rayOrigin = params.cameraPos;
 			r.instIx    = instIx;

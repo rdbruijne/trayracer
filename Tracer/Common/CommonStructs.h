@@ -99,21 +99,29 @@ struct RayPickResult
 
 struct LaunchParams
 {
-	// Other
-	float3 cameraPos;
+	// film
 	int32_t resX;
+	int32_t resY;
+	uint32_t sampleCount;
+	float dummy;
+
+	float4* accumulator;
+
+	// scene
+	OptixTraversableHandle sceneRoot;
+
+	// Camera
+	float3 cameraPos;
+	float cameraAperture;
 
 	float3 cameraSide;
-	int32_t resY;
+	float cameraDistortion;
 
 	float3 cameraUp;
-	float cameraFov;
+	float cameraFocalDist;
 
 	float3 cameraForward;
-	uint32_t sampleCount;
-
-	OptixTraversableHandle sceneRoot;
-	float4* accumulator;
+	float cameraFov;
 
 	// ray pick
 	int2 rayPickPixel;
@@ -130,7 +138,7 @@ struct LaunchParams
 	RayGenModes rayGenMode;
 	RenderModes renderMode;
 
-	// settings
+	// render settings
 	int multiSample;
 	int maxDepth;
 	float epsilon;

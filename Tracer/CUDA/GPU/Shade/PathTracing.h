@@ -14,7 +14,7 @@ __global__ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 	// gather data
 	const float4 O4 = pathStates[jobIdx + (stride * 0)];
 	const float4 D4 = pathStates[jobIdx + (stride * 1)];
-	const float4 T4 = pathLength == 0 ? make_float4(1) : pathStates[jobIdx + (stride * 2)];
+	const float4 T4 = pathStates[jobIdx + (stride * 2)];
 
 	const float3 O = make_float3(O4);
 	const float3 D = make_float3(D4);
@@ -31,8 +31,8 @@ __global__ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 	// didn't hit anything
 	if(primIx == ~0)
 	{
-		if(pathLength == 0)
-			accumulator[pixelIx] += make_float4(T * SampleSky(D, skyData->drawSun));
+		if((pathLength > 0) || (pathLength == 0 && onSensor))
+			accumulator[pixelIx] += make_float4(T * SampleSky(D, skyData->drawSun && pathLength == 0));
 		return;
 	}
 
@@ -56,6 +56,10 @@ __global__ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 		{
 			accumulator[pixelIx] += make_float4(attrib.emissive, 0);
 			albedo[pixelIx] = make_float4(attrib.emissive, 0);
+		}
+		else
+		{
+			accumulator[pixelIx] += make_float4(T * attrib.emissive, 0);
 		}
 		return;
 	}

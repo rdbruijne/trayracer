@@ -358,22 +358,20 @@ namespace Tracer
 	{
 		if(camNode.IsDirty())
 		{
-			SetCamera(camNode.Position(), normalize(camNode.Target() - camNode.Position()), camNode.Up(), camNode.Fov());
+			mLaunchParams.cameraPos        = camNode.Position();
+			mLaunchParams.cameraForward    = normalize(camNode.Target() - camNode.Position());
+			mLaunchParams.cameraSide       = normalize(cross(mLaunchParams.cameraForward, camNode.Up()));
+			mLaunchParams.cameraUp         = normalize(cross(mLaunchParams.cameraSide, mLaunchParams.cameraForward));
+
+			mLaunchParams.cameraAperture   = camNode.Aperture();
+			mLaunchParams.cameraDistortion = camNode.Distortion();
+			mLaunchParams.cameraFocalDist  = camNode.FocalDist();
+			mLaunchParams.cameraFov        = camNode.Fov();
+
+			mLaunchParams.sampleCount      = 0;
+
 			camNode.MarkClean();
 		}
-	}
-
-
-
-	void Renderer::SetCamera(const float3& cameraPos, const float3& cameraForward, const float3& cameraUp, float camFov)
-	{
-		mLaunchParams.cameraFov     = camFov;
-		mLaunchParams.cameraPos     = cameraPos;
-		mLaunchParams.cameraForward = cameraForward;
-		mLaunchParams.cameraSide    = normalize(cross(cameraForward, cameraUp));
-		mLaunchParams.cameraUp      = normalize(cross(mLaunchParams.cameraSide, cameraForward));
-
-		mLaunchParams.sampleCount   = 0;
 	}
 
 
