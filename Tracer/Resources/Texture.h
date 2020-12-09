@@ -31,14 +31,14 @@ namespace Tracer
 
 		// build
 		void Build();
-		void MakeGlTex();
 
 		// build info
 		cudaArray_t CudaArray() const { return mCudaArray; }
 		cudaTextureObject_t CudaObject() const { return mCudaObject; }
 
-		// ImGui
-		void DestroyGLTex() { delete mGlTexture; }
+		// GL Tex
+		void CreateGLTex();
+		void DestroyGLTex();
 		const GLTexture* GLTex() const { return mGlTexture; }
 
 	private:

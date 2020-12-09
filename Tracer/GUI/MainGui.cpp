@@ -307,7 +307,7 @@ namespace Tracer
 					else
 					{
 						// display texture
-						tex->MakeGlTex();
+						tex->CreateGLTex();
 						const size_t texId = static_cast<size_t>(tex->GLTex()->ID());
 						if(ImGui::ImageButton(reinterpret_cast<ImTextureID>(texId), textureDisplayRes))
 						{

@@ -44,27 +44,6 @@ namespace Tracer
 
 
 
-	void Texture::MakeGlTex()
-	{
-		if(mRebuildGlTex)
-		{
-			// delete existing texture
-			if(mGlTexture && mGlTexture->Resolution() != mResolution)
-				delete mGlTexture;
-
-			// create new if no texture exists
-			if(!mGlTexture)
-				mGlTexture = new GLTexture(mResolution, GLTexture::Types::Half4);
-
-			// upload pixels
-			mGlTexture->Upload(mPixels);
-
-			mRebuildGlTex = false;
-		}
-	}
-
-
-
 	void Texture::Build()
 	{
 		std::lock_guard<std::mutex> l(mBuildMutex);
@@ -126,5 +105,37 @@ namespace Tracer
 
 		// mark clean
 		MarkClean();
+	}
+
+
+
+	void Texture::CreateGLTex()
+	{
+		if(mRebuildGlTex)
+		{
+			// delete existing texture if resized
+			if(mGlTexture && mGlTexture->Resolution() != mResolution)
+			{
+				delete mGlTexture;
+				mGlTexture = nullptr;
+			}
+
+			// create new if no texture exists
+			if(!mGlTexture)
+				mGlTexture = new GLTexture(mResolution, GLTexture::Types::Half4);
+
+			// upload pixels
+			mGlTexture->Upload(mPixels);
+
+			mRebuildGlTex = false;
+		}
+	}
+
+
+
+	void Texture::DestroyGLTex()
+	{
+		delete mGlTexture;
+		mGlTexture = nullptr;
 	}
 }
