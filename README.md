@@ -20,6 +20,13 @@ Personal path tracer project.
 | Roll | ALT + Right Mouse Button ||
 | Rotate | ALT + Left Mouse Button ||
 
+## Picker
+| Action | Key |
+|----|----|
+| Set focal distance | F + Left Mouse Button |
+| Set camera target | T + Left Mouse Button |
+| Select material | M + Left Mouse Button |
+
 # Dependencies
 
 * [CUDA Toolkit 11.1](https://developer.nvidia.com/cuda-11.1.0-download-archive)
