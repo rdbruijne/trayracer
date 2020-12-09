@@ -180,6 +180,7 @@ namespace Tracer
 
 		// update launch params
 		mLaunchParams.rayGenMode = RayGen_Primary;
+		mLaunchParams.renderMode = mRenderMode;
 		mLaunchParamsBuffer.Upload(&mLaunchParams);
 		SetCudaLaunchParams(mLaunchParamsBuffer.Ptr<LaunchParams>());
 

@@ -170,9 +170,6 @@
     <ClInclude Include="Renderer\Renderer.h">
       <Filter>Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="Common\CommonUtility.h">
-      <Filter>Common</Filter>
-    </ClInclude>
     <ClInclude Include="Resources\Resource.h">
       <Filter>Resources</Filter>
     </ClInclude>

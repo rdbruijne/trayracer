@@ -158,7 +158,7 @@ namespace Tracer
 		cudaGraphicsResource* mCudaGraphicsResource = nullptr;
 
 		// SPT
-		CudaBuffer mPathStates = {};		// (O.xyz, pathIx)[], (D.xyz, meshIx)[], (throughput, pdf)[]
+		CudaBuffer mPathStates = {};		// (O.xyz, pathIx)[], (D.xyz, -)[], (throughput, pdf)[]
 		CudaBuffer mHitData = {};			// ((bary.x, bary.y), instIx, primIx, tmin)[]
 		CudaBuffer mShadowRayData = {};		// (O.xyz, pixelIx)[], (D.xyz, dist)[], (radiance, ?)[]
 		CudaBuffer mCountersBuffer = {};

@@ -2,7 +2,6 @@
 
 // Project
 #include "Common/CommonStructs.h"
-#include "Common/CommonUtility.h"
 
 // CUDA
 #include "CUDA/helper_math.h"
@@ -10,13 +9,17 @@
 
 
 
+//------------------------------------------------------------------------------------------------------------------------------
 // Globals
+//------------------------------------------------------------------------------------------------------------------------------
 static __constant__ LaunchParams params;
 constexpr float DST_MAX = 1e30f;
 
 
 
+//------------------------------------------------------------------------------------------------------------------------------
 // Barycentrics
+//------------------------------------------------------------------------------------------------------------------------------
 static __device__ uint32_t EncodeBarycentrics(const float2& barycentrics)
 {
 	const uint32_t bx = static_cast<uint32_t>(barycentrics.x * 65535.f) & 0xFFFF;
@@ -26,17 +29,32 @@ static __device__ uint32_t EncodeBarycentrics(const float2& barycentrics)
 
 
 
+//------------------------------------------------------------------------------------------------------------------------------
 // Camera ray
+//------------------------------------------------------------------------------------------------------------------------------
 static __device__
 inline void GenerateCameraRay(float3& O, float3& D, int2 pixelIndex, uint32_t& seed)
 {
-	GenerateCameraRay(params.cameraPos, params.cameraForward, params.cameraSide, params.cameraUp, params.cameraFov,
-					  make_float2(params.resX, params.resY), O, D, pixelIndex, seed);
+	const float2 index = make_float2(pixelIndex);
+	const float2 jitter = make_float2(rnd(seed), rnd(seed));
+
+	const float2 res = make_float2(params.resX, params.resY);
+	const float aspect = res.x / res.y;
+	float2 screen = (((index + jitter) / res) * 2.0f) - make_float2(1, 1);
+	screen.y /= aspect;
+
+	const float tanFov2 = tanf(params.cameraFov / 2.0f);
+	const float2 lensCoord = tanFov2 * screen;
+
+	O = params.cameraPos;
+	D = normalize(params.cameraForward + (lensCoord.x * params.cameraSide) + (lensCoord.y * params.cameraUp));
 }
 
 
 
+//------------------------------------------------------------------------------------------------------------------------------
 // Film
+//------------------------------------------------------------------------------------------------------------------------------
 static __device__
 inline void InitializeFilm(int pixelIx)
 {
@@ -48,6 +66,9 @@ inline void InitializeFilm(int pixelIx)
 
 
 
+//------------------------------------------------------------------------------------------------------------------------------
+// Hit
+//------------------------------------------------------------------------------------------------------------------------------
 extern "C" __global__
 void __anyhit__()
 {
@@ -75,6 +96,9 @@ void __miss__()
 
 
 
+//------------------------------------------------------------------------------------------------------------------------------
+// Raygen
+//------------------------------------------------------------------------------------------------------------------------------
 extern "C" __global__
 void __raygen__()
 {
@@ -97,7 +121,7 @@ void __raygen__()
 				InitializeFilm(pixelIx);
 
 			// set the seed
-			uint32_t seed = tea<2>(pathIx, params.sampleCount);
+			uint32_t seed = tea<2>(pathIx, params.sampleCount << 1);
 
 			// prepare the payload
 			uint32_t bary = 0;
@@ -132,9 +156,18 @@ void __raygen__()
 			const float4 D4 = params.pathStates[rayIx + (stride * 1)];
 			//const float4 T4 = params.pathStates[rayIx + (stride * 1)];
 
-			const float3 O = make_float3(O4);
-			const float3 D = make_float3(D4);
+			// unpack info
+			float3 O = make_float3(O4);
+			float3 D = make_float3(D4);
 			const int pathIx = __float_as_int(O4.w);
+
+			// generate new ray for wireframe mode
+			if(params.renderMode == RenderModes::Wireframe)
+			{
+				const int32_t pixelIx = pathIx % (params.resX * params.resY);
+				uint32_t seed = tea<2>(pathIx, (params.sampleCount << 1) | 1);
+				GenerateCameraRay(O, D, make_int2(pixelIx % params.resX, pixelIx / params.resX), seed);
+			}
 
 			// prepare the payload
 			uint32_t bary = 0;

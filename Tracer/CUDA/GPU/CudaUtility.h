@@ -2,7 +2,9 @@
 
 // Project
 #include "CudaSky.h"
-#include "Common/CommonUtility.h"
+
+// CUDA
+#include "CUDA/random.h"
 
 
 
@@ -186,18 +188,6 @@ inline IntersectionAttributes GetIntersectionAttributes(uint32_t instIx, uint32_
 	attrib.tangent         = normalize(transform(tx, ty, tz, attrib.tangent));
 
 	return attrib;
-}
-
-
-
-//------------------------------------------------------------------------------------------------------------------------------
-// Ray
-//------------------------------------------------------------------------------------------------------------------------------
-static __device__
-inline void GenerateCameraRay(float3& O, float3& D, int2 pixelIndex, uint32_t& seed)
-{
-	GenerateCameraRay(params->cameraPos, params->cameraForward, params->cameraSide, params->cameraUp, params->cameraFov,
-					  make_float2(params->resX, params->resY), O, D, pixelIndex, seed);
 }
 
 

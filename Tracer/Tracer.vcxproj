@@ -182,7 +182,6 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
     <ClInclude Include="App\App.h" />
     <ClInclude Include="App\RunApp.h" />
     <ClInclude Include="Common\CommonStructs.h" />
-    <ClInclude Include="Common\CommonUtility.h" />
     <ClInclude Include="CUDA\CudaBuffer.h" />
     <ClInclude Include="CUDA\CudaError.h" />
     <ClInclude Include="CUDA\GPU\CudaFwd.h" />

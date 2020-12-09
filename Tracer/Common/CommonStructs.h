@@ -128,6 +128,7 @@ struct LaunchParams
 
 	// optix
 	RayGenModes rayGenMode;
+	RenderModes renderMode;
 
 	// settings
 	int multiSample;
