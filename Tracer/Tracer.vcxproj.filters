@@ -299,6 +299,9 @@
     <ClInclude Include="CUDA\GPU\CudaLinearMath.h">
       <Filter>CUDA\GPU</Filter>
     </ClInclude>
+    <ClInclude Include="GUI\GuiWindow.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Model.h">

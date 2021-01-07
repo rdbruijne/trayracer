@@ -3,6 +3,8 @@
 
 // Tracer
 #include "Tracer/App/RunApp.h"
+#include "Tracer/GUI/GuiHelpers.h"
+#include "Tracer/GUI/MainGui.h"
 #include "Tracer/Utility/Logger.h"
 #include "Tracer/Utility/LogStream.h"
 
@@ -65,6 +67,9 @@ int main(int /*argc*/, char** /*argv*/)
 	// loggers
 	Tracer::Logger::Attach(std::make_shared<ConsoleLogSteam>(), Tracer::Logger::Severity::All);
 	Tracer::Logger::Attach(std::make_shared<DebuggerLogStream>(), Tracer::Logger::Severity::All);
+
+	// register GUI windows
+	Tracer::GuiHelpers::Register<Tracer::MainGui>(Tracer::Input::Keys::F1);
 
 	// run the app
 	Demo::App demoApp;

@@ -211,6 +211,7 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
     <ClInclude Include="FileIO\ModelFile.h" />
     <ClInclude Include="FileIO\SceneFile.h" />
     <ClInclude Include="FileIO\TextureFile.h" />
+    <ClInclude Include="GUI\GuiWindow.h" />
     <ClInclude Include="GUI\MainGui.h" />
     <ClInclude Include="GUI\GuiHelpers.h" />
     <ClInclude Include="OpenGL\GLHelpers.h" />

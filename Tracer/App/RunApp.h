@@ -8,5 +8,5 @@ namespace Tracer
 {
 	class App;
 
-	int RunApp(App* app, const std::string& name, const int2& resolution, bool fullscreen = false, bool useMainGui = true);
+	int RunApp(App* app, const std::string& name, const int2& resolution, bool fullscreen = false);
 }

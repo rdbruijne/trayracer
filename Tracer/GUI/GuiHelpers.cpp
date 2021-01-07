@@ -68,7 +68,7 @@ namespace Tracer
 
 		ImGui::SetColorEditOptions(ImGuiColorEditFlags_Float);
 
-		window = renderWindow;
+		mRenderWindow = renderWindow;
 
 		return true;
 	}
@@ -97,5 +97,19 @@ namespace Tracer
 	{
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	}
+
+
+
+	void GuiHelpers::DrawGui()
+	{
+		for(auto& [key, gui] : mGuiItems)
+		{
+			if(mRenderWindow->WasKeyPressed(key))
+				gui->SetEnabled(!gui->IsEnabled());
+
+			gui->Update();
+			gui->Draw();
+		}
 	}
 }

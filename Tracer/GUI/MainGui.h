@@ -1,7 +1,9 @@
 #pragma once
 
+// Project
+#include "GUI/GuiWindow.h"
+
 // C++
-#include <array>
 #include <map>
 #include <memory>
 #include <string>
@@ -9,32 +11,15 @@
 namespace Tracer
 {
 	class Material;
-	class MainGui
+	class MainGui : public GuiWindow
 	{
 	public:
-		static MainGui* const Get();
-
-		// drawing
-		inline void SetEnabled(bool enable) { mEnabled = enable; }
-		inline bool IsEnabled() const { return mEnabled; }
-		inline void Draw()
-		{
-			if(mEnabled)
-				DrawImpl();
-		}
-
 		// debug
 		inline void SetDebug(const std::string& name, const std::string& data) { mDebugItems[name] = data; }
 		inline void UnsetDebug(const std::string& name) { mDebugItems.erase(name); }
 
 		// material
 		void SelectMaterial(std::weak_ptr<Material> material);
-
-		// statistics
-		inline void UpdateStats(float frameTimeMs)
-		{
-			mFrameTimeMs = frameTimeMs;
-		}
 
 	private:
 		void DrawImpl();
@@ -47,9 +32,6 @@ namespace Tracer
 		void SceneElements();
 		void SkyElements();
 		void StatisticsElements();
-
-		// drawing
-		bool mEnabled = false;
 
 		// debug
 		std::map<std::string, std::string> mDebugItems;
@@ -72,7 +54,5 @@ namespace Tracer
 
 		int mSelectedInstanceIx = 0;
 		char mInstanceName[mNameBufferSize] = {};
-
-		float mFrameTimeMs = 0;
 	};
 }

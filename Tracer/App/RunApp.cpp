@@ -21,7 +21,7 @@
 
 namespace Tracer
 {
-	int RunApp(App* app, const std::string& name, const int2& resolution, bool fullscreen, bool useMainGui)
+	int RunApp(App* app, const std::string& name, const int2& resolution, bool fullscreen)
 	{
 		try
 		{
@@ -42,10 +42,9 @@ namespace Tracer
 			float frameTimeMs = 0;
 
 			// init GUI data
-			GuiHelpers::camNode  = app->GetCameraNode();
-			GuiHelpers::renderer = renderer;
-			GuiHelpers::scene    = app->GetScene();
-			GuiHelpers::window   = window;
+			GuiHelpers::Set(app->GetCameraNode());
+			GuiHelpers::Set(renderer);
+			GuiHelpers::Set(app->GetScene());
 
 			// main loop
 			while(!window->IsClosed())
@@ -78,15 +77,10 @@ namespace Tracer
 				window->Display();
 
 				// update GUI
-				GuiHelpers::camNode  = app->GetCameraNode();
-				GuiHelpers::scene    = app->GetScene();
-				if(useMainGui)
-				{
-					MainGui::Get()->UpdateStats(frameTimeMs);
-					if(window->WasKeyPressed(Input::Keys::F1))
-						MainGui::Get()->SetEnabled(!MainGui::Get()->IsEnabled());
-					MainGui::Get()->Draw();
-				}
+				GuiHelpers::Set(app->GetCameraNode());
+				GuiHelpers::Set(app->GetScene());
+				GuiHelpers::SetFrameTimeMs(frameTimeMs);
+				GuiHelpers::DrawGui();
 
 				// finalize GUI
 				GuiHelpers::EndFrame();

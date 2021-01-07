@@ -67,7 +67,7 @@ namespace Demo
 			if(window->IsKeyDown(Input::Keys::M))
 			{
 				const RayPickResult result = renderer->PickRay(cursorPosI2);
-				MainGui::Get()->SelectMaterial(mScene->GetMaterial(result.instIx, result.primIx));
+				GuiWindow::Get<MainGui>()->SelectMaterial(mScene->GetMaterial(result.instIx, result.primIx));
 			}
 		}
 
