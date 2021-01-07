@@ -6,7 +6,6 @@
 #include "Tracer/GUI/GuiHelpers.h"
 #include "Tracer/GUI/MainGui.h"
 #include "Tracer/Utility/Logger.h"
-#include "Tracer/Utility/LogStream.h"
 
 // C++
 #include <iostream>
@@ -17,7 +16,8 @@
 
 namespace
 {
-	class ConsoleLogSteam : public Tracer::LogStream
+	// Console log stream
+	class ConsoleLogStream : public Tracer::Logger::Stream
 	{
 	public:
 		void Write(Tracer::Logger::Severity severity, const std::string& message) override
@@ -49,7 +49,8 @@ namespace
 
 
 
-	class DebuggerLogStream : public Tracer::LogStream
+	// Debugger log stream
+	class DebuggerLogStream : public Tracer::Logger::Stream
 	{
 	public:
 		void Write(Tracer::Logger::Severity /*severity*/, const std::string& message) override
@@ -65,7 +66,7 @@ namespace
 int main(int /*argc*/, char** /*argv*/)
 {
 	// loggers
-	Tracer::Logger::Attach(std::make_shared<ConsoleLogSteam>(), Tracer::Logger::Severity::All);
+	Tracer::Logger::Attach(std::make_shared<ConsoleLogStream>(), Tracer::Logger::Severity::All);
 	Tracer::Logger::Attach(std::make_shared<DebuggerLogStream>(), Tracer::Logger::Severity::All);
 
 	// register GUI windows

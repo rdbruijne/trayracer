@@ -1,9 +1,5 @@
 #include "Logger.h"
 
-// Project
-#include "Utility/LogStream.h"
-#include "Utility/Utility.h"
-
 // C++
 #include <cstdarg>
 #include <ctime>
@@ -11,7 +7,7 @@
 
 namespace Tracer
 {
-	void Logger::Attach(std::shared_ptr<LogStream> stream, Logger::Severity severities)
+	void Logger::Attach(std::shared_ptr<Stream> stream, Logger::Severity severities)
 	{
 		auto add = [stream, severities](Severity sev)
 		{
@@ -32,7 +28,7 @@ namespace Tracer
 
 
 
-	void Logger::Detach(std::shared_ptr<LogStream> stream, Logger::Severity severities)
+	void Logger::Detach(std::shared_ptr<Stream> stream, Logger::Severity severities)
 	{
 		auto remove = [stream, severities](Severity sev)
 		{

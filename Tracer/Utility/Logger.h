@@ -27,9 +27,17 @@ namespace Tracer
 			All			= Debug | Info | Warning | Error
 		};
 
-		// register logger
-		static void Attach(std::shared_ptr<LogStream> stream, Severity severities);
-		static void Detach(std::shared_ptr<LogStream> stream, Severity severities);
+		// Stream
+		class Stream
+		{
+		public:
+			virtual ~Stream() = default;
+			virtual void Write(Logger::Severity severity, const std::string& message) = 0;
+		};
+
+		// register stream
+		static void Attach(std::shared_ptr<Stream> stream, Severity severities);
+		static void Detach(std::shared_ptr<Stream> stream, Severity severities);
 
 		// log messages
 		template <typename... Args>
@@ -59,7 +67,7 @@ namespace Tracer
 	private:
 		static void HandleLog(Severity severity, const char* fmt, ...);
 
-		static inline std::map<Severity, std::vector<std::shared_ptr<LogStream>>> msStreams;
+		static inline std::map<Severity, std::vector<std::shared_ptr<Stream>>> msStreams;
 	};
 
 	ENUM_BITWISE_OPERATORS(Logger::Severity);

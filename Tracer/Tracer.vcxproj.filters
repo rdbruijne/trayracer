@@ -191,9 +191,6 @@
     <ClInclude Include="Utility\Logger.h">
       <Filter>Utility</Filter>
     </ClInclude>
-    <ClInclude Include="Utility\LogStream.h">
-      <Filter>Utility</Filter>
-    </ClInclude>
     <ClInclude Include="Utility\Enum.h">
       <Filter>Utility</Filter>
     </ClInclude>
