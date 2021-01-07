@@ -87,6 +87,7 @@ namespace Tracer
 
 	Window::~Window()
 	{
+		delete mShader;
 		delete mRenderTexture;
 
 		if (mHandle)
