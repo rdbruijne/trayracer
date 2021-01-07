@@ -137,5 +137,6 @@ namespace Tracer
 	{
 		delete mGlTexture;
 		mGlTexture = nullptr;
+		mRebuildGlTex = true;
 	}
 }

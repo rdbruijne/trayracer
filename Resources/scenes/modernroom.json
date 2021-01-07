@@ -257,7 +257,7 @@
         "multisample": 1,
         "maxdepth": 16,
         "aodist": 6.947999954223633,
-        "zdepthmax": 42.70899963378906,
+        "zdepthmax": 42.70899963378906
     },
     "sky": {
         "enabled": false,

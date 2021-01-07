@@ -119,21 +119,26 @@ namespace Tracer
 		// #NOTE: build order is important for dirty checks
 		Stopwatch sw;
 
+		// build geometry
 		Stopwatch sw2;
 		BuildGeometry(scene);
 		mRenderStats.geoBuildTimeMs = sw2.ElapsedMs();
 
+		// build the materials
 		sw2.Reset();
 		BuildMaterials(scene);
 		mRenderStats.matBuildTimeMs = sw2.ElapsedMs();
 
+		// build the sky
 		sw2.Reset();
 		BuildSky(scene);
 		mRenderStats.skyBuildTimeMs = sw2.ElapsedMs();
 
+		// update launch params
 		mLaunchParams.sceneRoot = mSceneRoot;
 		mLaunchParams.sampleCount = 0;
 
+		// sync devices
 		CUDA_CHECK(cudaDeviceSynchronize());
 
 		mRenderStats.buildTimeMs = sw.ElapsedMs();
