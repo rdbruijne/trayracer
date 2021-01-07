@@ -70,9 +70,9 @@ namespace Tracer
 			f.WriteVec(model->MaterialIndices());
 
 			// materials
-			const auto& materials = model->Materials();
+			const std::vector<std::shared_ptr<Material>>& materials = model->Materials();
 			f.Write(model->Materials().size());
-			for(auto& mat : materials)
+			for(const std::shared_ptr<Material>& mat : materials)
 			{
 				f.Write(mat->Name());
 				for(size_t i = 0; i < magic_enum::enum_count<Material::PropertyIds>(); i++)

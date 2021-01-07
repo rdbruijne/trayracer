@@ -41,10 +41,10 @@ namespace Tracer
 			{
 				const std::vector<FileInfo>& info = ModelFile::SupportedFormats();
 				std::string extensions = "";
-				for(auto f : info)
+				for(const FileInfo& f : info)
 				{
 					std::vector<std::string> extParts = Split(f.ext, ',');
-					for(auto e : extParts)
+					for(const std::string& e : extParts)
 						extensions += std::string(extensions.empty() ? "" : ";") + "*." + e;
 				}
 
@@ -66,10 +66,10 @@ namespace Tracer
 			{
 				const std::vector<FileInfo>& info = TextureFile::SupportedFormats();
 				std::string extensions = "";
-				for(auto f : info)
+				for(const FileInfo& f : info)
 				{
 					std::vector<std::string> extParts = Split(f.ext, ',');
-					for(auto e : extParts)
+					for(const std::string& e : extParts)
 						extensions += std::string(extensions.empty() ? "" : ";") + "*." + e;
 				}
 
@@ -101,11 +101,11 @@ namespace Tracer
 		// delete GlTextures for old material
 		if(!mSelectedMaterial.expired())
 		{
-			auto mat = mSelectedMaterial.lock();
+			std::shared_ptr<Material> mat = mSelectedMaterial.lock();
 			for(size_t i = 0; i < magic_enum::enum_count<Material::PropertyIds>(); i++)
 			{
 				const Material::PropertyIds id = static_cast<Material::PropertyIds>(i);
-				auto tex = mat->GetTextureMap(id);
+				std::shared_ptr<Texture> tex = mat->GetTextureMap(id);
 				if(tex)
 					tex->DestroyGLTex();
 			}
@@ -220,11 +220,11 @@ namespace Tracer
 		ImGui::Separator();
 
 		// data
-		for(auto& kv : mDebugItems)
+		for(auto& [key, value] : mDebugItems)
 		{
-			ImGui::Text(kv.first.c_str());
+			ImGui::Text(key.c_str());
 			ImGui::NextColumn();
-			ImGui::Text(kv.second.c_str());
+			ImGui::Text(value.c_str());
 			ImGui::NextColumn();
 		}
 		ImGui::Columns();
@@ -412,7 +412,7 @@ namespace Tracer
 
 	void MainGui::SkyElements()
 	{
-		auto sky = GuiHelpers::GetScene()->GetSky();
+		std::shared_ptr<Sky> sky = GuiHelpers::GetScene()->GetSky();
 
 		bool enabled = sky->Enabled();
 		if(ImGui::Checkbox("Enabled", &enabled))
@@ -479,7 +479,7 @@ namespace Tracer
 			ImGui::Columns(2);
 
 			// device
-			const auto& devProps = GuiHelpers::GetRenderer()->CudaDeviceProperties();
+			const cudaDeviceProp& devProps = GuiHelpers::GetRenderer()->CudaDeviceProperties();
 			ROW("Device", devProps.name);
 			SPACE;
 
@@ -576,10 +576,10 @@ namespace Tracer
 		ImGui::Columns(2, nullptr, true);
 
 		// Gather model names
-		auto models = GuiHelpers::GetScene()->Models();
+		std::vector<std::shared_ptr<Model>> models = GuiHelpers::GetScene()->Models();
 		std::vector<const char*> modelNames;
 		modelNames.reserve(models.size());
-		for(auto m : models)
+		for(const std::shared_ptr<Model>& m : models)
 			modelNames.push_back(m->Name().c_str());
 
 		// Model selection
@@ -605,7 +605,7 @@ namespace Tracer
 
 		if(mSelectedModelIx >= static_cast<int>(models.size()))
 			mSelectedModelIx = 0;
-		auto model = models.size() > 0 ? models[mSelectedModelIx] : nullptr;
+		std::shared_ptr<Model> model = models.size() > 0 ? models[mSelectedModelIx] : nullptr;
 
 		// delete
 		if(ImGui::Button("Delete##delete_model"))
@@ -635,12 +635,12 @@ namespace Tracer
 	{
 		ImGui::Columns(2, nullptr, true);
 
-		// Gather model names
-		auto instances = GuiHelpers::GetScene()->Instances();
+		// Gather instance names
+		const std::vector<std::shared_ptr<Instance>>& instances = GuiHelpers::GetScene()->Instances();
 		std::vector<const char*> instanceNames;
 		instanceNames.reserve(instances.size());
-		for(auto m : instances)
-			instanceNames.push_back(m->Name().c_str());
+		for(std::shared_ptr<Instance> inst : instances)
+			instanceNames.push_back(inst->Name().c_str());
 
 		// Instance selection
 		if(ImGui::ListBox("Instances", &mSelectedInstanceIx, instanceNames.data(), static_cast<int>(instanceNames.size())))
@@ -652,8 +652,8 @@ namespace Tracer
 			if(mSelectedInstanceIx >= static_cast<int>(instances.size()))
 				mSelectedInstanceIx = 0;
 
-			auto inst = instances[mSelectedInstanceIx];
-			auto model = inst->GetModel();
+			std::shared_ptr<Instance> inst = instances[mSelectedInstanceIx];
+			std::shared_ptr<Model> model = inst->GetModel();
 
 			// Name
 			if(ImGui::InputText("Name##inst_name", mInstanceName, mNameBufferSize, ImGuiInputTextFlags_EnterReturnsTrue) && inst && strlen(mInstanceName) > 0)
@@ -698,7 +698,6 @@ namespace Tracer
 			if(ImGui::Button("Delete##delete_instance"))
 			{
 				GuiHelpers::GetScene()->Remove(inst);
-				instances = GuiHelpers::GetScene()->Instances();
 				SelectInstance(0);
 			}
 		}
@@ -711,7 +710,7 @@ namespace Tracer
 	void MainGui::SelectModel(int ix)
 	{
 		mSelectedModelIx = ix;
-		const auto& models = GuiHelpers::GetScene()->Models();
+		const std::vector<std::shared_ptr<Model>>& models = GuiHelpers::GetScene()->Models();
 		if(static_cast<int>(models.size()) > mSelectedModelIx)
 			strcpy_s(mModelName, mNameBufferSize, models[mSelectedModelIx]->Name().c_str());
 		else
@@ -723,7 +722,7 @@ namespace Tracer
 	void MainGui::SelectInstance(int ix)
 	{
 		mSelectedInstanceIx = ix;
-		const auto& instances = GuiHelpers::GetScene()->Instances();
+		const std::vector<std::shared_ptr<Instance>>& instances = GuiHelpers::GetScene()->Instances();
 		if(static_cast<int>(instances.size()) > mSelectedInstanceIx)
 			strcpy_s(mInstanceName, mNameBufferSize, instances[mSelectedInstanceIx]->Name().c_str());
 		else

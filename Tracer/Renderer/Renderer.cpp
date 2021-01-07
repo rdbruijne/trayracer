@@ -596,7 +596,7 @@ namespace Tracer
 
 		// set stack sizes
 		OptixStackSizes stackSizes = {};
-		for(auto& g : programGroups)
+		for(OptixProgramGroup& g : programGroups)
 			OPTIX_CHECK(optixUtilAccumulateStackSizes(g, &stackSizes));
 
 		uint32_t directCallableStackSizeFromTraversal = 2 << 10;
@@ -652,7 +652,7 @@ namespace Tracer
 			bool rebuildLights = false;
 
 			// build models
-			auto& models = scene->Models();
+			const std::vector<std::shared_ptr<Model>>& models = scene->Models();
 			std::vector<std::thread> modelBuilders;
 			std::atomic_size_t modelIx = 0;
 			for(size_t i = 0; i < std::thread::hardware_concurrency(); i++)
@@ -662,7 +662,7 @@ namespace Tracer
 					size_t ix = modelIx++;
 					while(ix < models.size())
 					{
-						auto& m = models[ix];
+						std::shared_ptr<Model> m = models[ix];
 						if(m->IsDirty())
 						{
 							if(m->IsDirty(false))
@@ -678,13 +678,13 @@ namespace Tracer
 
 			// place instances
 			uint32_t instanceId = 0;
-			auto& sceneInstances = scene->Instances();
+			const std::vector<std::shared_ptr<Instance>>& sceneInstances = scene->Instances();
 			instances.reserve(sceneInstances.size());
 			meshData.reserve(sceneInstances.size());
 			invTransforms.reserve(sceneInstances.size());
-			for(auto& inst : sceneInstances)
+			for(const std::shared_ptr<Instance>& inst : sceneInstances)
 			{
-				const auto& model = inst->GetModel();
+				const std::shared_ptr<Model>& model = inst->GetModel();
 				instances.push_back(model->InstanceData(instanceId++, inst->Transform()));
 				meshData.push_back(model->CudaMesh());
 				invTransforms.push_back(inverse(inst->Transform()));
@@ -778,11 +778,11 @@ namespace Tracer
 			// gather materials to build
 			std::atomic_size_t matIx = 0;
 			std::vector<std::shared_ptr<Material>> materials;
-			for(auto& inst : scene->Instances())
+			for(const std::shared_ptr<Instance>& inst : scene->Instances())
 			{
 				// find the model
-				const auto& model = inst->GetModel();
-				auto it = std::find(parsedModels.begin(), parsedModels.end(), model);
+				const std::shared_ptr<Model>& model = inst->GetModel();
+				std::vector<std::shared_ptr<Model>>::iterator it = std::find(parsedModels.begin(), parsedModels.end(), model);
 				if(it != parsedModels.end())
 				{
 					// model already parsed
@@ -791,7 +791,7 @@ namespace Tracer
 				else
 				{
 					// add materials
-					auto& modelMats = model->Materials();
+					const std::vector<std::shared_ptr<Material>>& modelMats = model->Materials();
 					materials.insert(materials.end(), modelMats.begin(), modelMats.end());
 
 					// increment offsets
@@ -816,7 +816,7 @@ namespace Tracer
 					size_t ix = matIx++;
 					while(ix < materials.size())
 					{
-						auto mat = materials[ix];
+						std::shared_ptr<Material> mat = materials[ix];
 						if(mat->IsDirty())
 							mat->Build();
 						materialData[ix] = mat->CudaMaterial();
@@ -824,7 +824,7 @@ namespace Tracer
 					}
 				}));
 			}
-			for(auto& b : materialBuilders)
+			for(std::thread& b : materialBuilders)
 				b.join();
 
 			// upload data
@@ -843,7 +843,7 @@ namespace Tracer
 
 	void Renderer::BuildSky(Scene* scene)
 	{
-		auto sky = scene->GetSky();
+		std::shared_ptr<Sky> sky = scene->GetSky();
 		if(sky->IsDirty())
 		{
 			sky->Build();

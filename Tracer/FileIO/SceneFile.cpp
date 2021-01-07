@@ -307,7 +307,7 @@ namespace Tracer
 				if(!Read(jsonModel, Key_Model, modelName))
 					continue;
 
-				auto model = scene->GetModel(modelName);
+				std::shared_ptr<Model> model = scene->GetModel(modelName);
 				if(!model)
 					continue;
 
@@ -321,7 +321,7 @@ namespace Tracer
 					if(!Read(jsonMat, Key_Name, matName))
 						continue;
 
-					auto mat = model->GetMaterial(matName);
+					std::shared_ptr<Material> mat = model->GetMaterial(matName);
 					if(!mat)
 						continue;
 
@@ -444,7 +444,7 @@ namespace Tracer
 		{
 			// determine which models to import
 			std::set<std::string> modelsToImport;
-			for(auto& i : instances)
+			for(const InstanceInfo& i : instances)
 			{
 				if(models.find(i.modelName) != models.end())
 					modelsToImport.insert(i.modelName);
@@ -452,9 +452,9 @@ namespace Tracer
 
 			// import models
 			std::map<std::string, std::shared_ptr<Model>> importedModels;
-			for(auto m : modelsToImport)
+			for(const std::string& m : modelsToImport)
 			{
-				auto model = ModelFile::Import(scene, models.at(m), m);
+				std::shared_ptr<Model> model = ModelFile::Import(scene, models.at(m), m);
 				if(model)
 				{
 					scene->Add(model);
@@ -463,7 +463,7 @@ namespace Tracer
 			}
 
 			// create instances
-			for(auto& i : instances)
+			for(const InstanceInfo& i : instances)
 			{
 				if(models.find(i.modelName) == models.end())
 					Logger::Error("Model \"%s\" was not declared", i.modelName.c_str());
@@ -586,12 +586,12 @@ namespace Tracer
 			if(!scene)
 				return;
 
-			const auto& instances = scene->Instances();
+			const std::vector<std::shared_ptr<Instance>>& instances = scene->Instances();
 			if(instances.size() == 0)
 				return;
 
 			Value jsonInstanceList(kArrayType);
-			for(const auto& inst : instances)
+			for(const std::shared_ptr<Instance>& inst : instances)
 			{
 				if(!inst->GetModel())
 					continue;
@@ -621,16 +621,16 @@ namespace Tracer
 			if(!scene)
 				return;
 
-			const auto& models = scene->Models();
+			const std::vector<std::shared_ptr<Model>>& models = scene->Models();
 			if(models.size() == 0)
 				return;
 
 			Value jsonModelList(kArrayType);
-			for(const auto& model : models)
+			for(const std::shared_ptr<Model>& model : models)
 			{
 				Value jsonMaterialList = Value(kArrayType);
 
-				for(const auto& mat : model->Materials())
+				for(const std::shared_ptr<Material>& mat : model->Materials())
 				{
 					Value jsonMat = Value(kObjectType);
 
@@ -670,11 +670,11 @@ namespace Tracer
 		void ExportModels(std::map<std::shared_ptr<Model>, std::string> uniqueModelNames, Document& doc, Document::AllocatorType& allocator)
 		{
 			Value jsonModelList(kArrayType);
-			for(const auto& m : uniqueModelNames)
+			for(const auto& [model, name] : uniqueModelNames)
 			{
 				Value jsonModel = Value(kObjectType);
-				Write(jsonModel, allocator, Key_Name, m.second);
-				Write(jsonModel, allocator, Key_Path, ReplaceAll(RelativeFilePath(m.first->FilePath()), "\\", "/"));
+				Write(jsonModel, allocator, Key_Name, name);
+				Write(jsonModel, allocator, Key_Path, ReplaceAll(RelativeFilePath(model->FilePath()), "\\", "/"));
 
 				// add model to array
 				jsonModelList.PushBack(jsonModel, allocator);
@@ -762,8 +762,9 @@ namespace Tracer
 			}
 		}
 
-		const auto models = ParseModels(doc);
-		const auto instances = ParseInstances(doc);
+		const std::map<std::string, std::string> models = ParseModels(doc);
+		const std::vector<InstanceInfo> instances = ParseInstances(doc);
+
 		ImportModels(scene, models, instances);
 		ParseMaterials(scene, doc);
 		ParseCamera(camNode, doc);
@@ -791,13 +792,13 @@ namespace Tracer
 
 		// gather model names
 		std::map<std::shared_ptr<Model>, std::string> uniqueModelNames;
-		for(auto m : scene->Models())
+		for(const std::shared_ptr<Model>& m : scene->Models())
 		{
 			std::string name = m->Name();
-			int it = 0;
-			while(std::find_if(uniqueModelNames.begin(), uniqueModelNames.end(), [&name](auto i) { return name == i.second; }) != uniqueModelNames.end())
+			int i = 0;
+			while(std::find_if(uniqueModelNames.begin(), uniqueModelNames.end(), [&name](const std::pair<std::shared_ptr<Model>, std::string>& it){ return name == it.second; }) != uniqueModelNames.end())
 			{
-				name = format("%s_%i", m->Name().c_str(), ++it);
+				name = format("%s_%i", m->Name().c_str(), ++i);
 			}
 
 			uniqueModelNames[m] = name;

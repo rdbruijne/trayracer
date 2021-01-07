@@ -32,7 +32,7 @@ namespace Tracer
 
 	std::shared_ptr<Tracer::Material> Model::GetMaterial(const std::string& name) const
 	{
-		for(auto m : mMaterials)
+		for(const std::shared_ptr<Material>& m : mMaterials)
 		{
 			if(m->Name() == name)
 				return m;
@@ -64,7 +64,7 @@ namespace Tracer
 
 		mIndices.reserve(mIndices.size() + indices.size());
 		mMaterialIndices.reserve(mMaterialIndices.size() + indices.size());
-		for(const auto& i : indices)
+		for(const uint3& i : indices)
 		{
 			mIndices.push_back(i + indexOffset);
 			mMaterialIndices.push_back(materialIndex);
@@ -220,7 +220,7 @@ namespace Tracer
 		// check for emissive changes
 		bool emissiveChanged = false;
 		bool hasEmissiveMaterial = false;
-		for(auto& mat : mMaterials)
+		for(const std::shared_ptr<Material>& mat : mMaterials)
 		{
 			if(mat->EmissiveChanged())
 			{
@@ -245,7 +245,7 @@ namespace Tracer
 		for(size_t i = 0; i < mIndices.size(); i++)
 		{
 			const uint32_t matIx = mMaterialIndices[i];
-			auto& mat = mMaterials[matIx];
+			const std::shared_ptr<Material>& mat = mMaterials[matIx];
 
 			const float3 em = mat->GetColor(Material::PropertyIds::Emissive);
 			if(em.x + em.y + em.z > Epsilon)

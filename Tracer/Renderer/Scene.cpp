@@ -39,7 +39,7 @@ namespace Tracer
 		if(mSky->IsDirty())
 			return true;
 
-		for(auto& i : mInstances)
+		for(const std::shared_ptr<Instance>& i : mInstances)
 			if(i->IsDirty())
 				return true;
 
@@ -58,7 +58,7 @@ namespace Tracer
 	size_t Scene::MaterialCount() const
 	{
 		size_t matCount = 0;
-		for(auto m : mModels)
+		for(const std::shared_ptr<Model>& m : mModels)
 			matCount += m->Materials().size();
 		return matCount;
 	}
@@ -75,7 +75,7 @@ namespace Tracer
 	size_t Scene::InstancedModelCount() const
 	{
 		std::set<std::shared_ptr<Model>> models;
-		for(auto& i : mInstances)
+		for(const std::shared_ptr<Instance>& i : mInstances)
 			models.insert(i->GetModel());
 		return models.size();
 	}
@@ -85,13 +85,13 @@ namespace Tracer
 	size_t Scene::TextureCount() const
 	{
 		std::set<std::shared_ptr<Texture>> textures;
-		for(auto& mdl : mModels)
+		for(const std::shared_ptr<Model>& mdl : mModels)
 		{
-			for(auto& mat : mdl->Materials())
+			for(const std::shared_ptr<Material>& mat : mdl->Materials())
 			{
 				for(size_t i = 0; i < magic_enum::enum_count<Material::PropertyIds>(); i++)
 				{
-					auto tex = mat->GetTextureMap(static_cast<Material::PropertyIds>(i));
+					const std::shared_ptr<Texture>& tex = mat->GetTextureMap(static_cast<Material::PropertyIds>(i));
 					if(tex)
 						textures.insert(tex);
 				}
@@ -105,7 +105,7 @@ namespace Tracer
 	size_t Scene::TriangleCount() const
 	{
 		size_t triCount = 0;
-		for(auto& i : mInstances)
+		for(const std::shared_ptr<Instance>& i : mInstances)
 			triCount += i->GetModel()->PolyCount();
 		return triCount;
 	}
@@ -115,11 +115,11 @@ namespace Tracer
 	size_t Scene::UniqueTriangleCount() const
 	{
 		std::set<std::shared_ptr<Model>> models;
-		for(auto& i : mInstances)
+		for(const std::shared_ptr<Instance>& i : mInstances)
 			models.insert(i->GetModel());
 
 		size_t triCount = 0;
-		for(const auto& m : models)
+		for(const std::shared_ptr<Model>& m : models)
 			triCount += m->PolyCount();
 		return triCount;
 	}
@@ -129,7 +129,7 @@ namespace Tracer
 	size_t Scene::LightCount() const
 	{
 		size_t lightCount = 0;
-		for(auto& i : mInstances)
+		for(const std::shared_ptr<Instance>& i : mInstances)
 			lightCount += i->GetModel()->LightCount();
 		return lightCount;
 	}
@@ -139,11 +139,11 @@ namespace Tracer
 	size_t Scene::UniqueLightCount() const
 	{
 		std::set<std::shared_ptr<Model>> models;
-		for(auto& i : mInstances)
+		for(const std::shared_ptr<Instance>& i : mInstances)
 			models.insert(i->GetModel());
 
 		size_t lightCount = 0;
-		for(const auto& m : models)
+		for(const std::shared_ptr<Model>& m : models)
 			lightCount += m->LightCount();
 		return lightCount;
 	}
@@ -177,14 +177,14 @@ namespace Tracer
 
 	void Scene::Remove(std::shared_ptr<Model> model)
 	{
-		auto it = std::find(mModels.begin(), mModels.end(), model);
+		std::vector<std::shared_ptr<Model>>::const_iterator it = std::find(mModels.begin(), mModels.end(), model);
 		if(it != mModels.end())
 		{
 			bool removed;
 			do
 			{
 				removed = false;
-				for(auto i : mInstances)
+				for(const std::shared_ptr<Instance>& i : mInstances)
 				{
 					if(i->GetModel() == model)
 					{
@@ -203,7 +203,7 @@ namespace Tracer
 
 	void Scene::Remove(std::shared_ptr<Instance> instance)
 	{
-		auto it = std::find(mInstances.begin(), mInstances.end(), instance);
+		std::vector<std::shared_ptr<Instance>>::const_iterator it = std::find(mInstances.begin(), mInstances.end(), instance);
 		if(it != mInstances.end())
 		{
 			mInstances.erase(it);
@@ -215,7 +215,7 @@ namespace Tracer
 
 	std::shared_ptr<Tracer::Model> Scene::GetModel(const std::string& name) const
 	{
-		for(auto& m : mModels)
+		for(const std::shared_ptr<Model>& m : mModels)
 		{
 			if(m->Name() == name)
 				return m;
@@ -236,13 +236,13 @@ namespace Tracer
 
 	std::shared_ptr<Tracer::Texture> Scene::GetTexture(const std::string& path) const
 	{
-		for(auto& mdl : mModels)
+		for(const std::shared_ptr<Model>& mdl : mModels)
 		{
-			for(auto& mat : mdl->Materials())
+			for(const std::shared_ptr<Material>& mat : mdl->Materials())
 			{
 				for(size_t i = 0; i < magic_enum::enum_count<Material::PropertyIds>(); i++)
 				{
-					auto tex = mat->GetTextureMap(static_cast<Material::PropertyIds>(i));
+					const std::shared_ptr<Texture>& tex = mat->GetTextureMap(static_cast<Material::PropertyIds>(i));
 					if(tex && tex->Path() == path)
 						return tex;
 				}
@@ -260,7 +260,7 @@ namespace Tracer
 		float sumEnergy = 0;
 		for(size_t i = 0; i < mInstances.size(); i++)
 		{
-			auto inst = mInstances[i];
+			const std::shared_ptr<Instance>& inst = mInstances[i];
 			const std::vector<LightTriangle>& modelLights = inst->GetModel()->Lights();
 			const float3x4& trans = inst->Transform();
 			if(modelLights.size() > 0)
