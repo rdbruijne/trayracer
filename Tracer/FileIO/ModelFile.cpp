@@ -177,64 +177,63 @@ namespace Tracer
 			aiColor3D c3;
 
 			//if (!aMat->Get(AI_MATKEY_OPACITY, r))
-			//	mat->SetOpacity(r);
+			//	mat->Set(Material::PropertyIds::Opacity, make_float3(r));
 
 			//if (!aMat->Get(AI_MATKEY_SHININESS, r))
-			//	mat->SetShininess(r);
+			//	mat->Set(Material::PropertyIds::Shininess, make_float3(r));
 
 			//if (!aMat->Get(AI_MATKEY_REFRACTI, r))
-			//	mat->SetRefractI(r);
+			//	mat->Set(Material::PropertyIds::RefractI, make_float3(r));
 
 			if (!aMat->Get(AI_MATKEY_COLOR_DIFFUSE, c3))
 				mat->Set(Material::PropertyIds::Diffuse, make_float3(c3.r, c3.g, c3.b));
 
 			//if (!aMat->Get(AI_MATKEY_COLOR_SPECULAR, c3))
-			//	mat->SetSpecular(make_float3(c3.r, c3.g, c3.b));
+			//	mat->Set(Material::PropertyIds::Specular, make_float3(c3.r, c3.g, c3.b));
 
 			if (!aMat->Get(AI_MATKEY_COLOR_EMISSIVE, c3))
 				mat->Set(Material::PropertyIds::Emissive, make_float3(c3.r, c3.g, c3.b));
 
 			//if (!aMat->Get(AI_MATKEY_COLOR_TRANSPARENT, c3))
-			//	mat->SetTransparent(make_float3(c3.r, c3.g, c3.b));
+			//	mat->Set(Material::PropertyIds::Transparent, make_float3(c3.r, c3.g, c3.b));
 
 			// parse textures
-
 			aiString texPath;
 			if(aMat->GetTexture(aiTextureType_DIFFUSE, 0, &texPath) == aiReturn_SUCCESS)
 				mat->Set(Material::PropertyIds::Diffuse, TextureFile::Import(scene, texPath.C_Str(), importDir));
 
 			//if(aMat->GetTexture(aiTextureType_SPECULAR, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->SetSpecularMap(TextureFile::Import(scene, texPath.C_Str(), importDir));
+			//	mat->Set(Material::PropertyIds::Specular, TextureFile::Import(scene, texPath.C_Str(), importDir));
 
 			//if(aMat->GetTexture(aiTextureType_EMISSIVE, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->SetEmissiveMap(TextureFile::Import(scene, texPath.C_Str(), importDir));
+			//	mat->Set(Material::PropertyIds::Emissive, TextureFile::Import(scene, texPath.C_Str(), importDir));
 
 			//if(aMat->GetTexture(aiTextureType_HEIGHT, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->SetHeightMap(TextureFile::Import(scene, texPath.C_Str(), importDir));
+			//	mat->Set(Material::PropertyIds::Height, TextureFile::Import(scene, texPath.C_Str(), importDir));
 
 			if(aMat->GetTexture(aiTextureType_NORMALS, 0, &texPath) == aiReturn_SUCCESS)
 				mat->Set(Material::PropertyIds::Normal, TextureFile::Import(scene, texPath.C_Str(), importDir));
 
 			//if(aMat->GetTexture(aiTextureType_SHININESS, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->SetShininessMap(TextureFile::Import(scene, texPath.C_Str(), importDir));
+			//	mat->Set(Material::PropertyIds::Shininess, TextureFile::Import(scene, texPath.C_Str(), importDir));
 
 			//if(aMat->GetTexture(aiTextureType_OPACITY, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->SetOpacityMap(TextureFile::Import(scene, texPath.C_Str(), importDir));
+			//	mat->Set(Material::PropertyIds::Opacity, TextureFile::Import(scene, texPath.C_Str(), importDir));
 
 			//if(aMat->GetTexture(aiTextureType_DISPLACEMENT, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->SetDisplacementMap(TextureFile::Import(scene, texPath.C_Str(), importDir));
+			//	mat->Set(Material::PropertyIds::Displacement, TextureFile::Import(scene, texPath.C_Str(), importDir));
 
 			//if(aMat->GetTexture(aiTextureType_BASE_COLOR, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->SetBaseColorMap(TextureFile::Import(scene, texPath.C_Str(), importDir));
+			//	mat->Set(Material::PropertyIds::BaseColor, TextureFile::Import(scene, texPath.C_Str(), importDir));
 
 			//if(aMat->GetTexture(aiTextureType_EMISSION_COLOR, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->SetEmissionColorMap(TextureFile::Import(scene, texPath.C_Str(), importDir));
+			//	mat->Set(Material::PropertyIds::EmissionColor, TextureFile::Import(scene, texPath.C_Str(), importDir));
 
 			//if(aMat->GetTexture(aiTextureType_METALNESS, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->SetMetalnessMap(TextureFile::Import(scene, texPath.C_Str(), importDir));
+			//	mat->Set(Material::PropertyIds::Metalness, TextureFile::Import(scene, texPath.C_Str(), importDir));
 
 			//if(aMat->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->SetDiffuseRoughnessMap(TextureFile::Import(scene, texPath.C_Str(), importDir));
+			//	mat->Set(Material::PropertyIds::DiffuseRoughness, TextureFile::Import(scene, texPath.C_Str(), importDir));
 
 			return mat;
 		}
@@ -243,21 +242,26 @@ namespace Tracer
 
 		void ImportMesh(std::shared_ptr<Model> model, aiMesh* aMesh, const std::vector<std::shared_ptr<Material>>& materials)
 		{
-			// vertices
+			// positions
 			std::vector<float3> positions(aMesh->mNumVertices, make_float3(0));
+			if(aMesh->mVertices)
+				memcpy(positions.data(), aMesh->mVertices, aMesh->mNumVertices * sizeof(float3));
+
+			// normals
 			std::vector<float3> normals(aMesh->mNumVertices, make_float3(0));
+			if(aMesh->mNormals)
+				memcpy(normals.data(), aMesh->mNormals, aMesh->mNumVertices * sizeof(float3));
+
+			// texcoords
 			std::vector<float2> texcoords(aMesh->mNumVertices, make_float2(0));
-
-			for(unsigned int i = 0; i < aMesh->mNumVertices; i++)
+			if(aMesh->mTextureCoords[0])
 			{
-				if(aMesh->mVertices)
-					positions[i] = *reinterpret_cast<float3*>(aMesh->mVertices + i);
-
-				if(aMesh->mNormals)
-					normals[i] = *reinterpret_cast<float3*>(aMesh->mNormals + i);
-
-				if(aMesh->mTextureCoords[0])
-					texcoords[i] = *reinterpret_cast<float2*>(aMesh->mTextureCoords[0] + i);
+				aiVector3D* src = aMesh->mTextureCoords[0];
+				for(uint32_t i = 0; i < aMesh->mNumVertices; i++)
+				{
+					texcoords[i] = make_float2(src->x, src->y);
+					src++;
+				}
 			}
 
 			// indices
@@ -328,7 +332,6 @@ namespace Tracer
 			defaultLogger->attachStream(new ImportLogStream(), Assimp::Logger::Debugging | Assimp::Logger::Info | Assimp::Logger::Err | Assimp::Logger::Warn);
 		}
 #endif
-
 
 		// Importer
 		Assimp::Importer importer;
