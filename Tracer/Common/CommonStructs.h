@@ -103,7 +103,7 @@ struct LaunchParams
 	int32_t resX;
 	int32_t resY;
 	uint32_t sampleCount;
-	float dummy;
+	int dummy;
 
 	float4* accumulator;
 
@@ -122,6 +122,9 @@ struct LaunchParams
 
 	float3 cameraForward;
 	float cameraFov;
+
+	int cameraBokehSideCount;
+	float cameraBokehRotation;
 
 	// ray pick
 	int2 rayPickPixel;

@@ -186,7 +186,7 @@ namespace Tracer
 			ImGui::Text("Lens");
 
 			float aperture = GuiHelpers::GetCamNode()->Aperture();
-			if(ImGui::SliderFloat("Aperture", &aperture, 0.f, 10.f, "%.3f", 10.f))
+			if(ImGui::SliderFloat("Aperture", &aperture, 0.f, 100.f, "%.3f", 10.f))
 				GuiHelpers::GetCamNode()->SetAperture(aperture);
 
 			float distortion = GuiHelpers::GetCamNode()->Distortion();
@@ -200,6 +200,14 @@ namespace Tracer
 			float fov = GuiHelpers::GetCamNode()->Fov() * RadToDeg;
 			if(ImGui::SliderFloat("Fov", &fov, 1.f, 179.f))
 				GuiHelpers::GetCamNode()->SetFov(fov * DegToRad);
+
+			int bokehSideCount = GuiHelpers::GetCamNode()->BokehSideCount();
+			if(ImGui::SliderInt("Bokeh side count", &bokehSideCount, 0, 16))
+				GuiHelpers::GetCamNode()->SetBokehSideCount(bokehSideCount);
+
+			float bokehRotation = GuiHelpers::GetCamNode()->BokehRotation() * RadToDeg;
+			if(ImGui::SliderFloat("Bokeh rotation", &bokehRotation, 1.f, 179.f))
+				GuiHelpers::GetCamNode()->SetBokehRotation(bokehRotation * DegToRad);
 
 			ImGui::EndGroup();
 		}

@@ -363,17 +363,19 @@ namespace Tracer
 	{
 		if(camNode.IsDirty())
 		{
-			mLaunchParams.cameraPos        = camNode.Position();
-			mLaunchParams.cameraForward    = normalize(camNode.Target() - camNode.Position());
-			mLaunchParams.cameraSide       = normalize(cross(mLaunchParams.cameraForward, camNode.Up()));
-			mLaunchParams.cameraUp         = normalize(cross(mLaunchParams.cameraSide, mLaunchParams.cameraForward));
+			mLaunchParams.cameraPos            = camNode.Position();
+			mLaunchParams.cameraForward        = normalize(camNode.Target() - camNode.Position());
+			mLaunchParams.cameraSide           = normalize(cross(mLaunchParams.cameraForward, camNode.Up()));
+			mLaunchParams.cameraUp             = normalize(cross(mLaunchParams.cameraSide, mLaunchParams.cameraForward));
 
-			mLaunchParams.cameraAperture   = camNode.Aperture();
-			mLaunchParams.cameraDistortion = camNode.Distortion();
-			mLaunchParams.cameraFocalDist  = camNode.FocalDist();
-			mLaunchParams.cameraFov        = camNode.Fov();
+			mLaunchParams.cameraAperture       = camNode.Aperture();
+			mLaunchParams.cameraDistortion     = camNode.Distortion();
+			mLaunchParams.cameraFocalDist      = camNode.FocalDist();
+			mLaunchParams.cameraFov            = camNode.Fov();
+			mLaunchParams.cameraBokehSideCount = camNode.BokehSideCount();
+			mLaunchParams.cameraBokehRotation  = camNode.BokehRotation();
 
-			mLaunchParams.sampleCount      = 0;
+			mLaunchParams.sampleCount          = 0;
 
 			camNode.MarkClean();
 		}

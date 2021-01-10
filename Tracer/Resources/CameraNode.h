@@ -40,6 +40,13 @@ namespace Tracer
 		float Fov() const { return mFov; }
 		void SetFov(float fov);
 
+		// bokeh
+		int BokehSideCount() const { return mBokehSideCount; }
+		void SetBokehSideCount(int count);
+
+		float BokehRotation() const { return mBokehRotation; }
+		void SetBokehRotation(float rotation);
+
 	private:
 		float3 mPosition = make_float3(0, 0, -1);
 		float3 mTarget = make_float3(0, 0, 0);
@@ -49,5 +56,8 @@ namespace Tracer
 		float mDistortion = 0;
 		float mFocalDist = 1e5f;
 		float mFov = 1.57079633f;
+
+		int mBokehSideCount = 0;
+		float mBokehRotation = 0;
 	};
 }

@@ -13,7 +13,12 @@
 // Globals
 //------------------------------------------------------------------------------------------------------------------------------
 static __constant__ LaunchParams params;
-constexpr float DST_MAX = 1e30f;
+constexpr float DstMax = 1e30f;
+
+// math constants
+constexpr float Pi = 3.14159265359f;
+constexpr float PiOver2 = 1.57079632679f;
+constexpr float PiOver4 = 0.78539816339f;
 
 
 
@@ -32,6 +37,69 @@ static __device__ uint32_t EncodeBarycentrics(const float2& barycentrics)
 //------------------------------------------------------------------------------------------------------------------------------
 // Camera ray
 //------------------------------------------------------------------------------------------------------------------------------
+static __device__
+inline float2 SampleDisk(uint32_t& seed)
+{
+	// generate random 2D point in [-1, 1] range
+	const float2 lensCoord = make_float2((rnd(seed) * 2.f) - 1.f, (rnd(seed) * 2.f) - 1.f);
+
+	// the center
+	if(lensCoord.x == 0 && lensCoord.y == 0)
+		return lensCoord;
+
+	// apply concentric mapping
+	float theta, r;
+	if(fabsf(lensCoord.x) > fabsf(lensCoord.y))
+	{
+		r = lensCoord.x;
+		theta = PiOver4 * (lensCoord.y / lensCoord.x);
+	}
+	else
+	{
+		r = lensCoord.y;
+		theta = PiOver2 - PiOver4 * (lensCoord.x / lensCoord.y);
+	}
+
+	return r * make_float2(cosf(theta), sinf(theta));
+}
+
+
+
+static __device__
+inline float2 SampleTriangle(const float2& a, const float2& b, const float2& c, uint32_t& seed)
+{
+	const float s1 = rnd(seed);
+	const float s2 = rnd(seed);
+	const float s1_sqr = sqrtf(s1);
+	return (1 - s1_sqr) * a + (s1_sqr * (1 - s2)) * b + (s1_sqr * s2) * c;
+}
+
+
+
+static __device__
+inline float2 SampleBokeh(uint32_t& seed)
+{
+	// need at least 3 sides
+	if(params.cameraBokehSideCount < 3)
+		return SampleDisk(seed);
+
+	// select random triangle
+	const int index = static_cast<int>(rnd(seed) * params.cameraBokehSideCount);
+	const float step = (2.f * Pi) / params.cameraBokehSideCount;
+
+	float sin0, sin1, cos0, cos1;
+	__sincosf(params.cameraBokehRotation + (index * step), &sin0, &cos0);
+	__sincosf(params.cameraBokehRotation + (index + 1) * step, &sin1, &cos1);
+
+	const float2 c0 = make_float2(0, 0);
+	const float2 c1 = make_float2(cos0, sin0);
+	const float2 c2 = make_float2(cos1, sin1);
+
+	return SampleTriangle(c0, c1, c2, seed);
+}
+
+
+
 static __device__
 inline bool Distort(float2& lensCoord, float tanFov2, float distortion)
 {
@@ -75,7 +143,7 @@ inline bool GenerateCameraRay(float3& O, float3& D, float& T, int2 pixelIndex, u
 	const float tanFov2 = tanf(params.cameraFov / 2.0f);
 
 	// lens coordinate
-	const float2 ccdCoord = make_float2((rnd(seed) * 2.f) - 1.f, (rnd(seed) * 2.f) - 1.f) * params.cameraAperture;
+	const float2 ccdCoord = SampleBokeh(seed) * params.cameraAperture;
 	float2 lensCoord = (tanFov2 * screen) - (ccdCoord / params.cameraFocalDist);
 
 	// lens distortion
@@ -171,7 +239,7 @@ void __raygen__()
 			uint32_t bary = 0;
 			uint32_t instIx = ~0u;
 			uint32_t primIx = ~0u;
-			uint32_t tmax = __float_as_uint(DST_MAX);
+			uint32_t tmax = __float_as_uint(DstMax);
 
 			// generate ray
 			float3 O = params.cameraPos;
@@ -182,7 +250,7 @@ void __raygen__()
 			// trace the ray
 			if(onSensor)
 			{
-				optixTrace(params.sceneRoot, O, D, params.epsilon, DST_MAX, 0.f, 0xFF, OPTIX_RAY_FLAG_DISABLE_ANYHIT,
+				optixTrace(params.sceneRoot, O, D, params.epsilon, DstMax, 0.f, 0xFF, OPTIX_RAY_FLAG_DISABLE_ANYHIT,
 						   RayType_Surface, RayType_Count, RayType_Surface, bary, instIx, primIx, tmax);
 			}
 
@@ -223,10 +291,10 @@ void __raygen__()
 			uint32_t bary = 0;
 			uint32_t instIx = ~0u;
 			uint32_t primIx = ~0u;
-			uint32_t tmax = __float_as_uint(DST_MAX);
+			uint32_t tmax = __float_as_uint(DstMax);
 
 			// trace the ray
-			optixTrace(params.sceneRoot, O, D, params.epsilon, DST_MAX, 0.f, 0xFF, OPTIX_RAY_FLAG_DISABLE_ANYHIT,
+			optixTrace(params.sceneRoot, O, D, params.epsilon, DstMax, 0.f, 0xFF, OPTIX_RAY_FLAG_DISABLE_ANYHIT,
 					   RayType_Surface, RayType_Count, RayType_Surface, bary, instIx, primIx, tmax);
 
 			// set hit data
@@ -279,12 +347,12 @@ void __raygen__()
 			uint32_t bary = 0;
 			uint32_t instIx = ~0u;
 			uint32_t primIx = ~0u;
-			uint32_t tmax = __float_as_uint(DST_MAX);
+			uint32_t tmax = __float_as_uint(DstMax);
 
 			// trace the ray
 			if(onSensor)
 			{
-				optixTrace(params.sceneRoot, O, D, params.epsilon, DST_MAX, 0.f, OptixVisibilityMask(255), OPTIX_RAY_FLAG_DISABLE_ANYHIT,
+				optixTrace(params.sceneRoot, O, D, params.epsilon, DstMax, 0.f, OptixVisibilityMask(255), OPTIX_RAY_FLAG_DISABLE_ANYHIT,
 						   RayType_Surface, RayType_Count, RayType_Surface, bary, instIx, primIx, tmax);
 			}
 

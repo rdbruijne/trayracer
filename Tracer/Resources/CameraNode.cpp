@@ -87,4 +87,26 @@ namespace Tracer
 			MarkDirty();
 		}
 	}
+
+
+
+	void CameraNode::SetBokehSideCount(int count)
+	{
+		if(count != mBokehSideCount)
+		{
+			mBokehSideCount = count;
+			MarkDirty();
+		}
+	}
+
+
+
+	void CameraNode::SetBokehRotation(float rotation)
+	{
+		if(mBokehRotation != rotation)
+		{
+			mBokehRotation = rotation;
+			MarkDirty();
+		}
+	}
 }
