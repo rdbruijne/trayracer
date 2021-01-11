@@ -280,17 +280,5 @@ namespace Tracer
 				}
 			}
 		}
-
-		// set pdf
-		// #TODO: pdf
-		/*for(size_t i = 0; i < mLights.size(); i++)
-		{
-			LightTriangle& tri = mLights[i];
-
-			static const float3 luminanceFactor = make_float3(0.2126f, 0.7152f, 0.0722f);
-			const float3 luminance = tri.radiance * luminanceFactor;
-			const float3 normal = cross(tri.V1 - tri.V0, tri.V2 - tri.V0);
-			const float importance = (luminance.x + luminance.y + luminance.z) * length(normal) * 0.5f;
-		}*/
 	}
 }

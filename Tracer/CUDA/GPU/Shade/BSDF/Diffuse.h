@@ -48,7 +48,7 @@ Closure Diffuse_Closure(ShadingInfo& shadingInfo)
 {
 	const float u1 = rnd(shadingInfo.seed);
 	const float u2 = rnd(shadingInfo.seed);
-	const BsdfResult eval = Diffuse_Eval(shadingInfo.wo, shadingInfo.wi);
+	const BsdfResult eval   = Diffuse_Eval(shadingInfo.wo, shadingInfo.wi);
 	const BsdfResult sample = Diffuse_Sample(shadingInfo.wo, u1, u2);
 	return FinalizeClosure(shadingInfo, eval, sample);
 }
