@@ -101,11 +101,10 @@ __global__ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 	if(NdotL > 0 && lightPdf > Epsilon && closure.shadow.pdf > Epsilon)
 	{
 		// fire shadow ray
-		const float3 contribution = throughput * lightRadiance * (NdotL / (lightProb * lightPdf + closure.shadow.pdf));
+		const float3 contribution = closure.shadow.T * lightRadiance * (NdotL / (lightProb * lightPdf + closure.shadow.pdf));
 		const int32_t shadowIx = atomicAdd(&counters->shadowRays, 1);
 		shadowRays[shadowIx + (stride * 0)] = make_float4(I, __int_as_float(pixelIx));
 		shadowRays[shadowIx + (stride * 1)] = make_float4(L, lightDist);
-		//shadowRays[shadowIx + (stride * 2)] = make_float4(closure.shadow.T * lightRadiance * NdotL, 0);
 		shadowRays[shadowIx + (stride * 2)] = make_float4(contribution, 0);
 	}
 
