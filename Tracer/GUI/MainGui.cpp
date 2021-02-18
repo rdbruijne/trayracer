@@ -102,10 +102,10 @@ namespace Tracer
 		if(!mSelectedMaterial.expired())
 		{
 			std::shared_ptr<Material> mat = mSelectedMaterial.lock();
-			for(size_t i = 0; i < magic_enum::enum_count<Material::PropertyIds>(); i++)
+			for(size_t i = 0; i < static_cast<size_t>(MaterialPropertyIds::_Count); i++)
 			{
-				const Material::PropertyIds id = static_cast<Material::PropertyIds>(i);
-				std::shared_ptr<Texture> tex = mat->GetTextureMap(id);
+				const MaterialPropertyIds id = static_cast<MaterialPropertyIds>(i);
+				std::shared_ptr<Texture> tex = mat->TextureMap(id);
 				if(tex)
 					tex->DestroyGLTex();
 			}
@@ -186,7 +186,7 @@ namespace Tracer
 			ImGui::Text("Lens");
 
 			float aperture = GuiHelpers::GetCamNode()->Aperture();
-			if(ImGui::SliderFloat("Aperture", &aperture, 0.f, 100.f, "%.3f", 10.f))
+			if(ImGui::SliderFloat("Aperture", &aperture, 0.f, 100.f, "%.3f", ImGuiSliderFlags_Logarithmic))
 				GuiHelpers::GetCamNode()->SetAperture(aperture);
 
 			float distortion = GuiHelpers::GetCamNode()->Distortion();
@@ -194,7 +194,7 @@ namespace Tracer
 				GuiHelpers::GetCamNode()->SetDistortion(distortion);
 
 			float focalDist = GuiHelpers::GetCamNode()->FocalDist();
-			if(ImGui::SliderFloat("Focal dist", &focalDist, 1.f, 1e6f, "%.3f", 10.f))
+			if(ImGui::SliderFloat("Focal dist", &focalDist, 1.f, 1e6f, "%.3f", ImGuiSliderFlags_Logarithmic))
 				GuiHelpers::GetCamNode()->SetFocalDist(focalDist);
 
 			float fov = GuiHelpers::GetCamNode()->Fov() * RadToDeg;
@@ -244,7 +244,7 @@ namespace Tracer
 	{
 		if(mSelectedMaterial.expired() || mSelectedMaterial.use_count() == 0)
 		{
-			ImGui::Text("No material detected");
+			ImGui::Text("No material selected");
 		}
 		else
 		{
@@ -258,22 +258,32 @@ namespace Tracer
 			ImGui::Text(mat->Name().c_str());
 
 			// properties
-			for(size_t i = 0; i < magic_enum::enum_count<Material::PropertyIds>(); i++)
+			for(size_t i = 0; i < static_cast<size_t>(MaterialPropertyIds::_Count); i++)
 			{
-				const Material::PropertyIds id = static_cast<Material::PropertyIds>(i);
+				const MaterialPropertyIds id = static_cast<MaterialPropertyIds>(i);
 				const std::string propName = ToString(id);
 
 				if(ImGui::TreeNode(propName.c_str()))
 				{
-					// color
-					if(mat->IsColorEnabled(id))
+					// float color
+					if(mat->IsFloatColorEnabled(id))
+					{
+						const std::string colorName = "##" + propName;
+						float c = mat->FloatColor(id);
+						const float2 cRange = mat->FloatColorRange(id);
+						if(ImGui::SliderFloat(colorName.c_str(), &c, cRange.x, cRange.y))
+							mat->Set(id, c);
+					}
+
+					// rgb color
+					if(mat->IsRgbColorEnabled(id))
 					{
 						const std::string colorName = "##" + propName;
 						const ImGuiColorEditFlags colorFlags =
 							ImGuiColorEditFlags_HDR |
 							ImGuiColorEditFlags_Float |
 							ImGuiColorEditFlags_PickerHueWheel;
-						float3 c = mat->GetColor(id);
+						float3 c = mat->RgbColor(id);
 						if(ImGui::ColorEdit3(colorName.c_str(), reinterpret_cast<float*>(&c), colorFlags))
 							mat->Set(id, c);
 					}
@@ -282,7 +292,7 @@ namespace Tracer
 					if(mat->IsTextureEnabled(id))
 					{
 						const std::string texName = "##" + propName + "map";
-						std::shared_ptr<Texture> tex = mat->GetTextureMap(id);
+						std::shared_ptr<Texture> tex = mat->TextureMap(id);
 
 						if(!tex)
 						{
@@ -368,11 +378,11 @@ namespace Tracer
 				GuiHelpers::GetRenderer()->SetMaxDepth(maxDepth);
 
 			float aoDist = GuiHelpers::GetRenderer()->AODist();
-			if(ImGui::SliderFloat("AO Dist", &aoDist, 0.f, 1e4f, "%.3f", 10.f))
+			if(ImGui::SliderFloat("AO Dist", &aoDist, 0.f, 1e4f, "%.3f", ImGuiSliderFlags_Logarithmic))
 				GuiHelpers::GetRenderer()->SetAODist(aoDist);
 
 			float zDepthMax = GuiHelpers::GetRenderer()->ZDepthMax();
-			if(ImGui::SliderFloat("Z-Depth max", &zDepthMax, 0.f, 1e4f, "%.3f", 10.f))
+			if(ImGui::SliderFloat("Z-Depth max", &zDepthMax, 0.f, 1e4f, "%.3f", ImGuiSliderFlags_Logarithmic))
 				GuiHelpers::GetRenderer()->SetZDepthMax(zDepthMax);
 
 			// post
@@ -382,7 +392,7 @@ namespace Tracer
 				ImGui::Text("Post");
 
 				Window::ShaderProperties shaderProps = GuiHelpers::GetRenderWindow()->PostShaderProperties();
-				ImGui::SliderFloat("Exposure", &shaderProps.exposure, 0.f, 100.f, "%.3f", 10.f);
+				ImGui::SliderFloat("Exposure", &shaderProps.exposure, 0.f, 100.f, "%.3f", ImGuiSliderFlags_Logarithmic);
 				ImGui::SliderFloat("Gamma", &shaderProps.gamma, 0.f, 4.f);
 				GuiHelpers::GetRenderWindow()->SetPostShaderProperties(shaderProps);
 			}
@@ -441,11 +451,11 @@ namespace Tracer
 			sky->SetSunDir(make_float3(l.x, l.y, l.z));
 
 		float sunSize = sky->SunAngularDiameter();
-		if(ImGui::SliderFloat("Sun size (arc minutes)", &sunSize, 1.f, 10800.f, "%.3f", 10.f))
+		if(ImGui::SliderFloat("Sun size (arc minutes)", &sunSize, 1.f, 10800.f, "%.3f", ImGuiSliderFlags_Logarithmic))
 			sky->SetSunAngularDiameter(sunSize);
 
 		float sunIntensity = sky->SunIntensity();
-		if(ImGui::SliderFloat("Sun intensity", &sunIntensity, 0.f, 1e6f, "%.3f", 10.f))
+		if(ImGui::SliderFloat("Sun intensity", &sunIntensity, 0.f, 1e6f, "%.3f", ImGuiSliderFlags_Logarithmic))
 			sky->SetSunIntensity(sunIntensity);
 
 		// ground

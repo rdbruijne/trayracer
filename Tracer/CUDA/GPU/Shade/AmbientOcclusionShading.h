@@ -32,15 +32,17 @@ __global__ void AmbientOcclusionShadingKernel(DECLARE_KERNEL_PARAMS)
 			return;
 
 		// fetch intersection info
-		const IntersectionAttributes attrib = GetIntersectionAttributes(instIx, primIx, bary);
+		Intersection intersection = {};
+		HitMaterial hitMaterial = {};
+		GetIntersectionAttributes(instIx, primIx, bary, intersection, hitMaterial);
 
 		// diffuse
-		float3 diff = attrib.diffuse;
+		float3 diff = hitMaterial.diffuse;
 
 		// bounce ray
 		uint32_t seed = tea<2>(pathIx, params->sampleCount + pathLength + 1);
 		const float3 newOrigin = O + (D * tmax);
-		const float3 newDir = SampleCosineHemisphere(attrib.shadingNormal, rnd(seed), rnd(seed));
+		const float3 newDir = SampleCosineHemisphere(intersection.shadingNormal, rnd(seed), rnd(seed));
 
 		// update path states
 		const int32_t extendIx = atomicAdd(&counters->extendRays, 1);
@@ -49,8 +51,8 @@ __global__ void AmbientOcclusionShadingKernel(DECLARE_KERNEL_PARAMS)
 		pathStates[extendIx + (stride * 2)] = make_float4(diff, 0);
 
 		// denoiser data
-		albedo[pixelIx] = make_float4(attrib.diffuse, 0);
-		normals[pixelIx] = make_float4(attrib.shadingNormal, 0);
+		albedo[pixelIx] = make_float4(hitMaterial.diffuse, 0);
+		normals[pixelIx] = make_float4(intersection.shadingNormal, 0);
 	}
 	else
 	{

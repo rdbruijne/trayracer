@@ -26,6 +26,10 @@ __global__ void ShadingNormalKernel(DECLARE_KERNEL_PARAMS)
 		return;
 
 	// fetch intersection info
-	const IntersectionAttributes attrib = GetIntersectionAttributes(instIx, primIx, bary);
-	accumulator[pixelIx] += make_float4((attrib.shadingNormal + make_float3(1)) * 0.5f, 0);
+	Intersection intersection = {};
+	HitMaterial hitMaterial = {};
+	GetIntersectionAttributes(instIx, primIx, bary, intersection, hitMaterial);
+
+	// set result
+	accumulator[pixelIx] += make_float4((intersection.shadingNormal + make_float3(1)) * 0.5f, 0);
 }

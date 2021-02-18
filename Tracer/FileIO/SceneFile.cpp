@@ -325,10 +325,14 @@ namespace Tracer
 					if(!mat)
 						continue;
 
-					for(size_t i = 0; i < magic_enum::enum_count<Material::PropertyIds>(); i++)
+					for(size_t i = 0; i < static_cast<size_t>(MaterialPropertyIds::_Count); i++)
 					{
-						const Material::PropertyIds id = static_cast<Material::PropertyIds>(i);
+						const MaterialPropertyIds id = static_cast<MaterialPropertyIds>(i);
 						const std::string propName = ToLower(ToString(id));
+
+						float f;
+						if(Read(jsonMat, propName.c_str(), f))
+							mat->Set(id, f);
 
 						float3 f3;
 						if(Read(jsonMat, propName.c_str(), f3))
@@ -336,7 +340,7 @@ namespace Tracer
 
 						std::string s;
 						if(Read(jsonMat, (propName + Key_Map).c_str(), s))
-							mat->Set(id, TextureFile::Import(scene, s));
+							mat->Set(id, s.empty() ? nullptr : TextureFile::Import(scene, s));
 					}
 				}
 			}
@@ -638,16 +642,20 @@ namespace Tracer
 					Write(jsonMat, allocator, Key_Name, mat->Name());
 
 					// properties
-					for(size_t i = 0; i < magic_enum::enum_count<Material::PropertyIds>(); i++)
+					for(size_t i = 0; i < static_cast<size_t>(MaterialPropertyIds::_Count); i++)
 					{
-						const Material::PropertyIds id = static_cast<Material::PropertyIds>(i);
+						const MaterialPropertyIds id = static_cast<MaterialPropertyIds>(i);
 						const std::string propName = ToLower(ToString(id));
 
-						if(mat->IsColorEnabled(id))
-							Write(jsonMat, allocator, propName, mat->GetColor(id));
+						if(mat->IsFloatColorEnabled(id))
+							Write(jsonMat, allocator, propName, mat->FloatColor(id));
 
-						if(mat->IsTextureEnabled(id) && mat->GetTextureMap(id))
-							Write(jsonMat, allocator, propName + Key_Map, ReplaceAll(RelativeFilePath(mat->GetTextureMap(id)->Path()), "\\", "/"));
+						if(mat->IsRgbColorEnabled(id))
+							Write(jsonMat, allocator, propName, mat->RgbColor(id));
+
+						if(mat->IsTextureEnabled(id))
+							Write(jsonMat, allocator, propName + Key_Map,
+								  mat->TextureMap(id) ? ReplaceAll(RelativeFilePath(mat->TextureMap(id)->Path()), "\\", "/") : "");
 					}
 
 					// add mat to model material array

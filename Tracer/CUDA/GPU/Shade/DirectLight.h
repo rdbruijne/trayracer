@@ -33,18 +33,20 @@ __global__ void DirectLightKernel(DECLARE_KERNEL_PARAMS)
 	uint32_t seed = tea<2>(pathIx, params->sampleCount + pathLength + 1);
 
 	// fetch intersection info
-	const IntersectionAttributes attrib = GetIntersectionAttributes(instIx, primIx, bary);
+	Intersection intersection = {};
+	HitMaterial hitMaterial = {};
+	GetIntersectionAttributes(instIx, primIx, bary, intersection, hitMaterial);
 
 	// emissive
-	if(attrib.emissive.x + attrib.emissive.y + attrib.emissive.z > Epsilon)
+	if(hitMaterial.emissive.x + hitMaterial.emissive.y + hitMaterial.emissive.z > Epsilon)
 	{
 		// accounted for in Next Event
-		accumulator[pixelIx] += make_float4(attrib.emissive);
+		accumulator[pixelIx] += make_float4(hitMaterial.emissive);
 		return;
 	}
 
 	// new throughput
-	const float3 throughput = attrib.diffuse;
+	const float3 throughput = hitMaterial.diffuse;
 
 	// next event
 	const float3 I = O + D * tmax;
@@ -52,8 +54,8 @@ __global__ void DirectLightKernel(DECLARE_KERNEL_PARAMS)
 	float lightPdf;
 	float lightDist;
 	float3 lightRadiance;
-	const float3 L = SampleLight(seed, I, attrib.shadingNormal, lightProb, lightPdf, lightRadiance, lightDist);
-	const float NdotL = dot(L, attrib.shadingNormal);
+	const float3 L = SampleLight(seed, I, intersection.shadingNormal, lightProb, lightPdf, lightRadiance, lightDist);
+	const float NdotL = dot(L, intersection.shadingNormal);
 	if(NdotL > 0 && lightPdf > 0)
 	{
 		// fire shadow ray
@@ -66,7 +68,7 @@ __global__ void DirectLightKernel(DECLARE_KERNEL_PARAMS)
 	// denoiser data
 	if(pathLength == 0)
 	{
-		albedo[pixelIx] = make_float4(attrib.diffuse, 0);
-		normals[pixelIx] = make_float4(attrib.shadingNormal, 0);
+		albedo[pixelIx] = make_float4(hitMaterial.diffuse, 0);
+		normals[pixelIx] = make_float4(intersection.shadingNormal, 0);
 	}
 }

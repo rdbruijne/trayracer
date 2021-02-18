@@ -299,6 +299,12 @@
     <ClInclude Include="GUI\GuiWindow.h">
       <Filter>GUI</Filter>
     </ClInclude>
+    <ClInclude Include="CUDA\GPU\Shade\BSDF\Disney.h">
+      <Filter>CUDA\GPU\Shade\BSDF</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\GPU\Shade\BSDF\Microfacet.h">
+      <Filter>CUDA\GPU\Shade\BSDF</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Model.h">
@@ -315,6 +321,9 @@
     </None>
     <None Include="FileIO\BinaryFile.inl">
       <Filter>FileIO</Filter>
+    </None>
+    <None Include="Resources\Material.inl">
+      <Filter>Resources</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

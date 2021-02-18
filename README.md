@@ -34,6 +34,7 @@ Personal path tracer project.
 
 # Resources
 
+* [appleseed](https://github.com/appleseedhq/appleseed)
 * [Lighthouse2](https://github.com/jbikker/lighthouse2)
 * [OptiX 7 Course](https://github.com/ingowald/optix7course)
 * [PBRT](https://www.pbrt.org/)

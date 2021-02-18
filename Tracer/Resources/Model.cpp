@@ -227,7 +227,7 @@ namespace Tracer
 				emissiveChanged = true;
 				break;
 			}
-			const float3 em = mat->GetColor(Material::PropertyIds::Emissive);
+			const float3 em = mat->RgbColor(MaterialPropertyIds::Emissive);
 			if(em.x + em.y + em.z > Epsilon)
 				hasEmissiveMaterial = true;
 		}
@@ -247,7 +247,7 @@ namespace Tracer
 			const uint32_t matIx = mMaterialIndices[i];
 			const std::shared_ptr<Material>& mat = mMaterials[matIx];
 
-			const float3 em = mat->GetColor(Material::PropertyIds::Emissive);
+			const float3 em = mat->RgbColor(MaterialPropertyIds::Emissive);
 			if(em.x + em.y + em.z > Epsilon)
 			{
 				LightTriangle lt = {};

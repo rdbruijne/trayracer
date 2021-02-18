@@ -4,6 +4,7 @@
 #include "Common/CommonStructs.h"
 #include "Resources/Resource.h"
 #include "Resources/Texture.h"
+#include "Utility/Enum.h"
 #include "Utility/LinearMath.h"
 
 // C++
@@ -19,35 +20,44 @@ namespace Tracer
 		class Property : public Defilable
 		{
 		public:
+			enum class Flags
+			{
+				None		= 0x0,
+				ColorFloat	= 0x1,
+				ColorRgb	= 0x2,
+				TexMap		= 0x4
+			};
+
 			Property() = default;
-			explicit Property(bool colorEnabled, bool textureEnabled) : mColorEnabled(colorEnabled), mTextureEnabled(textureEnabled) {}
-			explicit Property(const float3& c) : mColorEnabled(true), mColor(c) {}
-			explicit Property(std::shared_ptr<Texture> t) : mTextureEnabled(true), mTexture(t) {}
-			explicit Property(const float3& c, std::shared_ptr<Texture> t) : mColorEnabled(true), mColor(c), mTextureEnabled(true), mTexture(t) {}
+			explicit inline Property(Flags flags);
+			explicit inline Property(float c, bool textureEnabled, float minVal = 0, float maxVal = 1);
+			explicit inline Property(const float3& c, bool textureEnabled);
 
 			Property& operator =(const Property& p);
 
-			// color
-			inline bool IsColorEnabled() const { return mColorEnabled; }
-			inline const float3& Color() const { return mColor; }
+			// float color
+			inline bool IsFloatColorEnabled() const;
+			inline float FloatColor() const;
+			inline float2 FloatColorRange() const;
+			void Set(float color);
+
+			// rgb color
+			inline bool IsRgbColorEnabled() const;
+			inline const float3& RgbColor() const;
 			void Set(const float3& color);
 
 			// texture map
-			inline bool IsTextureEnabled() const { return mTextureEnabled; }
-			inline std::shared_ptr<Texture> TextureMap() const { return mTexture; }
+			inline bool IsTextureEnabled() const;
+			inline std::shared_ptr<Texture> TextureMap() const;
 			void Set(std::shared_ptr<Texture> tex);
 
 			// build
 			void Build();
-			const CudaMaterialProperty& CudaProperty() const { return mCudaProperty; }
+			inline const CudaMaterialProperty& CudaProperty() const;
 
 		private:
-			// color
-			bool mColorEnabled = false;
+			Flags mFlags = Flags::None;
 			float3 mColor = make_float3(0.f);
-
-			// texture map
-			bool mTextureEnabled = false;
 			std::shared_ptr<Texture> mTexture = nullptr;
 
 			// build data
@@ -61,41 +71,43 @@ namespace Tracer
 
 		Material& operator =(const Material& t) = delete;
 
-		// properties
-		enum class PropertyIds
-		{
-			Diffuse,
-			Emissive,
-			Normal
-		};
+		// float color
+		inline bool IsFloatColorEnabled(MaterialPropertyIds id) const;
+		inline float FloatColor(MaterialPropertyIds id) const;
+		inline float2 FloatColorRange(MaterialPropertyIds id) const;
+		void Set(MaterialPropertyIds id, float color);
 
-		inline bool IsColorEnabled(PropertyIds id) { return mProperties[static_cast<size_t>(id)].IsColorEnabled(); }
-		inline const float3& GetColor(PropertyIds id) const { return mProperties[static_cast<size_t>(id)].Color(); }
-		void Set(PropertyIds id, const float3& color);
+		// rgb color
+		inline bool IsRgbColorEnabled(MaterialPropertyIds id) const;
+		inline const float3& RgbColor(MaterialPropertyIds id) const;
+		void Set(MaterialPropertyIds id, const float3& color);
 
-		inline bool IsTextureEnabled(PropertyIds id) { return mProperties[static_cast<size_t>(id)].IsTextureEnabled(); }
-		inline std::shared_ptr<Texture> GetTextureMap(PropertyIds id) const { return mProperties[static_cast<size_t>(id)].TextureMap(); }
-		void Set(PropertyIds id, std::shared_ptr<Texture> tex);
+		// texture
+		inline bool IsTextureEnabled(MaterialPropertyIds id) const;
+		inline std::shared_ptr<Texture> TextureMap(MaterialPropertyIds id) const;
+		void Set(MaterialPropertyIds id, std::shared_ptr<Texture> tex);
 
 		// info
-		bool EmissiveChanged() const { return mProperties[static_cast<size_t>(PropertyIds::Emissive)].IsDirty(); }
+		inline bool EmissiveChanged() const;
 
 		// build
 		void Build();
 
 		// build info
-		inline const CudaMatarial& CudaMaterial() const { return mCudaMaterial; }
+		inline const CudaMatarial& CudaMaterial() const;
 
 	private:
-		const Property& GetProperty(PropertyIds id) const { return mProperties[static_cast<size_t>(id)]; }
-		void SetProperty(PropertyIds id, const Property& prop);
+		inline const Property& GetProperty(MaterialPropertyIds id) const;
+		void SetProperty(MaterialPropertyIds id, const Property& prop);
 
-		std::array<Property, magic_enum::enum_count<Material::PropertyIds>()> mProperties = {};
+		std::array<Property, magic_enum::enum_count<Material::MaterialPropertyIds>()> mProperties = {};
 
 		// build data
 		std::mutex mBuildMutex;
 		CudaMatarial mCudaMaterial = {};
 	};
 
-	std::string ToString(Material::PropertyIds id);
+	ENUM_BITWISE_OPERATORS(Material::Property::Flags);
 }
+
+#include "Material.inl"

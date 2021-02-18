@@ -23,11 +23,12 @@
 // C++
 #include <filesystem>
 
+#define MODEL_CACHE_ENABLED		true
 #define MODEL_CHACHE_ID_0		'M'
 #define MODEL_CHACHE_ID_1		'D'
 #define MODEL_CHACHE_ID_2		'L'
 #define MODEL_CACHE_ID			{ MODEL_CHACHE_ID_0, MODEL_CHACHE_ID_1, MODEL_CHACHE_ID_2 }
-#define MODEL_CACHE_VERSION		1
+#define MODEL_CACHE_VERSION		2
 
 
 
@@ -75,13 +76,15 @@ namespace Tracer
 			for(const std::shared_ptr<Material>& mat : materials)
 			{
 				f.Write(mat->Name());
-				for(size_t i = 0; i < magic_enum::enum_count<Material::PropertyIds>(); i++)
+				for(size_t i = 0; i < static_cast<size_t>(MaterialPropertyIds::_Count); i++)
 				{
-					const Material::PropertyIds id = static_cast<Material::PropertyIds>(i);
-					if(mat->IsColorEnabled(id))
-						f.Write(mat->GetColor(id));
+					const MaterialPropertyIds id = static_cast<MaterialPropertyIds>(i);
+					if(mat->IsFloatColorEnabled(id))
+						f.Write(mat->FloatColor(id));
+					if(mat->IsRgbColorEnabled(id))
+						f.Write(mat->RgbColor(id));
 					if(mat->IsTextureEnabled(id))
-						f.Write(mat->GetTextureMap(id) ? mat->GetTextureMap(id)->Path() : "");
+						f.Write(mat->TextureMap(id) ? mat->TextureMap(id)->Path() : "");
 				}
 			}
 
@@ -136,11 +139,14 @@ namespace Tracer
 				const std::string matName = f.Read<std::string>();
 				std::shared_ptr<Material> mat = std::make_shared<Material>(matName);
 
-				for(size_t propIx = 0; propIx < magic_enum::enum_count<Material::PropertyIds>(); propIx++)
+				for(size_t propIx = 0; propIx < static_cast<size_t>(MaterialPropertyIds::_Count); propIx++)
 				{
-					const Material::PropertyIds id = static_cast<Material::PropertyIds>(propIx);
+					const MaterialPropertyIds id = static_cast<MaterialPropertyIds>(propIx);
 
-					if(mat->IsColorEnabled(id))
+					if(mat->IsFloatColorEnabled(id))
+						mat->Set(id, f.Read<float>());
+
+					if(mat->IsRgbColorEnabled(id))
 						mat->Set(id, f.Read<float3>());
 
 					if(mat->IsTextureEnabled(id))
@@ -177,63 +183,63 @@ namespace Tracer
 			aiColor3D c3;
 
 			//if (!aMat->Get(AI_MATKEY_OPACITY, r))
-			//	mat->Set(Material::PropertyIds::Opacity, make_float3(r));
+			//	mat->Set(MaterialPropertyIds::Opacity, make_float3(r));
 
 			//if (!aMat->Get(AI_MATKEY_SHININESS, r))
-			//	mat->Set(Material::PropertyIds::Shininess, make_float3(r));
+			//	mat->Set(MaterialPropertyIds::Shininess, make_float3(r));
 
 			//if (!aMat->Get(AI_MATKEY_REFRACTI, r))
-			//	mat->Set(Material::PropertyIds::RefractI, make_float3(r));
+			//	mat->Set(MaterialPropertyIds::RefractI, make_float3(r));
 
 			if (!aMat->Get(AI_MATKEY_COLOR_DIFFUSE, c3))
-				mat->Set(Material::PropertyIds::Diffuse, make_float3(c3.r, c3.g, c3.b));
+				mat->Set(MaterialPropertyIds::Diffuse, make_float3(c3.r, c3.g, c3.b));
 
 			//if (!aMat->Get(AI_MATKEY_COLOR_SPECULAR, c3))
-			//	mat->Set(Material::PropertyIds::Specular, make_float3(c3.r, c3.g, c3.b));
+			//	mat->Set(MaterialPropertyIds::Specular, make_float3(c3.r, c3.g, c3.b));
 
 			if (!aMat->Get(AI_MATKEY_COLOR_EMISSIVE, c3))
-				mat->Set(Material::PropertyIds::Emissive, make_float3(c3.r, c3.g, c3.b));
+				mat->Set(MaterialPropertyIds::Emissive, make_float3(c3.r, c3.g, c3.b));
 
 			//if (!aMat->Get(AI_MATKEY_COLOR_TRANSPARENT, c3))
-			//	mat->Set(Material::PropertyIds::Transparent, make_float3(c3.r, c3.g, c3.b));
+			//	mat->Set(MaterialPropertyIds::Transparent, make_float3(c3.r, c3.g, c3.b));
 
 			// parse textures
 			aiString texPath;
 			if(aMat->GetTexture(aiTextureType_DIFFUSE, 0, &texPath) == aiReturn_SUCCESS)
-				mat->Set(Material::PropertyIds::Diffuse, TextureFile::Import(scene, texPath.C_Str(), importDir));
+				mat->Set(MaterialPropertyIds::Diffuse, TextureFile::Import(scene, texPath.C_Str(), importDir));
 
 			//if(aMat->GetTexture(aiTextureType_SPECULAR, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->Set(Material::PropertyIds::Specular, TextureFile::Import(scene, texPath.C_Str(), importDir));
+			//	mat->Set(MaterialPropertyIds::Specular, TextureFile::Import(scene, texPath.C_Str(), importDir));
 
 			//if(aMat->GetTexture(aiTextureType_EMISSIVE, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->Set(Material::PropertyIds::Emissive, TextureFile::Import(scene, texPath.C_Str(), importDir));
+			//	mat->Set(MaterialPropertyIds::Emissive, TextureFile::Import(scene, texPath.C_Str(), importDir));
 
 			//if(aMat->GetTexture(aiTextureType_HEIGHT, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->Set(Material::PropertyIds::Height, TextureFile::Import(scene, texPath.C_Str(), importDir));
+			//	mat->Set(MaterialPropertyIds::Height, TextureFile::Import(scene, texPath.C_Str(), importDir));
 
 			if(aMat->GetTexture(aiTextureType_NORMALS, 0, &texPath) == aiReturn_SUCCESS)
-				mat->Set(Material::PropertyIds::Normal, TextureFile::Import(scene, texPath.C_Str(), importDir));
+				mat->Set(MaterialPropertyIds::Normal, TextureFile::Import(scene, texPath.C_Str(), importDir));
 
 			//if(aMat->GetTexture(aiTextureType_SHININESS, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->Set(Material::PropertyIds::Shininess, TextureFile::Import(scene, texPath.C_Str(), importDir));
+			//	mat->Set(MaterialPropertyIds::Shininess, TextureFile::Import(scene, texPath.C_Str(), importDir));
 
 			//if(aMat->GetTexture(aiTextureType_OPACITY, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->Set(Material::PropertyIds::Opacity, TextureFile::Import(scene, texPath.C_Str(), importDir));
+			//	mat->Set(MaterialPropertyIds::Opacity, TextureFile::Import(scene, texPath.C_Str(), importDir));
 
 			//if(aMat->GetTexture(aiTextureType_DISPLACEMENT, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->Set(Material::PropertyIds::Displacement, TextureFile::Import(scene, texPath.C_Str(), importDir));
+			//	mat->Set(MaterialPropertyIds::Displacement, TextureFile::Import(scene, texPath.C_Str(), importDir));
 
 			//if(aMat->GetTexture(aiTextureType_BASE_COLOR, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->Set(Material::PropertyIds::BaseColor, TextureFile::Import(scene, texPath.C_Str(), importDir));
+			//	mat->Set(MaterialPropertyIds::BaseColor, TextureFile::Import(scene, texPath.C_Str(), importDir));
 
 			//if(aMat->GetTexture(aiTextureType_EMISSION_COLOR, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->Set(Material::PropertyIds::EmissionColor, TextureFile::Import(scene, texPath.C_Str(), importDir));
+			//	mat->Set(MaterialPropertyIds::EmissionColor, TextureFile::Import(scene, texPath.C_Str(), importDir));
 
 			//if(aMat->GetTexture(aiTextureType_METALNESS, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->Set(Material::PropertyIds::Metalness, TextureFile::Import(scene, texPath.C_Str(), importDir));
+			//	mat->Set(MaterialPropertyIds::Metalness, TextureFile::Import(scene, texPath.C_Str(), importDir));
 
 			//if(aMat->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->Set(Material::PropertyIds::DiffuseRoughness, TextureFile::Import(scene, texPath.C_Str(), importDir));
+			//	mat->Set(MaterialPropertyIds::DiffuseRoughness, TextureFile::Import(scene, texPath.C_Str(), importDir));
 
 			return mat;
 		}
@@ -313,12 +319,16 @@ namespace Tracer
 	{
 		Stopwatch sw;
 		const std::string globalPath = GlobalPath(filePath);
-		std::shared_ptr<Model> model = LoadFromCache(scene, globalPath, name);
-		if(model)
+
+
+#if MODEL_CACHE_ENABLED
+		// check the cache
+		if(std::shared_ptr<Model> model = LoadFromCache(scene, globalPath, name))
 		{
 			Logger::Info("Loaded \"%s\" from cache in %s", globalPath.c_str(), sw.ElapsedString().c_str());
 			return model;
 		}
+#endif
 
 		const std::string importDir = Directory(globalPath);
 
@@ -392,7 +402,7 @@ namespace Tracer
 		}
 
 		// create model
-		model = std::make_shared<Model>(globalPath, name);
+		std::shared_ptr<Model> model = std::make_shared<Model>(globalPath, name);
 
 		// import materials
 		std::map<std::string, std::shared_ptr<Texture>> textures;
@@ -413,9 +423,11 @@ namespace Tracer
 		Logger::Debug("  Textures : %s", ThousandSeparators(textures.size()).c_str());
 		Logger::Debug("  Polygons : %s", ThousandSeparators(polyCount).c_str());
 
+#if MODEL_CACHE_ENABLED
 		sw.Reset();
 		SaveToCache(model, globalPath);
 		Logger::Debug("Saved \"%s\" to cache in %s", globalPath.c_str(), sw.ElapsedString().c_str());
+#endif
 
 		return model;
 	}

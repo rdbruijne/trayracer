@@ -7,22 +7,27 @@ namespace Tracer
 	//----------------------------------------------------------------------------------------------------------------------------
 	Material::Property& Material::Property::operator =(const Property& p)
 	{
-		// color
-		mColorEnabled = p.mColorEnabled;
+		mFlags = p.mFlags;
 		mColor = p.mColor;
-
-		// texture map
-		mTextureEnabled = p.mTextureEnabled;
 		mTexture = p.mTexture;
-
+		MarkDirty();
 		return *this;
+	}
+
+
+
+	void Material::Property::Set(float color)
+	{
+		assert(IsFloatColorEnabled());
+		mColor.x = color;
+		MarkDirty();
 	}
 
 
 
 	void Material::Property::Set(const float3& color)
 	{
-		assert(mColorEnabled);
+		assert(IsRgbColorEnabled());
 		mColor = color;
 		MarkDirty();
 	}
@@ -31,7 +36,7 @@ namespace Tracer
 
 	void Material::Property::Set(std::shared_ptr<Texture> tex)
 	{
-		assert(mTextureEnabled);
+		assert(IsTextureEnabled());
 		mTexture = tex;
 		MarkDirty();
 	}
@@ -55,8 +60,8 @@ namespace Tracer
 		mCudaProperty.g = __float2half(mColor.y);
 		mCudaProperty.b = __float2half(mColor.z);
 		mCudaProperty.textureMap = mTexture ? mTexture->CudaObject() : 0;
-		mCudaProperty.useColor = mColorEnabled ? 1 : 0;
-		mCudaProperty.useTexture = mTextureEnabled ? 1 : 0;
+		mCudaProperty.useColor   = (IsFloatColorEnabled() || IsRgbColorEnabled()) ? 1 : 0;
+		mCudaProperty.useTexture = IsTextureEnabled() ? 1 : 0;
 
 		// mark clean
 		MarkClean();
@@ -71,14 +76,24 @@ namespace Tracer
 		Resource(name)
 	{
 		// set defaults
-		SetProperty(PropertyIds::Diffuse, Property(true, true));
-		SetProperty(PropertyIds::Emissive, Property(true, false));
-		SetProperty(PropertyIds::Normal, Property(false, true));
+		SetProperty(MaterialPropertyIds::Anisotropic,     Property(0, true));
+		SetProperty(MaterialPropertyIds::Clearcoat,       Property(0, true));
+		SetProperty(MaterialPropertyIds::ClearcoatGloss,  Property(0, true));
+		SetProperty(MaterialPropertyIds::Diffuse,         Property(make_float3(1), true));
+		SetProperty(MaterialPropertyIds::Emissive,        Property(make_float3(0), false));
+		SetProperty(MaterialPropertyIds::Metallic,        Property(0, true));
+		SetProperty(MaterialPropertyIds::Normal,          Property(Property::Flags::TexMap));
+		SetProperty(MaterialPropertyIds::Roughness,       Property(1, true));
+		SetProperty(MaterialPropertyIds::Sheen,           Property(0, true));
+		SetProperty(MaterialPropertyIds::SheenTint,       Property(0, true));
+		SetProperty(MaterialPropertyIds::Specular,        Property(0, true));
+		SetProperty(MaterialPropertyIds::SpecularTint,    Property(0, true));
+		SetProperty(MaterialPropertyIds::Subsurface,      Property(0, true));
 	}
 
 
 
-	void Material::Set(PropertyIds id, const float3& color)
+	void Material::Set(MaterialPropertyIds id, float color)
 	{
 		mProperties[static_cast<size_t>(id)].Set(color);
 		MarkDirty();
@@ -86,7 +101,15 @@ namespace Tracer
 
 
 
-	void Material::Set(PropertyIds id, std::shared_ptr<Texture> tex)
+	void Material::Set(MaterialPropertyIds id, const float3& color)
+	{
+		mProperties[static_cast<size_t>(id)].Set(color);
+		MarkDirty();
+	}
+
+
+
+	void Material::Set(MaterialPropertyIds id, std::shared_ptr<Texture> tex)
 	{
 		const size_t szId = static_cast<size_t>(id);
 		RemoveDependency(mProperties[szId].TextureMap());
@@ -106,14 +129,13 @@ namespace Tracer
 			return;
 
 		// build properties
-		for(size_t i = 0; i < magic_enum::enum_count<Material::PropertyIds>(); i++)
+		for(size_t i = 0; i < static_cast<size_t>(MaterialPropertyIds::_Count); i++)
 			if(mProperties[i].IsDirty())
 				mProperties[i].Build();
 
 		// assign properties
-		mCudaMaterial.diffuse = mProperties[static_cast<size_t>(PropertyIds::Diffuse)].CudaProperty();
-		mCudaMaterial.emissive = mProperties[static_cast<size_t>(PropertyIds::Emissive)].CudaProperty();
-		mCudaMaterial.normal = mProperties[static_cast<size_t>(PropertyIds::Normal)].CudaProperty();
+		for(size_t i = 0; i < static_cast<size_t>(MaterialPropertyIds::_Count); i++)
+			mCudaMaterial.properties[i] = mProperties[i].CudaProperty();
 
 		// mark clean
 		MarkClean();
@@ -121,18 +143,11 @@ namespace Tracer
 
 
 
-	std::string ToString(Material::PropertyIds id)
-	{
-		return std::string(magic_enum::enum_name(id));
-	}
-
-
-
-	void Material::SetProperty(PropertyIds id, const Property& prop)
+	void Material::SetProperty(MaterialPropertyIds id, const Property& prop)
 	{
 		const size_t szId = static_cast<size_t>(id);
 		RemoveDependency(mProperties[szId].TextureMap());
-		mProperties[static_cast<size_t>(id)] = std::move(prop);
+		mProperties[static_cast<size_t>(id)] = prop;
 		AddDependency(mProperties[szId].TextureMap());
 		MarkDirty();
 	}

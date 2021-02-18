@@ -184,7 +184,7 @@ namespace Tracer
 		}
 
 		// update launch params
-		mLaunchParams.rayGenMode = RayGen_Primary;
+		mLaunchParams.rayGenMode = RayGenModes::Primary;
 		mLaunchParams.renderMode = mRenderMode;
 		mLaunchParamsBuffer.Upload(&mLaunchParams);
 		SetCudaLaunchParams(mLaunchParamsBuffer.Ptr<LaunchParams>());
@@ -211,7 +211,7 @@ namespace Tracer
 			else if(pathCount > 0)
 			{
 				// bounce
-				mLaunchParams.rayGenMode = RayGen_Secondary;
+				mLaunchParams.rayGenMode = RayGenModes::Secondary;
 				mLaunchParamsBuffer.Upload(&mLaunchParams);
 				if(pathLength == 1)
 					mRenderStats.secondaryPathCount = pathCount;
@@ -239,7 +239,7 @@ namespace Tracer
 			{
 				// fire shadow rays
 				mShadowTimeEvents[pathLength].Start(mStream);
-				mLaunchParams.rayGenMode = RayGen_Shadow;
+				mLaunchParams.rayGenMode = RayGenModes::Shadow;
 				mLaunchParamsBuffer.Upload(&mLaunchParams);
 				OPTIX_CHECK(optixLaunch(mPipeline, mStream, mLaunchParamsBuffer.DevicePtr(), mLaunchParamsBuffer.Size(),
 										&mShaderBindingTable, counters.shadowRays, 1, 1));
@@ -346,7 +346,7 @@ namespace Tracer
 
 		// update timings
 		mRenderStats.primaryPathTimeMs = mTraceTimeEvents[0].Elapsed();
-		mRenderStats.secondaryPathTimeMs = mTraceTimeEvents[1].Elapsed();
+		mRenderStats.secondaryPathTimeMs = mLaunchParams.maxDepth > 1 ? mTraceTimeEvents[1].Elapsed() : 0;
 		for(int i = 2; i < mLaunchParams.maxDepth; i++)
 			mRenderStats.deepPathTimeMs += mTraceTimeEvents[i].Elapsed();
 		for(int i = 0; i < mLaunchParams.maxDepth; i++)
@@ -401,7 +401,7 @@ namespace Tracer
 		resultBuffer.Alloc(sizeof(RayPickResult));
 
 		// set ray pick specific launch param options
-		mLaunchParams.rayGenMode    = RayGen_RayPick;
+		mLaunchParams.rayGenMode    = RayGenModes::RayPick;
 		mLaunchParams.rayPickPixel  = pixelIndex;
 		mLaunchParams.rayPickResult = resultBuffer.Ptr<RayPickResult>();
 

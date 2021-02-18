@@ -137,6 +137,7 @@ namespace Tracer
 			void Stop(cudaStream_t stream = nullptr);
 
 			float Elapsed() const;
+
 		private:
 			cudaEvent_t mStart = nullptr;
 			cudaEvent_t mEnd = nullptr;

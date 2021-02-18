@@ -26,6 +26,10 @@ __global__ void TextureCoordinateKernel(DECLARE_KERNEL_PARAMS)
 		return;
 
 	// fetch intersection info
-	const IntersectionAttributes attrib = GetIntersectionAttributes(instIx, primIx, bary);
-	accumulator[pixelIx] += make_float4(attrib.texcoordX, attrib.texcoordY, 0, 0);
+	Intersection intersection = {};
+	HitMaterial hitMaterial = {};
+	GetIntersectionAttributes(instIx, primIx, bary, intersection, hitMaterial);
+
+	// set result
+	accumulator[pixelIx] += make_float4(intersection.texcoordX, intersection.texcoordY, 0, 0);
 }

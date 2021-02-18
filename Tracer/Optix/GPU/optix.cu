@@ -22,6 +22,16 @@ constexpr float PiOver4 = 0.78539816339f;
 
 
 
+enum RayTypes
+{
+	RayType_Surface = 0,
+	RayType_Shadow,
+
+	RayType_Count
+};
+
+
+
 //------------------------------------------------------------------------------------------------------------------------------
 // Barycentrics
 //------------------------------------------------------------------------------------------------------------------------------
@@ -221,7 +231,7 @@ void __raygen__()
 
 	switch(params.rayGenMode)
 	{
-	case RayGen_Primary:
+	case RayGenModes::Primary:
 		{
 			const int pixelIx = launchIndex.x + (launchIndex.y * launchDims.x);
 			const int pathIx = pixelIx + (launchIndex.z * launchDims.x * launchDims.y);
@@ -264,7 +274,7 @@ void __raygen__()
 		}
 		break;
 
-	case RayGen_Secondary:
+	case RayGenModes::Secondary:
 		{
 			const int rayIx = launchIndex.x + (launchIndex.y * launchDims.x);
 
@@ -302,7 +312,7 @@ void __raygen__()
 		}
 		break;
 
-	case RayGen_Shadow:
+	case RayGenModes::Shadow:
 		{
 			const int rayIx = launchIndex.x + (launchIndex.y * launchDims.x);
 
@@ -332,7 +342,7 @@ void __raygen__()
 		}
 		break;
 
-	case RayGen_RayPick:
+	case RayGenModes::RayPick:
 		{
 			// generate ray
 			uint32_t seed = 0;

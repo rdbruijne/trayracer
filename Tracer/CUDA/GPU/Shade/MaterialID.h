@@ -26,6 +26,10 @@ __global__ void MaterialIDKernel(DECLARE_KERNEL_PARAMS)
 		return;
 
 	// fetch intersection info
-	const IntersectionAttributes attrib = GetIntersectionAttributes(instIx, primIx, bary);
-	accumulator[pixelIx] += make_float4(IdToColor(attrib.matIx + 1), 0);
+	Intersection intersection = {};
+	HitMaterial hitMaterial = {};
+	GetIntersectionAttributes(instIx, primIx, bary, intersection, hitMaterial);
+
+	// set result
+	accumulator[pixelIx] += make_float4(IdToColor(intersection.matIx + 1), 0);
 }

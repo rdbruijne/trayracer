@@ -15,6 +15,7 @@
 // C++
 #include <filesystem>
 
+#define TEXTURE_CACHE_ENABLED		true
 #define TEXTURE_CHACHE_ID_0			'T'
 #define TEXTURE_CHACHE_ID_1			'E'
 #define TEXTURE_CHACHE_ID_2			'X'
@@ -117,14 +118,16 @@ namespace Tracer
 		if(std::shared_ptr<Texture> tex = scene->GetTexture(globalPath))
 			return tex;
 
-		// check the cache
 		Stopwatch sw;
-		std::shared_ptr<Texture> tex = LoadFromCache(scene, globalPath, importDir);
-		if(tex)
+
+#if TEXTURE_CACHE_ENABLED
+		// check the cache
+		if(std::shared_ptr<Texture> tex = LoadFromCache(scene, globalPath, importDir))
 		{
 			Logger::Info("Loaded \"%s\" from cache in %s", globalPath.c_str(), sw.ElapsedString().c_str());
 			return tex;
 		}
+#endif
 
 		// load image
 		FREE_IMAGE_FORMAT fif = FreeImage_GetFileType(globalPath.c_str(), 0);
@@ -150,12 +153,14 @@ namespace Tracer
 		FreeImage_Unload(dib);
 
 		// create texture
-		tex = std::make_shared<Texture>(globalPath, make_int2(width, height), pixels);
+		std::shared_ptr<Texture> tex = std::make_shared<Texture>(globalPath, make_int2(width, height), pixels);
 		Logger::Info("Imported \"%s\" in %s", globalPath.c_str(), sw.ElapsedString().c_str());
 
+#if TEXTURE_CACHE_ENABLED
 		sw.Reset();
 		SaveToCache(tex, globalPath);
 		Logger::Debug("Saved \"%s\" to cache in %s", globalPath.c_str(), sw.ElapsedString().c_str());
+#endif
 
 		return tex;
 	}

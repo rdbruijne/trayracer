@@ -6,8 +6,6 @@
 // CUDA
 #include "CUDA/random.h"
 
-
-
 //------------------------------------------------------------------------------------------------------------------------------
 // Colors
 //------------------------------------------------------------------------------------------------------------------------------
@@ -30,12 +28,36 @@ inline float3 IdToColor(uint32_t id)
 
 
 
+static __device__
+inline float3 LinearRGBToCIEXYZ(const float3& rgb)
+{
+	return make_float3(
+		max(0.0f, 0.412453f * rgb.x + 0.357580f * rgb.y + 0.180423f * rgb.z),
+		max(0.0f, 0.212671f * rgb.x + 0.715160f * rgb.y + 0.072169f * rgb.z),
+		max(0.0f, 0.019334f * rgb.x + 0.119193f * rgb.y + 0.950227f * rgb.z));
+}
+
+
+
+static __device__
+inline float3 CIEXYZToLinearRGB(const float3& xyz)
+{
+	return make_float3(
+		max(0.0f,  3.240479f * xyz.x - 1.537150f * xyz.y - 0.498535f * xyz.z),
+		max(0.0f, -0.969256f * xyz.x + 1.875992f * xyz.y + 0.041556f * xyz.z),
+		max(0.0f,  0.055648f * xyz.x - 0.204043f * xyz.y + 1.057311f * xyz.z));
+}
+
+
+
 //------------------------------------------------------------------------------------------------------------------------------
 // Material property
 //------------------------------------------------------------------------------------------------------------------------------
 static __device__
-inline float3 GetColor(const CudaMaterialProperty& prop, float2 uv)
+inline float3 GetColor(const CudaMatarial& mat, MaterialPropertyIds propId, const float2& uv)
 {
+	const CudaMaterialProperty& prop = mat.properties[static_cast<size_t>(propId)];
+
 	float3 result = make_float3(0);
 	if(prop.useColor != 0)
 		result = make_float3(__half2float(prop.r), __half2float(prop.g), __half2float(prop.b));
@@ -78,7 +100,7 @@ inline float2 DecodeBarycentrics(uint32_t barycentrics)
 //------------------------------------------------------------------------------------------------------------------------------
 // Intersection
 //------------------------------------------------------------------------------------------------------------------------------
-struct IntersectionAttributes
+struct Intersection
 {
 	float3 geometricNormal;
 	float texcoordX;
@@ -91,21 +113,39 @@ struct IntersectionAttributes
 
 	float3 bitangent;
 	float area;
+};
 
+
+
+// #TODO: Pack material properties
+struct HitMaterial
+{
 	float3 diffuse;
-	float pad3;
+	float metallic;
 
 	float3 emissive;
-	float pad4;
+	float subsurface;
+
+	float3 tint;
+	float specular;
+
+	float roughness;
+	float specularTint;
+	float anisotropic;
+	float sheen;
+
+	float sheenTint;
+	float clearcoat;
+	float clearcoatGloss;
+	float luminance;
 };
 
 
 
 static __device__
-inline IntersectionAttributes GetIntersectionAttributes(uint32_t instIx, uint32_t primIx, float2 bary)
+inline void GetIntersectionAttributes(uint32_t instIx, uint32_t primIx, float2 bary, Intersection& intersection, HitMaterial& hitMaterial)
 {
 	// #TODO: apply instance transform
-	IntersectionAttributes attrib = {};
 
 	// fetch triangle
 	const CudaMeshData& md = meshData[instIx];
@@ -113,15 +153,15 @@ inline IntersectionAttributes GetIntersectionAttributes(uint32_t instIx, uint32_
 
 	// set material index
 	const uint32_t modelIx = modelIndices[instIx];
-	attrib.matIx = md.materialIndices[primIx] + materialOffsets[modelIx];
+	intersection.matIx = md.materialIndices[primIx] + materialOffsets[modelIx];
 
 	// texcoords
 	const float2 uv0 = make_float2(__half2float(tri.uv0x), __half2float(tri.uv0y));
 	const float2 uv1 = make_float2(__half2float(tri.uv1x), __half2float(tri.uv1y));
 	const float2 uv2 = make_float2(__half2float(tri.uv2x), __half2float(tri.uv2y));
 	const float2 texcoord = Barycentric(bary, uv0, uv1, uv2);
-	attrib.texcoordX = texcoord.x;
-	attrib.texcoordY = texcoord.y;
+	intersection.texcoordX = texcoord.x;
+	intersection.texcoordY = texcoord.y;
 
 	// edges
 	const float3 v0 = make_float3(tri.v0x, tri.v0y, tri.v0z);
@@ -129,14 +169,14 @@ inline IntersectionAttributes GetIntersectionAttributes(uint32_t instIx, uint32_
 	const float3 v2 = make_float3(tri.v2x, tri.v2y, tri.v2z);
 	const float3 e1 = v1 - v0;
 	const float3 e2 = v2 - v0;
-	attrib.area = length(cross(e1, e2)) * 0.5f;
+	intersection.area = length(cross(e1, e2)) * 0.5f;
 
 	// normals
 	const float3 N0 = make_float3(__half2float(tri.N0x), __half2float(tri.N0y), __half2float(tri.N0z));
 	const float3 N1 = make_float3(__half2float(tri.N1x), __half2float(tri.N1y), __half2float(tri.N1z));
 	const float3 N2 = make_float3(__half2float(tri.N2x), __half2float(tri.N2y), __half2float(tri.N2z));
-	attrib.shadingNormal = normalize(Barycentric(bary, N0, N1, N2));
-	attrib.geometricNormal = make_float3(__half2float(tri.Nx), __half2float(tri.Ny), __half2float(tri.Nz));
+	intersection.shadingNormal = normalize(Barycentric(bary, N0, N1, N2));
+	intersection.geometricNormal = make_float3(__half2float(tri.Nx), __half2float(tri.Ny), __half2float(tri.Nz));
 
 	// calculate tangents
 	const float s1 = __half2float(tri.uv1x - tri.uv0x);
@@ -149,8 +189,8 @@ inline IntersectionAttributes GetIntersectionAttributes(uint32_t instIx, uint32_
 
 	if(fabsf(r) < 1e-6f)
 	{
-		attrib.bitangent = normalize(cross(attrib.shadingNormal, e1));
-		attrib.tangent   = normalize(cross(attrib.shadingNormal, attrib.bitangent));
+		intersection.bitangent = normalize(cross(intersection.shadingNormal, e1));
+		intersection.tangent   = normalize(cross(intersection.shadingNormal, intersection.bitangent));
 	}
 	else
 	{
@@ -158,23 +198,36 @@ inline IntersectionAttributes GetIntersectionAttributes(uint32_t instIx, uint32_
 		const float3 s = ((t2 * e1) - (t1 * e2)) * rr;
 		const float3 t = ((s1 * e2) - (s2 * e1)) * rr;
 
-		attrib.bitangent = normalize(t - attrib.shadingNormal * dot(attrib.shadingNormal, t));
-		attrib.tangent   = normalize(cross(attrib.shadingNormal, attrib.bitangent));
+		intersection.bitangent = normalize(t - intersection.shadingNormal * dot(intersection.shadingNormal, t));
+		intersection.tangent   = normalize(cross(intersection.shadingNormal, intersection.bitangent));
 	}
 
 	// material
-	const CudaMatarial& mat = materialData[attrib.matIx];
+	const CudaMatarial& mat = materialData[intersection.matIx];
 
-	// diffuse
-	attrib.diffuse  = GetColor(mat.diffuse, texcoord);
-	attrib.emissive = GetColor(mat.emissive, texcoord);
-	const float3 normalMap = GetColor(mat.normal, texcoord);
+	hitMaterial.diffuse        = GetColor(mat, MaterialPropertyIds::Diffuse, texcoord);
+	const float3 tintXYZ       = LinearRGBToCIEXYZ(hitMaterial.diffuse);
+
+	hitMaterial.metallic       = GetColor(mat, MaterialPropertyIds::Metallic, texcoord).x;
+	hitMaterial.emissive       = GetColor(mat, MaterialPropertyIds::Emissive, texcoord);
+	hitMaterial.subsurface     = GetColor(mat, MaterialPropertyIds::Subsurface, texcoord).x;
+	hitMaterial.tint           = tintXYZ.y > 0 ? CIEXYZToLinearRGB(tintXYZ * (1.f / tintXYZ.y)) : make_float3(1);
+	hitMaterial.specular       = GetColor(mat, MaterialPropertyIds::Specular, texcoord).x;
+	hitMaterial.roughness      = GetColor(mat, MaterialPropertyIds::Roughness, texcoord).x;
+	hitMaterial.specularTint   = GetColor(mat, MaterialPropertyIds::SpecularTint, texcoord).x;
+	hitMaterial.anisotropic    = GetColor(mat, MaterialPropertyIds::Anisotropic, texcoord).x;
+	hitMaterial.sheen          = GetColor(mat, MaterialPropertyIds::Sheen, texcoord).x;
+	hitMaterial.sheenTint      = GetColor(mat, MaterialPropertyIds::SheenTint, texcoord).x;
+	hitMaterial.clearcoat      = GetColor(mat, MaterialPropertyIds::Clearcoat, texcoord).x;
+	hitMaterial.clearcoatGloss = GetColor(mat, MaterialPropertyIds::ClearcoatGloss, texcoord).x;
+	hitMaterial.luminance      = tintXYZ.y;
 
 	// apply normal map
+	const float3 normalMap = GetColor(mat, MaterialPropertyIds::Normal, texcoord);
 	if(normalMap.x > 0.f || normalMap.y > 0.f || normalMap.z > 0.f)
 	{
 		const float3 norMap = (normalMap * 2.f) - make_float3(1.f);
-		attrib.shadingNormal = normalize(norMap.x * attrib.tangent + norMap.y * attrib.bitangent + norMap.z * attrib.shadingNormal);
+		intersection.shadingNormal = normalize(norMap.x * intersection.tangent + norMap.y * intersection.bitangent + norMap.z * intersection.shadingNormal);
 	}
 
 	// object -> worldspace
@@ -182,12 +235,10 @@ inline IntersectionAttributes GetIntersectionAttributes(uint32_t instIx, uint32_
 	const float4 ty = invInstTransforms[(instIx * 3) + 1];
 	const float4 tz = invInstTransforms[(instIx * 3) + 2];
 
-	attrib.shadingNormal   = normalize(transform(tx, ty, tz, attrib.shadingNormal));
-	attrib.geometricNormal = normalize(transform(tx, ty, tz, attrib.geometricNormal));
-	attrib.bitangent       = normalize(transform(tx, ty, tz, attrib.bitangent));
-	attrib.tangent         = normalize(transform(tx, ty, tz, attrib.tangent));
-
-	return attrib;
+	intersection.shadingNormal   = normalize(transform(tx, ty, tz, intersection.shadingNormal));
+	intersection.geometricNormal = normalize(transform(tx, ty, tz, intersection.geometricNormal));
+	intersection.bitangent       = normalize(transform(tx, ty, tz, intersection.bitangent));
+	intersection.tangent         = normalize(transform(tx, ty, tz, intersection.tangent));
 }
 
 
@@ -218,29 +269,79 @@ inline void ONB(const float3 normal, float3& tangent, float3& bitangent)
 
 
 //------------------------------------------------------------------------------------------------------------------------------
-// Sampling
+// Space transformations
 //------------------------------------------------------------------------------------------------------------------------------
 static __device__
-inline float3 SampleCosineHemisphere(float u, float v)
+inline float3 WorldToTangent(const float3& V, const float3& N, const float3& T, const float3& B)
 {
-	// uniform sample disk
-	const float r = sqrtf(u);
-	const float phi = 2.f * Pi * v;
-	const float x = r * cosf(phi);
-	const float y = r * sinf(phi);
-	const float z = sqrtf(fmaxf(0.f, 1.f - x*x - y*y));
-	return make_float3(x, y, z);
+	return make_float3(dot(V, T), dot(V, B), dot(V, N));
 }
 
 
 
 static __device__
-inline float3 SampleCosineHemisphere(const float3& normal, float u, float v)
+inline float3 WorldToTangent(const float3& V, const float3& N)
+{
+	float3 T, B;
+	ONB(N, T, B);
+	return WorldToTangent(V, N, T, B);
+}
+
+
+
+static __device__
+inline float3 TangentToWorld(const float3& V, const float3& N, const float3& T, const float3& B)
+{
+	return (V.x * T) + (V.y * B) + (V.z * N);
+}
+
+
+
+static __device__
+inline float3 TangentToWorld(const float3& V, const float3& N)
+{
+	float3 T, B;
+	ONB(N, T, B);
+	return TangentToWorld(V, N, T, B);
+}
+
+
+
+//------------------------------------------------------------------------------------------------------------------------------
+// Sampling
+//------------------------------------------------------------------------------------------------------------------------------
+static __device__
+inline float3 SampleHemisphere(float r0, float r1)
+{
+	const float sinTheta = sqrtf(1.f - r1);
+	const float cosTheta = sqrtf(r1);
+	const float phi = TwoPi * r0;
+	return make_float3(sinTheta * cosf(phi), sinTheta * sinf(phi), cosTheta);
+}
+
+
+
+static __device__
+inline float3 SampleCosineHemisphere(float r0, float r1)
+{
+	// uniform sample disk
+	const float phi = TwoPi * r0;
+	float sinPhi, cosPhi;
+	sincosf(phi, &sinPhi, &cosPhi);
+
+	const float b = sqrtf(1.f - r1);
+	return make_float3(cosPhi * b, sinPhi * b, sqrtf(r1));
+}
+
+
+
+static __device__
+inline float3 SampleCosineHemisphere(const float3& normal, float r0, float r1)
 {
 	float3 tangent, bitangent;
 	ONB(normal, tangent, bitangent);
 
-	const float3 f = SampleCosineHemisphere(u, v);
+	const float3 f = SampleCosineHemisphere(r0, r1);
 	return f.x*tangent + f.y*bitangent + f.z*normal;
 }
 

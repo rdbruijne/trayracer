@@ -6,7 +6,28 @@
 // Constants
 //------------------------------------------------------------------------------------------------------------------------------
 // math
-constexpr float Pi = 3.14159265358979323846f;
+constexpr float Pi               = 3.1415926535897932f;
+constexpr float TwoPi            = 6.2831853071795865f; // 2 * Pi
+constexpr float FourPi           = 12.566370614359173f; // 4 * Pi
+constexpr float HalfPi           = 1.5707963267948966f; // Pi / 2
+constexpr float PiOverFour       = 0.7853981633974483f; // Pi / 4
+constexpr float RcpPi            = 0.3183098861837907f; // 1 / Pi
+constexpr float TwoOverPi        = 0.6366197723675813f; // 2 / Pi
+constexpr float FourOverPi       = 1.2732395447351627f; // 4 / Pi
+constexpr float RcpHalfPi        = 0.6366197723675813f; // 1 / (Pi/2)
+constexpr float RcpTwoPi         = 0.1591549430918953f; // 1 / (2 * Pi) = 0.5 / Pi
+constexpr float RcpFourPi        = 0.0795774715459477f; // 1 / (4 * Pi)
+constexpr float SqrtPi           = 1.7724538509055160f; // sqrt(Pi)
+constexpr float PiSquare         = 9.8696044010893586f; // Pi^2
+constexpr float FourPiSquare     = 39.478417604357434f; // 4 * Pi^2
+constexpr float RcpPiSquare      = 0.1013211836423378f; // 1 / (Pi^2) = (1 / Pi)^2
+constexpr float RcpFourPiSquare  = 0.0253302959105844f; // 1 / (4 * Pi^2)
+constexpr float FourOverPiSquare = 0.4052847345693511f; // 1 / (4 * Pi^2)
+constexpr float SqrtTwo          = 1.4142135623730950f; // sqrt(2)
+constexpr float RcpSqrtTwo       = 0.7071067811865475f; // 1 / sqrt(2) = sqrt(2) / 2
+constexpr float SqrtThree        = 1.7320508075688773f; // sqrt(3)
+constexpr float GoldenRatio      = 1.6180339887498948f; // (1 + sqrt(5)) / 2
+constexpr float Ln10             = 2.3025850929940457f; // ln(10)
 
 
 
@@ -68,6 +89,14 @@ static __device__
 inline float3 pow(const float3& f, float p)
 {
 	return make_float3(powf(f.x, p), powf(f.y, p), powf(f.z, p));
+}
+
+
+
+static __device__
+inline float square(float x)
+{
+	return x * x;
 }
 
 

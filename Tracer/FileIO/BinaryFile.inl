@@ -10,6 +10,8 @@ namespace Tracer
 		{
 			// read string length
 			const size_t len = Read<size_t>();
+			if(len == 0)
+				return "";
 
 			// read string
 			assert(mHead + len * sizeof(char) <= mCapacity);

@@ -3,7 +3,8 @@
 #include "CudaUtility.h"
 
 // Closures
-#include "BSDF/Diffuse.h"
+//#include "BSDF/Diffuse.h"
+#include "BSDF/Disney.h"
 
 __global__ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 {
@@ -43,29 +44,31 @@ __global__ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 	uint32_t seed = tea<2>(pathIx, params->sampleCount + pathLength + 1);
 
 	// fetch intersection info
-	const IntersectionAttributes attrib = GetIntersectionAttributes(instIx, primIx, bary);
+	Intersection intersection = {};
+	HitMaterial hitMaterial = {};
+	GetIntersectionAttributes(instIx, primIx, bary, intersection, hitMaterial);
 
 	// denoiser data
 	if(pathLength == 0)
 	{
-		albedo[pixelIx] = make_float4(attrib.diffuse, 0);
-		normals[pixelIx] = make_float4(attrib.shadingNormal, 0);
+		albedo[pixelIx] = make_float4(hitMaterial.diffuse, 0);
+		normals[pixelIx] = make_float4(intersection.shadingNormal, 0);
 	}
 
 	// emissive
-	if(attrib.emissive.x + attrib.emissive.y + attrib.emissive.z > Epsilon)
+	if(hitMaterial.emissive.x + hitMaterial.emissive.y + hitMaterial.emissive.z > Epsilon)
 	{
 		// light contribution is already accounted for with Next Event Estimation
 		if(pathLength == 0)
 		{
-			accumulator[pixelIx] += make_float4(attrib.emissive, 0);
-			albedo[pixelIx] = make_float4(attrib.emissive, 0);
+			accumulator[pixelIx] += make_float4(hitMaterial.emissive, 0);
+			albedo[pixelIx] = make_float4(hitMaterial.emissive, 0);
 		}
 		return;
 	}
 
 	// new throughput
-	float3 throughput = T * attrib.diffuse;
+	float3 throughput = T * hitMaterial.diffuse;
 
 	// sample light
 	const float3 I = O + D * tmax;
@@ -73,29 +76,26 @@ __global__ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 	float lightPdf;
 	float lightDist;
 	float3 lightRadiance;
-	const float3 L = SampleLight(seed, I, attrib.shadingNormal, lightProb, lightPdf, lightRadiance, lightDist);
-	const float NdotL = dot(L, attrib.shadingNormal);
+	const float3 L = SampleLight(seed, I, intersection.shadingNormal, lightProb, lightPdf, lightRadiance, lightDist);
+	const float NdotL = dot(L, intersection.shadingNormal);
 
 	// hit -> eye
 	const float3 wow = -D;
-	const float3 wo = normalize(make_float3(dot(wow, attrib.tangent), dot(wow, attrib.bitangent), dot(wow, attrib.geometricNormal)));
+	const float3 wo = WorldToTangent(wow, intersection.geometricNormal, intersection.tangent, intersection.bitangent);
 
 	// hit -> light
 	const float3 wiw = L;
-	const float3 wi = normalize(make_float3(dot(wiw, attrib.tangent), dot(wiw, attrib.bitangent), dot(wiw, attrib.geometricNormal)));
+	const float3 wi = WorldToTangent(wiw, intersection.geometricNormal, intersection.tangent, intersection.bitangent);
 
 	// sample closure
 	ShadingInfo info;
 	info.wo   = wo;
+	info.dst  = tmax;
 	info.wi   = wi;
-	info.seed = seed;
 	info.T    = throughput;
 
-	Closure closure = Diffuse_Closure(info);
-	seed = info.seed;
-
-	// extend ray
-	const float3 extend = normalize(closure.extend.wi.x * attrib.tangent + closure.extend.wi.y * attrib.bitangent + closure.extend.wi.z * attrib.geometricNormal);
+	//Closure closure = DiffuseClosure(info, hitMaterial, rnd(seed), rnd(seed));
+	Closure closure = DisneyClosure(info, hitMaterial, rnd(seed), rnd(seed));
 
 	// shadow ray
 	if(NdotL > 0 && lightPdf > Epsilon && closure.shadow.pdf > Epsilon)
@@ -108,22 +108,27 @@ __global__ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 		shadowRays[shadowIx + (stride * 2)] = make_float4(contribution, 0);
 	}
 
-	// Russian roulette
-	if(pathLength > 0)
+	// extend ray
+	if(closure.extend.pdf > Epsilon)
 	{
-		const float rr = min(1.0f, max(throughput.x, max(throughput.y, throughput.z)));
-		if(rr < rnd(seed))
-			return;
-		throughput *= 1.f / rr;
+		// Russian roulette
+		if(pathLength > 0)
+		{
+			const float rr = min(1.0f, max(throughput.x, max(throughput.y, throughput.z)));
+			if(rr < rnd(seed))
+				return;
+			throughput *= 1.f / rr;
+		}
+
+		// generate extend
+		const float3 extend = normalize(TangentToWorld(closure.extend.wi, intersection.geometricNormal, intersection.tangent, intersection.bitangent));
+		const float3 newOrigin = O + (D * tmax);
+		const float3 newDir = extend;
+
+		// update path states
+		const int32_t extendIx = atomicAdd(&counters->extendRays, 1);
+		pathStates[extendIx + (stride * 0)] = make_float4(newOrigin, __int_as_float(pathIx));
+		pathStates[extendIx + (stride * 1)] = make_float4(newDir, 0);
+		pathStates[extendIx + (stride * 2)] = make_float4(throughput, closure.extend.pdf);
 	}
-
-	// generate extend
-	const float3 newOrigin = O + (D * tmax);
-	const float3 newDir = extend;
-
-	// update path states
-	const int32_t extendIx = atomicAdd(&counters->extendRays, 1);
-	pathStates[extendIx + (stride * 0)] = make_float4(newOrigin, __int_as_float(pathIx));
-	pathStates[extendIx + (stride * 1)] = make_float4(newDir, 0);
-	pathStates[extendIx + (stride * 2)] = make_float4(throughput, closure.extend.pdf);
 }

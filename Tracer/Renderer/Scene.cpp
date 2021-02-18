@@ -89,9 +89,9 @@ namespace Tracer
 		{
 			for(const std::shared_ptr<Material>& mat : mdl->Materials())
 			{
-				for(size_t i = 0; i < magic_enum::enum_count<Material::PropertyIds>(); i++)
+				for(size_t i = 0; i < static_cast<size_t>(MaterialPropertyIds::_Count); i++)
 				{
-					const std::shared_ptr<Texture>& tex = mat->GetTextureMap(static_cast<Material::PropertyIds>(i));
+					const std::shared_ptr<Texture>& tex = mat->TextureMap(static_cast<MaterialPropertyIds>(i));
 					if(tex)
 						textures.insert(tex);
 				}
@@ -240,9 +240,9 @@ namespace Tracer
 		{
 			for(const std::shared_ptr<Material>& mat : mdl->Materials())
 			{
-				for(size_t i = 0; i < magic_enum::enum_count<Material::PropertyIds>(); i++)
+				for(size_t i = 0; i < static_cast<size_t>(MaterialPropertyIds::_Count); i++)
 				{
-					const std::shared_ptr<Texture>& tex = mat->GetTextureMap(static_cast<Material::PropertyIds>(i));
+					const std::shared_ptr<Texture>& tex = mat->TextureMap(static_cast<MaterialPropertyIds>(i));
 					if(tex && tex->Path() == path)
 						return tex;
 				}

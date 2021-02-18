@@ -34,11 +34,13 @@ __global__ void AmbientOcclusionKernel(DECLARE_KERNEL_PARAMS)
 		uint32_t seed = tea<2>(pathIx, params->sampleCount + pathLength + 1);
 
 		// fetch intersection info
-		const IntersectionAttributes attrib = GetIntersectionAttributes(instIx, primIx, bary);
+		Intersection intersection = {};
+		HitMaterial hitMaterial = {};
+		GetIntersectionAttributes(instIx, primIx, bary, intersection, hitMaterial);
 
 		// fix infacing normal
 		const float3 newOrigin = O + (D * tmax);
-		const float3 newDir = SampleCosineHemisphere(attrib.shadingNormal, rnd(seed), rnd(seed));
+		const float3 newDir = SampleCosineHemisphere(intersection.shadingNormal, rnd(seed), rnd(seed));
 
 		// update path states
 		const int32_t extendIx = atomicAdd(&counters->extendRays, 1);
@@ -47,7 +49,7 @@ __global__ void AmbientOcclusionKernel(DECLARE_KERNEL_PARAMS)
 
 		// denoiser data
 		albedo[pixelIx] = make_float4(1, 1, 1, 0);
-		normals[pixelIx] = make_float4(attrib.shadingNormal, 0);
+		normals[pixelIx] = make_float4(intersection.shadingNormal, 0);
 	}
 	else
 	{

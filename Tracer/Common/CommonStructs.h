@@ -21,8 +21,9 @@
 //------------------------------------------------------------------------------------------------------------------------------
 // params
 //------------------------------------------------------------------------------------------------------------------------------
-#define DECLARE_KERNEL_PARAMS	uint32_t pathCount, float4* accumulator, float4* albedo, float4* normals, float4* pathStates,\
+#define DECLARE_KERNEL_PARAMS	uint32_t pathCount, float4* accumulator, float4* albedo, float4* normals, float4* pathStates, \
 								uint4* hitData, float4* shadowRays, int2 resolution, uint32_t stride, uint32_t pathLength
+
 #define PASS_KERNEL_PARAMS		pathCount, accumulator, albedo, normals, pathStates, hitData, shadowRays, resolution, stride, pathLength
 
 
@@ -30,30 +31,36 @@
 //------------------------------------------------------------------------------------------------------------------------------
 // Enumerations
 //------------------------------------------------------------------------------------------------------------------------------
-enum RayTypes
+enum class MaterialPropertyIds : uint32_t
 {
-	RayType_Surface = 0,
-	RayType_Shadow,
+	Anisotropic,
+	Clearcoat,
+	ClearcoatGloss,
+	Diffuse,
+	Emissive,
+	Metallic,
+	Normal,
+	Roughness,
+	Sheen,
+	SheenTint,
+	Specular,
+	SpecularTint,
+	Subsurface,
 
-	RayType_Count
+	_Count
 };
+#ifndef __CUDACC__
+std::string ToString(MaterialPropertyIds materialProperty);
+#endif
 
 
 
-enum RayGenModes : uint32_t
+enum class RayGenModes : uint32_t
 {
-	RayGen_Primary,
-	RayGen_Secondary,
-	RayGen_Shadow,
-	RayGen_RayPick
-};
-
-
-
-enum TexturesInMaterial
-{
-	Texture_DiffuseMap  = 0x1,
-	Texture_NormalMap   = 0x2
+	Primary,
+	Secondary,
+	Shadow,
+	RayPick
 };
 
 
@@ -245,10 +252,7 @@ struct alignas(16) CudaMaterialProperty
 
 struct alignas(16) CudaMatarial
 {
-	CudaMaterialProperty diffuse;
-	CudaMaterialProperty emissive;
-	CudaMaterialProperty normal;
-	CudaMaterialProperty dummy;
+	CudaMaterialProperty properties[static_cast<size_t>(MaterialPropertyIds::_Count)];
 };
 
 

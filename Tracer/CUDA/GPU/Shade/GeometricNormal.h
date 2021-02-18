@@ -26,6 +26,10 @@ __global__ void GeometricNormalKernel(DECLARE_KERNEL_PARAMS)
 		return;
 
 	// fetch intersection info
-	const IntersectionAttributes attrib = GetIntersectionAttributes(instIx, primIx, bary);
-	accumulator[pixelIx] += make_float4((attrib.geometricNormal + make_float3(1)) * 0.5f, 0);
+	Intersection intersection = {};
+	HitMaterial hitMaterial = {};
+	GetIntersectionAttributes(instIx, primIx, bary, intersection, hitMaterial);
+
+	// set result
+	accumulator[pixelIx] += make_float4((intersection.geometricNormal + make_float3(1)) * 0.5f, 0);
 }
