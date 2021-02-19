@@ -497,6 +497,7 @@ namespace Tracer
 			// kenel
 			ROW("Kernel", ToString(GuiHelpers::GetRenderer()->RenderMode()).c_str());
 			ROW("Samples","%d", GuiHelpers::GetRenderer()->SampleCount());
+			ROW("Denoised samples","%d", GuiHelpers::GetRenderer()->DenoisedSampleCount());
 
 			SPACE;
 

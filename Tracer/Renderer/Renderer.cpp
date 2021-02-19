@@ -136,7 +136,7 @@ namespace Tracer
 
 		// update launch params
 		mLaunchParams.sceneRoot = mSceneRoot;
-		mLaunchParams.sampleCount = 0;
+		Reset();
 
 		// sync devices
 		CUDA_CHECK(cudaDeviceSynchronize());
@@ -268,67 +268,69 @@ namespace Tracer
 		// run denoiser
 		if(ShouldDenoise())
 		{
-			mDenoiseTimeEvents.Start(mStream);
+			if(mLaunchParams.sampleCount >= (mDenoisedSampleCount * Phi))
+			{
+				mDenoiseTimeEvents.Start(mStream);
 
-			// input
-			OptixImage2D inputLayers[3];
+				// input
+				OptixImage2D inputLayers[3];
 
-			// rgb input
-			inputLayers[0].data               = mColorBuffer.DevicePtr();
-			inputLayers[0].width              = mLaunchParams.resX;
-			inputLayers[0].height             = mLaunchParams.resY;
-			inputLayers[0].rowStrideInBytes   = mLaunchParams.resX * sizeof(float4);
-			inputLayers[0].pixelStrideInBytes = sizeof(float4);
-			inputLayers[0].format             = OPTIX_PIXEL_FORMAT_FLOAT4;
+				// rgb input
+				inputLayers[0].data               = mColorBuffer.DevicePtr();
+				inputLayers[0].width              = mLaunchParams.resX;
+				inputLayers[0].height             = mLaunchParams.resY;
+				inputLayers[0].rowStrideInBytes   = mLaunchParams.resX * sizeof(float4);
+				inputLayers[0].pixelStrideInBytes = sizeof(float4);
+				inputLayers[0].format             = OPTIX_PIXEL_FORMAT_FLOAT4;
 
-			// albedo input
-			inputLayers[1].data               = mAlbedoBuffer.DevicePtr();
-			inputLayers[1].width              = mLaunchParams.resX;
-			inputLayers[1].height             = mLaunchParams.resY;
-			inputLayers[1].rowStrideInBytes   = mLaunchParams.resX * sizeof(float4);
-			inputLayers[1].pixelStrideInBytes = sizeof(float4);
-			inputLayers[1].format             = OPTIX_PIXEL_FORMAT_FLOAT4;
+				// albedo input
+				inputLayers[1].data               = mAlbedoBuffer.DevicePtr();
+				inputLayers[1].width              = mLaunchParams.resX;
+				inputLayers[1].height             = mLaunchParams.resY;
+				inputLayers[1].rowStrideInBytes   = mLaunchParams.resX * sizeof(float4);
+				inputLayers[1].pixelStrideInBytes = sizeof(float4);
+				inputLayers[1].format             = OPTIX_PIXEL_FORMAT_FLOAT4;
 
-			// normal input
-			inputLayers[2].data               = mNormalBuffer.DevicePtr();
-			inputLayers[2].width              = mLaunchParams.resX;
-			inputLayers[2].height             = mLaunchParams.resY;
-			inputLayers[2].rowStrideInBytes   = mLaunchParams.resX * sizeof(float4);
-			inputLayers[2].pixelStrideInBytes = sizeof(float4);
-			inputLayers[2].format             = OPTIX_PIXEL_FORMAT_FLOAT4;
+				// normal input
+				inputLayers[2].data               = mNormalBuffer.DevicePtr();
+				inputLayers[2].width              = mLaunchParams.resX;
+				inputLayers[2].height             = mLaunchParams.resY;
+				inputLayers[2].rowStrideInBytes   = mLaunchParams.resX * sizeof(float4);
+				inputLayers[2].pixelStrideInBytes = sizeof(float4);
+				inputLayers[2].format             = OPTIX_PIXEL_FORMAT_FLOAT4;
 
-			// output
-			OptixImage2D outputLayer;
-			outputLayer.data               = mDenoisedBuffer.DevicePtr();
-			outputLayer.width              = mLaunchParams.resX;
-			outputLayer.height             = mLaunchParams.resY;
-			outputLayer.rowStrideInBytes   = mLaunchParams.resX * sizeof(float4);
-			outputLayer.pixelStrideInBytes = sizeof(float4);
-			outputLayer.format             = OPTIX_PIXEL_FORMAT_FLOAT4;
+				// output
+				OptixImage2D outputLayer;
+				outputLayer.data               = mDenoisedBuffer.DevicePtr();
+				outputLayer.width              = mLaunchParams.resX;
+				outputLayer.height             = mLaunchParams.resY;
+				outputLayer.rowStrideInBytes   = mLaunchParams.resX * sizeof(float4);
+				outputLayer.pixelStrideInBytes = sizeof(float4);
+				outputLayer.format             = OPTIX_PIXEL_FORMAT_FLOAT4;
 
-			// calculate intensity
-			OPTIX_CHECK(optixDenoiserComputeIntensity(mDenoiser, mStream, &inputLayers[0], mDenoiserHdrIntensity.DevicePtr(),
-													  mDenoiserScratch.DevicePtr(), mDenoiserScratch.Size()));
+				// calculate intensity
+				OPTIX_CHECK(optixDenoiserComputeIntensity(mDenoiser, mStream, &inputLayers[0], mDenoiserHdrIntensity.DevicePtr(),
+														  mDenoiserScratch.DevicePtr(), mDenoiserScratch.Size()));
 
-			// denoise
-			OptixDenoiserParams denoiserParams;
-			denoiserParams.denoiseAlpha = 1;
-			denoiserParams.hdrIntensity = mDenoiserHdrIntensity.DevicePtr();
-			denoiserParams.blendFactor  = 1.f / (mLaunchParams.sampleCount + 1);
+				// denoise
+				OptixDenoiserParams denoiserParams;
+				denoiserParams.denoiseAlpha = 1;
+				denoiserParams.hdrIntensity = mDenoiserHdrIntensity.DevicePtr();
+				denoiserParams.blendFactor  = 1.f / (mLaunchParams.sampleCount + 1);
 
-			OPTIX_CHECK(optixDenoiserInvoke(mDenoiser, mStream, &denoiserParams, mDenoiserState.DevicePtr(), mDenoiserState.Size(),
-											inputLayers, 3, 0, 0, &outputLayer,
-											mDenoiserScratch.DevicePtr(), mDenoiserScratch.Size()));
-			mDenoiseTimeEvents.Stop(mStream);
+				OPTIX_CHECK(optixDenoiserInvoke(mDenoiser, mStream, &denoiserParams, mDenoiserState.DevicePtr(), mDenoiserState.Size(),
+												inputLayers, 3, 0, 0, &outputLayer,
+												mDenoiserScratch.DevicePtr(), mDenoiserScratch.Size()));
+				mDenoiseTimeEvents.Stop(mStream);
 
-			mDenoisedFrame = true;
+				mDenoisedSampleCount = mLaunchParams.sampleCount;
+			}
 		}
 		else
 		{
 			// empty timing so that we can call "Elapsed"
 			mDenoiseTimeEvents.Start(mStream);
 			mDenoiseTimeEvents.Stop(mStream);
-			mDenoisedFrame = false;
 		}
 
 		// update the target
@@ -343,7 +345,7 @@ namespace Tracer
 
 		// copy to GL texture
 		cudaArray* cudaTexPtr = nullptr;
-		void* srcBuffer = mDenoisedFrame ? mDenoisedBuffer.Ptr() : mColorBuffer.Ptr();
+		void* srcBuffer = ShouldDenoise() ? mDenoisedBuffer.Ptr() : mColorBuffer.Ptr();
 		CUDA_CHECK(cudaGraphicsMapResources(1, &mCudaGraphicsResource, 0));
 		CUDA_CHECK(cudaGraphicsSubResourceGetMappedArray(&cudaTexPtr, mCudaGraphicsResource, 0, 0));
 		CUDA_CHECK(cudaMemcpy2DToArray(cudaTexPtr, 0, 0, srcBuffer, texRes.x * sizeof(float4), texRes.x * sizeof(float4), texRes.y, cudaMemcpyDeviceToDevice));
@@ -365,6 +367,14 @@ namespace Tracer
 
 
 
+	void Renderer::Reset()
+	{
+		mLaunchParams.sampleCount = 0;
+		mDenoisedSampleCount = 0;
+	}
+
+
+
 	void Renderer::SetCamera(CameraNode& camNode)
 	{
 		if(camNode.IsDirty())
@@ -381,7 +391,7 @@ namespace Tracer
 			mLaunchParams.cameraBokehSideCount = camNode.BokehSideCount();
 			mLaunchParams.cameraBokehRotation  = camNode.BokehRotation();
 
-			mLaunchParams.sampleCount          = 0;
+			Reset();
 
 			camNode.MarkClean();
 		}
@@ -394,7 +404,7 @@ namespace Tracer
 		if (mRenderMode != mode)
 		{
 			mRenderMode = mode;
-			mLaunchParams.sampleCount = 0;
+			Reset();
 		}
 	}
 
@@ -406,7 +416,7 @@ namespace Tracer
 		{
 			mMaterialPropertyId = id;
 			if(mRenderMode == RenderModes::MaterialProperty)
-				mLaunchParams.sampleCount = 0;
+				Reset();
 		}
 	}
 
@@ -448,10 +458,10 @@ namespace Tracer
 		mDenoisedBuffer.Resize(sizeof(float4) * resolution.x * resolution.y);
 
 		// update launch params
-		mLaunchParams.sampleCount = 0;
 		mLaunchParams.resX = resolution.x;
 		mLaunchParams.resY = resolution.y;
 		mLaunchParams.accumulator = mAccumulator.Ptr<float4>();
+		Reset();
 
 		// allocate denoiser memory
 		OptixDenoiserSizes denoiserReturnSizes;

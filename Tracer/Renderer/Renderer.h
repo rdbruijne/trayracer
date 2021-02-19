@@ -36,6 +36,7 @@ namespace Tracer
 		// render
 		void BuildScene(Scene* scene);
 		void RenderFrame(GLTexture* renderTexture);
+		void Reset();
 
 		// camera
 		void SetCamera(CameraNode& camNode);
@@ -83,6 +84,7 @@ namespace Tracer
 		inline bool DenoisingEnabled() const { return mDenoisingEnabled; }
 		inline void SetDenoiserEnabled(bool enabled) { mDenoisingEnabled = enabled; }
 
+		inline uint32_t DenoisedSampleCount() const { return mDenoisedSampleCount; }
 		inline uint32_t DenoiserSampleThreshold() const { return mDenoiserSampleThreshold; }
 		inline void SetDenoiserSampleThreshold(uint32_t Threshold) { mDenoiserSampleThreshold = Threshold; }
 
@@ -95,7 +97,7 @@ namespace Tracer
 			{													\
 				mLaunchParams.name = name;						\
 				if (reqClear)									\
-					mLaunchParams.sampleCount = 0;				\
+					Reset();									\
 			}													\
 		}
 
@@ -175,7 +177,7 @@ namespace Tracer
 		CudaBuffer mDenoiserHdrIntensity = {};
 
 		bool mDenoisingEnabled = false;
-		bool mDenoisedFrame = false;
+		uint32_t mDenoisedSampleCount = 0;
 		uint32_t mDenoiserSampleThreshold = 10;
 
 		// Launch parameters
