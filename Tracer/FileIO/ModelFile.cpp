@@ -76,7 +76,7 @@ namespace Tracer
 			for(const std::shared_ptr<Material>& mat : materials)
 			{
 				f.Write(mat->Name());
-				for(size_t i = 0; i < static_cast<size_t>(MaterialPropertyIds::_Count); i++)
+				for(size_t i = 0; i < magic_enum::enum_count<MaterialPropertyIds>(); i++)
 				{
 					const MaterialPropertyIds id = static_cast<MaterialPropertyIds>(i);
 					if(mat->IsFloatColorEnabled(id))
@@ -139,7 +139,7 @@ namespace Tracer
 				const std::string matName = f.Read<std::string>();
 				std::shared_ptr<Material> mat = std::make_shared<Material>(matName);
 
-				for(size_t propIx = 0; propIx < static_cast<size_t>(MaterialPropertyIds::_Count); propIx++)
+				for(size_t propIx = 0; propIx < magic_enum::enum_count<MaterialPropertyIds>(); propIx++)
 				{
 					const MaterialPropertyIds id = static_cast<MaterialPropertyIds>(propIx);
 

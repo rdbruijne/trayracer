@@ -197,10 +197,10 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
     <ClInclude Include="CUDA\GPU\Shade\BSDF\Diffuse.h" />
     <ClInclude Include="CUDA\GPU\Shade\BSDF\Disney.h" />
     <ClInclude Include="CUDA\GPU\Shade\BSDF\Microfacet.h" />
-    <ClInclude Include="CUDA\GPU\Shade\DiffuseFilter.h" />
     <ClInclude Include="CUDA\GPU\Shade\DirectLight.h" />
     <ClInclude Include="CUDA\GPU\Shade\GeometricNormal.h" />
     <ClInclude Include="CUDA\GPU\Shade\MaterialID.h" />
+    <ClInclude Include="CUDA\GPU\Shade\MaterialProperty.h" />
     <ClInclude Include="CUDA\GPU\Shade\ObjectID.h" />
     <ClInclude Include="CUDA\GPU\Shade\PathTracing.h" />
     <ClInclude Include="CUDA\GPU\Shade\ShadingNormal.h" />
@@ -213,6 +213,7 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
     <ClInclude Include="FileIO\ModelFile.h" />
     <ClInclude Include="FileIO\SceneFile.h" />
     <ClInclude Include="FileIO\TextureFile.h" />
+    <ClInclude Include="GUI\GuiExtensions.h" />
     <ClInclude Include="GUI\GuiWindow.h" />
     <ClInclude Include="GUI\MainGui.h" />
     <ClInclude Include="GUI\GuiHelpers.h" />

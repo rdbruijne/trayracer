@@ -44,6 +44,9 @@ namespace Tracer
 		inline RenderModes RenderMode() const { return mRenderMode; }
 		void SetRenderMode(RenderModes mode);
 
+		inline MaterialPropertyIds MaterialPropertyId() const { return mMaterialPropertyId; }
+		void SetMaterialPropertyId(MaterialPropertyIds id);
+
 		// statistics
 		struct RenderStats
 		{
@@ -122,6 +125,7 @@ namespace Tracer
 
 		// render mode
 		RenderModes mRenderMode = RenderModes::PathTracing;
+		MaterialPropertyIds mMaterialPropertyId = MaterialPropertyIds::Diffuse;
 
 		// stats
 		RenderStats mRenderStats = {};

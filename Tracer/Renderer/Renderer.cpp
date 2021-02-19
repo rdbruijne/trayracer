@@ -223,11 +223,17 @@ namespace Tracer
 			mRenderStats.pathCount += pathCount;
 			mTraceTimeEvents[pathLength].Stop(mStream);
 
+			// determine shade flags
+			uint32_t shadeFlags = 0;
+			if(mRenderMode == RenderModes::MaterialProperty)
+				shadeFlags = static_cast<uint32_t>(mMaterialPropertyId);
+
 			// shade
 			mShadeTimeEvents[pathLength].Start(mStream);
-			Shade(mRenderMode, pathCount, mAccumulator.Ptr<float4>(), mAlbedoBuffer.Ptr<float4>(), mNormalBuffer.Ptr<float4>(),
+			Shade(mRenderMode, pathCount,
+				  mAccumulator.Ptr<float4>(), mAlbedoBuffer.Ptr<float4>(), mNormalBuffer.Ptr<float4>(),
 				  mPathStates.Ptr<float4>(), mHitData.Ptr<uint4>(), mShadowRayData.Ptr<float4>(),
-				  make_int2(mLaunchParams.resX, mLaunchParams.resY), stride, pathLength);
+				  make_int2(mLaunchParams.resX, mLaunchParams.resY), stride, pathLength, shadeFlags);
 			mShadeTimeEvents[pathLength].Stop(mStream);
 
 			// update counters
@@ -385,10 +391,22 @@ namespace Tracer
 
 	void Renderer::SetRenderMode(RenderModes mode)
 	{
-		if (mode != mRenderMode)
+		if (mRenderMode != mode)
 		{
 			mRenderMode = mode;
 			mLaunchParams.sampleCount = 0;
+		}
+	}
+
+
+
+	void Renderer::SetMaterialPropertyId(MaterialPropertyIds id)
+	{
+		if (mMaterialPropertyId != id)
+		{
+			mMaterialPropertyId = id;
+			if(mRenderMode == RenderModes::MaterialProperty)
+				mLaunchParams.sampleCount = 0;
 		}
 	}
 

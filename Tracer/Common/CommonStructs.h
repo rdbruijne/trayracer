@@ -22,9 +22,9 @@
 // params
 //------------------------------------------------------------------------------------------------------------------------------
 #define DECLARE_KERNEL_PARAMS	uint32_t pathCount, float4* accumulator, float4* albedo, float4* normals, float4* pathStates, \
-								uint4* hitData, float4* shadowRays, int2 resolution, uint32_t stride, uint32_t pathLength
+								uint4* hitData, float4* shadowRays, int2 resolution, uint32_t stride, uint32_t pathLength, uint32_t flags
 
-#define PASS_KERNEL_PARAMS		pathCount, accumulator, albedo, normals, pathStates, hitData, shadowRays, resolution, stride, pathLength
+#define PASS_KERNEL_PARAMS		pathCount, accumulator, albedo, normals, pathStates, hitData, shadowRays, resolution, stride, pathLength, flags
 
 
 
@@ -46,8 +46,9 @@ enum class MaterialPropertyIds : uint32_t
 	Specular,
 	SpecularTint,
 	Subsurface,
-
+#ifdef __CUDACC__
 	_Count
+#endif
 };
 #ifndef __CUDACC__
 std::string ToString(MaterialPropertyIds materialProperty);
@@ -70,10 +71,10 @@ enum class RenderModes : uint32_t
 	AmbientOcclusion,
 	AmbientOcclusionShading,
 	Bitangent,
-	DiffuseFilter,
 	DirectLight,
 	GeometricNormal,
 	MaterialID,
+	MaterialProperty,
 	ObjectID,
 	PathTracing,
 	ShadingNormal,
@@ -244,7 +245,7 @@ struct alignas(16) CudaMaterialProperty
 	half r;
 	half g;
 	half b;
-	uint8_t useColor;
+	uint8_t colorChannels;
 	uint8_t useTexture;
 };
 
@@ -252,7 +253,11 @@ struct alignas(16) CudaMaterialProperty
 
 struct alignas(16) CudaMatarial
 {
+#ifdef __CUDACC__
 	CudaMaterialProperty properties[static_cast<size_t>(MaterialPropertyIds::_Count)];
+#else
+	CudaMaterialProperty properties[magic_enum::enum_count<MaterialPropertyIds>()];
+#endif
 };
 
 

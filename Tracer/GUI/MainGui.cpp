@@ -4,6 +4,7 @@
 #include "FileIO/ModelFile.h"
 #include "FileIO/SceneFile.h"
 #include "FileIO/TextureFile.h"
+#include "GUI/GuiExtensions.h"
 #include "GUI/GuiHelpers.h"
 #include "OpenGL/Window.h"
 #include "Renderer/Renderer.h"
@@ -102,7 +103,7 @@ namespace Tracer
 		if(!mSelectedMaterial.expired())
 		{
 			std::shared_ptr<Material> mat = mSelectedMaterial.lock();
-			for(size_t i = 0; i < static_cast<size_t>(MaterialPropertyIds::_Count); i++)
+			for(size_t i = 0; i < magic_enum::enum_count<MaterialPropertyIds>(); i++)
 			{
 				const MaterialPropertyIds id = static_cast<MaterialPropertyIds>(i);
 				std::shared_ptr<Texture> tex = mat->TextureMap(id);
@@ -258,7 +259,7 @@ namespace Tracer
 			ImGui::Text(mat->Name().c_str());
 
 			// properties
-			for(size_t i = 0; i < static_cast<size_t>(MaterialPropertyIds::_Count); i++)
+			for(size_t i = 0; i < magic_enum::enum_count<MaterialPropertyIds>(); i++)
 			{
 				const MaterialPropertyIds id = static_cast<MaterialPropertyIds>(i);
 				const std::string propName = ToString(id);
@@ -349,21 +350,9 @@ namespace Tracer
 		else
 		{
 			// render mode
-			RenderModes activeRenderMode = GuiHelpers::GetRenderer()->RenderMode();
-			const std::string rmName = ToString(activeRenderMode);
-			if(ImGui::BeginCombo("Render Mode", rmName.c_str()))
-			{
-				for(size_t i = 0; i < magic_enum::enum_count<RenderModes>(); i++)
-				{
-					const RenderModes mode = static_cast<RenderModes>(i);
-					const std::string itemName = ToString(mode);
-					if(ImGui::Selectable(itemName.c_str(), mode == activeRenderMode))
-						GuiHelpers::GetRenderer()->SetRenderMode(mode);
-					if(mode == activeRenderMode)
-						ImGui::SetItemDefaultFocus();
-				}
-				ImGui::EndCombo();
-			}
+			RenderModes renderMode = GuiHelpers::GetRenderer()->RenderMode();
+			if(ComboBox("Render Mode", renderMode))
+				GuiHelpers::GetRenderer()->SetRenderMode(renderMode);
 
 			// kernel settings
 			ImGui::Spacing();
@@ -384,6 +373,10 @@ namespace Tracer
 			float zDepthMax = GuiHelpers::GetRenderer()->ZDepthMax();
 			if(ImGui::SliderFloat("Z-Depth max", &zDepthMax, 0.f, 1e4f, "%.3f", ImGuiSliderFlags_Logarithmic))
 				GuiHelpers::GetRenderer()->SetZDepthMax(zDepthMax);
+
+			MaterialPropertyIds matPropId = GuiHelpers::GetRenderer()->MaterialPropertyId();
+			if(ComboBox("Debug property", matPropId))
+				GuiHelpers::GetRenderer()->SetMaterialPropertyId(matPropId);
 
 			// post
 			if(GuiHelpers::GetRenderWindow())

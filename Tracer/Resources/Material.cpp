@@ -59,9 +59,9 @@ namespace Tracer
 		mCudaProperty.r = __float2half(mColor.x);
 		mCudaProperty.g = __float2half(mColor.y);
 		mCudaProperty.b = __float2half(mColor.z);
-		mCudaProperty.textureMap = mTexture ? mTexture->CudaObject() : 0;
-		mCudaProperty.useColor   = (IsFloatColorEnabled() || IsRgbColorEnabled()) ? 1 : 0;
-		mCudaProperty.useTexture = IsTextureEnabled() ? 1 : 0;
+		mCudaProperty.textureMap    = mTexture ? mTexture->CudaObject() : 0;
+		mCudaProperty.colorChannels = IsFloatColorEnabled() ? 1 : (IsRgbColorEnabled() ? 3 : 0);
+		mCudaProperty.useTexture    = IsTextureEnabled() ? 1 : 0;
 
 		// mark clean
 		MarkClean();
@@ -129,12 +129,12 @@ namespace Tracer
 			return;
 
 		// build properties
-		for(size_t i = 0; i < static_cast<size_t>(MaterialPropertyIds::_Count); i++)
+		for(size_t i = 0; i < magic_enum::enum_count<MaterialPropertyIds>(); i++)
 			if(mProperties[i].IsDirty())
 				mProperties[i].Build();
 
 		// assign properties
-		for(size_t i = 0; i < static_cast<size_t>(MaterialPropertyIds::_Count); i++)
+		for(size_t i = 0; i < magic_enum::enum_count<MaterialPropertyIds>(); i++)
 			mCudaMaterial.properties[i] = mProperties[i].CudaProperty();
 
 		// mark clean

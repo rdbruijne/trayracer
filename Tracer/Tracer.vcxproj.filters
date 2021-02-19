@@ -227,9 +227,6 @@
     <ClInclude Include="CUDA\GPU\Shade\Bitangent.h">
       <Filter>CUDA\GPU\Shade</Filter>
     </ClInclude>
-    <ClInclude Include="CUDA\GPU\Shade\DiffuseFilter.h">
-      <Filter>CUDA\GPU\Shade</Filter>
-    </ClInclude>
     <ClInclude Include="CUDA\GPU\Shade\DirectLight.h">
       <Filter>CUDA\GPU\Shade</Filter>
     </ClInclude>
@@ -304,6 +301,12 @@
     </ClInclude>
     <ClInclude Include="CUDA\GPU\Shade\BSDF\Microfacet.h">
       <Filter>CUDA\GPU\Shade\BSDF</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\GPU\Shade\MaterialProperty.h">
+      <Filter>CUDA\GPU\Shade</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI\GuiExtensions.h">
+      <Filter>GUI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

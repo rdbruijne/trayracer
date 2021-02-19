@@ -4,10 +4,10 @@
 #include "Shade/AmbientOcclusion.h"
 #include "Shade/AmbientOcclusionShading.h"
 #include "Shade/Bitangent.h"
-#include "Shade/DiffuseFilter.h"
 #include "Shade/DirectLight.h"
 #include "Shade/GeometricNormal.h"
 #include "Shade/MaterialID.h"
+#include "Shade/MaterialProperty.h"
 #include "Shade/ObjectID.h"
 #include "Shade/PathTracing.h"
 #include "Shade/ShadingNormal.h"
@@ -15,8 +15,6 @@
 #include "Shade/TextureCoordinate.h"
 #include "Shade/Wireframe.h"
 #include "Shade/ZDepth.h"
-
-
 
 __host__ void Shade(RenderModes renderMode, DECLARE_KERNEL_PARAMS)
 {
@@ -37,10 +35,6 @@ __host__ void Shade(RenderModes renderMode, DECLARE_KERNEL_PARAMS)
 		BitangentKernel<<<blockCount, threadsPerBlock>>>(PASS_KERNEL_PARAMS);
 		break;
 
-	case RenderModes::DiffuseFilter:
-		DiffuseFilterKernel<<<blockCount, threadsPerBlock>>>(PASS_KERNEL_PARAMS);
-		break;
-
 	case RenderModes::DirectLight:
 		DirectLightKernel<<<blockCount, threadsPerBlock>>>(PASS_KERNEL_PARAMS);
 		break;
@@ -51,6 +45,10 @@ __host__ void Shade(RenderModes renderMode, DECLARE_KERNEL_PARAMS)
 
 	case RenderModes::MaterialID:
 		MaterialIDKernel<<<blockCount, threadsPerBlock>>>(PASS_KERNEL_PARAMS);
+		break;
+
+	case RenderModes::MaterialProperty:
+		MaterialPropertyKernel<<<blockCount, threadsPerBlock>>>(PASS_KERNEL_PARAMS);
 		break;
 
 	case RenderModes::ObjectID:

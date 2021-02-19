@@ -58,11 +58,18 @@ inline float3 GetColor(const CudaMatarial& mat, MaterialPropertyIds propId, cons
 {
 	const CudaMaterialProperty& prop = mat.properties[static_cast<size_t>(propId)];
 
-	float3 result = make_float3(0);
-	if(prop.useColor != 0)
+	float3 result = make_float3(1);
+
+	// color
+	if(prop.colorChannels == 1)
+		result = make_float3(__half2float(prop.r));
+	else if(prop.colorChannels == 3)
 		result = make_float3(__half2float(prop.r), __half2float(prop.g), __half2float(prop.b));
+
+	// texture
 	if(prop.useTexture != 0 && prop.textureMap != 0)
 		result *= make_float3(tex2D<float4>(prop.textureMap, uv.x, uv.y));
+
 	return result;
 }
 
@@ -203,7 +210,7 @@ inline void GetIntersectionAttributes(uint32_t instIx, uint32_t primIx, float2 b
 	}
 
 	// material
-	const CudaMatarial& mat = materialData[intersection.matIx];
+	const CudaMatarial& mat   = materialData[intersection.matIx];
 
 	hitMaterial.diffuse        = GetColor(mat, MaterialPropertyIds::Diffuse, texcoord);
 	const float3 tintXYZ       = LinearRGBToCIEXYZ(hitMaterial.diffuse);

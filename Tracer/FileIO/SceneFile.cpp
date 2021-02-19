@@ -325,7 +325,7 @@ namespace Tracer
 					if(!mat)
 						continue;
 
-					for(size_t i = 0; i < static_cast<size_t>(MaterialPropertyIds::_Count); i++)
+					for(size_t i = 0; i < magic_enum::enum_count<MaterialPropertyIds>(); i++)
 					{
 						const MaterialPropertyIds id = static_cast<MaterialPropertyIds>(i);
 						const std::string propName = ToLower(ToString(id));
@@ -642,7 +642,7 @@ namespace Tracer
 					Write(jsonMat, allocator, Key_Name, mat->Name());
 
 					// properties
-					for(size_t i = 0; i < static_cast<size_t>(MaterialPropertyIds::_Count); i++)
+					for(size_t i = 0; i < magic_enum::enum_count<MaterialPropertyIds>(); i++)
 					{
 						const MaterialPropertyIds id = static_cast<MaterialPropertyIds>(i);
 						const std::string propName = ToLower(ToString(id));
