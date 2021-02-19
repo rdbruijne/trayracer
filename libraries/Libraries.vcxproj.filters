@@ -4,26 +4,11 @@
     <Filter Include="imgui">
       <UniqueIdentifier>{d5eb65c4-581b-4139-9e3a-bd5c266b141e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="HosekSky">
-      <UniqueIdentifier>{42765cf0-1934-4ef8-a79d-89ee9fc68ad6}</UniqueIdentifier>
-    </Filter>
     <Filter Include="imGuIZMO.quat">
       <UniqueIdentifier>{68a841fc-d085-4dbf-b016-62652b53de06}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="HosekSky\ArHosekSkyModel.h">
-      <Filter>HosekSky</Filter>
-    </ClInclude>
-    <ClInclude Include="HosekSky\ArHosekSkyModelData_CIEXYZ.h">
-      <Filter>HosekSky</Filter>
-    </ClInclude>
-    <ClInclude Include="HosekSky\ArHosekSkyModelData_RGB.h">
-      <Filter>HosekSky</Filter>
-    </ClInclude>
-    <ClInclude Include="HosekSky\ArHosekSkyModelData_Spectral.h">
-      <Filter>HosekSky</Filter>
-    </ClInclude>
     <ClInclude Include="imGuIZMO.quat\imGuIZMOquat.h">
       <Filter>imGuIZMO.quat</Filter>
     </ClInclude>
@@ -65,9 +50,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="HosekSky\ArHosekSkyModel.cpp">
-      <Filter>HosekSky</Filter>
-    </ClCompile>
     <ClCompile Include="imGuIZMO.quat\imGuIZMOquat.cpp">
       <Filter>imGuIZMO.quat</Filter>
     </ClCompile>

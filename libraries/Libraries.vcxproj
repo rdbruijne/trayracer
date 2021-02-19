@@ -98,10 +98,6 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="HosekSky\ArHosekSkyModel.h" />
-    <ClInclude Include="HosekSky\ArHosekSkyModelData_CIEXYZ.h" />
-    <ClInclude Include="HosekSky\ArHosekSkyModelData_RGB.h" />
-    <ClInclude Include="HosekSky\ArHosekSkyModelData_Spectral.h" />
     <ClInclude Include="imGuIZMO.quat\imGuIZMOquat.h" />
     <ClInclude Include="imGuIZMO.quat\vgConfig.h" />
     <ClInclude Include="imGuIZMO.quat\vGizmo.h" />
@@ -117,7 +113,6 @@
     <ClInclude Include="imgui\imstb_truetype.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="HosekSky\ArHosekSkyModel.cpp" />
     <ClCompile Include="imGuIZMO.quat\imGuIZMOquat.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
     <ClCompile Include="imgui\imgui_demo.cpp" />
