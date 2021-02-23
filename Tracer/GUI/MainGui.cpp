@@ -127,10 +127,6 @@ namespace Tracer
 		if(ImGui::CollapsingHeader("Camera"))
 			CameraElements();
 
-		// image
-		if(ImGui::CollapsingHeader("Image"))
-			ImageElements();
-
 		// material
 		if(ImGui::CollapsingHeader("Material"))
 			MaterialElements();
@@ -162,7 +158,8 @@ namespace Tracer
 
 	void MainGui::CameraElements()
 	{
-		if(!GuiHelpers::GetCamNode())
+		CameraNode* cameraNode = GuiHelpers::GetCamNode();
+		if(!cameraNode)
 		{
 			ImGui::Text("No camera node detected");
 		}
@@ -173,46 +170,46 @@ namespace Tracer
 			// transformation
 			ImGui::Text("Transformation");
 
-			float pos[] = {GuiHelpers::GetCamNode()->Position().x, GuiHelpers::GetCamNode()->Position().y, GuiHelpers::GetCamNode()->Position().z};
+			float pos[] = {cameraNode->Position().x, cameraNode->Position().y, cameraNode->Position().z};
 			if(ImGui::InputFloat3("Position", pos))
-				GuiHelpers::GetCamNode()->SetPosition(make_float3(pos[0], pos[1], pos[2]));
+				cameraNode->SetPosition(make_float3(pos[0], pos[1], pos[2]));
 
-			float target[] = {GuiHelpers::GetCamNode()->Target().x, GuiHelpers::GetCamNode()->Target().y, GuiHelpers::GetCamNode()->Target().z};
+			float target[] = {cameraNode->Target().x, cameraNode->Target().y, cameraNode->Target().z};
 			if(ImGui::InputFloat3("Target", target))
-				GuiHelpers::GetCamNode()->SetTarget(make_float3(target[0], target[1], target[2]));
+				cameraNode->SetTarget(make_float3(target[0], target[1], target[2]));
 
-			float up[] = {GuiHelpers::GetCamNode()->Up().x, GuiHelpers::GetCamNode()->Up().y, GuiHelpers::GetCamNode()->Up().z};
+			float up[] = {cameraNode->Up().x, cameraNode->Up().y, cameraNode->Up().z};
 			if(ImGui::InputFloat3("Up", up))
-				GuiHelpers::GetCamNode()->SetUp(make_float3(up[0], up[1], up[2]));
+				cameraNode->SetUp(make_float3(up[0], up[1], up[2]));
 
 			ImGui::Spacing();
 
 			// lens
 			ImGui::Text("Lens");
 
-			float aperture = GuiHelpers::GetCamNode()->Aperture();
+			float aperture = cameraNode->Aperture();
 			if(ImGui::SliderFloat("Aperture", &aperture, 0.f, 100.f, "%.3f", ImGuiSliderFlags_Logarithmic))
-				GuiHelpers::GetCamNode()->SetAperture(aperture);
+				cameraNode->SetAperture(aperture);
 
-			float distortion = GuiHelpers::GetCamNode()->Distortion();
+			float distortion = cameraNode->Distortion();
 			if(ImGui::SliderFloat("Distortion", &distortion, 0.f, 10.f))
-				GuiHelpers::GetCamNode()->SetDistortion(distortion);
+				cameraNode->SetDistortion(distortion);
 
-			float focalDist = GuiHelpers::GetCamNode()->FocalDist();
+			float focalDist = cameraNode->FocalDist();
 			if(ImGui::SliderFloat("Focal dist", &focalDist, 1.f, 1e6f, "%.3f", ImGuiSliderFlags_Logarithmic))
-				GuiHelpers::GetCamNode()->SetFocalDist(focalDist);
+				cameraNode->SetFocalDist(focalDist);
 
-			float fov = GuiHelpers::GetCamNode()->Fov() * RadToDeg;
+			float fov = cameraNode->Fov() * RadToDeg;
 			if(ImGui::SliderFloat("Fov", &fov, 1.f, 179.f))
-				GuiHelpers::GetCamNode()->SetFov(fov * DegToRad);
+				cameraNode->SetFov(fov * DegToRad);
 
-			int bokehSideCount = GuiHelpers::GetCamNode()->BokehSideCount();
+			int bokehSideCount = cameraNode->BokehSideCount();
 			if(ImGui::SliderInt("Bokeh side count", &bokehSideCount, 0, 16))
-				GuiHelpers::GetCamNode()->SetBokehSideCount(bokehSideCount);
+				cameraNode->SetBokehSideCount(bokehSideCount);
 
-			float bokehRotation = GuiHelpers::GetCamNode()->BokehRotation() * RadToDeg;
+			float bokehRotation = cameraNode->BokehRotation() * RadToDeg;
 			if(ImGui::SliderFloat("Bokeh rotation", &bokehRotation, 1.f, 179.f))
-				GuiHelpers::GetCamNode()->SetBokehRotation(bokehRotation * DegToRad);
+				cameraNode->SetBokehRotation(bokehRotation * DegToRad);
 
 			ImGui::EndGroup();
 		}
@@ -364,65 +361,65 @@ namespace Tracer
 
 	void MainGui::RendererElements()
 	{
-		if(!GuiHelpers::GetRenderer())
+		Renderer* renderer = GuiHelpers::GetRenderer();
+		if(!renderer)
 		{
 			ImGui::Text("No renderer node detected");
 		}
 		else
 		{
-			// render mode
-			RenderModes renderMode = GuiHelpers::GetRenderer()->RenderMode();
-			if(ComboBox("Render Mode", renderMode))
-				GuiHelpers::GetRenderer()->SetRenderMode(renderMode);
+			Window* window = GuiHelpers::GetRenderWindow();
 
-			// kernel settings
+			// render mode
 			ImGui::Spacing();
 			ImGui::Text("Settings");
 
-			int multiSample = GuiHelpers::GetRenderer()->MultiSample();
+			RenderModes renderMode = renderer->RenderMode();
+			if(ComboBox("Render Mode", renderMode))
+				renderer->SetRenderMode(renderMode);
+
+			// kernel settings
+			int multiSample = renderer->MultiSample();
 			if(ImGui::SliderInt("Multi-sample", &multiSample, 1, Renderer::MaxTraceDepth))
-				GuiHelpers::GetRenderer()->SetMultiSample(multiSample);
+				renderer->SetMultiSample(multiSample);
 
-			int maxDepth = GuiHelpers::GetRenderer()->MaxDepth();
+			int maxDepth = renderer->MaxDepth();
 			if(ImGui::SliderInt("Max depth", &maxDepth, 1, 16))
-				GuiHelpers::GetRenderer()->SetMaxDepth(maxDepth);
+				renderer->SetMaxDepth(maxDepth);
 
-			float aoDist = GuiHelpers::GetRenderer()->AODist();
+			float aoDist = renderer->AODist();
 			if(ImGui::SliderFloat("AO Dist", &aoDist, 0.f, 1e4f, "%.3f", ImGuiSliderFlags_Logarithmic))
-				GuiHelpers::GetRenderer()->SetAODist(aoDist);
+				renderer->SetAODist(aoDist);
 
-			float zDepthMax = GuiHelpers::GetRenderer()->ZDepthMax();
+			float zDepthMax = renderer->ZDepthMax();
 			if(ImGui::SliderFloat("Z-Depth max", &zDepthMax, 0.f, 1e4f, "%.3f", ImGuiSliderFlags_Logarithmic))
-				GuiHelpers::GetRenderer()->SetZDepthMax(zDepthMax);
+				renderer->SetZDepthMax(zDepthMax);
 
-			MaterialPropertyIds matPropId = GuiHelpers::GetRenderer()->MaterialPropertyId();
+			MaterialPropertyIds matPropId = renderer->MaterialPropertyId();
 			if(ComboBox("Debug property", matPropId))
-				GuiHelpers::GetRenderer()->SetMaterialPropertyId(matPropId);
+				renderer->SetMaterialPropertyId(matPropId);
 
 			// post
-			if(GuiHelpers::GetRenderWindow())
-			{
-				ImGui::Spacing();
-				ImGui::Text("Post");
+			ImGui::Spacing();
+			ImGui::Text("Post");
 
-				Window::ShaderProperties shaderProps = GuiHelpers::GetRenderWindow()->PostShaderProperties();
-				ImGui::SliderFloat("Exposure", &shaderProps.exposure, 0.f, 100.f, "%.3f", ImGuiSliderFlags_Logarithmic);
-				ImGui::SliderFloat("Gamma", &shaderProps.gamma, 0.f, 4.f);
-				ComboBox("Tonemap method", shaderProps.tonemap);
-				GuiHelpers::GetRenderWindow()->SetPostShaderProperties(shaderProps);
-			}
+			Window::ShaderProperties shaderProps = window->PostShaderProperties();
+			ImGui::SliderFloat("Exposure", &shaderProps.exposure, 0.f, 100.f, "%.3f", ImGuiSliderFlags_Logarithmic);
+			ImGui::SliderFloat("Gamma", &shaderProps.gamma, 0.f, 4.f);
+			ComboBox("Tonemap method", shaderProps.tonemap);
+			window->SetPostShaderProperties(shaderProps);
 
 			// denoiser
 			ImGui::Spacing();
 			ImGui::Text("Denoiser");
 
-			bool denoising = GuiHelpers::GetRenderer()->DenoisingEnabled();
+			bool denoising = renderer->DenoisingEnabled();
 			if(ImGui::Checkbox("Enabled", &denoising))
-				GuiHelpers::GetRenderer()->SetDenoiserEnabled(denoising);
+				renderer->SetDenoiserEnabled(denoising);
 
-			int32_t denoiserSampleThreshold = GuiHelpers::GetRenderer()->DenoiserSampleThreshold();
+			int32_t denoiserSampleThreshold = renderer->DenoiserSampleThreshold();
 			if(ImGui::SliderInt("Sample threshold", &denoiserSampleThreshold, 0, 100))
-				GuiHelpers::GetRenderer()->SetDenoiserSampleThreshold(denoiserSampleThreshold);
+				renderer->SetDenoiserSampleThreshold(denoiserSampleThreshold);
 		}
 	}
 
@@ -499,27 +496,31 @@ namespace Tracer
 		ImGui::Text(__VA_ARGS__);	\
 		ImGui::NextColumn();
 
-		if(!GuiHelpers::GetRenderer())
+		const Renderer* renderer = GuiHelpers::GetRenderer();
+		if(!renderer)
 		{
 			ImGui::Text("No renderer detected");
 		}
 		else
 		{
 			// fetch stats
-			const Renderer::RenderStats renderStats = GuiHelpers::GetRenderer()->Statistics();
+			const Scene* scene = GuiHelpers::GetScene();
+			const Window* window = GuiHelpers::GetRenderWindow();
+			const Renderer::RenderStats renderStats = renderer->Statistics();
 
 			// init column layout
 			ImGui::Columns(2);
 
 			// device
-			const cudaDeviceProp& devProps = GuiHelpers::GetRenderer()->CudaDeviceProperties();
+			const cudaDeviceProp& devProps = renderer->CudaDeviceProperties();
 			ROW("Device", devProps.name);
 			SPACE;
 
 			// kernel
-			ROW("Kernel", std::string(magic_enum::enum_name(GuiHelpers::GetRenderer()->RenderMode())).c_str());
-			ROW("Samples","%d", GuiHelpers::GetRenderer()->SampleCount());
-			ROW("Denoised samples","%d", GuiHelpers::GetRenderer()->DenoisedSampleCount());
+			ROW("Kernel", std::string(magic_enum::enum_name(renderer->RenderMode())).c_str());
+			ROW("Samples","%d", renderer->SampleCount());
+			ROW("Denoised samples","%d", renderer->DenoisedSampleCount());
+			ROW("Resolution", "%i x %i", window->Resolution().x, window->Resolution().y);
 
 			SPACE;
 
@@ -552,13 +553,13 @@ namespace Tracer
 			SPACE;
 
 			// scene
-			ROW("Instance count", "%lld", GuiHelpers::GetScene()->InstanceCount());
-			ROW("Model count", "%lld", GuiHelpers::GetScene()->InstancedModelCount());
-			ROW("Texture count", "%lld", GuiHelpers::GetScene()->TextureCount());
-			ROW("Triangle count", "%s", ThousandSeparators(GuiHelpers::GetScene()->TriangleCount()).c_str());
-			ROW("Unique triangle count", "%s", ThousandSeparators(GuiHelpers::GetScene()->UniqueTriangleCount()).c_str());
-			ROW("Lights", "%s", ThousandSeparators(GuiHelpers::GetScene()->LightCount()).c_str());
-			ROW("Unique lights", "%s", ThousandSeparators(GuiHelpers::GetScene()->UniqueLightCount()).c_str());
+			ROW("Instance count", "%lld", scene->InstanceCount());
+			ROW("Model count", "%lld", scene->InstancedModelCount());
+			ROW("Texture count", "%lld", scene->TextureCount());
+			ROW("Triangle count", "%s", ThousandSeparators(scene->TriangleCount()).c_str());
+			ROW("Unique triangle count", "%s", ThousandSeparators(scene->UniqueTriangleCount()).c_str());
+			ROW("Lights", "%s", ThousandSeparators(scene->LightCount()).c_str());
+			ROW("Unique lights", "%s", ThousandSeparators(scene->UniqueLightCount()).c_str());
 
 			ImGui::Columns();
 		}
@@ -571,6 +572,8 @@ namespace Tracer
 
 	void MainGui::Scene_Scene()
 	{
+		Scene* scene = GuiHelpers::GetScene();
+
 		ImGui::Columns(3, nullptr, false);
 
 		// Load scene
@@ -579,8 +582,8 @@ namespace Tracer
 			std::string sceneFile;
 			if(OpenFileDialog("Json\0*.json\0", "Select a scene file", true, sceneFile))
 			{
-				GuiHelpers::GetScene()->Clear();
-				SceneFile::Load(sceneFile, GuiHelpers::GetScene(), GuiHelpers::GetCamNode(), GuiHelpers::GetRenderer(), GuiHelpers::GetRenderWindow());
+				scene->Clear();
+				SceneFile::Load(sceneFile, scene, GuiHelpers::GetCamNode(), GuiHelpers::GetRenderer(), GuiHelpers::GetRenderWindow());
 			}
 		}
 		ImGui::NextColumn();
@@ -590,14 +593,14 @@ namespace Tracer
 		{
 			std::string sceneFile;
 			if(SaveFileDialog("Json\0*.json\0", "Select a scene file", sceneFile))
-				SceneFile::Save(sceneFile, GuiHelpers::GetScene(), GuiHelpers::GetCamNode(), GuiHelpers::GetRenderer(), GuiHelpers::GetRenderWindow());
+				SceneFile::Save(sceneFile, scene, GuiHelpers::GetCamNode(), GuiHelpers::GetRenderer(), GuiHelpers::GetRenderWindow());
 		}
 		ImGui::NextColumn();
 
 		// Clear scene
 		if(ImGui::Button("Clear scene", ImVec2(ImGui::GetWindowWidth() * .3f, 0)))
 		{
-			GuiHelpers::GetScene()->Clear();
+			scene->Clear();
 		}
 
 		ImGui::Columns();
@@ -607,10 +610,12 @@ namespace Tracer
 
 	void MainGui::Scene_Models()
 	{
+		Scene* scene = GuiHelpers::GetScene();
+
 		ImGui::Columns(2, nullptr, true);
 
 		// Gather model names
-		std::vector<std::shared_ptr<Model>> models = GuiHelpers::GetScene()->Models();
+		std::vector<std::shared_ptr<Model>> models = scene->Models();
 		std::vector<const char*> modelNames;
 		modelNames.reserve(models.size());
 		for(const std::shared_ptr<Model>& m : models)
@@ -627,11 +632,11 @@ namespace Tracer
 			std::string modelFile = ImportModelDialog();
 			if(!modelFile.empty())
 			{
-				std::shared_ptr<Model> model = ModelFile::Import(GuiHelpers::GetScene(), modelFile);
+				std::shared_ptr<Model> model = ModelFile::Import(scene, modelFile);
 				if(model)
-					GuiHelpers::GetScene()->Add(model);
+					scene->Add(model);
 
-				models = GuiHelpers::GetScene()->Models();
+				models = scene->Models();
 				mSelectedModelIx = static_cast<int>(models.size() - 1);
 				strcpy_s(mModelName, mNameBufferSize, models[mSelectedModelIx]->Name().c_str());
 			}
@@ -644,16 +649,16 @@ namespace Tracer
 		// delete
 		if(ImGui::Button("Delete##delete_model"))
 		{
-			GuiHelpers::GetScene()->Remove(model);
-			models = GuiHelpers::GetScene()->Models();
+			scene->Remove(model);
+			models = scene->Models();
 			SelectModel(0);
 		}
 
 		// create instance
 		if(ImGui::Button("Create instance") && model)
 		{
-			GuiHelpers::GetScene()->Add(std::make_shared<Instance>(model->Name(), model, make_float3x4()));
-			strcpy_s(mInstanceName, mNameBufferSize, GuiHelpers::GetScene()->Instances()[mSelectedInstanceIx]->Name().c_str());
+			scene->Add(std::make_shared<Instance>(model->Name(), model, make_float3x4()));
+			strcpy_s(mInstanceName, mNameBufferSize, scene->Instances()[mSelectedInstanceIx]->Name().c_str());
 		}
 
 		// Properties
