@@ -32,6 +32,25 @@ namespace Tracer
 
 
 
+	Texture::Texture(const std::string& path, const int2& resolution, const std::vector<uint32_t>& pixels) :
+		Resource(FileName(path)),
+		mPath(path),
+		mResolution(resolution)
+	{
+		// convert pixels to half
+		mPixels.reserve(pixels.size());
+		for(const uint32_t& p : pixels)
+		{
+			const float a = static_cast<float>((p >> 24) & 0xFF) / 255.f;
+			const float r = static_cast<float>((p >> 16) & 0xFF) / 255.f;
+			const float g = static_cast<float>((p >>  8) & 0xFF) / 255.f;
+			const float b = static_cast<float>((p >>  0) & 0xFF) / 255.f;
+			mPixels.push_back(make_half4(r, g, b, a));
+		}
+	}
+
+
+
 	Texture::~Texture()
 	{
 		if(mCudaArray)

@@ -375,6 +375,18 @@ namespace Tracer
 
 
 
+	bool Renderer::SaveRequested(std::string& path)
+	{
+		if(mSavePath.empty())
+			return false;
+
+		path = mSavePath;
+		mSavePath.clear();
+		return true;
+	}
+
+
+
 	void Renderer::SetCamera(CameraNode& camNode)
 	{
 		if(camNode.IsDirty())

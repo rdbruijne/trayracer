@@ -82,6 +82,9 @@
     <ClCompile Include="FileIO\BinaryFile.cpp">
       <Filter>FileIO</Filter>
     </ClCompile>
+    <ClCompile Include="OpenGL\GLFramebuffer.cpp">
+      <Filter>OpenGL</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">
@@ -308,6 +311,9 @@
     <ClInclude Include="GUI\GuiExtensions.h">
       <Filter>GUI</Filter>
     </ClInclude>
+    <ClInclude Include="OpenGL\GLFramebuffer.h">
+      <Filter>OpenGL</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Model.h">
@@ -327,6 +333,9 @@
     </None>
     <None Include="Resources\Material.inl">
       <Filter>Resources</Filter>
+    </None>
+    <None Include="glsl\Tonemap.frag">
+      <Filter>glsl</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

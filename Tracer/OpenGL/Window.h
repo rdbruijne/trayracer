@@ -4,6 +4,7 @@
 #include "OpenGL/Input.h"
 
 // C++
+#include <memory>
 #include <string>
 
 // GLFW
@@ -11,8 +12,10 @@ struct GLFWwindow;
 
 namespace Tracer
 {
+	class GLFramebuffer;
 	class GLTexture;
 	class Shader;
+	class Texture;
 	class Window
 	{
 	public:
@@ -35,8 +38,14 @@ namespace Tracer
 		void SetResolution(const int2& resolution);
 
 		// Render texture
-		GLTexture* RenderTexture();
-		const GLTexture* RenderTexture() const;
+		GLTexture* RenderTexture() { return mRenderTexture; }
+		const GLTexture* RenderTexture() const { return mRenderTexture; }
+
+		// Framebuffer
+		GLFramebuffer* Framebuffer() { return mFramebuffer; }
+		const GLFramebuffer* Framebuffer() const { return mFramebuffer; }
+
+		std::shared_ptr<Texture> DownloadFramebuffer() const;
 
 		// Display
 		void Display();
@@ -87,9 +96,11 @@ namespace Tracer
 		int2 mResolution = make_int2(0, 0);
 		GLFWwindow* mHandle = nullptr;
 		GLTexture* mRenderTexture = nullptr;
+		GLFramebuffer* mFramebuffer = nullptr;
 
 		// post shader
-		Shader* mShader = nullptr;
+		Shader* mQuadShader = nullptr;
+		Shader* mTonemapShader = nullptr;
 		ShaderProperties mShaderProperties;
 
 		// Input

@@ -2,6 +2,7 @@
 
 // Project
 #include "App/App.h"
+#include "FileIO/TextureFile.h"
 #include "GUI/GuiHelpers.h"
 #include "GUI/MainGui.h"
 #include "OpenGL/Input.h"
@@ -75,6 +76,14 @@ namespace Tracer
 
 				// run window shaders
 				window->Display();
+
+				// save render?
+				std::string savePath;
+				if(renderer->SaveRequested(savePath))
+				{
+					TextureFile::Export(savePath, window->DownloadFramebuffer());
+					renderer->ResetSaveRequest();
+				}
 
 				// update GUI
 				GuiHelpers::Set(app->GetCameraNode());

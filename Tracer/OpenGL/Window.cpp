@@ -1,8 +1,10 @@
 #include "Window.h"
 
 // Project
+#include "OpenGL/GLFramebuffer.h"
 #include "OpenGL/GLTexture.h"
 #include "OpenGL/Shader.h"
+#include "Resources/Texture.h"
 #include "Utility/LinearMath.h"
 #include "Utility/Logger.h"
 #include "Utility/Utility.h"
@@ -76,8 +78,9 @@ namespace Tracer
 		glDisable(GL_DEPTH_TEST);
 		glDepthMask(GL_FALSE);
 
-		// init shader
-		mShader = new Shader("glsl/FullScreenQuad.vert", "glsl/FullScreenQuad.frag");
+		// init shaders
+		mQuadShader = new Shader("glsl/FullScreenQuad.vert", "glsl/FullScreenQuad.frag");
+		mTonemapShader = new Shader("glsl/FullScreenQuad.vert", "glsl/Tonemap.frag");
 
 		// GL texture
 		mRenderTexture = new GLTexture(mResolution, GLTexture::Types::Float4);
@@ -87,8 +90,10 @@ namespace Tracer
 
 	Window::~Window()
 	{
-		delete mShader;
+		delete mQuadShader;
+		delete mTonemapShader;
 		delete mRenderTexture;
+		delete mFramebuffer;
 
 		if (mHandle)
 			glfwDestroyWindow(mHandle);
@@ -154,6 +159,12 @@ namespace Tracer
 			mRenderTexture = new GLTexture(resolution, GLTexture::Types::Float4);
 		}
 
+		if(!mFramebuffer || mFramebuffer->Resolution() != resolution)
+		{
+			delete mFramebuffer;
+			mFramebuffer = new GLFramebuffer(resolution);
+		}
+
 		const float dpiScale = MonitorDPI(CurrentMonitor());
 		const int2 dpiRes = make_int2(static_cast<int>(resolution.x * dpiScale), static_cast<int>(resolution.y * dpiScale));
 		glfwSetWindowSize(mHandle, dpiRes.x, dpiRes.y);
@@ -171,16 +182,11 @@ namespace Tracer
 
 
 
-	GLTexture* Window::RenderTexture()
+	std::shared_ptr<Texture> Window::DownloadFramebuffer() const
 	{
-		return mRenderTexture;
-	}
-
-
-
-	const GLTexture* Window::RenderTexture() const
-	{
-		return mRenderTexture;
+		std::vector<uint32_t> pixels;
+		mFramebuffer->Texture()->Download(pixels);
+		return std::make_shared<Texture>("", Resolution(), pixels);
 	}
 
 
@@ -194,12 +200,21 @@ namespace Tracer
 		glDisable(GL_LIGHTING);
 		glDisable(GL_DEPTH_TEST);
 
-		mShader->Bind();
-		mShader->Set(0, "convergeBuffer", mRenderTexture);
-		mShader->Set("exposure", mShaderProperties.exposure);
-		mShader->Set("gamma",  mShaderProperties.gamma);
+		// draw to the framebuffer
+		mFramebuffer->Bind();
+		mTonemapShader->Bind();
+		mTonemapShader->Set(0, "convergeBuffer", mRenderTexture);
+		mTonemapShader->Set("exposure", mShaderProperties.exposure);
+		mTonemapShader->Set("gamma",  mShaderProperties.gamma);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
-		mShader->Unbind();
+		mTonemapShader->Unbind();
+		mFramebuffer->Unbind();
+
+		// draw the framebuffer to the screen
+		mQuadShader->Bind();
+		mQuadShader->Set(0, "convergeBuffer", mFramebuffer->Texture());
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+		mQuadShader->Unbind();
 
 		glFinish();
 	}

@@ -554,7 +554,7 @@ namespace Disney
 		// Create closure
 		BsdfResult result;
 		result.wi  = wi;
-		result.pdf = probability > Epsilon ? probability : 0;
+		result.pdf = probability > 1e-6f ? probability : 0;
 		result.T   = value;
 		return result;
 	}

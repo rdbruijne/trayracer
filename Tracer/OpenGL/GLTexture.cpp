@@ -49,14 +49,14 @@ namespace Tracer
 
 
 
-	void GLTexture::Bind()
+	void GLTexture::Bind() const
 	{
 		glBindTexture(GL_TEXTURE_2D, mId);
 	}
 
 
 
-	void GLTexture::Unbind()
+	void GLTexture::Unbind() const
 	{
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
@@ -91,6 +91,42 @@ namespace Tracer
 		assert(pixels.size() == static_cast<size_t>(mResolution.x) * mResolution.y);
 		Bind();
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, mResolution.x, mResolution.y, 0, GL_RGBA, GL_HALF_FLOAT, pixels.data());
+		Unbind();
+	}
+
+
+
+	void GLTexture::Download(std::vector<uint32_t>& pixels) const
+	{
+		assert(mType == Types::Byte4);
+		pixels.resize(static_cast<size_t>(mResolution.x) * mResolution.y);
+
+		Bind();
+		glReadPixels(0, 0, mResolution.x, mResolution.y, GL_BGRA, GL_UNSIGNED_BYTE, pixels.data());
+		Unbind();
+	}
+
+
+
+	void GLTexture::Download(std::vector<float4>& pixels) const
+	{
+		assert(mType == Types::Float4);
+		pixels.resize(static_cast<size_t>(mResolution.x) * mResolution.y);
+
+		Bind();
+		glReadPixels(0, 0, mResolution.x, mResolution.y, GL_BGRA, GL_FLOAT, pixels.data());
+		Unbind();
+	}
+
+
+
+	void GLTexture::Download(std::vector<half4>& pixels) const
+	{
+		assert(mType == Types::Half4);
+		pixels.resize(static_cast<size_t>(mResolution.x) * mResolution.y);
+
+		Bind();
+		glReadPixels(0, 0, mResolution.x, mResolution.y, GL_BGRA, GL_HALF_FLOAT, pixels.data());
 		Unbind();
 	}
 }

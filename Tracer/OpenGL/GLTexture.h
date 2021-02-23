@@ -20,14 +20,18 @@ namespace Tracer
 		};
 
 		explicit GLTexture(const int2& resolution, Types type);
-		~GLTexture();
+		virtual ~GLTexture();
 
-		void Bind();
-		void Unbind();
+		virtual void Bind() const;
+		virtual void Unbind() const;
 
 		void Upload(const std::vector<uint32_t>& pixels);
 		void Upload(const std::vector<float4>& pixels);
 		void Upload(const std::vector<half4>& pixels);
+
+		void Download(std::vector<uint32_t>& pixels) const;
+		void Download(std::vector<float4>& pixels) const;
+		void Download(std::vector<half4>& pixels) const;
 
 		inline uint32_t ID() const { return mId; }
 		inline Types Type() const { return mType; }

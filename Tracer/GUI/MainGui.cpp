@@ -127,6 +127,10 @@ namespace Tracer
 		if(ImGui::CollapsingHeader("Camera"))
 			CameraElements();
 
+		// image
+		if(ImGui::CollapsingHeader("Image"))
+			ImageElements();
+
 		// material
 		if(ImGui::CollapsingHeader("Material"))
 			MaterialElements();
@@ -335,6 +339,23 @@ namespace Tracer
 					ImGui::TreePop();
 					ImGui::Separator();
 				}
+			}
+		}
+	}
+
+
+
+	void MainGui::ImageElements()
+	{
+		// save render
+		if(ImGui::Button("Save"))
+		{
+			std::string imageFile;
+			if(SaveFileDialog("Png\0*.png", "Select an image file", imageFile))
+			{
+				if(ToLower(FileExtension(imageFile)) != ".png")
+					imageFile += ".png";
+				GuiHelpers::GetRenderer()->RequestSave(imageFile);
 			}
 		}
 	}

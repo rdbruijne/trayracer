@@ -138,7 +138,6 @@ namespace Tracer
 		if(!tmp)
 			return nullptr;
 
-		//FIBITMAP* dib = FreeImage_ConvertTo32Bits(tmp);
 		FIBITMAP* dib = FreeImage_ConvertToRGBAF(tmp);
 		FreeImage_Unload(tmp);
 
@@ -163,5 +162,54 @@ namespace Tracer
 #endif
 
 		return tex;
+	}
+
+
+
+	bool TextureFile::Export(const std::string& filePath, std::shared_ptr<Texture> texture)
+	{
+		std::string globalPath = GlobalPath(filePath);
+
+		Stopwatch sw;
+
+		// determine the file type
+		const FREE_IMAGE_FORMAT fif = FreeImage_GetFIFFromFilename(filePath.c_str());
+		if(fif == FIF_UNKNOWN)
+		{
+			Logger::Info("Could not determine image type for \"%s\"", globalPath.c_str());
+			return false;
+		}
+
+		// cache info
+		const int2 resolution = texture->Resolution();
+		const std::vector<half4>& pixels = texture->Pixels();
+
+		// allocate a bitmap
+		FIBITMAP* bitmap = FreeImage_Allocate(resolution.x, resolution.y, 32);
+
+		// fill the bitmap
+		RGBQUAD p;
+		std::vector<half4>::const_iterator src = pixels.begin();
+		for(int y = 0; y < resolution.y; y++)
+		{
+			for(int x = 0; x < resolution.x; x++)
+			{
+				p.rgbRed      = static_cast<BYTE>(src->x * 255.f);
+				p.rgbGreen    = static_cast<BYTE>(src->y * 255.f);
+				p.rgbBlue     = static_cast<BYTE>(src->z * 255.f);
+				p.rgbReserved = static_cast<BYTE>(src->w * 255.f);
+				FreeImage_SetPixelColor(bitmap, x, y, &p);
+				src++;
+			}
+		}
+
+		// export the image
+		const bool result = static_cast<bool>(FreeImage_Save(fif, bitmap, filePath.c_str()));
+
+		// unload bitmap
+		FreeImage_Unload(bitmap);
+
+		Logger::Info("Exported \"%s\" in %s", globalPath.c_str(), sw.ElapsedString().c_str());
+		return result;
 	}
 }

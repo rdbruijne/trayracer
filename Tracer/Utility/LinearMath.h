@@ -44,7 +44,7 @@ namespace Tracer
 	constexpr float Ln10             = 2.3025850929940457f; // ln(10)
 	constexpr float Phi              = 1.6180339887498948f; // Golden Ratio
 
-	constexpr float Epsilon          = 1e-6f;
+	constexpr float Epsilon          = 1e-3f;
 	constexpr float DegToRad         = 3.14159265359f / 180.f;
 	constexpr float RadToDeg         = 180.f / 3.14159265359f;
 

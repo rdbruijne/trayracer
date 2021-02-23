@@ -88,8 +88,8 @@
       </Message>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>xcopy /r /d /i /s /y "$(ProjectDir)glsl" "$(OutDir)glsl"
-for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command>
+      <Command>xcopy /r /d /i /s /y "$(ProjectDir)glsl" "$(SolutionDir)bin\glsl"
+for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(SolutionDir)bin\"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Copy resources</Message>
@@ -136,8 +136,7 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
       </Message>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>xcopy /r /d /i /s /y "$(ProjectDir)glsl" "$(OutDir)glsl"
-for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command>
+      <Command>xcopy /r /d /i /s /y "$(ProjectDir)glsl" "$(SolutionDir)bin\glsl"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Copy resources</Message>
@@ -160,6 +159,7 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
     <ClCompile Include="FileIO\TextureFile.cpp" />
     <ClCompile Include="GUI\MainGui.cpp" />
     <ClCompile Include="GUI\GuiHelpers.cpp" />
+    <ClCompile Include="OpenGL\GLFramebuffer.cpp" />
     <ClCompile Include="OpenGL\GLHelpers.cpp" />
     <ClCompile Include="OpenGL\GLTexture.cpp" />
     <ClCompile Include="OpenGL\Shader.cpp" />
@@ -217,6 +217,7 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
     <ClInclude Include="GUI\GuiWindow.h" />
     <ClInclude Include="GUI\MainGui.h" />
     <ClInclude Include="GUI\GuiHelpers.h" />
+    <ClInclude Include="OpenGL\GLFramebuffer.h" />
     <ClInclude Include="OpenGL\GLHelpers.h" />
     <ClInclude Include="OpenGL\GLTexture.h" />
     <ClInclude Include="OpenGL\Input.h" />
@@ -244,6 +245,7 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(OutDir)"</Command
     <None Include="FileIO\BinaryFile.inl" />
     <None Include="glsl\FullScreenQuad.frag" />
     <None Include="glsl\FullScreenQuad.vert" />
+    <None Include="glsl\Tonemap.frag" />
     <None Include="Resources\Material.inl" />
     <None Include="Resources\Model.h" />
   </ItemGroup>

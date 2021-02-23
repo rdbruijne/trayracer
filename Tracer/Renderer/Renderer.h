@@ -38,6 +38,11 @@ namespace Tracer
 		void RenderFrame(GLTexture* renderTexture);
 		void Reset();
 
+		// save render
+		inline void RequestSave(const std::string& path) { mSavePath = path; }
+		inline void ResetSaveRequest() { mSavePath = ""; }
+		bool SaveRequested(std::string& path);
+
 		// camera
 		void SetCamera(CameraNode& camNode);
 
@@ -129,6 +134,9 @@ namespace Tracer
 		RenderModes mRenderMode = RenderModes::PathTracing;
 		MaterialPropertyIds mMaterialPropertyId = MaterialPropertyIds::Diffuse;
 
+		// saving
+		std::string mSavePath = "";
+
 		// stats
 		RenderStats mRenderStats = {};
 
@@ -176,7 +184,7 @@ namespace Tracer
 		CudaBuffer mDenoisedBuffer = {};
 		CudaBuffer mDenoiserHdrIntensity = {};
 
-		bool mDenoisingEnabled = false;
+		bool mDenoisingEnabled = true;
 		uint32_t mDenoisedSampleCount = 0;
 		uint32_t mDenoiserSampleThreshold = 10;
 

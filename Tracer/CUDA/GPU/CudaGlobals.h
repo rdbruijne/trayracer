@@ -7,7 +7,7 @@
 //------------------------------------------------------------------------------------------------------------------------------
 // rendering
 constexpr float DstMax = 1e30f;
-constexpr float Epsilon = 1e-6f;
+constexpr float Epsilon = 1e-3f;
 
 
 
