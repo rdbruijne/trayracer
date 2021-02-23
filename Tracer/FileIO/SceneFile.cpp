@@ -780,7 +780,7 @@ namespace Tracer
 	//--------------------------------------------------------------------------------------------------------------------------
 	// SceneFile
 	//--------------------------------------------------------------------------------------------------------------------------
-	void SceneFile::Load(const std::string& sceneFile, Scene* scene, CameraNode* camNode, Renderer* renderer, Window* window)
+	void SceneFile::Load(const std::string& sceneFile, Scene* scene, Sky* sky, CameraNode* camNode, Renderer* renderer, Window* window)
 	{
 		Logger::Info("Loading scene from \"%s\"", sceneFile.c_str());
 		Stopwatch sw;
@@ -799,22 +799,33 @@ namespace Tracer
 			}
 		}
 
-		const std::map<std::string, std::string> models = ParseModels(doc);
-		const std::vector<InstanceInfo> instances = ParseInstances(doc);
+		if(scene)
+		{
+			const std::map<std::string, std::string> models = ParseModels(doc);
+			const std::vector<InstanceInfo> instances = ParseInstances(doc);
 
-		ImportModels(scene, models, instances);
-		ParseMaterials(scene, doc);
-		ParseCamera(camNode, doc);
-		ParseRenderSettings(renderer, doc);
-		ParseSkySettings(scene->GetSky().get(), doc);
-		ParsePostSettings(window, doc);
+			ImportModels(scene, models, instances);
+			ParseMaterials(scene, doc);
+		}
 
-		Logger::Info("Loaded scene in %s", sw.ElapsedString().c_str());
+		if(camNode)
+			ParseCamera(camNode, doc);
+
+		if(renderer)
+			ParseRenderSettings(renderer, doc);
+
+		if(sky)
+			ParseSkySettings(sky, doc);
+
+		if(window)
+			ParsePostSettings(window, doc);
+
+		Logger::Info("Loaded scenefile in %s", sw.ElapsedString().c_str());
 	}
 
 
 
-	void SceneFile::Save(const std::string& sceneFile, Scene* scene, CameraNode* camNode, Renderer* renderer, Window* window)
+	void SceneFile::Save(const std::string& sceneFile, Scene* scene, Sky* sky, CameraNode* camNode, Renderer* renderer, Window* window)
 	{
 		std::string globalPath = GlobalPath(sceneFile);
 		if(ToLower(FileExtension(globalPath)) != ".json")
@@ -825,31 +836,42 @@ namespace Tracer
 
 		// create json document
 		Document doc;
+		Document::AllocatorType& allocator = doc.GetAllocator();
 		doc.SetObject();
 
-		// gather model names
-		std::map<std::shared_ptr<Model>, std::string> uniqueModelNames;
-		for(const std::shared_ptr<Model>& m : scene->Models())
+		if(scene)
 		{
-			std::string name = m->Name();
-			int i = 0;
-			while(std::find_if(uniqueModelNames.begin(), uniqueModelNames.end(), [&name](const std::pair<std::shared_ptr<Model>, std::string>& it){ return name == it.second; }) != uniqueModelNames.end())
+			// gather model names
+			std::map<std::shared_ptr<Model>, std::string> uniqueModelNames;
+			for(const std::shared_ptr<Model>& m : scene->Models())
 			{
-				name = format("%s_%i", m->Name().c_str(), ++i);
+				std::string name = m->Name();
+				int i = 0;
+				while(std::find_if(uniqueModelNames.begin(), uniqueModelNames.end(), [&name](const std::pair<std::shared_ptr<Model>, std::string>& it){ return name == it.second; }) != uniqueModelNames.end())
+				{
+					name = format("%s_%i", m->Name().c_str(), ++i);
+				}
+
+				uniqueModelNames[m] = name;
 			}
 
-			uniqueModelNames[m] = name;
+			// export to JSON
+			ExportModels(uniqueModelNames, doc, allocator);
+			ExportInstances(scene, uniqueModelNames, doc, allocator);
+			ExportMaterials(scene, uniqueModelNames, doc, allocator);
 		}
 
-		// export to JSON
-		Document::AllocatorType& allocator = doc.GetAllocator();
-		ExportModels(uniqueModelNames, doc, allocator);
-		ExportInstances(scene, uniqueModelNames, doc, allocator);
-		ExportMaterials(scene, uniqueModelNames, doc, allocator);
-		ExportCamera(camNode, doc, allocator);
-		ExportRenderSettings(renderer, doc, allocator);
-		ExportSkySettings(scene->GetSky().get(), doc, allocator);
-		ExportPostSettings(window, doc, allocator);
+		if(camNode)
+			ExportCamera(camNode, doc, allocator);
+
+		if(renderer)
+			ExportRenderSettings(renderer, doc, allocator);
+
+		if(sky)
+			ExportSkySettings(sky, doc, allocator);
+
+		if(window)
+			ExportPostSettings(window, doc, allocator);
 
 		// write to disk
 		std::ofstream f(globalPath);
@@ -859,6 +881,6 @@ namespace Tracer
 		writer.SetFormatOptions(PrettyFormatOptions::kFormatSingleLineArray);
 		doc.Accept(writer);
 
-		Logger::Info("Saved scene in %s", sw.ElapsedString().c_str());
+		Logger::Info("Saved scenefile in %s", sw.ElapsedString().c_str());
 	}
 }

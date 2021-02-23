@@ -591,31 +591,45 @@ namespace Tracer
 	{
 		Scene* scene = GuiHelpers::GetScene();
 
-		ImGui::Columns(3, nullptr, false);
+		const int columns = 4;
+		const float buttonWidth = (1.f / columns) * .9f;
+
+		ImGui::Columns(4, nullptr, false);
 
 		// Load scene
-		if(ImGui::Button("Load scene", ImVec2(ImGui::GetWindowWidth() * .3f, 0)))
+		if(ImGui::Button("Load scene", ImVec2(ImGui::GetWindowWidth() * buttonWidth, 0)))
 		{
 			std::string sceneFile;
 			if(OpenFileDialog("Json\0*.json\0", "Select a scene file", true, sceneFile))
 			{
 				scene->Clear();
-				SceneFile::Load(sceneFile, scene, GuiHelpers::GetCamNode(), GuiHelpers::GetRenderer(), GuiHelpers::GetRenderWindow());
+				SceneFile::Load(sceneFile, scene, scene->GetSky().get(), GuiHelpers::GetCamNode(), GuiHelpers::GetRenderer(), GuiHelpers::GetRenderWindow());
+			}
+		}
+		ImGui::NextColumn();
+
+		// Add scene
+		if(ImGui::Button("Add scene", ImVec2(ImGui::GetWindowWidth() * buttonWidth, 0)))
+		{
+			std::string sceneFile;
+			if(OpenFileDialog("Json\0*.json\0", "Select a scene file", true, sceneFile))
+			{
+				SceneFile::Load(sceneFile, scene, nullptr, nullptr, nullptr, nullptr);
 			}
 		}
 		ImGui::NextColumn();
 
 		// Save scene
-		if(ImGui::Button("Save scene", ImVec2(ImGui::GetWindowWidth() * .3f, 0)))
+		if(ImGui::Button("Save scene", ImVec2(ImGui::GetWindowWidth() * buttonWidth, 0)))
 		{
 			std::string sceneFile;
 			if(SaveFileDialog("Json\0*.json\0", "Select a scene file", sceneFile))
-				SceneFile::Save(sceneFile, scene, GuiHelpers::GetCamNode(), GuiHelpers::GetRenderer(), GuiHelpers::GetRenderWindow());
+				SceneFile::Save(sceneFile, scene, scene->GetSky().get(), GuiHelpers::GetCamNode(), GuiHelpers::GetRenderer(), GuiHelpers::GetRenderWindow());
 		}
 		ImGui::NextColumn();
 
 		// Clear scene
-		if(ImGui::Button("Clear scene", ImVec2(ImGui::GetWindowWidth() * .3f, 0)))
+		if(ImGui::Button("Clear scene", ImVec2(ImGui::GetWindowWidth() * buttonWidth, 0)))
 		{
 			scene->Clear();
 		}
