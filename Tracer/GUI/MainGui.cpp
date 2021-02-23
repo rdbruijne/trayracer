@@ -342,23 +342,6 @@ namespace Tracer
 
 
 
-	void MainGui::ImageElements()
-	{
-		// save render
-		if(ImGui::Button("Save"))
-		{
-			std::string imageFile;
-			if(SaveFileDialog("Png\0*.png", "Select an image file", imageFile))
-			{
-				if(ToLower(FileExtension(imageFile)) != ".png")
-					imageFile += ".png";
-				GuiHelpers::GetRenderer()->RequestSave(imageFile);
-			}
-		}
-	}
-
-
-
 	void MainGui::RendererElements()
 	{
 		Renderer* renderer = GuiHelpers::GetRenderer();
@@ -369,6 +352,40 @@ namespace Tracer
 		else
 		{
 			Window* window = GuiHelpers::GetRenderWindow();
+
+			// image
+			if(ImGui::Button("Export image"))
+			{
+				std::string imageFile;
+				if(SaveFileDialog("Png\0*.png", "Select an image file", imageFile))
+				{
+					if(ToLower(FileExtension(imageFile)) != ".png")
+						imageFile += ".png";
+					renderer->RequestSave(imageFile);
+				}
+			}
+
+			// resolution
+			ImGui::Spacing();
+			ImGui::Text("Resolution");
+
+			bool fullscreen = window->IsFullscreen();
+			if(ImGui::Checkbox("Fullscreen", &fullscreen))
+			{
+				window->SetFullscreen(fullscreen);
+				mResolution = window->Resolution();
+			}
+
+			if(mResolution.x == -1 && mResolution.y == -1)
+				mResolution = window->Resolution();
+
+			ImGui::InputInt2("##Resolution", reinterpret_cast<int*>(&mResolution));
+
+			if(ImGui::Button("Apply"))
+				window->SetResolution(mResolution);
+			ImGui::SameLine();
+			if(ImGui::Button("Reset"))
+				mResolution = window->Resolution();
 
 			// render mode
 			ImGui::Spacing();

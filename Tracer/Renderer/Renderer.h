@@ -114,7 +114,7 @@ namespace Tracer
 #undef KERNEL_SETTING
 
 	private:
-		void Resize(const int2& resolution);
+		void Resize(GLTexture* renderTexture);
 		bool ShouldDenoise() const;
 
 		// Creation
@@ -168,7 +168,6 @@ namespace Tracer
 		CudaBuffer mAlbedoBuffer = {};
 		CudaBuffer mNormalBuffer = {};
 		CudaBuffer mColorBuffer = {};
-		GLTexture* mRenderTarget = nullptr;
 		cudaGraphicsResource* mCudaGraphicsResource = nullptr;
 
 		// SPT

@@ -29,8 +29,7 @@
 
 namespace Tracer
 {
-	Window::Window(const std::string& title, const int2& resolution, bool fullscreen) :
-		mResolution(resolution)
+	Window::Window(const std::string& title, int2 resolution, bool fullscreen)
 	{
 		glfwSetErrorCallback(ErrorCallback);
 
@@ -41,6 +40,12 @@ namespace Tracer
 		// create window
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
 		glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+		if(fullscreen && (resolution.x <= 0 || resolution.y <= 0))
+		{
+			const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+			resolution = make_int2(mode->width, mode->height);
+		}
+
 		mHandle = glfwCreateWindow(resolution.x, resolution.y, title.c_str(), fullscreen ? glfwGetPrimaryMonitor() : nullptr, nullptr);
 
 		if(!mHandle)
@@ -74,6 +79,10 @@ namespace Tracer
 		// dpi fix
 		SetResolution(resolution);
 
+		// backup resolution & size
+		mWindowPosBackup = Position();
+		mWindowResBackup = Resolution();
+
 		// settings
 		glDisable(GL_DEPTH_TEST);
 		glDepthMask(GL_FALSE);
@@ -83,7 +92,7 @@ namespace Tracer
 		mTonemapShader = new Shader("glsl/FullScreenQuad.vert", "glsl/Tonemap.frag");
 
 		// GL texture
-		mRenderTexture = new GLTexture(mResolution, GLTexture::Types::Float4);
+		mRenderTexture = new GLTexture(resolution, GLTexture::Types::Float4);
 	}
 
 
@@ -127,7 +136,7 @@ namespace Tracer
 	int2 Window::Position() const
 	{
 		int2 position;
-		glfwGetWindowSize(mHandle, &position.x, &position.y);
+		glfwGetWindowPos(mHandle, &position.x, &position.y);
 		return position;
 	}
 
@@ -178,6 +187,42 @@ namespace Tracer
 		glLoadIdentity();
 
 		glViewport(0, 0, dpiRes.x, dpiRes.y);
+	}
+
+
+
+	bool Window::IsFullscreen() const
+	{
+		return glfwGetWindowMonitor(mHandle) != nullptr;
+	}
+
+
+
+	void Window::SetFullscreen(bool fullscreen)
+	{
+		if(fullscreen == IsFullscreen())
+			return;
+
+		if(fullscreen)
+		{
+			// backup position & size
+			mWindowPosBackup = Position();
+			mWindowResBackup = Resolution();
+
+			// get monitor resolution
+			const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+
+			// switch to full screen
+			glfwSetWindowMonitor(mHandle, glfwGetPrimaryMonitor(), 0, 0, mode->width, mode->height, 0);
+			SetResolution(make_int2(mode->width, mode->height));
+		}
+		else
+		{
+			// restore last size & position
+			glfwSetWindowMonitor(mHandle, nullptr, std::max(100, mWindowPosBackup.x), std::max(100, mWindowPosBackup.y),
+								 mWindowResBackup.x, mWindowResBackup.y, 0);
+			SetResolution(mWindowResBackup);
+		}
 	}
 
 

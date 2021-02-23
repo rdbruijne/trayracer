@@ -2,6 +2,7 @@
 
 // Project
 #include "GUI/GuiWindow.h"
+#include "Utility/LinearMath.h"
 
 // C++
 #include <map>
@@ -27,7 +28,6 @@ namespace Tracer
 		// elements
 		void CameraElements();
 		void DebugElements();
-		void ImageElements();
 		void MaterialElements();
 		void RendererElements();
 		void SceneElements();
@@ -49,6 +49,8 @@ namespace Tracer
 		void SelectInstance(int ix);
 
 		static constexpr int mNameBufferSize = 128;
+
+		int2 mResolution = make_int2(-1, -1);
 
 		int mSelectedModelIx = 0;
 		char mModelName[mNameBufferSize] = {};

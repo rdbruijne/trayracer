@@ -19,7 +19,7 @@ namespace Tracer
 	class Window
 	{
 	public:
-		explicit Window(const std::string& title, const int2& resolution, bool fullscreen = false);
+		explicit Window(const std::string& title, int2 resolution, bool fullscreen = false);
 		~Window();
 
 		// Closed
@@ -36,6 +36,10 @@ namespace Tracer
 		// Resolution
 		int2 Resolution() const;
 		void SetResolution(const int2& resolution);
+
+		// fullscreen
+		bool IsFullscreen() const;
+		void SetFullscreen(bool fullscreen);
 
 		// Render texture
 		GLTexture* RenderTexture() { return mRenderTexture; }
@@ -105,7 +109,6 @@ namespace Tracer
 		static void DropCallback(GLFWwindow* handle, int count, const char** paths) noexcept;
 
 		// Members
-		int2 mResolution = make_int2(0, 0);
 		GLFWwindow* mHandle = nullptr;
 		GLTexture* mRenderTexture = nullptr;
 		GLFramebuffer* mFramebuffer = nullptr;
@@ -119,5 +122,9 @@ namespace Tracer
 		Input::State mPrevInputState = Input::State();
 		Input::State mCurInputState = Input::State();
 		Input::State mNextInputState = Input::State();
+
+		// backup data
+		int2 mWindowPosBackup;
+		int2 mWindowResBackup;
 	};
 }

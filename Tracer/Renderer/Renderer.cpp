@@ -153,7 +153,7 @@ namespace Tracer
 			return;
 
 		if(mLaunchParams.resX != texRes.x || mLaunchParams.resY != texRes.y)
-			Resize(texRes);
+			Resize(renderTexture);
 
 		// prepare SPT buffers
 		const uint32_t stride = mLaunchParams.resX * mLaunchParams.resY * mLaunchParams.multiSample;
@@ -333,16 +333,6 @@ namespace Tracer
 			mDenoiseTimeEvents.Stop(mStream);
 		}
 
-		// update the target
-		if(mRenderTarget != renderTexture)
-		{
-			if(mCudaGraphicsResource)
-				CUDA_CHECK(cudaGraphicsUnregisterResource(mCudaGraphicsResource));
-
-			CUDA_CHECK(cudaGraphicsGLRegisterImage(&mCudaGraphicsResource, renderTexture->ID(), GL_TEXTURE_2D, cudaGraphicsMapFlagsWriteDiscard));
-			mRenderTarget = renderTexture;
-		}
-
 		// copy to GL texture
 		cudaArray* cudaTexPtr = nullptr;
 		void* srcBuffer = ShouldDenoise() ? mDenoisedBuffer.Ptr() : mColorBuffer.Ptr();
@@ -460,8 +450,10 @@ namespace Tracer
 
 
 
-	void Renderer::Resize(const int2& resolution)
+	void Renderer::Resize(GLTexture* renderTexture)
 	{
+		const int2 resolution = renderTexture->Resolution();
+
 		// resize buffers
 		mAccumulator.Resize(sizeof(float4) * resolution.x * resolution.y);
 		mAlbedoBuffer.Resize(sizeof(float4) * resolution.x * resolution.y);
@@ -474,6 +466,11 @@ namespace Tracer
 		mLaunchParams.resY = resolution.y;
 		mLaunchParams.accumulator = mAccumulator.Ptr<float4>();
 		Reset();
+
+		// release the graphics resource
+		if(mCudaGraphicsResource)
+			CUDA_CHECK(cudaGraphicsUnregisterResource(mCudaGraphicsResource));
+		CUDA_CHECK(cudaGraphicsGLRegisterImage(&mCudaGraphicsResource, renderTexture->ID(), GL_TEXTURE_2D, cudaGraphicsMapFlagsWriteDiscard));
 
 		// allocate denoiser memory
 		OptixDenoiserSizes denoiserReturnSizes;
