@@ -12,7 +12,7 @@ namespace Tracer
 {
 	GLFramebuffer::GLFramebuffer(const int2& resolution)
 	{
-		mGlTexture = new GLTexture(resolution, GLTexture::Types::Byte4);
+		mGlTexture = new GLTexture(resolution, GLTexture::Types::Float4);
 
 		// create the framebuffer
 		glGenFramebuffers(1, &mId);

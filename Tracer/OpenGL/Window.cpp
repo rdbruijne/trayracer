@@ -184,7 +184,7 @@ namespace Tracer
 
 	std::shared_ptr<Texture> Window::DownloadFramebuffer() const
 	{
-		std::vector<uint32_t> pixels;
+		std::vector<float4> pixels;
 		mFramebuffer->Texture()->Download(pixels);
 		return std::make_shared<Texture>("", Resolution(), pixels);
 	}

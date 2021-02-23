@@ -98,7 +98,6 @@ namespace Tracer
 
 	void GLTexture::Download(std::vector<uint32_t>& pixels) const
 	{
-		assert(mType == Types::Byte4);
 		pixels.resize(static_cast<size_t>(mResolution.x) * mResolution.y);
 
 		Bind();
@@ -110,11 +109,10 @@ namespace Tracer
 
 	void GLTexture::Download(std::vector<float4>& pixels) const
 	{
-		assert(mType == Types::Float4);
 		pixels.resize(static_cast<size_t>(mResolution.x) * mResolution.y);
 
 		Bind();
-		glReadPixels(0, 0, mResolution.x, mResolution.y, GL_BGRA, GL_FLOAT, pixels.data());
+		glReadPixels(0, 0, mResolution.x, mResolution.y, GL_RGBA, GL_FLOAT, pixels.data());
 		Unbind();
 	}
 
@@ -122,11 +120,10 @@ namespace Tracer
 
 	void GLTexture::Download(std::vector<half4>& pixels) const
 	{
-		assert(mType == Types::Half4);
 		pixels.resize(static_cast<size_t>(mResolution.x) * mResolution.y);
 
 		Bind();
-		glReadPixels(0, 0, mResolution.x, mResolution.y, GL_BGRA, GL_HALF_FLOAT, pixels.data());
+		glReadPixels(0, 0, mResolution.x, mResolution.y, GL_RGBA, GL_HALF_FLOAT, pixels.data());
 		Unbind();
 	}
 }
