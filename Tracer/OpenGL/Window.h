@@ -64,8 +64,20 @@ namespace Tracer
 		// post shader
 		struct ShaderProperties
 		{
+			enum class TonemapMethod
+			{
+				Aces,
+				Filmic,
+				Lottes,
+				Reinhard,
+				Reinhard2,
+				Uchimura,
+				Uncharted2
+			};
+
 			float exposure = 1.f;
 			float gamma = 2.2f;
+			TonemapMethod tonemap = TonemapMethod::Aces;
 		};
 		const ShaderProperties& PostShaderProperties() const { return mShaderProperties; }
 		void SetPostShaderProperties(const ShaderProperties& properties) { mShaderProperties = properties; }

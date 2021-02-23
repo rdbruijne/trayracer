@@ -65,6 +65,7 @@ using namespace rapidjson;
 #define Key_Scale              "scale"
 #define Key_Sky                "sky"
 #define Key_Target             "target"
+#define Key_Tonemap            "tonemap"
 #define Key_Transform          "transform"
 #define Key_Translate          "translate"
 #define Key_Turbidity          "turbidity"
@@ -170,6 +171,23 @@ namespace Tracer
 				return false;
 
 			result = val.GetString();
+			return true;
+		}
+
+
+
+		template<typename Enum, typename = typename std::enable_if<std::is_enum<Enum>::value, Enum>::type>
+		bool Read(const Value& jsonValue, const std::string_view& memberName, Enum& result)
+		{
+			std::string s;
+			if(!Read(jsonValue, memberName, s))
+				return false;
+
+			auto e = magic_enum::enum_cast<Enum>(s);
+			if(!e.has_value())
+				return false;
+
+			result = e.value();
 			return true;
 		}
 
@@ -328,7 +346,7 @@ namespace Tracer
 					for(size_t i = 0; i < magic_enum::enum_count<MaterialPropertyIds>(); i++)
 					{
 						const MaterialPropertyIds id = static_cast<MaterialPropertyIds>(i);
-						const std::string propName = ToLower(ToString(id));
+						const std::string propName = ToLower(std::string(magic_enum::enum_name(id)));
 
 						float f;
 						if(Read(jsonMat, propName.c_str(), f))
@@ -389,6 +407,7 @@ namespace Tracer
 
 			Read(jsonPost, Key_Exposure, postProps.exposure);
 			Read(jsonPost, Key_Gamma, postProps.gamma);
+			Read(jsonPost, Key_Tonemap, postProps.tonemap);
 
 			window->SetPostShaderProperties(postProps);
 		}
@@ -562,6 +581,15 @@ namespace Tracer
 
 
 
+		template<typename Enum, typename = typename std::enable_if<std::is_enum<Enum>::value, Enum>::type>
+		void Write(Value& jsonValue, Document::AllocatorType& allocator, const std::string_view& memberName, Enum& val)
+		{
+			const std::string s = std::string(magic_enum::enum_name(val));
+			Write(jsonValue, allocator, memberName, s);
+		}
+
+
+
 		//----------------------------------------------------------------------------------------------------------------------
 		// Export sections
 		//----------------------------------------------------------------------------------------------------------------------
@@ -645,7 +673,7 @@ namespace Tracer
 					for(size_t i = 0; i < magic_enum::enum_count<MaterialPropertyIds>(); i++)
 					{
 						const MaterialPropertyIds id = static_cast<MaterialPropertyIds>(i);
-						const std::string propName = ToLower(ToString(id));
+						const std::string propName = ToLower(std::string(magic_enum::enum_name(id)));
 
 						if(mat->IsFloatColorEnabled(id))
 							Write(jsonMat, allocator, propName, mat->FloatColor(id));
@@ -740,6 +768,7 @@ namespace Tracer
 			Value jsonPost = Value(kObjectType);
 			Write(jsonPost, allocator, Key_Exposure, postProps.exposure);
 			Write(jsonPost, allocator, Key_Gamma, postProps.gamma);
+			Write(jsonPost, allocator, Key_Tonemap, postProps.tonemap);
 
 			// add new JSON node to the document
 			doc.AddMember(Key_Post, jsonPost, allocator);

@@ -50,9 +50,6 @@ enum class MaterialPropertyIds : uint32_t
 	_Count
 #endif
 };
-#ifndef __CUDACC__
-std::string ToString(MaterialPropertyIds materialProperty);
-#endif
 
 
 
@@ -83,9 +80,6 @@ enum class RenderModes : uint32_t
 	Wireframe,
 	ZDepth
 };
-#ifndef __CUDACC__
-std::string ToString(RenderModes renderMode);
-#endif
 
 
 

@@ -150,7 +150,6 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(SolutionDir)bin\"
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="App\RunApp.cpp" />
-    <ClCompile Include="Common\CommonStructs.cpp" />
     <ClCompile Include="CUDA\CudaBuffer.cpp" />
     <ClCompile Include="CUDA\CudaError.cpp" />
     <ClCompile Include="FileIO\BinaryFile.cpp" />

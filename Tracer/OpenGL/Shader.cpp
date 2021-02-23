@@ -145,6 +145,13 @@ namespace Tracer
 
 
 
+	void Shader::Set(const std::string& name, int v)
+	{
+		glUniform1i(glGetUniformLocation(mShaderID, name.c_str()), v);
+	}
+
+
+
 	void Shader::Set(uint32_t slot, const std::string& name, GLTexture* tex)
 	{
 		glActiveTexture(GL_TEXTURE0 + slot);

@@ -18,6 +18,7 @@ namespace Tracer
 		void Unbind();
 
 		void Set(const std::string& name, float v);
+		void Set(const std::string& name, int v);
 		void Set(uint32_t slot, const std::string& name, GLTexture* tex);
 
 	private:

@@ -266,7 +266,7 @@ namespace Tracer
 			for(size_t i = 0; i < magic_enum::enum_count<MaterialPropertyIds>(); i++)
 			{
 				const MaterialPropertyIds id = static_cast<MaterialPropertyIds>(i);
-				const std::string propName = ToString(id);
+				const std::string propName = std::string(magic_enum::enum_name(id));
 
 				if(ImGui::TreeNode(propName.c_str()))
 				{
@@ -408,6 +408,7 @@ namespace Tracer
 				Window::ShaderProperties shaderProps = GuiHelpers::GetRenderWindow()->PostShaderProperties();
 				ImGui::SliderFloat("Exposure", &shaderProps.exposure, 0.f, 100.f, "%.3f", ImGuiSliderFlags_Logarithmic);
 				ImGui::SliderFloat("Gamma", &shaderProps.gamma, 0.f, 4.f);
+				ComboBox("Tonemap method", shaderProps.tonemap);
 				GuiHelpers::GetRenderWindow()->SetPostShaderProperties(shaderProps);
 			}
 
@@ -515,8 +516,8 @@ namespace Tracer
 			ROW("Device", devProps.name);
 			SPACE;
 
-			// kenel
-			ROW("Kernel", ToString(GuiHelpers::GetRenderer()->RenderMode()).c_str());
+			// kernel
+			ROW("Kernel", std::string(magic_enum::enum_name(GuiHelpers::GetRenderer()->RenderMode())).c_str());
 			ROW("Samples","%d", GuiHelpers::GetRenderer()->SampleCount());
 			ROW("Denoised samples","%d", GuiHelpers::GetRenderer()->DenoisedSampleCount());
 

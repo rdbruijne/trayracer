@@ -205,7 +205,8 @@ namespace Tracer
 		mTonemapShader->Bind();
 		mTonemapShader->Set(0, "convergeBuffer", mRenderTexture);
 		mTonemapShader->Set("exposure", mShaderProperties.exposure);
-		mTonemapShader->Set("gamma",  mShaderProperties.gamma);
+		mTonemapShader->Set("gamma", mShaderProperties.gamma);
+		mTonemapShader->Set("tonemapMethod", static_cast<int>(mShaderProperties.tonemap));
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		mTonemapShader->Unbind();
 		mFramebuffer->Unbind();

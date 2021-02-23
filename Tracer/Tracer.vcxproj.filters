@@ -34,9 +34,6 @@
     <ClCompile Include="Renderer\Renderer.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="Common\CommonStructs.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
     <ClCompile Include="Resources\Instance.cpp">
       <Filter>Resources</Filter>
     </ClCompile>

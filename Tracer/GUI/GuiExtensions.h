@@ -19,13 +19,13 @@ namespace Tracer
 	static bool ComboBox(const std::string& name, Enum& value)
 	{
 		bool changed = false;
-		const std::string propName = ToString(value);
+		const std::string propName = std::string(magic_enum::enum_name(value));
 		if(ImGui::BeginCombo(name.c_str(), propName.c_str()))
 		{
 			for(size_t i = 0; i < magic_enum::enum_count<Enum>(); i++)
 			{
 				const Enum e = static_cast<Enum>(i);
-				const std::string itemName = ToString(e);
+				const std::string itemName = std::string(magic_enum::enum_name(e));
 				if(ImGui::Selectable(itemName.c_str(), e == value))
 				{
 					value = e;
