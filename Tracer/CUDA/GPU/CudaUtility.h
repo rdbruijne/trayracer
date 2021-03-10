@@ -105,6 +105,34 @@ inline float2 DecodeBarycentrics(uint32_t barycentrics)
 
 
 //------------------------------------------------------------------------------------------------------------------------------
+// Packing
+//------------------------------------------------------------------------------------------------------------------------------
+static __device__
+uint32_t PackNormal(const float3& N)
+{
+	// https://aras-p.info/texts/CompactNormalStorage.html -> Spheremap Transform
+	float2 enc = normalize(make_float2(N)) * sqrtf(-N.z * 0.5f + 0.5f);
+	enc = enc * 0.5f + 0.5f;
+	return (static_cast<uint32_t>(N.x * 65535.f) << 16) | static_cast<uint32_t>(N.y * 65535.f);
+}
+
+
+
+static __device__
+float3 UnpackNormal(uint32_t N)
+{
+	// https://aras-p.info/texts/CompactNormalStorage.html -> Spheremap Transform
+	const float nx = static_cast<float>(N >> 16) / 65535.f;
+	const float ny = static_cast<float>(N & 0xFFFF) / 65535.f;
+	const float4 nn = make_float4(nx, ny, 0, 0) * make_float4(2, 2, 0, 0) + make_float4(-1, -1, 1, -1);
+	const float l = dot(make_float3(nn.x, nn.y, nn.z), make_float3(-nn.x, -nn.y, -nn.w));
+	const float sqrl = sqrtf(l);
+	return (make_float3(nx * sqrl, ny * sqrl, l) * 2.0f) + make_float3(0, 0, -1);
+}
+
+
+
+//------------------------------------------------------------------------------------------------------------------------------
 // Intersection
 //------------------------------------------------------------------------------------------------------------------------------
 struct Intersection
@@ -358,6 +386,30 @@ inline float3 SampleCosineHemisphere(const float3& normal, float r0, float r1)
 // Next event
 //------------------------------------------------------------------------------------------------------------------------------
 static __device__
+float LightPdf(const float3& D, float dst, float lightArea, const float3& lightNormal)
+{
+	return (dst * dst) / (fabsf(dot(D, lightNormal)) * lightArea);
+}
+
+
+
+static __device__
+float LightPickProbability(float area, const float3& em)
+{
+	// scene energy
+	const float3 sunRadiance = SampleSky(skyData->sunDir, false);
+	const float sunEnergy = (sunRadiance.x + sunRadiance.y + sunRadiance.z) * skyData->sunArea;
+	const float totalEnergy = sunEnergy + lightEnergy;
+
+	// light energy
+	const float3 energy = em * area;
+	const float lightEnergy = energy.x + energy.y + energy.z;
+	return lightEnergy / totalEnergy;
+}
+
+
+
+static __device__
 int32_t SelectLight(uint32_t& seed)
 {
 	const float e = rnd(seed) * lightEnergy;
@@ -385,7 +437,7 @@ int32_t SelectLight(uint32_t& seed)
 static __device__
 inline float3 SampleLight(uint32_t& seed, const float3& I, const float3& N, float& prob, float& pdf, float3& radiance, float& dist)
 {
-	// sun energy
+	// energy
 	const float3 sunRadiance = SampleSky(skyData->sunDir, false);
 	const float sunEnergy = (sunRadiance.x + sunRadiance.y + sunRadiance.z) * skyData->sunArea;
 	const float totalEnergy = sunEnergy + lightEnergy;

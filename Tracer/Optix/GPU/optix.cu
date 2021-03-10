@@ -137,7 +137,7 @@ inline bool Distort(float2& lensCoord, float tanFov2, float distortion)
 
 
 static __device__
-inline bool GenerateCameraRay(float3& O, float3& D, float& T, int2 pixelIndex, uint32_t& seed)
+inline void GenerateCameraRay(float3& O, float3& D, float& T, int2 pixelIndex, uint32_t& seed)
 {
 	// locations
 	const float2 index = make_float2(pixelIndex);
@@ -158,7 +158,7 @@ inline bool GenerateCameraRay(float3& O, float3& D, float& T, int2 pixelIndex, u
 
 	// lens distortion
 	if(!Distort(lensCoord, tanFov2, params.cameraDistortion))
-		return false;
+		return;
 
 	// generate ray
 	D = normalize(params.cameraForward + (lensCoord.x * params.cameraSide) + (lensCoord.y * params.cameraUp));
@@ -168,8 +168,6 @@ inline bool GenerateCameraRay(float3& O, float3& D, float& T, int2 pixelIndex, u
 	const float v = max(0.f, dot(D, params.cameraForward));
 	const float v2 = v * v;
 	T = v2 * v2;
-
-	return true;
 }
 
 
@@ -255,10 +253,10 @@ void __raygen__()
 			float3 O = params.cameraPos;
 			float3 D = params.cameraForward;
 			float T = 1.f;
-			bool onSensor = GenerateCameraRay(O, D, T, make_int2(ix, iy), seed);
+			GenerateCameraRay(O, D, T, make_int2(ix, iy), seed);
 
 			// trace the ray
-			if(onSensor)
+			if(T > 0)
 			{
 				optixTrace(params.sceneRoot, O, D, params.epsilon, DstMax, 0.f, 0xFF, OPTIX_RAY_FLAG_DISABLE_ANYHIT,
 						   RayType_Surface, RayType_Count, RayType_Surface, bary, instIx, primIx, tmax);
@@ -266,8 +264,8 @@ void __raygen__()
 
 			// set path data
 			params.pathStates[pathIx + (stride * 0)] = make_float4(O, __int_as_float(pathIx));
-			params.pathStates[pathIx + (stride * 1)] = make_float4(D, __int_as_float(onSensor ? 1 : 0));
-			params.pathStates[pathIx + (stride * 2)] = make_float4(T, T, T, 0);
+			params.pathStates[pathIx + (stride * 1)] = make_float4(D, 0);
+			params.pathStates[pathIx + (stride * 2)] = make_float4(T, T, T, 1.f);
 
 			// set hit data
 			params.hitData[pathIx] = make_uint4(bary, instIx, primIx, tmax);
@@ -350,8 +348,8 @@ void __raygen__()
 			const int iy = params.resY - params.rayPickPixel.y;
 			float3 O = params.cameraPos;
 			float3 D = params.cameraForward;
-			float T;
-			const bool onSensor = GenerateCameraRay(O, D, T, make_int2(ix, iy), seed);
+			float T = 0;
+			GenerateCameraRay(O, D, T, make_int2(ix, iy), seed);
 
 			// prepare the payload
 			uint32_t bary = 0;
@@ -360,7 +358,7 @@ void __raygen__()
 			uint32_t tmax = __float_as_uint(DstMax);
 
 			// trace the ray
-			if(onSensor)
+			if(T > 0)
 			{
 				optixTrace(params.sceneRoot, O, D, params.epsilon, DstMax, 0.f, OptixVisibilityMask(255), OPTIX_RAY_FLAG_DISABLE_ANYHIT,
 						   RayType_Surface, RayType_Count, RayType_Surface, bary, instIx, primIx, tmax);

@@ -29,17 +29,17 @@ namespace Tracer
 		InitGL();
 
 		// create renderer
-		std::unique_ptr<Renderer> renderer = std::make_unique<Renderer>();
+		Renderer* renderer = new Renderer();
 
 		// create window
-		std::unique_ptr<Window> window = std::make_unique<Window>();
+		Window* window = new Window();
 		window->Open(name, resolution, fullscreen);
 
 		// init GUI
-		GuiHelpers::Init(window.get());
+		GuiHelpers::Init(window);
 
 		// init app
-		app->Init(renderer.get(), window.get());
+		app->Init(renderer, window);
 
 		// timer
 		Stopwatch stopwatch;
@@ -47,7 +47,7 @@ namespace Tracer
 
 		// init GUI data
 		GuiHelpers::Set(app->GetCameraNode());
-		GuiHelpers::Set(renderer.get());
+		GuiHelpers::Set(renderer);
 		GuiHelpers::Set(app->GetScene());
 
 		// main loop
@@ -63,7 +63,7 @@ namespace Tracer
 				break;
 
 			// update the app
-			app->Tick(renderer.get(), window.get(), frameTimeMs * 1e-3f);
+			app->Tick(renderer, window, frameTimeMs * 1e-3f);
 
 			// build the scene
 			Stopwatch buildTimer;
@@ -85,7 +85,7 @@ namespace Tracer
 			if(renderer->SaveRequested(savePath))
 			{
 				TextureFile::Export(savePath, window->DownloadFramebuffer());
-				renderer.get()->ResetSaveRequest();
+				renderer->ResetSaveRequest();
 			}
 
 			// update GUI
@@ -106,6 +106,8 @@ namespace Tracer
 		}
 
 		// clean state
+		delete renderer;
+		delete window;
 		TerminateGL();
 
 		return 0;

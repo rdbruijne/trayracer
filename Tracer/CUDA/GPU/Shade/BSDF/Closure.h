@@ -65,7 +65,7 @@ Closure FinalizeClosure(const ShadingInfo& shadingInfo, const BsdfResult& eval, 
 	closure.extend.T     = sample.T * abs(sample.wi.z) * shadingInfo.T;
 	closure.extend.pdf   = sample.pdf;
 	closure.extend.wi    = sample.wi;
-	closure.extend.flags = eval.flags;
+	closure.extend.flags = sample.flags;
 
 	return closure;
 }

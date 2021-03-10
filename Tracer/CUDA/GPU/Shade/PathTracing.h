@@ -3,8 +3,13 @@
 #include "CudaUtility.h"
 
 // Closures
-//#include "BSDF/Diffuse.h"
+#include "BSDF/Diffuse.h"
 #include "BSDF/Disney.h"
+
+// reduce fireflies
+__constant__ float gMaxIntensity = 2.f;
+
+
 
 __global__ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 {
@@ -22,7 +27,7 @@ __global__ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 	const float3 D = make_float3(D4);
 	const float3 T = make_float3(T4);
 	const int32_t pathIx = __float_as_int(O4.w);
-	const int32_t onSensor = __float_as_int(D4.w);
+	const float extendPdf = T4.w;
 	const int32_t pixelIx = pathIx % (resolution.x * resolution.y);
 
 	// hit data
@@ -32,11 +37,23 @@ __global__ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 	const uint32_t primIx = hd.z;
 	const float tmax = __uint_as_float(hd.w);
 
+	const float3 I = O + D * tmax;
+
 	// didn't hit anything
 	if(primIx == ~0)
 	{
-		if((pathLength > 0) || (pathLength == 0 && onSensor))
-			accumulator[pixelIx] += make_float4(T * SampleSky(D, skyData->drawSun && pathLength == 0));
+		const float3 sky = SampleSky(D, skyData->drawSun && pathLength == 0);
+		const float3 contrib = fixnan(clamp_scaled(T * sky * (1.f / extendPdf), gMaxIntensity));
+
+		accumulator[pixelIx] += make_float4(contrib, 0);
+
+		// denoiser data
+		if(pathLength == 0)
+		{
+			albedo[pixelIx] = make_float4(sky, 0);
+			normals[pixelIx] = make_float4(0, 0, 0, 0);
+		}
+
 		return;
 	}
 
@@ -47,6 +64,9 @@ __global__ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 	Intersection intersection = {};
 	HitMaterial hitMaterial = {};
 	GetIntersectionAttributes(instIx, primIx, bary, intersection, hitMaterial);
+
+	// new throughput
+	float3 throughput = T * hitMaterial.diffuse;
 
 	// denoiser data
 	if(pathLength == 0)
@@ -64,14 +84,21 @@ __global__ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 			accumulator[pixelIx] += make_float4(hitMaterial.emissive, 0);
 			albedo[pixelIx] = make_float4(hitMaterial.emissive, 0);
 		}
+		else
+		{
+#if false
+			// apply MIS
+			const float3 prevN = UnpackNormal(__float_as_uint(D4.w));
+			const float lightPdf = LightPdf(D, tmax, intersection.area, intersection.shadingNormal);
+			const float pickProb = LightPickProbability(intersection.area, hitMaterial.emissive);
+			if ((extendPdf + lightPdf * pickProb) > 0)
+				accumulator[pixelIx] += make_float4(throughput * hitMaterial.diffuse * (1.0f / (extendPdf + lightPdf * pickProb)), 0);
+#endif
+		}
 		return;
 	}
 
-	// new throughput
-	float3 throughput = T * hitMaterial.diffuse;
-
 	// sample light
-	const float3 I = O + D * tmax;
 	float lightProb;
 	float lightPdf;
 	float lightDist;
@@ -105,12 +132,14 @@ __global__ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 		const int32_t shadowIx = atomicAdd(&counters->shadowRays, 1);
 		shadowRays[shadowIx + (stride * 0)] = make_float4(I, __int_as_float(pixelIx));
 		shadowRays[shadowIx + (stride * 1)] = make_float4(L, lightDist);
-		shadowRays[shadowIx + (stride * 2)] = make_float4(contribution, 0);
+		shadowRays[shadowIx + (stride * 2)] = make_float4(clamp_scaled(fixnan(contribution), gMaxIntensity), 0);
 	}
 
 	// extend ray
 	if(closure.extend.pdf > Epsilon)
 	{
+		throughput = closure.extend.T;
+
 		// Russian roulette
 		if(pathLength > 0)
 		{
@@ -121,14 +150,13 @@ __global__ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 		}
 
 		// generate extend
-		const float3 extend = normalize(TangentToWorld(closure.extend.wi, intersection.geometricNormal, intersection.tangent, intersection.bitangent));
 		const float3 newOrigin = O + (D * tmax);
-		const float3 newDir = extend;
+		const float3 newDir = normalize(TangentToWorld(closure.extend.wi, intersection.geometricNormal, intersection.tangent, intersection.bitangent));
 
 		// update path states
 		const int32_t extendIx = atomicAdd(&counters->extendRays, 1);
 		pathStates[extendIx + (stride * 0)] = make_float4(newOrigin, __int_as_float(pathIx));
-		pathStates[extendIx + (stride * 1)] = make_float4(newDir, 0);
-		pathStates[extendIx + (stride * 2)] = make_float4(throughput, closure.extend.pdf);
+		pathStates[extendIx + (stride * 1)] = make_float4(newDir, __uint_as_float(PackNormal(intersection.shadingNormal)));
+		pathStates[extendIx + (stride * 2)] = make_float4(fixnan(throughput), closure.extend.pdf);
 	}
 }
