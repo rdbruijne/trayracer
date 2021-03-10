@@ -71,6 +71,12 @@
     <Lib>
       <IgnoreSpecificDefaultLibraries>LIBCMT;MSVCRT</IgnoreSpecificDefaultLibraries>
     </Lib>
+    <PostBuildEvent>
+      <Command>for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(SolutionDir)bin\"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copy Library DLLs</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -96,6 +102,12 @@
     <Lib>
       <IgnoreSpecificDefaultLibraries>LIBCMT;MSVCRT</IgnoreSpecificDefaultLibraries>
     </Lib>
+    <PostBuildEvent>
+      <Command>for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(SolutionDir)bin\"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copy Library DLLs</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="imGuIZMO.quat\imGuIZMOquat.h" />

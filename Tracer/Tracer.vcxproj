@@ -88,8 +88,7 @@
       </Message>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>xcopy /r /d /i /s /y "$(ProjectDir)glsl" "$(SolutionDir)bin\glsl"
-for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(SolutionDir)bin\"</Command>
+      <Command>xcopy /r /d /i /s /y "$(ProjectDir)glsl" "$(SolutionDir)bin\glsl"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Copy resources</Message>
