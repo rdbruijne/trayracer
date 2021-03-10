@@ -45,7 +45,6 @@ Personal path tracer project.
 * [CUDA](https://developer.nvidia.com/cuda-toolkit)
 * [FreeImage](http://freeimage.sourceforge.net/)
 * [GLFW](https://www.glfw.org/)
-* [HosekSky](http://cgg.mff.cuni.cz/projects/SkylightModelling/)
 * [ImGUI](https://github.com/ocornut/imgui)
 * [imGuIZMO](https://github.com/BrutPitt/imGuIZMO.quat)
 * [Magic Enum](https://github.com/Neargye/magic_enum)
