@@ -17,7 +17,7 @@ namespace Tracer
 {
 	namespace
 	{
-		void CheckShader(GLint shaderID)
+		void ValidateShader(GLint shaderID)
 		{
 			GLint result = 0;
 			glGetShaderiv(shaderID, GL_COMPILE_STATUS, &result);
@@ -27,14 +27,13 @@ namespace Tracer
 				GLsizei logLength = 0;
 				glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &logLength);
 				glGetShaderInfoLog(shaderID, logLength, 0, infoLog);
-				const std::string errorMessage = format("Shader compile error: %s", infoLog);
-				throw std::runtime_error(errorMessage);
+				FatalError("Shader compile error: %s", infoLog);
 			}
 		}
 
 
 
-		void CheckProgram(GLint programID)
+		void ValidateProgram(GLint programID)
 		{
 			GLint result = 0;
 			glGetProgramiv(programID, GL_LINK_STATUS, &result);
@@ -44,8 +43,7 @@ namespace Tracer
 				GLsizei logLength = 0;
 				glGetShaderiv(programID, GL_INFO_LOG_LENGTH, &logLength);
 				glGetShaderInfoLog(programID, logLength, 0, infoLog);
-				const std::string errorMessage = format("Shader link error: %s", infoLog);
-				throw std::runtime_error(errorMessage);
+				FatalError("Shader link error: %s", infoLog);
 			}
 		}
 	}
@@ -87,12 +85,12 @@ namespace Tracer
 		// load vertex shader
 		const std::string vertCode = ReadFile(mVertexFile);
 		if(vertCode.empty())
-			throw std::runtime_error(format("File \"%s\" not found or empty.", mVertexFile.c_str()));
+			FatalError("File \"%s\" not found or empty.", mVertexFile.c_str());
 
 		// load fragment shader
 		const std::string fragCode = ReadFile(mFragmentFile);
 		if(fragCode.empty())
-			throw std::runtime_error(format("File \"%s\" not found or empty.", mFragmentFile.c_str()));
+			FatalError("File \"%s\" not found or empty.", mFragmentFile.c_str());
 
 		// compile vertex shader
 		const char* vertCodeCStr = vertCode.c_str();
@@ -101,7 +99,7 @@ namespace Tracer
 		glShaderSource(mVertexShaderID, 1, &vertCodeCStr, &vertCodeSize);
 		glCompileShader(mVertexShaderID);
 		GL_CHECK();
-		CheckShader(mVertexShaderID);
+		ValidateShader(mVertexShaderID);
 
 		// compile fragment shader
 		const char* fragCodeCStr = fragCode.c_str();
@@ -110,7 +108,7 @@ namespace Tracer
 		glShaderSource(mFragmentShaderID, 1, &fragCodeCStr, &fragCodeSize);
 		glCompileShader(mFragmentShaderID);
 		GL_CHECK();
-		CheckShader(mFragmentShaderID);
+		ValidateShader(mFragmentShaderID);
 
 		// link shaders
 		mShaderID = glCreateProgram();
@@ -119,7 +117,7 @@ namespace Tracer
 		glBindAttribLocation(mShaderID, 0, "pos");
 		glLinkProgram(mShaderID);
 		GL_CHECK();
-		CheckProgram(mShaderID);
+		ValidateProgram(mShaderID);
 	}
 
 

@@ -65,24 +65,17 @@ namespace Tracer
 		GLenum error = glGetError();
 		assert(error == GL_NO_ERROR);
 		if(error != GL_NO_ERROR)
-		{
-			const std::string errorMessage = format("GL error in \"%s\" @ %d: %s (%#x)", file, line, GlErrorToString(error).c_str(), error);
-			throw std::runtime_error(errorMessage);
-		}
+			FatalError("GL error in \"%s\" @ %d: %s (%#x)", file, line, GlErrorToString(error).c_str(), error);
 	}
 
 
 
-	bool InitGL()
+	void InitGL()
 	{
 		glfwSetErrorCallback(GlfwErrorCallback);
-		if(glfwInit() != GLFW_TRUE)
-		{
-			Logger::Error("Failed to init glfw");
-			return false;
-		}
 
-		return true;
+		if(glfwInit() != GLFW_TRUE)
+			FatalError("Failed to init glfw");
 	}
 
 

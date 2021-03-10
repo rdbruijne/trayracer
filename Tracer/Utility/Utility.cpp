@@ -1,5 +1,8 @@
 #include "Utility.h"
 
+// Project
+#include "Utility/Logger.h"
+
 // C++
 #include <algorithm>
 #include <assert.h>
@@ -16,6 +19,7 @@ namespace Tracer
 {
 	std::string format(const char* fmt, ...)
 	{
+		// format message
 		size_t n = strlen(fmt);
 		int final_n = -1;
 
@@ -23,12 +27,13 @@ namespace Tracer
 		va_list ap;
 		do
 		{
-			n *= 2;
+			n <<= 1;
 			formatted.reset(new char[n + 1]);
 			va_start(ap, fmt);
 			final_n = vsnprintf_s(formatted.get(), n - 1, n - 2, fmt, ap);
 			va_end(ap);
 		} while(final_n < 0);
+
 		return std::string(formatted.get());
 	}
 
@@ -322,5 +327,31 @@ namespace Tracer
 			result = fileNameOut;
 		std::filesystem::current_path(curDir);
 		return ok;
+	}
+
+
+
+	void FatalError(const char* fmt, ...)
+	{
+		// format message
+		size_t n = strlen(fmt);
+		int final_n = -1;
+
+		std::unique_ptr<char[]> formatted;
+		va_list ap;
+		do
+		{
+			n <<= 1;
+			formatted.reset(new char[n + 1]);
+			va_start(ap, fmt);
+			final_n = vsnprintf_s(formatted.get(), n - 1, n - 2, fmt, ap);
+			va_end(ap);
+		} while(final_n < 0);
+
+		// handle error
+		Logger::Error(formatted.get());
+		MessageBoxA(NULL, formatted.get(), "Fatal Error", MB_OK | MB_ICONERROR);
+		assert(false);
+		exit(EXIT_FAILURE);
 	}
 }

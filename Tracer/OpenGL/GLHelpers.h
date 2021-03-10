@@ -6,6 +6,6 @@ namespace Tracer
 {
 	void CheckGL(const char* file, int line);
 
-	bool InitGL();
+	void InitGL();
 	void TerminateGL();
 }

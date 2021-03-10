@@ -120,13 +120,11 @@ namespace Tracer
 		}
 	}
 
+
+
 	void OptixCheck(OptixResult res, const char* file, int line)
 	{
 		if(res != OPTIX_SUCCESS)
-		{
-			const std::string errorMessage = format("OptiX error at \"%s\" @ %i: %s", file, line, ToString(res).c_str());
-			assert(false);
-			throw std::runtime_error(errorMessage);
-		}
+			FatalError("OptiX error at \"%s\" @ %i: %s", file, line, ToString(res).c_str());
 	}
 }

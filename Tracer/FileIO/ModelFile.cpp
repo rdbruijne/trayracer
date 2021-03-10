@@ -277,8 +277,9 @@ namespace Tracer
 			{
 				aiFace f = aMesh->mFaces[i];
 				if(f.mNumIndices != 3)
-					throw std::runtime_error("Encountered non-triangulated face during import");
-				indices.push_back(make_uint3(f.mIndices[0], f.mIndices[1], f.mIndices[2]));
+					Logger::Error("Encountered non-triangulated face during import");
+				else
+					indices.push_back(make_uint3(f.mIndices[0], f.mIndices[1], f.mIndices[2]));
 			}
 
 			// add the mesh
@@ -386,7 +387,10 @@ namespace Tracer
 			//aiProcess_GenBoundingBoxes |
 			0u;
 		if(!importer.ValidateFlags(importFlags))
-			throw std::runtime_error(importer.GetErrorString());
+		{
+			Logger::Error("Invalid Assimp import flags.");
+			return nullptr;
+		}
 
 		// assimp properties
 		importer.SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE, aiPrimitiveType_LINE | aiPrimitiveType_POINT);

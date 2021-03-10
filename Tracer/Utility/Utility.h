@@ -48,4 +48,7 @@ namespace Tracer
 
 	// mark variables as used
 	inline void MarkVariablesUsed(...) {}
+
+	// error handling
+	void FatalError(const char* fmt, ...);
 }
