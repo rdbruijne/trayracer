@@ -29,13 +29,13 @@
 
 namespace Tracer
 {
-	Window::Window(const std::string& title, int2 resolution, bool fullscreen)
+	bool Window::Open(const std::string& title, int2 resolution, bool fullscreen)
 	{
-		glfwSetErrorCallback(ErrorCallback);
+		if(!IsClosed())
+			return false;
 
-		// init GLFW
-		if(glfwInit() != GLFW_TRUE)
-			throw std::runtime_error("Failed to init glfw");
+		// clean state
+		Destroy();
 
 		// create window
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
@@ -50,8 +50,8 @@ namespace Tracer
 
 		if(!mHandle)
 		{
-			glfwTerminate();
-			throw std::runtime_error("Failed to create glfw window");
+			Logger::Error("Failed to create glfw window");
+			return false;
 		}
 
 		// user pointer setup
@@ -72,11 +72,13 @@ namespace Tracer
 		//glfwSetDropCallback(mHandle, Window::DropCallback);
 
 		// init GL
-		const GLenum glewResult = glewInit();
-		if(glewResult != GLEW_OK)
-			throw std::runtime_error("Failed to init glew");
+		if(glewInit() != GLEW_OK)
+		{
+			Logger::Error("Failed to init glew");
+			return false;
+		}
 
-		// dpi fix
+		// size buffers
 		SetResolution(resolution);
 
 		// backup resolution & size
@@ -91,52 +93,74 @@ namespace Tracer
 		mQuadShader = new Shader("glsl/FullScreenQuad.vert", "glsl/FullScreenQuad.frag");
 		mTonemapShader = new Shader("glsl/FullScreenQuad.vert", "glsl/Tonemap.frag");
 
-		// GL texture
-		mRenderTexture = new GLTexture(resolution, GLTexture::Types::Float4);
-	}
-
-
-
-	Window::~Window()
-	{
-		delete mQuadShader;
-		delete mTonemapShader;
-		delete mRenderTexture;
-		delete mFramebuffer;
-
-		if (mHandle)
-			glfwDestroyWindow(mHandle);
-
-		glfwTerminate();
+		return true;
 	}
 
 
 
 	void Window::Close()
 	{
-		glfwSetWindowShouldClose(mHandle, 1);
+		if(mHandle)
+			glfwSetWindowShouldClose(mHandle, GLFW_TRUE);
 	}
 
 
 
 	bool Window::IsClosed() const
 	{
-		return glfwWindowShouldClose(mHandle) != 0;
+		return (!mHandle) || (glfwWindowShouldClose(mHandle) != 0);
+	}
+
+
+
+	void Window::Destroy()
+	{
+		if(mQuadShader)
+		{
+			delete mQuadShader;
+			mQuadShader = nullptr;
+		}
+
+		if(mTonemapShader)
+		{
+			delete mTonemapShader;
+			mTonemapShader = nullptr;
+		}
+
+		if(mRenderTexture)
+		{
+			delete mRenderTexture;
+			mRenderTexture = nullptr;
+		}
+
+		if(mFramebuffer)
+		{
+			delete mFramebuffer;
+			mFramebuffer = nullptr;
+		}
+
+		if (mHandle)
+		{
+			glfwDestroyWindow(mHandle);
+			mHandle = nullptr;
+		}
 	}
 
 
 
 	void Window::SetTitle(const std::string& title)
 	{
-		glfwSetWindowTitle(mHandle, title.c_str());
+		if(!IsClosed())
+			glfwSetWindowTitle(mHandle, title.c_str());
 	}
 
 
 
 	int2 Window::Position() const
 	{
-		int2 position;
-		glfwGetWindowPos(mHandle, &position.x, &position.y);
+		int2 position = make_int2(0, 0);
+		if(!IsClosed())
+			glfwGetWindowPos(mHandle, &position.x, &position.y);
 		return position;
 	}
 
@@ -144,24 +168,32 @@ namespace Tracer
 
 	void Window::SetPosition(const int2& position)
 	{
-		glfwSetWindowPos(mHandle, position.x, position.y);
+		if(!IsClosed())
+			glfwSetWindowPos(mHandle, position.x, position.y);
 	}
 
 
 
 	int2 Window::Resolution() const
 	{
-		int2 resolution;
-		glfwGetWindowSize(mHandle, &resolution.x, &resolution.y);
+		int2 resolution = make_int2(0, 0);
+		if(!IsClosed())
+		{
+			glfwGetWindowSize(mHandle, &resolution.x, &resolution.y);
 
-		const float dpiScale = MonitorDPI(CurrentMonitor());
-		return make_int2(static_cast<int>(resolution.x / dpiScale), static_cast<int>(resolution.y / dpiScale));
+			const float dpiScale = MonitorDPI(CurrentMonitor());
+			resolution = make_int2(static_cast<int>(resolution.x / dpiScale), static_cast<int>(resolution.y / dpiScale));
+		}
+		return resolution;
 	}
 
 
 
 	void Window::SetResolution(const int2& resolution)
 	{
+		if(IsClosed())
+			return;
+
 		if(!mRenderTexture || mRenderTexture->Resolution() != resolution)
 		{
 			delete mRenderTexture;
@@ -178,6 +210,8 @@ namespace Tracer
 		const int2 dpiRes = make_int2(static_cast<int>(resolution.x * dpiScale), static_cast<int>(resolution.y * dpiScale));
 		glfwSetWindowSize(mHandle, dpiRes.x, dpiRes.y);
 
+		glfwMakeContextCurrent(mHandle);
+
 		// viewport
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
@@ -193,13 +227,16 @@ namespace Tracer
 
 	bool Window::IsFullscreen() const
 	{
-		return glfwGetWindowMonitor(mHandle) != nullptr;
+		return IsClosed() ? false : glfwGetWindowMonitor(mHandle) != nullptr;
 	}
 
 
 
 	void Window::SetFullscreen(bool fullscreen)
 	{
+		if(IsClosed())
+			return;
+
 		if(fullscreen == IsFullscreen())
 			return;
 
@@ -238,6 +275,11 @@ namespace Tracer
 
 	void Window::Display()
 	{
+		if(IsClosed())
+			return;
+
+		glfwMakeContextCurrent(mHandle);
+
 		// DPI fix
 		SetResolution(Resolution());
 
@@ -269,7 +311,8 @@ namespace Tracer
 
 	void Window::SwapBuffers()
 	{
-		glfwSwapBuffers(mHandle);
+		if(!IsClosed())
+			glfwSwapBuffers(mHandle);
 	}
 
 
@@ -279,10 +322,14 @@ namespace Tracer
 	//
 	void Window::UpdateInput()
 	{
-		glfwPollEvents();
+		if(!IsClosed())
+		{
+			glfwMakeContextCurrent(mHandle);
+			glfwPollEvents();
 
-		mPrevInputState = mCurInputState;
-		mCurInputState  = mNextInputState;
+			mPrevInputState = mCurInputState;
+			mCurInputState  = mNextInputState;
+		}
 	}
 
 
@@ -422,13 +469,6 @@ namespace Tracer
 	//--------------------------------------------------------------------------------------------------------------------------
 	// GLFW Input callbacks
 	//--------------------------------------------------------------------------------------------------------------------------
-	void Window::ErrorCallback(int error, const char* description) noexcept
-	{
-		Logger::Error("GLFW error %i: %s", error, description);
-	}
-
-
-
 	void Window::KeyCallback(GLFWwindow* handle, int key, int scancode, int action, int mods) noexcept
 	{
 		if(ImGui::GetIO().WantCaptureKeyboard)

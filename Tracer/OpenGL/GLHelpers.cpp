@@ -2,6 +2,7 @@
 
 // Project
 #include "Utility/Utility.h"
+#include "Utility/Logger.h"
 
 // GL
 #include "GL/glew.h"
@@ -48,6 +49,13 @@ namespace Tracer
 				return "Unknown error";
 			}
 		}
+
+
+
+		void GlfwErrorCallback(int error, const char* description) noexcept
+		{
+			Logger::Error("GLFW error %i: %s", error, description);
+		}
 	}
 
 
@@ -61,5 +69,26 @@ namespace Tracer
 			const std::string errorMessage = format("GL error in \"%s\" @ %d: %s (%#x)", file, line, GlErrorToString(error).c_str(), error);
 			throw std::runtime_error(errorMessage);
 		}
+	}
+
+
+
+	bool InitGL()
+	{
+		glfwSetErrorCallback(GlfwErrorCallback);
+		if(glfwInit() != GLFW_TRUE)
+		{
+			Logger::Error("Failed to init glfw");
+			return false;
+		}
+
+		return true;
+	}
+
+
+
+	void TerminateGL()
+	{
+		glfwTerminate();
 	}
 }

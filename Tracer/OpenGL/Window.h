@@ -19,12 +19,13 @@ namespace Tracer
 	class Window
 	{
 	public:
-		explicit Window(const std::string& title, int2 resolution, bool fullscreen = false);
-		~Window();
+		~Window() { Destroy(); }
 
-		// Closed
+		// Open/Close
+		bool Open(const std::string& title, int2 resolution, bool fullscreen = false);
 		void Close();
 		bool IsClosed() const;
+		void Destroy();
 
 		// Title
 		void SetTitle(const std::string& title);
@@ -98,7 +99,6 @@ namespace Tracer
 
 	private:
 		// GLFW Input callbacks
-		static void ErrorCallback(int error, const char* description) noexcept;
 		static void KeyCallback(GLFWwindow* handle, int key, int scancode, int action, int mods) noexcept;
 		static void CharCallback(GLFWwindow* handle, unsigned int codepoint) noexcept;
 		static void CharModsCallback(GLFWwindow* handle, unsigned int codepoint, int mods) noexcept;

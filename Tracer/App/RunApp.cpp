@@ -5,6 +5,7 @@
 #include "FileIO/TextureFile.h"
 #include "GUI/GuiHelpers.h"
 #include "GUI/MainGui.h"
+#include "OpenGL/GLHelpers.h"
 #include "OpenGL/Input.h"
 #include "OpenGL/Window.h"
 #include "Renderer/Renderer.h"
@@ -26,17 +27,22 @@ namespace Tracer
 	{
 		try
 		{
+			// initialize OpenGL
+			if(!InitGL())
+				return -1;
+
 			// create renderer
-			Renderer* renderer = new Renderer();
+			std::unique_ptr<Renderer> renderer = std::make_unique<Renderer>();
 
 			// create window
-			Window* window = new Window(name, resolution, fullscreen);
+			std::unique_ptr<Window> window = std::make_unique<Window>();
+			window->Open(name, resolution, fullscreen);
 
 			// init GUI
-			GuiHelpers::Init(window);
+			GuiHelpers::Init(window.get());
 
 			// init app
-			app->Init(renderer, window);
+			app->Init(renderer.get(), window.get());
 
 			// timer
 			Stopwatch stopwatch;
@@ -44,7 +50,7 @@ namespace Tracer
 
 			// init GUI data
 			GuiHelpers::Set(app->GetCameraNode());
-			GuiHelpers::Set(renderer);
+			GuiHelpers::Set(renderer.get());
 			GuiHelpers::Set(app->GetScene());
 
 			// main loop
@@ -60,7 +66,7 @@ namespace Tracer
 					break;
 
 				// update the app
-				app->Tick(renderer, window, frameTimeMs * 1e-3f);
+				app->Tick(renderer.get(), window.get(), frameTimeMs * 1e-3f);
 
 				// build the scene
 				Stopwatch buildTimer;
@@ -82,7 +88,7 @@ namespace Tracer
 				if(renderer->SaveRequested(savePath))
 				{
 					TextureFile::Export(savePath, window->DownloadFramebuffer());
-					renderer->ResetSaveRequest();
+					renderer.get()->ResetSaveRequest();
 				}
 
 				// update GUI
@@ -101,6 +107,9 @@ namespace Tracer
 				frameTimeMs = stopwatch.ElapsedMs();
 				stopwatch.Reset();
 			}
+
+			// clean state
+			TerminateGL();
 		}
 		catch(const std::exception& e)
 		{
