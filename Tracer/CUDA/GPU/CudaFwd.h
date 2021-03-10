@@ -6,7 +6,7 @@
 // C++
 #include <stdint.h>
 
-__host__ void SetCudaCounters(Counters* data);
+__host__ void SetCudaCounters(RayCounters* data);
 __host__ void SetCudaLaunchParams(LaunchParams* data);
 
 // geometry

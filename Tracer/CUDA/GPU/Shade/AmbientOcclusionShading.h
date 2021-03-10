@@ -40,12 +40,12 @@ __global__ void AmbientOcclusionShadingKernel(DECLARE_KERNEL_PARAMS)
 		float3 diff = hitMaterial.diffuse;
 
 		// bounce ray
-		uint32_t seed = tea<2>(pathIx, params->sampleCount + pathLength + 1);
+		uint32_t seed = tea<2>(pathIx, Params->sampleCount + pathLength + 1);
 		const float3 newOrigin = O + (D * tmax);
 		const float3 newDir = SampleCosineHemisphere(intersection.shadingNormal, rnd(seed), rnd(seed));
 
 		// update path states
-		const int32_t extendIx = atomicAdd(&counters->extendRays, 1);
+		const int32_t extendIx = atomicAdd(&Counters->extendRays, 1);
 		pathStates[extendIx + (stride * 0)] = make_float4(newOrigin, __int_as_float(pathIx));
 		pathStates[extendIx + (stride * 1)] = make_float4(newDir, 0);
 		pathStates[extendIx + (stride * 2)] = make_float4(diff, 0);
@@ -59,7 +59,7 @@ __global__ void AmbientOcclusionShadingKernel(DECLARE_KERNEL_PARAMS)
 		const float4 T4 = pathStates[jobIdx + (stride * 2)];
 		const float3 T = make_float3(T4);
 
-		const float z = (tmax > params->aoDist) ? 1.f : tmax / params->aoDist;
+		const float z = (tmax > Params->aoDist) ? 1.f : tmax / Params->aoDist;
 		accumulator[pixelIx] += make_float4(T * z, 0);
 	}
 }

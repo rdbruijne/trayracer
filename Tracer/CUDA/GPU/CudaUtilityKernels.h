@@ -9,8 +9,8 @@ static __global__ void InitCudaCountersKernel()
 {
 	if(threadIdx.x == 0)
 	{
-		counters->extendRays = 0;
-		counters->shadowRays = 0;
+		Counters->extendRays = 0;
+		Counters->shadowRays = 0;
 	}
 }
 

@@ -201,12 +201,12 @@ inline void GetIntersectionAttributes(uint32_t instIx, uint32_t primIx, float2 b
 	// #TODO: apply instance transform
 
 	// fetch triangle
-	const CudaMeshData& md = meshData[instIx];
+	const CudaMeshData& md = MeshData[instIx];
 	const PackedTriangle& tri = md.triangles[primIx];
 
 	// set material index
-	const uint32_t modelIx = modelIndices[instIx];
-	intersection.matIx = md.materialIndices[primIx] + materialOffsets[modelIx];
+	const uint32_t modelIx = ModelIndices[instIx];
+	intersection.matIx = md.materialIndices[primIx] + MaterialOffsets[modelIx];
 
 	// texcoords
 	const float2 uv0 = make_float2(__half2float(tri.uv0x), __half2float(tri.uv0y));
@@ -256,7 +256,7 @@ inline void GetIntersectionAttributes(uint32_t instIx, uint32_t primIx, float2 b
 	}
 
 	// material
-	const CudaMatarial& mat   = materialData[intersection.matIx];
+	const CudaMatarial& mat   = MaterialData[intersection.matIx];
 
 	hitMaterial.diffuse        = GetColor(mat, MaterialPropertyIds::Diffuse, texcoord);
 	const float3 tintXYZ       = LinearRGBToCIEXYZ(hitMaterial.diffuse);
@@ -284,9 +284,9 @@ inline void GetIntersectionAttributes(uint32_t instIx, uint32_t primIx, float2 b
 	}
 
 	// object -> worldspace
-	const float4 tx = invInstTransforms[(instIx * 3) + 0];
-	const float4 ty = invInstTransforms[(instIx * 3) + 1];
-	const float4 tz = invInstTransforms[(instIx * 3) + 2];
+	const float4 tx = InvInstTransforms[(instIx * 3) + 0];
+	const float4 ty = InvInstTransforms[(instIx * 3) + 1];
+	const float4 tz = InvInstTransforms[(instIx * 3) + 2];
 
 	intersection.shadingNormal   = normalize(transform(tx, ty, tz, intersection.shadingNormal));
 	intersection.geometricNormal = normalize(transform(tx, ty, tz, intersection.geometricNormal));
@@ -415,8 +415,8 @@ static __device__
 float LightPickProbability(float area, const float3& em)
 {
 	// scene energy
-	const float3 sunRadiance = SampleSky(skyData->sunDir, false);
-	const float sunEnergy = (sunRadiance.x + sunRadiance.y + sunRadiance.z) * skyData->sunArea;
+	const float3 sunRadiance = SampleSky(Sky->sunDir, false);
+	const float sunEnergy = (sunRadiance.x + sunRadiance.y + sunRadiance.z) * Sky->sunArea;
 	const float totalEnergy = sunEnergy + lightEnergy;
 
 	// light energy
@@ -430,13 +430,13 @@ float LightPickProbability(float area, const float3& em)
 static __device__
 int32_t SelectLight(uint32_t& seed)
 {
-	const float e = rnd(seed) * lightEnergy;
+	const float e = rnd(seed) * LightEnergy;
 	int32_t low = 0;
-	int32_t high = lightCount - 1;
+	int32_t high = LightCount - 1;
 	while(low <= high)
 	{
 		const int32_t mid = (low + high) >> 1;
-		const LightTriangle& tri = lights[mid];
+		const LightTriangle& tri = Lights[mid];
 		if(e < tri.sumEnergy)
 			high = mid;
 		else if(e > tri.sumEnergy + tri.energy)
@@ -447,7 +447,7 @@ int32_t SelectLight(uint32_t& seed)
 
 	// failed to find a light using importance sampling, pick a random one from the array
 	// #NOTE: we should never get here!
-	return clamp((int)(rnd(seed) * lightCount), 0, lightCount - 1);
+	return clamp((int)(rnd(seed) * LightCount), 0, LightCount - 1);
 }
 
 
@@ -456,9 +456,9 @@ static __device__
 inline float3 SampleLight(uint32_t& seed, const float3& I, const float3& N, float& prob, float& pdf, float3& radiance, float& dist)
 {
 	// energy
-	const float3 sunRadiance = SampleSky(skyData->sunDir, false);
-	const float sunEnergy = (sunRadiance.x + sunRadiance.y + sunRadiance.z) * skyData->sunArea;
-	const float totalEnergy = sunEnergy + lightEnergy;
+	const float3 sunRadiance = SampleSky(Sky->sunDir, false);
+	const float sunEnergy = (sunRadiance.x + sunRadiance.y + sunRadiance.z) * Sky->sunArea;
+	const float totalEnergy = sunEnergy + LightEnergy;
 
 	// check for any energy
 	if(totalEnergy == 0)
@@ -476,12 +476,12 @@ inline float3 SampleLight(uint32_t& seed, const float3& I, const float3& N, floa
 		pdf      = 1.f;
 		radiance = sunRadiance;
 		dist     = 1e20f;
-		return skyData->sunDir;
+		return Sky->sunDir;
 	}
 
 	// pick random light
 	const int32_t lightIx = SelectLight(seed);
-	const LightTriangle& tri = lights[lightIx];
+	const LightTriangle& tri = Lights[lightIx];
 
 	// select point on light
 	const float3 bary = make_float3(rnd(seed), rnd(seed), rnd(seed));

@@ -31,7 +31,7 @@ __global__ void AmbientOcclusionKernel(DECLARE_KERNEL_PARAMS)
 		if(primIx == ~0)
 			return;
 
-		uint32_t seed = tea<2>(pathIx, params->sampleCount + pathLength + 1);
+		uint32_t seed = tea<2>(pathIx, Params->sampleCount + pathLength + 1);
 
 		// fetch intersection info
 		Intersection intersection = {};
@@ -43,7 +43,7 @@ __global__ void AmbientOcclusionKernel(DECLARE_KERNEL_PARAMS)
 		const float3 newDir = SampleCosineHemisphere(intersection.shadingNormal, rnd(seed), rnd(seed));
 
 		// update path states
-		const int32_t extendIx = atomicAdd(&counters->extendRays, 1);
+		const int32_t extendIx = atomicAdd(&Counters->extendRays, 1);
 		pathStates[extendIx + (stride * 0)] = make_float4(newOrigin, __int_as_float(pathIx));
 		pathStates[extendIx + (stride * 1)] = make_float4(newDir, 0);
 
@@ -53,7 +53,7 @@ __global__ void AmbientOcclusionKernel(DECLARE_KERNEL_PARAMS)
 	}
 	else
 	{
-		const float z = (tmax > params->aoDist) ? 1.f : tmax / params->aoDist;
+		const float z = (tmax > Params->aoDist) ? 1.f : tmax / Params->aoDist;
 		accumulator[pixelIx] += make_float4(z, z, z, 0);
 	}
 }

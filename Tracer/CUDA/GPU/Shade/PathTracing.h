@@ -42,7 +42,7 @@ __global__ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 	// didn't hit anything
 	if(primIx == ~0)
 	{
-		const float3 sky = SampleSky(D, skyData->drawSun && pathLength == 0);
+		const float3 sky = SampleSky(D, Sky->drawSun && pathLength == 0);
 		const float3 contrib = fixnan(clamp_scaled(T * sky * (1.f / extendPdf), gMaxIntensity));
 
 		accumulator[pixelIx] += make_float4(contrib, 0);
@@ -58,7 +58,7 @@ __global__ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 	}
 
 	// generate seed
-	uint32_t seed = tea<2>(pathIx, params->sampleCount + pathLength + 1);
+	uint32_t seed = tea<2>(pathIx, Params->sampleCount + pathLength + 1);
 
 	// fetch intersection info
 	Intersection intersection = {};
@@ -129,7 +129,7 @@ __global__ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 	{
 		// fire shadow ray
 		const float3 contribution = closure.shadow.T * lightRadiance * (NdotL / (lightProb * lightPdf + closure.shadow.pdf));
-		const int32_t shadowIx = atomicAdd(&counters->shadowRays, 1);
+		const int32_t shadowIx = atomicAdd(&Counters->shadowRays, 1);
 		shadowRays[shadowIx + (stride * 0)] = make_float4(I, __int_as_float(pixelIx));
 		shadowRays[shadowIx + (stride * 1)] = make_float4(L, lightDist);
 		shadowRays[shadowIx + (stride * 2)] = make_float4(clamp_scaled(fixnan(contribution), gMaxIntensity), 0);
@@ -154,7 +154,7 @@ __global__ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 		const float3 newDir = normalize(TangentToWorld(closure.extend.wi, intersection.geometricNormal, intersection.tangent, intersection.bitangent));
 
 		// update path states
-		const int32_t extendIx = atomicAdd(&counters->extendRays, 1);
+		const int32_t extendIx = atomicAdd(&Counters->extendRays, 1);
 		pathStates[extendIx + (stride * 0)] = make_float4(newOrigin, __int_as_float(pathIx));
 		pathStates[extendIx + (stride * 1)] = make_float4(newDir, __uint_as_float(PackNormal(intersection.shadingNormal)));
 		pathStates[extendIx + (stride * 2)] = make_float4(fixnan(throughput), closure.extend.pdf);

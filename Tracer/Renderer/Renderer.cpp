@@ -176,11 +176,11 @@ namespace Tracer
 		}
 
 		// update counters
-		Counters counters = {};
+		RayCounters counters = {};
 		if(mCountersBuffer.Size() == 0)
 		{
 			mCountersBuffer.Upload(&counters, 1, true);
-			SetCudaCounters(mCountersBuffer.Ptr<Counters>());
+			SetCudaCounters(mCountersBuffer.Ptr<RayCounters>());
 		}
 
 		// update launch params

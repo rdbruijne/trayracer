@@ -59,7 +59,7 @@ __global__ void MaterialPropertyKernel(DECLARE_KERNEL_PARAMS)
 		break;
 
 	case MaterialPropertyIds::Normal:
-		c = GetColor(materialData[intersection.matIx], MaterialPropertyIds::Normal, make_float2(intersection.texcoordX, intersection.texcoordY));
+		c = GetColor(MaterialData[intersection.matIx], MaterialPropertyIds::Normal, make_float2(intersection.texcoordX, intersection.texcoordY));
 		break;
 
 	case MaterialPropertyIds::Roughness:

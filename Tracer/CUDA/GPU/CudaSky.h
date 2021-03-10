@@ -78,7 +78,7 @@ inline float HenyeyGreensteinPhase(float cosTheta, float g)
 static __device__
 inline float SunIntensity(float zenithAngleCos)
 {
-	return skyData->sunIntensity * max(0.f, 1.f - expf(-((SKY_SUN_FALLOFF_ANGLE - acosf(zenithAngleCos)) / SKY_SUN_INTENSITY_FALLOFF_STEEPNESS)));
+	return Sky->sunIntensity * max(0.f, 1.f - expf(-((SKY_SUN_FALLOFF_ANGLE - acosf(zenithAngleCos)) / SKY_SUN_INTENSITY_FALLOFF_STEEPNESS)));
 }
 
 
@@ -105,12 +105,12 @@ static __device__
 inline float3 SampleSky(const float3& sampleDir, bool drawSun)
 {
 	// return black when the sky is disabled
-	if(skyData->skyEnabled == 0)
+	if(Sky->skyEnabled == 0)
 		return make_float3(0);
 
 	// cache local
-	const float3 sunDir = skyData->sunDir;
-	const float sunAngularDiameterCos = skyData->cosSunAngularDiameter;
+	const float3 sunDir = Sky->sunDir;
+	const float sunAngularDiameterCos = Sky->cosSunAngularDiameter;
 
 	// cos angles
 	const float cosSunUpAngle = dot(sunDir, SKY_UP);
@@ -122,7 +122,7 @@ inline float3 SampleSky(const float3& sampleDir, bool drawSun)
 
 	// Mie coefficient
 	//const float turbidity = mix(2.2f, 0.2f, max(sampleDir.y, 0.f));
-	const float turbidity = skyData->turbidity;
+	const float turbidity = Sky->turbidity;
 	const float3 betaM = TotalMie(SKY_PRIMARY_WAVE_LENGTHS, SKY_MIE_K_COEFFICIENT, turbidity) * SKY_MIE_COEFFICIENT;
 
 	// Optical length, cutoff angle at 90 to avoid singularity

@@ -30,7 +30,7 @@ __global__ void DirectLightKernel(DECLARE_KERNEL_PARAMS)
 		return;
 
 	// generate seed
-	uint32_t seed = tea<2>(pathIx, params->sampleCount + pathLength + 1);
+	uint32_t seed = tea<2>(pathIx, Params->sampleCount + pathLength + 1);
 
 	// fetch intersection info
 	Intersection intersection = {};
@@ -59,7 +59,7 @@ __global__ void DirectLightKernel(DECLARE_KERNEL_PARAMS)
 	if(NdotL > 0 && lightPdf > 0)
 	{
 		// fire shadow ray
-		const int32_t shadowIx = atomicAdd(&counters->shadowRays, 1);
+		const int32_t shadowIx = atomicAdd(&Counters->shadowRays, 1);
 		shadowRays[shadowIx + (stride * 0)] = make_float4(I, __int_as_float(pixelIx));
 		shadowRays[shadowIx + (stride * 1)] = make_float4(L, lightDist);
 		shadowRays[shadowIx + (stride * 2)] = make_float4(throughput * lightRadiance * NdotL/** (NdotL / (lightProb * lightPdf))*/, 0);

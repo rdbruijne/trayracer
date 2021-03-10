@@ -153,7 +153,7 @@ struct LaunchParams
 
 
 
-struct Counters
+struct RayCounters
 {
 	int32_t extendRays = 0;
 	int32_t shadowRays = 0;

@@ -14,44 +14,44 @@ constexpr float Epsilon = 1e-3f;
 //------------------------------------------------------------------------------------------------------------------------------
 // Globals
 //------------------------------------------------------------------------------------------------------------------------------
-static __device__ Counters* counters = nullptr;
+static __device__ RayCounters* Counters = nullptr;
 
-__constant__ LaunchParams* params = nullptr;
+__constant__ LaunchParams* Params = nullptr;
 
 // geometry
-__constant__ CudaMeshData* meshData = nullptr;
+__constant__ CudaMeshData* MeshData = nullptr;
 
 // materials
-__constant__ CudaMatarial* materialData = nullptr;
-__constant__ uint32_t* materialOffsets = nullptr;
+__constant__ CudaMatarial* MaterialData = nullptr;
+__constant__ uint32_t* MaterialOffsets = nullptr;
 
 // instances
-__constant__ float4* invInstTransforms = nullptr;
-__constant__ uint32_t* modelIndices = nullptr;
+__constant__ float4* InvInstTransforms = nullptr;
+__constant__ uint32_t* ModelIndices = nullptr;
 
 // lights
-__constant__ int32_t lightCount = 0;
-__constant__ float lightEnergy = 0;
-__constant__ LightTriangle* lights = nullptr;
+__constant__ int32_t LightCount = 0;
+__constant__ float LightEnergy = 0;
+__constant__ LightTriangle* Lights = nullptr;
 
 // sky
-__constant__ SkyData* skyData = nullptr;
+__constant__ SkyData* Sky = nullptr;
 
 
 
 //------------------------------------------------------------------------------------------------------------------------------
 // Global setters
 //------------------------------------------------------------------------------------------------------------------------------
-__host__ void SetCudaCounters(Counters* data)
+__host__ void SetCudaCounters(RayCounters* data)
 {
-	cudaMemcpyToSymbol(counters, &data, sizeof(void*));
+	cudaMemcpyToSymbol(Counters, &data, sizeof(void*));
 }
 
 
 
 __host__ void SetCudaLaunchParams(LaunchParams* data)
 {
-	cudaMemcpyToSymbol(params, &data, sizeof(void*));
+	cudaMemcpyToSymbol(Params, &data, sizeof(void*));
 }
 
 
@@ -59,7 +59,7 @@ __host__ void SetCudaLaunchParams(LaunchParams* data)
 // geometry
 __host__ void SetCudaMeshData(CudaMeshData* data)
 {
-	cudaMemcpyToSymbol(meshData, &data, sizeof(void*));
+	cudaMemcpyToSymbol(MeshData, &data, sizeof(void*));
 }
 
 
@@ -67,14 +67,14 @@ __host__ void SetCudaMeshData(CudaMeshData* data)
 // materials
 __host__ void SetCudaMatarialData(CudaMatarial* data)
 {
-	cudaMemcpyToSymbol(materialData, &data, sizeof(void*));
+	cudaMemcpyToSymbol(MaterialData, &data, sizeof(void*));
 }
 
 
 
 __host__ void SetCudaMatarialOffsets(uint32_t* data)
 {
-	cudaMemcpyToSymbol(materialOffsets, &data, sizeof(void*));
+	cudaMemcpyToSymbol(MaterialOffsets, &data, sizeof(void*));
 }
 
 
@@ -82,14 +82,14 @@ __host__ void SetCudaMatarialOffsets(uint32_t* data)
 // instances
 __host__ void SetCudaInvTransforms(float4* data)
 {
-	cudaMemcpyToSymbol(invInstTransforms, &data, sizeof(void*));
+	cudaMemcpyToSymbol(InvInstTransforms, &data, sizeof(void*));
 }
 
 
 
 __host__ void SetCudaModelIndices(uint32_t* data)
 {
-	cudaMemcpyToSymbol(modelIndices, &data, sizeof(void*));
+	cudaMemcpyToSymbol(ModelIndices, &data, sizeof(void*));
 }
 
 
@@ -97,21 +97,21 @@ __host__ void SetCudaModelIndices(uint32_t* data)
 // lights
 __host__ void SetCudaLightCount(int32_t count)
 {
-	cudaMemcpyToSymbol(lightCount, &count, sizeof(lightCount));
+	cudaMemcpyToSymbol(LightCount, &count, sizeof(LightCount));
 }
 
 
 
 __host__ void SetCudaLightEnergy(float energy)
 {
-	cudaMemcpyToSymbol(lightEnergy, &energy, sizeof(lightEnergy));
+	cudaMemcpyToSymbol(LightEnergy, &energy, sizeof(LightEnergy));
 }
 
 
 
 __host__ void SetCudaLights(LightTriangle* data)
 {
-	cudaMemcpyToSymbol(lights, &data, sizeof(void*));
+	cudaMemcpyToSymbol(Lights, &data, sizeof(void*));
 }
 
 
@@ -119,5 +119,5 @@ __host__ void SetCudaLights(LightTriangle* data)
 // sky
 __host__ void SetCudaSkyData(SkyData* data)
 {
-	cudaMemcpyToSymbol(skyData, &data, sizeof(void*));
+	cudaMemcpyToSymbol(Sky, &data, sizeof(void*));
 }

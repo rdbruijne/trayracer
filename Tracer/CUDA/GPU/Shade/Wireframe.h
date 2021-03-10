@@ -22,7 +22,7 @@ __global__ void WireframeKernel(DECLARE_KERNEL_PARAMS)
 	if(pathLength == 0)
 	{
 		// update path states
-		const int32_t extendIx = atomicAdd(&counters->extendRays, 1);
+		const int32_t extendIx = atomicAdd(&Counters->extendRays, 1);
 		pathStates[extendIx + (stride * 0)] = make_float4(O4.x, O4.y, O4.z, __int_as_float(pathIx));
 		pathStates[extendIx + (stride * 1)] = make_float4(D4.x, D4.y, D4.z, 0);
 		pathStates[extendIx + (stride * 2)] = make_float4(__uint_as_float(primIx));
