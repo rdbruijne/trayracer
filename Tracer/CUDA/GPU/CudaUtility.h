@@ -54,6 +54,24 @@ inline float3 CIEXYZToLinearRGB(const float3& xyz)
 // Material property
 //------------------------------------------------------------------------------------------------------------------------------
 static __device__
+inline int ColorChannels(const CudaMatarial& mat, MaterialPropertyIds propId)
+{
+	const CudaMaterialProperty& prop = mat.properties[static_cast<size_t>(propId)];
+	return prop.colorChannels;
+}
+
+
+
+static __device__
+inline bool HasTexture(const CudaMatarial& mat, MaterialPropertyIds propId)
+{
+	const CudaMaterialProperty& prop = mat.properties[static_cast<size_t>(propId)];
+	return prop.useTexture != 0 && prop.textureMap != 0;
+}
+
+
+
+static __device__
 inline float3 GetColor(const CudaMatarial& mat, MaterialPropertyIds propId, const float2& uv)
 {
 	const CudaMaterialProperty& prop = mat.properties[static_cast<size_t>(propId)];
@@ -258,9 +276,9 @@ inline void GetIntersectionAttributes(uint32_t instIx, uint32_t primIx, float2 b
 	hitMaterial.luminance      = tintXYZ.y;
 
 	// apply normal map
-	const float3 normalMap = GetColor(mat, MaterialPropertyIds::Normal, texcoord);
-	if(normalMap.x > 0.f || normalMap.y > 0.f || normalMap.z > 0.f)
+	if(HasTexture(mat, MaterialPropertyIds::Normal))
 	{
+		const float3 normalMap = GetColor(mat, MaterialPropertyIds::Normal, texcoord);
 		const float3 norMap = (normalMap * 2.f) - make_float3(1.f);
 		intersection.shadingNormal = normalize(norMap.x * intersection.tangent + norMap.y * intersection.bitangent + norMap.z * intersection.shadingNormal);
 	}
