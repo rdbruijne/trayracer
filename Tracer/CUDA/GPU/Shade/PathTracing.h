@@ -1,7 +1,5 @@
 #pragma once
 
-#include "CudaUtility.h"
-
 // Closures
 #include "BSDF/Diffuse.h"
 #include "BSDF/Disney.h"

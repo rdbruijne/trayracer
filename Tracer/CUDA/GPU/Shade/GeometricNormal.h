@@ -1,7 +1,5 @@
 #pragma once
 
-#include "CudaUtility.h"
-
 __global__ void GeometricNormalKernel(DECLARE_KERNEL_PARAMS)
 {
 	const int jobIdx = threadIdx.x + (blockIdx.x * blockDim.x);

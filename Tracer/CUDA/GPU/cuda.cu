@@ -1,3 +1,7 @@
+// kernel includes
+#include "CudaLights.h"
+#include "CudaMaterial.h"
+
 #include "CudaUtilityKernels.h"
 
 // Shade kernels

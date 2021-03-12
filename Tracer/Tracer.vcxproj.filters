@@ -311,6 +311,12 @@
     <ClInclude Include="OpenGL\GLFramebuffer.h">
       <Filter>OpenGL</Filter>
     </ClInclude>
+    <ClInclude Include="CUDA\GPU\CudaLights.h">
+      <Filter>CUDA</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\GPU\CudaMaterial.h">
+      <Filter>CUDA</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Model.h">
