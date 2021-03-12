@@ -155,7 +155,7 @@ void GetIntersectionAttributes(uint32_t instIx, uint32_t primIx, float2 bary, In
 	const float3 tintXYZ       = LinearRGBToCIEXYZ(hitMaterial.diffuse);
 
 	hitMaterial.metallic       = GetColor(mat, MaterialPropertyIds::Metallic, texcoord).x;
-	hitMaterial.emissive       = GetColor(mat, MaterialPropertyIds::Emissive, texcoord);
+	hitMaterial.emissive       = GetColor(mat, MaterialPropertyIds::Emissive, texcoord) * hitMaterial.diffuse;
 	hitMaterial.subsurface     = GetColor(mat, MaterialPropertyIds::Subsurface, texcoord).x;
 	hitMaterial.tint           = tintXYZ.y > 0 ? CIEXYZToLinearRGB(tintXYZ * (1.f / tintXYZ.y)) : make_float3(1);
 	hitMaterial.specular       = GetColor(mat, MaterialPropertyIds::Specular, texcoord).x;
