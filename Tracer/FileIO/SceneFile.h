@@ -13,7 +13,7 @@ namespace Tracer
 	class SceneFile
 	{
 	public:
-		static void Load(const std::string& sceneFile, Scene* scene, Sky* sky, CameraNode* camNode, Renderer* renderer, Window* window);
-		static void Save(const std::string& sceneFile, Scene* scene, Sky* sky, CameraNode* camNode, Renderer* renderer, Window* window);
+		static bool Load(const std::string& sceneFile, Scene* scene, Sky* sky, CameraNode* camNode, Renderer* renderer, Window* window);
+		static bool Save(const std::string& sceneFile, Scene* scene, Sky* sky, CameraNode* camNode, Renderer* renderer, Window* window);
 	};
 }

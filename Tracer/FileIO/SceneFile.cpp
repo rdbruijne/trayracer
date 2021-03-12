@@ -780,7 +780,7 @@ namespace Tracer
 	//--------------------------------------------------------------------------------------------------------------------------
 	// SceneFile
 	//--------------------------------------------------------------------------------------------------------------------------
-	void SceneFile::Load(const std::string& sceneFile, Scene* scene, Sky* sky, CameraNode* camNode, Renderer* renderer, Window* window)
+	bool SceneFile::Load(const std::string& sceneFile, Scene* scene, Sky* sky, CameraNode* camNode, Renderer* renderer, Window* window)
 	{
 		Logger::Info("Loading scene from \"%s\"", sceneFile.c_str());
 		Stopwatch sw;
@@ -789,13 +789,19 @@ namespace Tracer
 		Document doc;
 		{
 			std::ifstream f(sceneFile);
+			if(!f.is_open())
+			{
+				Logger::Error("Failed to open \"%s\" for reading.", sceneFile.c_str());
+				return false;
+			}
+
 			IStreamWrapper isw(f);
 			doc.ParseStream(isw);
 			f.close();
 			if(!doc.IsObject())
 			{
 				Logger::Error("\"%s\" does not contain valid json code.", sceneFile.c_str());
-				return;
+				return false;
 			}
 		}
 
@@ -821,11 +827,12 @@ namespace Tracer
 			ParsePostSettings(window, doc);
 
 		Logger::Info("Loaded scenefile in %s", sw.ElapsedString().c_str());
+		return true;
 	}
 
 
 
-	void SceneFile::Save(const std::string& sceneFile, Scene* scene, Sky* sky, CameraNode* camNode, Renderer* renderer, Window* window)
+	bool SceneFile::Save(const std::string& sceneFile, Scene* scene, Sky* sky, CameraNode* camNode, Renderer* renderer, Window* window)
 	{
 		std::string globalPath = GlobalPath(sceneFile);
 		if(ToLower(FileExtension(globalPath)) != ".json")
@@ -875,12 +882,22 @@ namespace Tracer
 
 		// write to disk
 		std::ofstream f(globalPath);
-		OStreamWrapper osw(f);
+		if(!f.is_open())
+		{
+			Logger::Error("Failed to open \"%s\" for writing.", sceneFile.c_str());
+			return false;
+		}
 
+		OStreamWrapper osw(f);
 		PrettyWriter<OStreamWrapper> writer(osw);
 		writer.SetFormatOptions(PrettyFormatOptions::kFormatSingleLineArray);
-		doc.Accept(writer);
+		if(!doc.Accept(writer))
+		{
+			Logger::Error("Failed to write scene to \"%s\".", sceneFile.c_str());
+			return false;
+		}
 
 		Logger::Info("Saved scenefile in %s", sw.ElapsedString().c_str());
+		return true;
 	}
 }
