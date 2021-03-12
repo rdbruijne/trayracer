@@ -27,8 +27,8 @@
 
 namespace Disney
 {
-	static __device__
-	inline float3 SurfaceNormal()
+	static inline __device__
+	float3 SurfaceNormal()
 	{
 		return make_float3(0.f, 0.f, 1.f);
 	}
@@ -38,24 +38,24 @@ namespace Disney
 	//--------------------------------------------------------------------------------------------------------------------------
 	// Spectra
 	//--------------------------------------------------------------------------------------------------------------------------
-	static __device__
-	inline float3 mix_spectra(const float3& a, const float3& b, float t)
+	static inline __device__
+	float3 mix_spectra(const float3& a, const float3& b, float t)
 	{
 		return ((1.f - t) * a) + (t * b);
 	}
 
 
 
-	static __device__
-	inline float3 mix_one_with_spectra(const float3& b, float t)
+	static inline __device__
+	float3 mix_one_with_spectra(const float3& b, float t)
 	{
 		return (1.f - t) + (t * b);
 	}
 
 
 
-	static __device__
-	inline float3 mix_spectra_with_one(const float3& a, float t)
+	static inline __device__
+	float3 mix_spectra_with_one(const float3& a, float t)
 	{
 		return ((1.f - t) * a) + t;
 	}
@@ -65,8 +65,8 @@ namespace Disney
 	//--------------------------------------------------------------------------------------------------------------------------
 	// Clearcoat roughness
 	//--------------------------------------------------------------------------------------------------------------------------
-	static __device__
-	inline float clearcoat_roughness(const HitMaterial& mat)
+	static inline __device__
+	float clearcoat_roughness(const HitMaterial& mat)
 	{
 		return mix(0.1f, 0.001f, mat.clearcoatGloss);
 	}
@@ -76,8 +76,8 @@ namespace Disney
 	//--------------------------------------------------------------------------------------------------------------------------
 	// Fresnel
 	//--------------------------------------------------------------------------------------------------------------------------
-	static __device__
-	inline float schlick_fresnel(float u)
+	static inline __device__
+	float schlick_fresnel(float u)
 	{
 		const float m = saturate(1.0f - u);
 		const float m2 = square(m);
@@ -87,8 +87,8 @@ namespace Disney
 
 
 
-	static __device__
-	inline float3 DisneySpecularFresnel(const HitMaterial& mat, const float3& o, const float3& h)
+	static inline __device__
+	float3 DisneySpecularFresnel(const HitMaterial& mat, const float3& o, const float3& h)
 	{
 		float3 value = mix_one_with_spectra(mat.tint, mat.specularTint);
 		value *= mat.specular * 0.08f;
@@ -99,8 +99,8 @@ namespace Disney
 
 
 
-	static __device__
-	inline float3 DisneyClearcoatFresnel(const HitMaterial& mat, const float3& o, const float3& h)
+	static inline __device__
+	float3 DisneyClearcoatFresnel(const HitMaterial& mat, const float3& o, const float3& h)
 	{
 		const float cos_oh = fabs(dot(o, h));
 		return make_float3(mix(0.04f, 1.0f, schlick_fresnel(cos_oh)) * 0.25f * mat.clearcoat);
@@ -112,8 +112,8 @@ namespace Disney
 	// Force above surface
 	// https://github.com/appleseedhq/appleseed/blob/master/src/appleseed/renderer/modeling/bsdf/bsdf.h
 	//--------------------------------------------------------------------------------------------------------------------------
-	static __device__
-	inline bool force_above_surface(float3& direction, const float3& normal)
+	static inline __device__
+	bool force_above_surface(float3& direction, const float3& normal)
 	{
 		const float Eps = 1.0e-4f;
 
@@ -129,8 +129,8 @@ namespace Disney
 
 
 
-	static __device__
-	inline bool force_above_surface(float3& direction)
+	static inline __device__
+	bool force_above_surface(float3& direction)
 	{
 		return force_above_surface(direction, SurfaceNormal());
 	}
@@ -142,8 +142,8 @@ namespace Disney
 	//--------------------------------------------------------------------------------------------------------------------------
 	namespace Diffuse
 	{
-		static __device__
-		inline float Evaluate(const HitMaterial& mat, const float3& wo, const float3& wi,
+		static inline __device__
+		float Evaluate(const HitMaterial& mat, const float3& wo, const float3& wi,
 							  float3& value)
 		{
 			// This code is mostly ported from the GLSL implementation in Disney's BRDF explorer.
@@ -186,8 +186,8 @@ namespace Disney
 
 
 
-		static __device__
-		inline void Sample(const HitMaterial& mat, float r0, float r1, const float3& wo,
+		static inline __device__
+		void Sample(const HitMaterial& mat, float r0, float r1, const float3& wo,
 						   float3& wi, float& pdf, float3& value)
 		{
 			// Compute the incoming direction.
@@ -205,8 +205,8 @@ namespace Disney
 	//--------------------------------------------------------------------------------------------------------------------------
 	namespace Sheen
 	{
-		static __device__
-		inline float Evaluate(const HitMaterial& mat, const float3& wo, const float3& wi,
+		static inline __device__
+		float Evaluate(const HitMaterial& mat, const float3& wo, const float3& wi,
 							  float3& value)
 		{
 			// This code is mostly ported from the GLSL implementation in Disney's BRDF explorer.
@@ -224,8 +224,8 @@ namespace Disney
 
 
 
-		static __device__
-		inline void Sample(const HitMaterial& mat, float r0, float r1, const float3& wo,
+		static inline __device__
+		void Sample(const HitMaterial& mat, float r0, float r1, const float3& wo,
 						   float3& wi, float& pdf, float3& value)
 		{
 			// Compute the incoming direction.
@@ -243,8 +243,8 @@ namespace Disney
 	//--------------------------------------------------------------------------------------------------------------------------
 	namespace GGX
 	{
-		static __device__
-		inline float Evaluate(float alpha_x, float alpha_y, const HitMaterial& mat, const float3& wo, const float3& wi,
+		static inline __device__
+		float Evaluate(float alpha_x, float alpha_y, const HitMaterial& mat, const float3& wo, const float3& wi,
 							  float3& value)
 		{
 			if(wo.z == 0.0f || wi.z == 0.0f)
@@ -269,8 +269,8 @@ namespace Disney
 
 
 
-		static __device__
-		inline void Sample(float alpha_x, float alpha_y, const HitMaterial& mat, float r0, float r1, const float3& wo,
+		static inline __device__
+		void Sample(float alpha_x, float alpha_y, const HitMaterial& mat, float r0, float r1, const float3& wo,
 						   float3& wi, float& pdf, float3& value)
 		{
 			if(wo.z == 0.0f)
@@ -308,8 +308,8 @@ namespace Disney
 	//--------------------------------------------------------------------------------------------------------------------------
 	namespace GTR1
 	{
-		static __device__
-		inline float Evaluate(float alpha_x, float alpha_y, const HitMaterial& mat, const float3& wo, const float3& wi,
+		static inline __device__
+		float Evaluate(float alpha_x, float alpha_y, const HitMaterial& mat, const float3& wo, const float3& wi,
 							  float3& value)
 		{
 			if(wo.z == 0.0f || wi.z == 0.0f)
@@ -334,8 +334,8 @@ namespace Disney
 
 
 
-		static __device__
-		inline void Sample(float alpha_x, float alpha_y, const HitMaterial& mat, float r0, float r1, const float3& wo,
+		static inline __device__
+		void Sample(float alpha_x, float alpha_y, const HitMaterial& mat, float r0, float r1, const float3& wo,
 						   float3& wi, float& pdf, float3& value)
 		{
 			if(wo.z == 0.0f)
@@ -371,8 +371,8 @@ namespace Disney
 	//--------------------------------------------------------------------------------------------------------------------------
 	// Weights
 	//--------------------------------------------------------------------------------------------------------------------------
-	static __device__
-	inline bool compute_component_weights(const HitMaterial& mat,
+	static inline __device__
+	bool compute_component_weights(const HitMaterial& mat,
 										  float& diffuseWeight, float& sheenWeight, float& specularWeight, float& clearcoatWeight)
 	{
 		// Compute component weights.
@@ -398,8 +398,8 @@ namespace Disney
 	//--------------------------------------------------------------------------------------------------------------------------
 	// Evaluate BSDF
 	//--------------------------------------------------------------------------------------------------------------------------
-	static __device__
-	inline BsdfResult Evaluate(const ShadingInfo& shadingInfo, const HitMaterial& mat)
+	static inline __device__
+	BsdfResult Evaluate(const ShadingInfo& shadingInfo, const HitMaterial& mat)
 	{
 		// Compute component weights.
 		float diffuseWeight;
@@ -463,8 +463,8 @@ namespace Disney
 	//--------------------------------------------------------------------------------------------------------------------------
 	// Sample BSDF
 	//--------------------------------------------------------------------------------------------------------------------------
-	static __device__
-	inline BsdfResult Sample(const ShadingInfo& shadingInfo, const HitMaterial& mat, float r0, float r1)
+	static inline __device__
+	BsdfResult Sample(const ShadingInfo& shadingInfo, const HitMaterial& mat, float r0, float r1)
 	{
 		// Compute component weights.
 		float diffuseWeight;
@@ -565,8 +565,8 @@ namespace Disney
 //------------------------------------------------------------------------------------------------------------------------------
 // Closure
 //------------------------------------------------------------------------------------------------------------------------------
-static __device__
-inline Closure DisneyClosure(const ShadingInfo& shadingInfo, const HitMaterial& mat, float r0, float r1)
+static inline __device__
+Closure DisneyClosure(const ShadingInfo& shadingInfo, const HitMaterial& mat, float r0, float r1)
 {
 	const BsdfResult eval   = Disney::Evaluate(shadingInfo, mat);
 	const BsdfResult sample = Disney::Sample(shadingInfo, mat, r0, r1);

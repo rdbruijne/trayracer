@@ -45,56 +45,56 @@ inline uint32_t DivRoundUp(uint32_t a, uint32_t b)
 //------------------------------------------------------------------------------------------------------------------------------
 // Generic math functions
 //------------------------------------------------------------------------------------------------------------------------------
-static __device__
-inline float3 expf(const float3& a)
+static inline __device__
+float3 expf(const float3& a)
 {
 	return make_float3(expf(a.x), expf(a.y), expf(a.z));
 }
 
 
 
-static __device__
-inline float3 max(const float3& a, const float3& b)
+static inline __device__
+float3 max(const float3& a, const float3& b)
 {
 	return make_float3(max(a.x, b.x), max(a.y, b.y), max(a.z, b.z));
 }
 
 
 
-static __device__
-inline float3 min(const float3& a, const float3& b)
+static inline __device__
+float3 min(const float3& a, const float3& b)
 {
 	return make_float3(min(a.x, b.x), min(a.y, b.y), min(a.z, b.z));
 }
 
 
 
-static __device__
-inline float mix(float a, float b, float t)
+static inline __device__
+float mix(float a, float b, float t)
 {
 	return (a * (1.f - t)) + (b * t);
 }
 
 
 
-static __device__
-inline float3 mix(const float3& a, const float3& b, float t)
+static inline __device__
+float3 mix(const float3& a, const float3& b, float t)
 {
 	return (a * (1.f - t)) + (b * t);
 }
 
 
 
-static __device__
-inline float3 pow(const float3& f, float p)
+static inline __device__
+float3 pow(const float3& f, float p)
 {
 	return make_float3(powf(f.x, p), powf(f.y, p), powf(f.z, p));
 }
 
 
 
-static __device__
-inline float square(float x)
+static inline __device__
+float square(float x)
 {
 	return x * x;
 }
@@ -104,24 +104,24 @@ inline float square(float x)
 //------------------------------------------------------------------------------------------------------------------------------
 // float[n] extensions
 //------------------------------------------------------------------------------------------------------------------------------
-static __device__
-inline float2 operator -(const float2& a)
+static inline __device__
+float2 operator -(const float2& a)
 {
 	return make_float2(-a.x, -a.y);
 }
 
 
 
-static __device__
-inline float3 operator -(const float3& a)
+static inline __device__
+float3 operator -(const float3& a)
 {
 	return make_float3(-a.x, -a.y, -a.z);
 }
 
 
 
-static __device__
-inline float4 operator -(const float4& a)
+static inline __device__
+float4 operator -(const float4& a)
 {
 	return make_float4(-a.x, -a.y, -a.z, -a.w);
 }
@@ -131,8 +131,8 @@ inline float4 operator -(const float4& a)
 //------------------------------------------------------------------------------------------------------------------------------
 // Value ranges
 //------------------------------------------------------------------------------------------------------------------------------
-static __device__
-inline float3 clamp_scaled(const float3& f3, float maxValue)
+static inline __device__
+float3 clamp_scaled(const float3& f3, float maxValue)
 {
 	const float m = fmaxf(f3.x, fmaxf(f3.y, f3.z));
 	if(m <= maxValue)
@@ -143,8 +143,8 @@ inline float3 clamp_scaled(const float3& f3, float maxValue)
 
 
 
-static __device__
-inline float3 fixnan(const float3& f3)
+static inline __device__
+float3 fixnan(const float3& f3)
 {
 	return isfinite(f3.x + f3.y + f3.z) ? f3 : make_float3(0);
 }
@@ -154,8 +154,8 @@ inline float3 fixnan(const float3& f3)
 //------------------------------------------------------------------------------------------------------------------------------
 // Matrix transform
 //------------------------------------------------------------------------------------------------------------------------------
-static __device__
-inline float3 transform(const float4& tx, const float4& ty, const float4& tz, const float3& v)
+static inline __device__
+float3 transform(const float4& tx, const float4& ty, const float4& tz, const float3& v)
 {
 	return make_float3(
 		dot(v, make_float3(tx.x, ty.x, tz.x)),
@@ -165,8 +165,8 @@ inline float3 transform(const float4& tx, const float4& ty, const float4& tz, co
 
 
 
-static __device__
-inline float4 transform(const float4& tx, const float4& ty, const float4& tz, const float4& v)
+static inline __device__
+float4 transform(const float4& tx, const float4& ty, const float4& tz, const float4& v)
 {
 	return make_float4(
 		dot(v, make_float4(tx.x, ty.x, tz.x, tx.w)),

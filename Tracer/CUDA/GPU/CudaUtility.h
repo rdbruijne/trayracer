@@ -7,8 +7,8 @@
 // Colors
 //------------------------------------------------------------------------------------------------------------------------------
 // Convert an object ID to a color
-static __device__
-inline float3 IdToColor(uint32_t id)
+static inline __device__
+float3 IdToColor(uint32_t id)
 {
 	// https://stackoverflow.com/a/9044057
 	uint32_t c[3] = { 0, 0, 0 };
@@ -25,8 +25,8 @@ inline float3 IdToColor(uint32_t id)
 
 
 
-static __device__
-inline float3 LinearRGBToCIEXYZ(const float3& rgb)
+static inline __device__
+float3 LinearRGBToCIEXYZ(const float3& rgb)
 {
 	return make_float3(
 		max(0.0f, 0.412453f * rgb.x + 0.357580f * rgb.y + 0.180423f * rgb.z),
@@ -36,8 +36,8 @@ inline float3 LinearRGBToCIEXYZ(const float3& rgb)
 
 
 
-static __device__
-inline float3 CIEXYZToLinearRGB(const float3& xyz)
+static inline __device__
+float3 CIEXYZToLinearRGB(const float3& xyz)
 {
 	return make_float3(
 		max(0.0f,  3.240479f * xyz.x - 1.537150f * xyz.y - 0.498535f * xyz.z),
@@ -50,24 +50,24 @@ inline float3 CIEXYZToLinearRGB(const float3& xyz)
 //------------------------------------------------------------------------------------------------------------------------------
 // Barycentrics
 //------------------------------------------------------------------------------------------------------------------------------
-static __device__
-inline float2 Barycentric(float2 bc, const float2& v0, const float2& v1, const float2& v2)
+static inline __device__
+float2 Barycentric(float2 bc, const float2& v0, const float2& v1, const float2& v2)
 {
 	return v0 + ((v1 - v0) * bc.x) + ((v2 - v0) * bc.y);
 }
 
 
 
-static __device__
-inline float3 Barycentric(float2 bc, const float3& v0, const float3& v1, const float3& v2)
+static inline __device__
+float3 Barycentric(float2 bc, const float3& v0, const float3& v1, const float3& v2)
 {
 	return v0 + ((v1 - v0) * bc.x) + ((v2 - v0) * bc.y);
 }
 
 
 
-static __device__
-inline float2 DecodeBarycentrics(uint32_t barycentrics)
+static inline __device__
+float2 DecodeBarycentrics(uint32_t barycentrics)
 {
 	const uint32_t bx = barycentrics >> 16;
 	const uint32_t by = barycentrics & 0xFFFF;
@@ -79,8 +79,8 @@ inline float2 DecodeBarycentrics(uint32_t barycentrics)
 //------------------------------------------------------------------------------------------------------------------------------
 // Packing
 //------------------------------------------------------------------------------------------------------------------------------
-static __device__
-inline uint32_t PackNormal(const float3& N)
+static inline __device__
+uint32_t PackNormal(const float3& N)
 {
 	// https://aras-p.info/texts/CompactNormalStorage.html -> Spheremap Transform
 	float2 enc = normalize(make_float2(N)) * sqrtf(-N.z * 0.5f + 0.5f);
@@ -90,8 +90,8 @@ inline uint32_t PackNormal(const float3& N)
 
 
 
-static __device__
-inline float3 UnpackNormal(uint32_t N)
+static inline __device__
+float3 UnpackNormal(uint32_t N)
 {
 	// https://aras-p.info/texts/CompactNormalStorage.html -> Spheremap Transform
 	const float nx = static_cast<float>(N >> 16) / 65535.f;
@@ -107,8 +107,8 @@ inline float3 UnpackNormal(uint32_t N)
 //------------------------------------------------------------------------------------------------------------------------------
 // Orthonormal base
 //------------------------------------------------------------------------------------------------------------------------------
-static __device__
-inline void OrthonormalBase(const float3 normal, float3& tangent, float3& bitangent)
+static inline __device__
+void OrthonormalBase(const float3 normal, float3& tangent, float3& bitangent)
 {
 	if(fabsf(normal.x) > fabsf(normal.y))
 	{
@@ -132,16 +132,16 @@ inline void OrthonormalBase(const float3 normal, float3& tangent, float3& bitang
 //------------------------------------------------------------------------------------------------------------------------------
 // Space transformations
 //------------------------------------------------------------------------------------------------------------------------------
-static __device__
-inline float3 WorldToTangent(const float3& V, const float3& N, const float3& T, const float3& B)
+static inline __device__
+float3 WorldToTangent(const float3& V, const float3& N, const float3& T, const float3& B)
 {
 	return make_float3(dot(V, T), dot(V, B), dot(V, N));
 }
 
 
 
-static __device__
-inline float3 WorldToTangent(const float3& V, const float3& N)
+static inline __device__
+float3 WorldToTangent(const float3& V, const float3& N)
 {
 	float3 T, B;
 	OrthonormalBase(N, T, B);
@@ -150,16 +150,16 @@ inline float3 WorldToTangent(const float3& V, const float3& N)
 
 
 
-static __device__
-inline float3 TangentToWorld(const float3& V, const float3& N, const float3& T, const float3& B)
+static inline __device__
+float3 TangentToWorld(const float3& V, const float3& N, const float3& T, const float3& B)
 {
 	return (V.x * T) + (V.y * B) + (V.z * N);
 }
 
 
 
-static __device__
-inline float3 TangentToWorld(const float3& V, const float3& N)
+static inline __device__
+float3 TangentToWorld(const float3& V, const float3& N)
 {
 	float3 T, B;
 	OrthonormalBase(N, T, B);
@@ -171,8 +171,8 @@ inline float3 TangentToWorld(const float3& V, const float3& N)
 //------------------------------------------------------------------------------------------------------------------------------
 // Sampling
 //------------------------------------------------------------------------------------------------------------------------------
-static __device__
-inline float3 SampleHemisphere(float r0, float r1)
+static inline __device__
+float3 SampleHemisphere(float r0, float r1)
 {
 	const float sinTheta = sqrtf(1.f - r1);
 	const float cosTheta = sqrtf(r1);
@@ -182,8 +182,8 @@ inline float3 SampleHemisphere(float r0, float r1)
 
 
 
-static __device__
-inline float3 SampleCosineHemisphere(float r0, float r1)
+static inline __device__
+float3 SampleCosineHemisphere(float r0, float r1)
 {
 	// uniform sample disk
 	const float phi = TwoPi * r0;
@@ -196,8 +196,8 @@ inline float3 SampleCosineHemisphere(float r0, float r1)
 
 
 
-static __device__
-inline float3 SampleCosineHemisphere(const float3& normal, float r0, float r1)
+static inline __device__
+float3 SampleCosineHemisphere(const float3& normal, float r0, float r1)
 {
 	float3 tangent, bitangent;
 	OrthonormalBase(normal, tangent, bitangent);

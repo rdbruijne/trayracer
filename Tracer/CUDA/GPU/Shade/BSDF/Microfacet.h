@@ -30,7 +30,7 @@ namespace Microfacet
 	//--------------------------------------------------------------------------------------------------------------------------
 	// Microfacet alpha
 	//--------------------------------------------------------------------------------------------------------------------------
-	static __device__
+	static inline __device__
 	float alpha_from_roughness(const float roughness)
 	{
 		return max(0.001f, roughness * roughness);
@@ -38,7 +38,7 @@ namespace Microfacet
 
 
 
-	static __device__
+	static inline __device__
 	void alpha_from_roughness(const float roughness, const float anisotropy, float& alpha_x, float& alpha_y)
 	{
 		const float squareRoughness = square(roughness);
@@ -50,7 +50,7 @@ namespace Microfacet
 
 
 
-	static __device__
+	static inline __device__
 	void sample_phi(float s, float& cos_phi, float& sin_phi)
 	{
 		const float phi = TwoPi * s;
@@ -60,7 +60,7 @@ namespace Microfacet
 
 
 
-	static __device__
+	static inline __device__
 	float stretched_roughness(const float3& m, float sin_theta, float alpha_x, float alpha_y)
 	{
 		if (alpha_x == alpha_y || sin_theta == 0.0f)
@@ -73,7 +73,7 @@ namespace Microfacet
 
 
 
-	static __device__
+	static inline __device__
 	float projected_roughness(const float3& m, const float sin_theta, const float alpha_x, const float alpha_y)
 	{
 		if (alpha_x == alpha_y || sin_theta == 0.0f)
@@ -86,7 +86,7 @@ namespace Microfacet
 
 
 
-	static __device__
+	static inline __device__
 	float3 make_unit_vector(float cos_theta, float sin_theta, float cos_phi, float sin_phi)
 	{
 		// https://github.com/appleseedhq/appleseed/blob/master/src/appleseed/foundation/math/vector.h
@@ -115,7 +115,7 @@ namespace Microfacet
 		//       https://hal.archives-ouvertes.fr/hal-01509746
 		//
 
-		static __device__
+		static inline __device__
 		float Lambda(const float3& v, float alpha_x, float alpha_y)
 		{
 			const float cos_theta = v.y;
@@ -134,7 +134,7 @@ namespace Microfacet
 
 
 
-		static __device__
+		static inline __device__
 		float D(const float3& m, float alpha_x, float alpha_y)
 		{
 			const float cos_theta = m.z;
@@ -154,7 +154,7 @@ namespace Microfacet
 
 
 
-		static __device__
+		static inline __device__
 		float G(const float3& wi, const float3& wo, const float3& m, float alpha_x, float alpha_y)
 		{
 			return 1.0f / (1.0f + Lambda(wo, alpha_x, alpha_y) + Lambda(wi, alpha_x, alpha_y));
@@ -162,7 +162,7 @@ namespace Microfacet
 
 
 
-		static __device__
+		static inline __device__
 		float G1(const float3& v, const float3& m, float alpha_x, float alpha_y)
 		{
 			return 1.0f / (1.0f + Lambda(v, alpha_x, alpha_y));
@@ -170,7 +170,7 @@ namespace Microfacet
 
 
 
-		static __device__
+		static inline __device__
 		float3 Sample(const float3& v, float r0, float r1, float alpha_x, float alpha_y)
 		{
 			// Stretch incident.
@@ -210,7 +210,7 @@ namespace Microfacet
 
 
 
-		static __device__
+		static inline __device__
 		float Pdf(const float3& v, const float3& m, float alpha_x, float alpha_y)
 		{
 			// return pdf_visible_normals(v, m, alpha_x, alpha_y);
@@ -241,7 +241,7 @@ namespace Microfacet
 		//       https://docs.chaosgroup.com/download/attachments/7147732/gtr_shadowing.pdf?version=2&modificationDate=1434539612000&api=v2
 		//
 
-		static __device__
+		static inline __device__
 		float Lambda(const float3& v, float alpha_x, float alpha_y)
 		{
 			const float cos_theta = v.z;
@@ -271,7 +271,7 @@ namespace Microfacet
 
 
 
-		static __device__
+		static inline __device__
 		float D(const float3& m, float alpha_x, float alpha_y)
 		{
 			 const float alpha = clamp(alpha_x, 0.001f, 0.999f);
@@ -284,7 +284,7 @@ namespace Microfacet
 
 
 
-		static __device__
+		static inline __device__
 		float G(const float3& wi, const float3& wo, const float3& m, float alpha_x, float alpha_y)
 		{
 			return 1.0f / (1.0f + Lambda(wo, alpha_x, alpha_y) + Lambda(wi, alpha_x, alpha_y));
@@ -292,7 +292,7 @@ namespace Microfacet
 
 
 
-		static __device__
+		static inline __device__
 		float G1(const float3& v, const float3& m, float alpha_x, float alpha_y)
 		{
 			return 1.0f / (1.0f + Lambda(v, alpha_x, alpha_y));
@@ -300,7 +300,7 @@ namespace Microfacet
 
 
 
-		static __device__
+		static inline __device__
 		float3 Sample(const float3& v, float r0, float r1, float alpha_x, float alpha_y)
 		{
 			const float alpha = clamp(alpha_x, 0.001f, 0.999f);
@@ -316,7 +316,7 @@ namespace Microfacet
 		}
 
 
-		static __device__
+		static inline __device__
 		float Pdf(const float3& v, const float3& m, float alpha_x, float alpha_y)
 		{
 			return D(m, alpha_x, alpha_y) * fabsf(m.y);

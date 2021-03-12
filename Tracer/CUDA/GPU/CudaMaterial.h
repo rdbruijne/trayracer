@@ -47,8 +47,8 @@ struct HitMaterial
 
 
 
-static __device__
-inline int ColorChannels(const CudaMatarial& mat, MaterialPropertyIds propId)
+static inline __device__
+int ColorChannels(const CudaMatarial& mat, MaterialPropertyIds propId)
 {
 	const CudaMaterialProperty& prop = mat.properties[static_cast<size_t>(propId)];
 	return prop.colorChannels;
@@ -56,8 +56,8 @@ inline int ColorChannels(const CudaMatarial& mat, MaterialPropertyIds propId)
 
 
 
-static __device__
-inline bool HasTexture(const CudaMatarial& mat, MaterialPropertyIds propId)
+static inline __device__
+bool HasTexture(const CudaMatarial& mat, MaterialPropertyIds propId)
 {
 	const CudaMaterialProperty& prop = mat.properties[static_cast<size_t>(propId)];
 	return prop.useTexture != 0 && prop.textureMap != 0;
@@ -65,8 +65,8 @@ inline bool HasTexture(const CudaMatarial& mat, MaterialPropertyIds propId)
 
 
 
-static __device__
-inline float3 GetColor(const CudaMatarial& mat, MaterialPropertyIds propId, const float2& uv)
+static inline __device__
+float3 GetColor(const CudaMatarial& mat, MaterialPropertyIds propId, const float2& uv)
 {
 	const CudaMaterialProperty& prop = mat.properties[static_cast<size_t>(propId)];
 
@@ -88,8 +88,8 @@ inline float3 GetColor(const CudaMatarial& mat, MaterialPropertyIds propId, cons
 
 
 
-static __device__
-inline void GetIntersectionAttributes(uint32_t instIx, uint32_t primIx, float2 bary, Intersection& intersection, HitMaterial& hitMaterial)
+static inline __device__
+void GetIntersectionAttributes(uint32_t instIx, uint32_t primIx, float2 bary, Intersection& intersection, HitMaterial& hitMaterial)
 {
 	// #TODO: apply instance transform
 

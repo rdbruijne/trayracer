@@ -51,7 +51,7 @@ struct ShadingInfo
 
 
 
-static __device__
+static inline __device__
 Closure FinalizeClosure(const ShadingInfo& shadingInfo, const BsdfResult& eval, const BsdfResult& sample)
 {
 	Closure closure;

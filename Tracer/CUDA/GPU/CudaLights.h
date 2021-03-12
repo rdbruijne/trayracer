@@ -8,7 +8,7 @@
 // CUDA
 #include "CUDA/random.h"
 
-static __device__
+static inline __device__
 float LightPdf(const float3& D, float dst, float lightArea, const float3& lightNormal)
 {
 	return (dst * dst) / (fabsf(dot(D, lightNormal)) * lightArea);
@@ -16,7 +16,7 @@ float LightPdf(const float3& D, float dst, float lightArea, const float3& lightN
 
 
 
-static __device__
+static inline __device__
 float LightPickProbability(float area, const float3& em)
 {
 	// scene energy
@@ -32,7 +32,7 @@ float LightPickProbability(float area, const float3& em)
 
 
 
-static __device__
+static inline __device__
 int32_t SelectLight(uint32_t& seed)
 {
 	const float e = rnd(seed) * LightEnergy;
@@ -57,8 +57,8 @@ int32_t SelectLight(uint32_t& seed)
 
 
 
-static __device__
-inline float3 SampleLight(uint32_t& seed, const float3& I, const float3& N, float& prob, float& pdf, float3& radiance, float& dist)
+static inline __device__
+float3 SampleLight(uint32_t& seed, const float3& I, const float3& N, float& prob, float& pdf, float3& radiance, float& dist)
 {
 	// energy
 	const float3 sunRadiance = SampleSky(Sky->sunDir, false);

@@ -41,8 +41,8 @@
 
 
 
-static __device__
-inline float3 TotalRayleigh(const float3& lambda)
+static inline __device__
+float3 TotalRayleigh(const float3& lambda)
 {
 	return	(make_float3(8.f * powf(Pi, 3.f) * powf(powf(SKY_REFRACTIVE_INDEX, 2.f) - 1.f, 2.f) * (6.f + 3.f * SKY_DEPOLARIZATION_FACTOR))) /
 			(make_float3(3.f * SKY_NUM_MOLECULES) * pow(lambda, 4.f) * make_float3(6.f - 7.f * SKY_DEPOLARIZATION_FACTOR));
@@ -50,16 +50,16 @@ inline float3 TotalRayleigh(const float3& lambda)
 
 
 
-static __device__
-inline float RayleighPhase(float cosTheta)
+static inline __device__
+float RayleighPhase(float cosTheta)
 {
 	return (3.f / (16.f * Pi)) * (1.f + powf(cosTheta, 2.f));
 }
 
 
 
-static __device__
-inline float3 TotalMie(const float3& lambda, const float3& K, float T)
+static inline __device__
+float3 TotalMie(const float3& lambda, const float3& K, float T)
 {
 	const float c = 0.2f * T * 10e-18f;
 	return 0.434f * c * Pi * pow((2.f * Pi) / lambda, SKY_MIE_V - 2.f) * K;
@@ -67,32 +67,32 @@ inline float3 TotalMie(const float3& lambda, const float3& K, float T)
 
 
 
-static __device__
-inline float HenyeyGreensteinPhase(float cosTheta, float g)
+static inline __device__
+float HenyeyGreensteinPhase(float cosTheta, float g)
 {
 	return (1.f / (4.f * Pi)) * ((1.f - powf(g, 2.f)) / powf(1.f - 2.f * g * cosTheta + pow(g, 2.f), 1.5f));
 }
 
 
 
-static __device__
-inline float SunIntensity(float zenithAngleCos)
+static inline __device__
+float SunIntensity(float zenithAngleCos)
 {
 	return Sky->sunIntensity * max(0.f, 1.f - expf(-((SKY_SUN_FALLOFF_ANGLE - acosf(zenithAngleCos)) / SKY_SUN_INTENSITY_FALLOFF_STEEPNESS)));
 }
 
 
 
-static __device__
-inline float3 Tonemap(const float3& color)
+static inline __device__
+float3 Tonemap(const float3& color)
 {
 	return (color * (1.f + color / 1000.f)) / (color + 128.f);
 }
 
 
 
-static __device__
-inline float3 Saturation(const float3& L0)
+static inline __device__
+float3 Saturation(const float3& L0)
 {
 	const float3 lumaPix = make_float3(0.299f, 0.587f, 0.114f);
 	const float dotLuma = dot(L0, lumaPix);
@@ -101,8 +101,8 @@ inline float3 Saturation(const float3& L0)
 
 
 
-static __device__
-inline float3 SampleSky(const float3& sampleDir, bool drawSun)
+static inline __device__
+float3 SampleSky(const float3& sampleDir, bool drawSun)
 {
 	// return black when the sky is disabled
 	if(Sky->skyEnabled == 0)

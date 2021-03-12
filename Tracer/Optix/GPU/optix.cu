@@ -47,8 +47,8 @@ static __device__ uint32_t EncodeBarycentrics(const float2& barycentrics)
 //------------------------------------------------------------------------------------------------------------------------------
 // Camera ray
 //------------------------------------------------------------------------------------------------------------------------------
-static __device__
-inline float2 SampleDisk(uint32_t& seed)
+static inline __device__
+float2 SampleDisk(uint32_t& seed)
 {
 	// generate random 2D point in [-1, 1] range
 	const float2 lensCoord = make_float2((rnd(seed) * 2.f) - 1.f, (rnd(seed) * 2.f) - 1.f);
@@ -75,8 +75,8 @@ inline float2 SampleDisk(uint32_t& seed)
 
 
 
-static __device__
-inline float2 SampleTriangle(const float2& a, const float2& b, const float2& c, uint32_t& seed)
+static inline __device__
+float2 SampleTriangle(const float2& a, const float2& b, const float2& c, uint32_t& seed)
 {
 	const float s1 = rnd(seed);
 	const float s2 = rnd(seed);
@@ -86,8 +86,8 @@ inline float2 SampleTriangle(const float2& a, const float2& b, const float2& c, 
 
 
 
-static __device__
-inline float2 SampleBokeh(uint32_t& seed)
+static inline __device__
+float2 SampleBokeh(uint32_t& seed)
 {
 	// need at least 3 sides
 	if(params.cameraBokehSideCount < 3)
@@ -110,8 +110,8 @@ inline float2 SampleBokeh(uint32_t& seed)
 
 
 
-static __device__
-inline bool Distort(float2& lensCoord, float tanFov2, float distortion)
+static inline __device__
+bool Distort(float2& lensCoord, float tanFov2, float distortion)
 {
 	// the center is never distorted
 	if(lensCoord.x == 0 && lensCoord.y == 0)
@@ -136,8 +136,8 @@ inline bool Distort(float2& lensCoord, float tanFov2, float distortion)
 
 
 
-static __device__
-inline void GenerateCameraRay(float3& O, float3& D, float& T, int2 pixelIndex, uint32_t& seed)
+static inline __device__
+void GenerateCameraRay(float3& O, float3& D, float& T, int2 pixelIndex, uint32_t& seed)
 {
 	// locations
 	const float2 index = make_float2(pixelIndex);
@@ -175,8 +175,8 @@ inline void GenerateCameraRay(float3& O, float3& D, float& T, int2 pixelIndex, u
 //------------------------------------------------------------------------------------------------------------------------------
 // Film
 //------------------------------------------------------------------------------------------------------------------------------
-static __device__
-inline void InitializeFilm(int pixelIx)
+static inline __device__
+void InitializeFilm(int pixelIx)
 {
 	if(params.sampleCount == 0)
 		params.accumulator[pixelIx] = make_float4(0, 0, 0, params.multiSample);
