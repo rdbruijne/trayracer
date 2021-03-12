@@ -4,12 +4,14 @@
 #include "OrbitCameraController.h"
 
 // Tracer
+#include "Tracer/FileIO/ModelFile.h"
 #include "Tracer/FileIO/SceneFile.h"
 #include "Tracer/GUI/MainGui.h"
 #include "Tracer/OpenGL/Window.h"
 #include "Tracer/Renderer/Scene.h"
 #include "Tracer/Renderer/Renderer.h"
 #include "Tracer/Resources/Instance.h"
+#include "Tracer/Resources/Model.h"
 #include "Tracer/Utility/LinearMath.h"
 
 using namespace Tracer;
@@ -27,6 +29,12 @@ namespace Demo
 
 		// load a scene
 		//SceneFile::Load("../Resources/scenes/toad_on_a_plane.json", mScene.get(), &mCamera, renderer, window);
+
+		// add a model
+		//std::shared_ptr<Model> toad = ModelFile::Import(mScene.get(), "../Resources/models/toad/toad.obj", "toad");
+		//std::shared_ptr<Instance> toadInst = std::make_shared<Instance>("toad", toad, make_float3x4());
+		//mScene->Add(toadInst);
+
 		MarkVariablesUsed(window);
 	}
 
