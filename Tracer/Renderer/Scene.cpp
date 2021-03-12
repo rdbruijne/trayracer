@@ -164,8 +164,8 @@ namespace Tracer
 	void Scene::Add(std::shared_ptr<Instance> instance)
 	{
 		assert(instance->GetModel() != nullptr);
-		assert(std::find(mModels.begin(), mModels.end(), instance->GetModel()) != mModels.end());
 
+		Add(instance->GetModel());
 		if(instance && std::find(mInstances.begin(), mInstances.end(), instance) == mInstances.end())
 		{
 			mInstances.push_back(instance);

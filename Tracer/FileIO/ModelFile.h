@@ -16,6 +16,8 @@ namespace Tracer
 	{
 	public:
 		static const std::vector<FileInfo>& SupportedFormats();
+		static bool Supports(const std::string filePath);
+
 		static std::shared_ptr<Model> Import(Scene* scene, const std::string& filePath, const std::string& name = "");
 	};
 }

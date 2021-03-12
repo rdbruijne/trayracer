@@ -69,7 +69,7 @@ namespace Tracer
 		glfwSetCursorPosCallback(mHandle, Window::CursorPosCallback);
 		glfwSetCursorEnterCallback(mHandle, Window::CursorEnterCallback);
 		glfwSetScrollCallback(mHandle, Window::ScrollCallback);
-		//glfwSetDropCallback(mHandle, Window::DropCallback);
+		glfwSetDropCallback(mHandle, Window::DropCallback);
 
 		// init GL
 		if(glewInit() != GLEW_OK)
@@ -542,6 +542,8 @@ namespace Tracer
 
 	void Window::DropCallback(GLFWwindow* handle, int count, const char** paths) noexcept
 	{
-		//Window* const window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(handle));
+		Window* const window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(handle));
+		for(int i = 0; i < count; i++)
+			window->mDrops.push_back(paths[i]);
 	}
 }

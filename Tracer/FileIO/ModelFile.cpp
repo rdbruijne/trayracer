@@ -316,6 +316,15 @@ namespace Tracer
 
 
 
+	bool ModelFile::Supports(const std::string filePath)
+	{
+		static std::vector<FileInfo> formats = SupportedFormats();
+		const std::string ext = ToLower(FileExtension(filePath).substr(1)); // lowercase extension without dot
+		return std::find_if(formats.begin(), formats.end(), [ext](FileInfo fi) { return fi.ext == ext; }) != formats.end();
+	}
+
+
+
 	std::shared_ptr<Tracer::Model> ModelFile::Import(Scene* scene, const std::string& filePath, const std::string& name)
 	{
 		Stopwatch sw;

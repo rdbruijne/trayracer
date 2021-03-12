@@ -2,6 +2,8 @@
 
 // Project
 #include "App/App.h"
+#include "FileIO/SceneFile.h"
+#include "FileIO/ModelFile.h"
 #include "FileIO/TextureFile.h"
 #include "GUI/GuiHelpers.h"
 #include "GUI/MainGui.h"
@@ -10,6 +12,7 @@
 #include "OpenGL/Window.h"
 #include "Renderer/Renderer.h"
 #include "Renderer/Scene.h"
+#include "Resources/Instance.h"
 #include "Utility/Logger.h"
 #include "Utility/Stopwatch.h"
 #include "Utility/Utility.h"
@@ -23,6 +26,41 @@
 
 namespace Tracer
 {
+	namespace
+	{
+		void HandleDrops(App* app, Renderer* renderer, Window* window)
+		{
+			const std::vector<std::string> drops = window->Drops();
+			window->ClearDrops();
+
+			for(const std::string& d : drops)
+			{
+				const std::string ext = FileExtension(d);
+				if(ToLower(ext) == ".json")
+				{
+					const int clearScene = MessageBoxA(NULL, "Override", "Override existing scene?", MB_YESNO | MB_ICONQUESTION);
+					if(clearScene == IDYES)
+					{
+						app->GetScene()->Clear();
+						SceneFile::Load(d, app->GetScene(), app->GetScene()->GetSky().get(), app->GetCameraNode(), renderer, window);
+					}
+					else
+					{
+						SceneFile::Load(d, app->GetScene(), nullptr, nullptr, nullptr, nullptr);
+					}
+				}
+				else if(ModelFile::Supports(d))
+				{
+					std::shared_ptr<Model> model = ModelFile::Import(app->GetScene(), d);
+					std::shared_ptr<Instance> inst = std::make_shared<Instance>(FileName(d), model, make_float3x4());
+					app->GetScene()->Add(inst);
+				}
+			}
+		}
+	}
+
+
+
 	int RunApp(App* app, const std::string& name, const int2& resolution, bool fullscreen)
 	{
 		// initialize OpenGL
@@ -79,6 +117,10 @@ namespace Tracer
 
 			// run window shaders
 			window->Display();
+
+			// handle drops
+			if(window->HasDrops())
+				HandleDrops(app, renderer, window);
 
 			// save render?
 			std::string savePath;

@@ -6,6 +6,7 @@
 // C++
 #include <memory>
 #include <string>
+#include <vector>
 
 // GLFW
 struct GLFWwindow;
@@ -97,6 +98,11 @@ namespace Tracer
 		static float PrimaryMonitorDPI();
 		static float MonitorDPI(int monitorIndex);
 
+		// drag/drop
+		bool HasDrops() const { return mDrops.size() > 0; }
+		void ClearDrops() { mDrops.clear(); }
+		std::vector<std::string> Drops() const { return mDrops; }
+
 	private:
 		// GLFW Input callbacks
 		static void KeyCallback(GLFWwindow* handle, int key, int scancode, int action, int mods) noexcept;
@@ -126,5 +132,8 @@ namespace Tracer
 		// backup data
 		int2 mWindowPosBackup;
 		int2 mWindowResBackup;
+
+		// drag/drop
+		std::vector<std::string> mDrops;
 	};
 }

@@ -569,7 +569,8 @@ namespace Tracer
 
 		char log[2048];
 		size_t sizeof_log = sizeof(log);
-		OPTIX_CHECK(optixModuleCreateFromPTX(mOptixContext, &mModuleCompileOptions, &mPipelineCompileOptions, ptxCode.c_str(), ptxCode.size(), log, &sizeof_log, &mModule));
+		OPTIX_CHECK(optixModuleCreateFromPTX(mOptixContext, &mModuleCompileOptions, &mPipelineCompileOptions, ptxCode.c_str(),
+											 ptxCode.size(), log, &sizeof_log, &mModule));
 		if(sizeof_log > 1)
 			Logger::Info("%s", log);
 	}
