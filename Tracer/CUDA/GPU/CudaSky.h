@@ -150,7 +150,7 @@ float3 SampleSky(const float3& sampleDir, bool drawSun)
 	L0 = Saturation(L0);
 
 	// Tonemapping
-	const float3 color = max(make_float3(0.f), Tonemap(Lin + L0));
+	const float3 color = fmaxf(make_float3(0.f), Tonemap(Lin + L0));
 	sunfade *= mix(1.f, 0.9f, max(sunDir.y, 0.f));
 	return pow(color, 1.f / (1.f + (sunfade)));
 }

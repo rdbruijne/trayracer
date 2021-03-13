@@ -53,21 +53,6 @@ float3 expf(const float3& a)
 
 
 
-static inline __device__
-float3 max(const float3& a, const float3& b)
-{
-	return make_float3(max(a.x, b.x), max(a.y, b.y), max(a.z, b.z));
-}
-
-
-
-static inline __device__
-float3 min(const float3& a, const float3& b)
-{
-	return make_float3(min(a.x, b.x), min(a.y, b.y), min(a.z, b.z));
-}
-
-
 
 static inline __device__
 float mix(float a, float b, float t)
