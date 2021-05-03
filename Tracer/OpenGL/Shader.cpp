@@ -11,6 +11,7 @@
 #include "glfw/glfw3native.h"
 
 // C++
+#include <memory>
 #include <stdexcept>
 
 namespace Tracer
@@ -23,11 +24,11 @@ namespace Tracer
 			glGetShaderiv(shaderID, GL_COMPILE_STATUS, &result);
 			if(result != GL_TRUE)
 			{
-				char infoLog[GL_INFO_LOG_LENGTH] = {};
+				auto infoLog = std::unique_ptr<char, decltype(free)*>(reinterpret_cast<char*>(malloc(GL_INFO_LOG_LENGTH)), free);
 				GLsizei logLength = 0;
 				glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &logLength);
-				glGetShaderInfoLog(shaderID, logLength, 0, infoLog);
-				FatalError("Shader compile error: %s", infoLog);
+				glGetShaderInfoLog(shaderID, logLength, 0, infoLog.get());
+				FatalError("Shader compile error: %s", infoLog.get());
 			}
 		}
 
@@ -39,11 +40,11 @@ namespace Tracer
 			glGetProgramiv(programID, GL_LINK_STATUS, &result);
 			if(result != GL_TRUE)
 			{
-				char infoLog[GL_INFO_LOG_LENGTH] = {};
+				auto infoLog = std::unique_ptr<char, decltype(free)*>(reinterpret_cast<char*>(malloc(GL_INFO_LOG_LENGTH)), free);
 				GLsizei logLength = 0;
 				glGetShaderiv(programID, GL_INFO_LOG_LENGTH, &logLength);
-				glGetShaderInfoLog(programID, logLength, 0, infoLog);
-				FatalError("Shader link error: %s", infoLog);
+				glGetShaderInfoLog(programID, logLength, 0, infoLog.get());
+				FatalError("Shader link error: %s", infoLog.get());
 			}
 		}
 	}

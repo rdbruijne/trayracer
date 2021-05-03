@@ -162,57 +162,56 @@ namespace Tracer
 		if(!cameraNode)
 		{
 			ImGui::Text("No camera node detected");
+			return;
 		}
-		else
-		{
-			ImGui::BeginGroup();
 
-			// transformation
-			ImGui::Text("Transformation");
+		ImGui::BeginGroup();
 
-			float pos[] = {cameraNode->Position().x, cameraNode->Position().y, cameraNode->Position().z};
-			if(ImGui::InputFloat3("Position", pos))
-				cameraNode->SetPosition(make_float3(pos[0], pos[1], pos[2]));
+		// transformation
+		ImGui::Text("Transformation");
 
-			float target[] = {cameraNode->Target().x, cameraNode->Target().y, cameraNode->Target().z};
-			if(ImGui::InputFloat3("Target", target))
-				cameraNode->SetTarget(make_float3(target[0], target[1], target[2]));
+		float pos[] = {cameraNode->Position().x, cameraNode->Position().y, cameraNode->Position().z};
+		if(ImGui::InputFloat3("Position", pos))
+			cameraNode->SetPosition(make_float3(pos[0], pos[1], pos[2]));
 
-			float up[] = {cameraNode->Up().x, cameraNode->Up().y, cameraNode->Up().z};
-			if(ImGui::InputFloat3("Up", up))
-				cameraNode->SetUp(make_float3(up[0], up[1], up[2]));
+		float target[] = {cameraNode->Target().x, cameraNode->Target().y, cameraNode->Target().z};
+		if(ImGui::InputFloat3("Target", target))
+			cameraNode->SetTarget(make_float3(target[0], target[1], target[2]));
 
-			ImGui::Spacing();
+		float up[] = {cameraNode->Up().x, cameraNode->Up().y, cameraNode->Up().z};
+		if(ImGui::InputFloat3("Up", up))
+			cameraNode->SetUp(make_float3(up[0], up[1], up[2]));
 
-			// lens
-			ImGui::Text("Lens");
+		ImGui::Spacing();
 
-			float aperture = cameraNode->Aperture();
-			if(ImGui::SliderFloat("Aperture", &aperture, 0.f, 100.f, "%.3f", ImGuiSliderFlags_Logarithmic))
-				cameraNode->SetAperture(aperture);
+		// lens
+		ImGui::Text("Lens");
 
-			float distortion = cameraNode->Distortion();
-			if(ImGui::SliderFloat("Distortion", &distortion, 0.f, 10.f))
-				cameraNode->SetDistortion(distortion);
+		float aperture = cameraNode->Aperture();
+		if(ImGui::SliderFloat("Aperture", &aperture, 0.f, 100.f, "%.3f", ImGuiSliderFlags_Logarithmic))
+			cameraNode->SetAperture(aperture);
 
-			float focalDist = cameraNode->FocalDist();
-			if(ImGui::SliderFloat("Focal dist", &focalDist, 1.f, 1e6f, "%.3f", ImGuiSliderFlags_Logarithmic))
-				cameraNode->SetFocalDist(focalDist);
+		float distortion = cameraNode->Distortion();
+		if(ImGui::SliderFloat("Distortion", &distortion, 0.f, 10.f))
+			cameraNode->SetDistortion(distortion);
 
-			float fov = cameraNode->Fov() * RadToDeg;
-			if(ImGui::SliderFloat("Fov", &fov, 1.f, 179.f))
-				cameraNode->SetFov(fov * DegToRad);
+		float focalDist = cameraNode->FocalDist();
+		if(ImGui::SliderFloat("Focal dist", &focalDist, 1.f, 1e6f, "%.3f", ImGuiSliderFlags_Logarithmic))
+			cameraNode->SetFocalDist(focalDist);
 
-			int bokehSideCount = cameraNode->BokehSideCount();
-			if(ImGui::SliderInt("Bokeh side count", &bokehSideCount, 0, 16))
-				cameraNode->SetBokehSideCount(bokehSideCount);
+		float fov = cameraNode->Fov() * RadToDeg;
+		if(ImGui::SliderFloat("Fov", &fov, 1.f, 179.f))
+			cameraNode->SetFov(fov * DegToRad);
 
-			float bokehRotation = cameraNode->BokehRotation() * RadToDeg;
-			if(ImGui::SliderFloat("Bokeh rotation", &bokehRotation, 1.f, 179.f))
-				cameraNode->SetBokehRotation(bokehRotation * DegToRad);
+		int bokehSideCount = cameraNode->BokehSideCount();
+		if(ImGui::SliderInt("Bokeh side count", &bokehSideCount, 0, 16))
+			cameraNode->SetBokehSideCount(bokehSideCount);
 
-			ImGui::EndGroup();
-		}
+		float bokehRotation = cameraNode->BokehRotation() * RadToDeg;
+		if(ImGui::SliderFloat("Bokeh rotation", &bokehRotation, 1.f, 179.f))
+			cameraNode->SetBokehRotation(bokehRotation * DegToRad);
+
+		ImGui::EndGroup();
 	}
 
 
@@ -247,95 +246,94 @@ namespace Tracer
 		if(mSelectedMaterial.expired() || mSelectedMaterial.use_count() == 0)
 		{
 			ImGui::Text("No material selected");
+			return;
 		}
-		else
+
+		// texture resolution
+		const ImVec2 textureDisplayRes = ImVec2(100, 100) * ImGui::GetIO().FontGlobalScale;
+
+		// fetch material
+		std::shared_ptr<Material> mat = mSelectedMaterial.lock();
+
+		// name
+		ImGui::Text(mat->Name().c_str());
+
+		// properties
+		for(size_t i = 0; i < magic_enum::enum_count<MaterialPropertyIds>(); i++)
 		{
-			// texture resolution
-			const ImVec2 textureDisplayRes = ImVec2(100, 100) * ImGui::GetIO().FontGlobalScale;
+			const MaterialPropertyIds id = static_cast<MaterialPropertyIds>(i);
+			const std::string propName = std::string(magic_enum::enum_name(id));
 
-			// fetch material
-			std::shared_ptr<Material> mat = mSelectedMaterial.lock();
-
-			// name
-			ImGui::Text(mat->Name().c_str());
-
-			// properties
-			for(size_t i = 0; i < magic_enum::enum_count<MaterialPropertyIds>(); i++)
+			if(ImGui::TreeNode(propName.c_str()))
 			{
-				const MaterialPropertyIds id = static_cast<MaterialPropertyIds>(i);
-				const std::string propName = std::string(magic_enum::enum_name(id));
-
-				if(ImGui::TreeNode(propName.c_str()))
+				// float color
+				if(mat->IsFloatColorEnabled(id))
 				{
-					// float color
-					if(mat->IsFloatColorEnabled(id))
-					{
-						const std::string colorName = "##" + propName;
-						float c = mat->FloatColor(id);
-						const float2 cRange = mat->FloatColorRange(id);
-						if(ImGui::SliderFloat(colorName.c_str(), &c, cRange.x, cRange.y))
-							mat->Set(id, c);
-					}
-
-					// rgb color
-					if(mat->IsRgbColorEnabled(id))
-					{
-						const std::string colorName = "##" + propName;
-						const ImGuiColorEditFlags colorFlags =
-							ImGuiColorEditFlags_HDR |
-							ImGuiColorEditFlags_Float |
-							ImGuiColorEditFlags_PickerHueWheel;
-						float3 c = mat->RgbColor(id);
-						if(ImGui::ColorEdit3(colorName.c_str(), reinterpret_cast<float*>(&c), colorFlags))
-							mat->Set(id, c);
-					}
-
-					// texture
-					if(mat->IsTextureEnabled(id))
-					{
-						const std::string texName = "##" + propName + "map";
-						std::shared_ptr<Texture> tex = mat->TextureMap(id);
-
-						if(!tex)
-						{
-							// load button
-							const std::string buttonName = "Load texture" + texName;
-							if(ImGui::Button(buttonName.c_str()))
-							{
-								std::string texFile = ImportTextureDialog();
-								if(!texFile.empty())
-									mat->Set(id, TextureFile::Import(GuiHelpers::GetScene(), texFile));
-							}
-						}
-						else
-						{
-							const std::string path = tex->Path();
-							const int2 res = tex->Resolution();
-
-							// display texture
-							tex->CreateGLTex();
-							const size_t texId = static_cast<size_t>(tex->GLTex()->ID());
-							if(ImGui::ImageButton(reinterpret_cast<ImTextureID>(texId), textureDisplayRes))
-							{
-								std::string texFile = ImportTextureDialog();
-								if(!texFile.empty())
-									mat->Set(id, TextureFile::Import(GuiHelpers::GetScene(), texFile));
-							}
-
-							// remove texture button
-							const std::string buttonName = "X" + texName;
-							ImGui::SameLine();
-							if(ImGui::Button(buttonName.c_str()))
-								mat->Set(id, nullptr);
-
-							// display name & resolution
-							ImGui::Text(format("%s (%i x %i)", path.c_str(), res.x, res.y).c_str());
-						}
-					}
-
-					ImGui::TreePop();
-					ImGui::Separator();
+					const std::string colorName = "##" + propName;
+					float c = mat->FloatColor(id);
+					const float2 cRange = mat->FloatColorRange(id);
+					if(ImGui::SliderFloat(colorName.c_str(), &c, cRange.x, cRange.y))
+						mat->Set(id, c);
 				}
+
+				// rgb color
+				if(mat->IsRgbColorEnabled(id))
+				{
+					const std::string colorName = "##" + propName;
+					const ImGuiColorEditFlags colorFlags =
+						ImGuiColorEditFlags_HDR |
+						ImGuiColorEditFlags_Float |
+						ImGuiColorEditFlags_PickerHueWheel;
+					float3 c = mat->RgbColor(id);
+					if(ImGui::ColorEdit3(colorName.c_str(), reinterpret_cast<float*>(&c), colorFlags))
+						mat->Set(id, c);
+				}
+
+				// texture
+				if(mat->IsTextureEnabled(id))
+				{
+					const std::string texName = "##" + propName + "map";
+					std::shared_ptr<Texture> tex = mat->TextureMap(id);
+
+					if(!tex)
+					{
+						// load button
+						const std::string buttonName = "Load texture" + texName;
+						if(ImGui::Button(buttonName.c_str()))
+						{
+							std::string texFile = ImportTextureDialog();
+							if(!texFile.empty())
+								mat->Set(id, TextureFile::Import(GuiHelpers::GetScene(), texFile));
+						}
+					}
+					else
+					{
+						const std::string path = tex->Path();
+						const int2 res = tex->Resolution();
+
+						// display texture
+						tex->CreateGLTex();
+						const size_t texId = static_cast<size_t>(tex->GLTex()->ID());
+						if(ImGui::ImageButton(reinterpret_cast<ImTextureID>(texId), textureDisplayRes))
+						{
+							std::string texFile = ImportTextureDialog();
+							if(!texFile.empty())
+								mat->Set(id, TextureFile::Import(GuiHelpers::GetScene(), texFile));
+						}
+
+						// remove texture button
+						const std::string buttonName = "X" + texName;
+						ImGui::SameLine();
+						if(ImGui::Button(buttonName.c_str()))
+							mat->Set(id, nullptr);
+
+						// display name & resolution
+						ImGui::Text(format("%s (%i x %i)", path.c_str(), res.x, res.y).c_str());
+					}
+				}
+
+				ImGui::TreePop();
+				ImGui::Separator();
 			}
 		}
 	}
@@ -348,102 +346,108 @@ namespace Tracer
 		if(!renderer)
 		{
 			ImGui::Text("No renderer node detected");
+			return;
 		}
-		else
+
+		Window* window = GuiHelpers::GetRenderWindow();
+
+		// image
+		if(ImGui::Button("Export image"))
 		{
-			Window* window = GuiHelpers::GetRenderWindow();
-
-			// image
-			if(ImGui::Button("Export image"))
+			std::string imageFile;
+			if(SaveFileDialog("Png\0*.png", "Select an image file", imageFile))
 			{
-				std::string imageFile;
-				if(SaveFileDialog("Png\0*.png", "Select an image file", imageFile))
-				{
-					if(ToLower(FileExtension(imageFile)) != ".png")
-						imageFile += ".png";
-					renderer->RequestSave(imageFile);
-				}
+				if(ToLower(FileExtension(imageFile)) != ".png")
+					imageFile += ".png";
+				renderer->RequestSave(imageFile);
 			}
-
-			// resolution
-			ImGui::Spacing();
-			ImGui::Text("Resolution");
-
-			bool fullscreen = window->IsFullscreen();
-			if(ImGui::Checkbox("Fullscreen", &fullscreen))
-			{
-				window->SetFullscreen(fullscreen);
-				mResolution = window->Resolution();
-			}
-
-			if(mResolution.x == -1 && mResolution.y == -1)
-				mResolution = window->Resolution();
-
-			ImGui::InputInt2("##Resolution", reinterpret_cast<int*>(&mResolution));
-
-			if(ImGui::Button("Apply"))
-				window->SetResolution(mResolution);
-			ImGui::SameLine();
-			if(ImGui::Button("Reset"))
-				mResolution = window->Resolution();
-
-			// render mode
-			ImGui::Spacing();
-			ImGui::Text("Settings");
-
-			RenderModes renderMode = renderer->RenderMode();
-			if(ComboBox("Render Mode", renderMode))
-				renderer->SetRenderMode(renderMode);
-
-			// kernel settings
-			int multiSample = renderer->MultiSample();
-			if(ImGui::SliderInt("Multi-sample", &multiSample, 1, Renderer::MaxTraceDepth))
-				renderer->SetMultiSample(multiSample);
-
-			int maxDepth = renderer->MaxDepth();
-			if(ImGui::SliderInt("Max depth", &maxDepth, 1, 16))
-				renderer->SetMaxDepth(maxDepth);
-
-			float aoDist = renderer->AODist();
-			if(ImGui::SliderFloat("AO Dist", &aoDist, 0.f, 1e4f, "%.3f", ImGuiSliderFlags_Logarithmic))
-				renderer->SetAODist(aoDist);
-
-			float zDepthMax = renderer->ZDepthMax();
-			if(ImGui::SliderFloat("Z-Depth max", &zDepthMax, 0.f, 1e4f, "%.3f", ImGuiSliderFlags_Logarithmic))
-				renderer->SetZDepthMax(zDepthMax);
-
-			MaterialPropertyIds matPropId = renderer->MaterialPropertyId();
-			if(ComboBox("Debug property", matPropId))
-				renderer->SetMaterialPropertyId(matPropId);
-
-			// post
-			ImGui::Spacing();
-			ImGui::Text("Post");
-
-			Window::ShaderProperties shaderProps = window->PostShaderProperties();
-			ImGui::SliderFloat("Exposure", &shaderProps.exposure, 0.f, 100.f, "%.3f", ImGuiSliderFlags_Logarithmic);
-			ImGui::SliderFloat("Gamma", &shaderProps.gamma, 0.f, 4.f);
-			ComboBox("Tonemap method", shaderProps.tonemap);
-			window->SetPostShaderProperties(shaderProps);
-
-			// denoiser
-			ImGui::Spacing();
-			ImGui::Text("Denoiser");
-
-			bool denoising = renderer->DenoisingEnabled();
-			if(ImGui::Checkbox("Enabled", &denoising))
-				renderer->SetDenoiserEnabled(denoising);
-
-			int32_t denoiserSampleThreshold = renderer->DenoiserSampleThreshold();
-			if(ImGui::SliderInt("Sample threshold", &denoiserSampleThreshold, 0, 100))
-				renderer->SetDenoiserSampleThreshold(denoiserSampleThreshold);
 		}
+
+		// resolution
+		ImGui::Spacing();
+		ImGui::Text("Resolution");
+
+		bool fullscreen = window->IsFullscreen();
+		if(ImGui::Checkbox("Fullscreen", &fullscreen))
+		{
+			window->SetFullscreen(fullscreen);
+			mResolution = window->Resolution();
+		}
+
+		if(mResolution.x == -1 && mResolution.y == -1)
+			mResolution = window->Resolution();
+
+		ImGui::InputInt2("##Resolution", reinterpret_cast<int*>(&mResolution));
+
+		if(ImGui::Button("Apply"))
+			window->SetResolution(mResolution);
+		ImGui::SameLine();
+		if(ImGui::Button("Reset"))
+			mResolution = window->Resolution();
+
+		// render mode
+		ImGui::Spacing();
+		ImGui::Text("Settings");
+
+		RenderModes renderMode = renderer->RenderMode();
+		if(ComboBox("Render Mode", renderMode))
+			renderer->SetRenderMode(renderMode);
+
+		// kernel settings
+		int multiSample = renderer->MultiSample();
+		if(ImGui::SliderInt("Multi-sample", &multiSample, 1, Renderer::MaxTraceDepth))
+			renderer->SetMultiSample(multiSample);
+
+		int maxDepth = renderer->MaxDepth();
+		if(ImGui::SliderInt("Max depth", &maxDepth, 1, 16))
+			renderer->SetMaxDepth(maxDepth);
+
+		float aoDist = renderer->AODist();
+		if(ImGui::SliderFloat("AO Dist", &aoDist, 0.f, 1e4f, "%.3f", ImGuiSliderFlags_Logarithmic))
+			renderer->SetAODist(aoDist);
+
+		float zDepthMax = renderer->ZDepthMax();
+		if(ImGui::SliderFloat("Z-Depth max", &zDepthMax, 0.f, 1e4f, "%.3f", ImGuiSliderFlags_Logarithmic))
+			renderer->SetZDepthMax(zDepthMax);
+
+		MaterialPropertyIds matPropId = renderer->MaterialPropertyId();
+		if(ComboBox("Debug property", matPropId))
+			renderer->SetMaterialPropertyId(matPropId);
+
+		// post
+		ImGui::Spacing();
+		ImGui::Text("Post");
+
+		Window::ShaderProperties shaderProps = window->PostShaderProperties();
+		ImGui::SliderFloat("Exposure", &shaderProps.exposure, 0.f, 100.f, "%.3f", ImGuiSliderFlags_Logarithmic);
+		ImGui::SliderFloat("Gamma", &shaderProps.gamma, 0.f, 4.f);
+		ComboBox("Tonemap method", shaderProps.tonemap);
+		window->SetPostShaderProperties(shaderProps);
+
+		// denoiser
+		ImGui::Spacing();
+		ImGui::Text("Denoiser");
+
+		bool denoising = renderer->DenoisingEnabled();
+		if(ImGui::Checkbox("Enabled", &denoising))
+			renderer->SetDenoiserEnabled(denoising);
+
+		int32_t denoiserSampleThreshold = renderer->DenoiserSampleThreshold();
+		if(ImGui::SliderInt("Sample threshold", &denoiserSampleThreshold, 0, 100))
+			renderer->SetDenoiserSampleThreshold(denoiserSampleThreshold);
 	}
 
 
 
 	void MainGui::SceneElements()
 	{
+		Scene* scene = GuiHelpers::GetScene();
+		if(!scene)
+		{
+			ImGui::Text("No scene detected");
+			return;
+		}
+
 		Scene_Scene();
 		ImGui::Spacing();
 		ImGui::Spacing();
@@ -460,6 +464,11 @@ namespace Tracer
 	void MainGui::SkyElements()
 	{
 		std::shared_ptr<Sky> sky = GuiHelpers::GetScene()->GetSky();
+		if(!sky)
+		{
+			ImGui::Text("No sky detected");
+			return;
+		}
 
 		bool enabled = sky->Enabled();
 		if(ImGui::Checkbox("Enabled", &enabled))
@@ -517,69 +526,68 @@ namespace Tracer
 		if(!renderer)
 		{
 			ImGui::Text("No renderer detected");
+			return;
 		}
-		else
-		{
-			// fetch stats
-			const Scene* scene = GuiHelpers::GetScene();
-			const Window* window = GuiHelpers::GetRenderWindow();
-			const Renderer::RenderStats renderStats = renderer->Statistics();
 
-			// init column layout
-			ImGui::Columns(2);
+		// fetch stats
+		const Scene* scene = GuiHelpers::GetScene();
+		const Window* window = GuiHelpers::GetRenderWindow();
+		const Renderer::RenderStats renderStats = renderer->Statistics();
 
-			// device
-			const cudaDeviceProp& devProps = renderer->CudaDeviceProperties();
-			ROW("Device", devProps.name);
-			SPACE;
+		// init column layout
+		ImGui::Columns(2);
 
-			// kernel
-			ROW("Kernel", std::string(magic_enum::enum_name(renderer->RenderMode())).c_str());
-			ROW("Samples","%d", renderer->SampleCount());
-			ROW("Denoised samples","%d", renderer->DenoisedSampleCount());
-			ROW("Resolution", "%i x %i", window->Resolution().x, window->Resolution().y);
+		// device
+		const cudaDeviceProp& devProps = renderer->CudaDeviceProperties();
+		ROW("Device", devProps.name);
+		SPACE;
 
-			SPACE;
+		// kernel
+		ROW("Kernel", std::string(magic_enum::enum_name(renderer->RenderMode())).c_str());
+		ROW("Samples","%d", renderer->SampleCount());
+		ROW("Denoised samples","%d", renderer->DenoisedSampleCount());
+		ROW("Resolution", "%i x %i", window->Resolution().x, window->Resolution().y);
 
-			// times
-			ROW("FPS", "%.1f", 1e3f / GuiHelpers::GetFrameTimeMs());
-			ROW("Frame time", "%.1f ms", GuiHelpers::GetFrameTimeMs());
-			SPACE;
-			ROW("Primary rays", "%.1f ms", renderStats.primaryPathTimeMs);
-			ROW("Secondary rays", "%.1f ms", renderStats.secondaryPathTimeMs);
-			ROW("Deep rays", "%.1f ms", renderStats.deepPathTimeMs);
-			ROW("Shadow rays", "%.1f ms", renderStats.shadowTimeMs);
-			SPACE;
-			ROW("Shade time", "%.1f ms", renderStats.shadeTimeMs);
-			ROW("Denoise time", "%.1f ms", renderStats.denoiseTimeMs);
-			SPACE;
-			ROW("Build time", "%.1f ms", renderStats.buildTimeMs);
-			ROW("Geometry build time", "%.1f ms", renderStats.geoBuildTimeMs);
-			ROW("Material build time", "%.1f ms", renderStats.matBuildTimeMs);
-			ROW("Sky build time", "%.1f ms", renderStats.skyBuildTimeMs);
+		SPACE;
 
-			SPACE;
+		// times
+		ROW("FPS", "%.1f", 1e3f / GuiHelpers::GetFrameTimeMs());
+		ROW("Frame time", "%.1f ms", GuiHelpers::GetFrameTimeMs());
+		SPACE;
+		ROW("Primary rays", "%.1f ms", renderStats.primaryPathTimeMs);
+		ROW("Secondary rays", "%.1f ms", renderStats.secondaryPathTimeMs);
+		ROW("Deep rays", "%.1f ms", renderStats.deepPathTimeMs);
+		ROW("Shadow rays", "%.1f ms", renderStats.shadowTimeMs);
+		SPACE;
+		ROW("Shade time", "%.1f ms", renderStats.shadeTimeMs);
+		ROW("Denoise time", "%.1f ms", renderStats.denoiseTimeMs);
+		SPACE;
+		ROW("Build time", "%.1f ms", renderStats.buildTimeMs);
+		ROW("Geometry build time", "%.1f ms", renderStats.geoBuildTimeMs);
+		ROW("Material build time", "%.1f ms", renderStats.matBuildTimeMs);
+		ROW("Sky build time", "%.1f ms", renderStats.skyBuildTimeMs);
 
-			// rays
-			ROW("Rays", "%.1f M (%.1f M/s)", renderStats.pathCount * 1e-6, PerSec(renderStats.pathCount, GuiHelpers::GetFrameTimeMs()) * 1e-6);
-			ROW("Primaries", "%.1f M (%.1f M/s)", renderStats.primaryPathCount * 1e-6, PerSec(renderStats.primaryPathCount, renderStats.primaryPathTimeMs) * 1e-6);
-			ROW("Secondaries", "%.1f M (%.1f M/s)", renderStats.secondaryPathCount * 1e-6, PerSec(renderStats.secondaryPathCount, renderStats.secondaryPathTimeMs) * 1e-6);
-			ROW("Deep", "%.1f M (%.1f M/s)", renderStats.deepPathCount * 1e-6, PerSec(renderStats.deepPathCount, renderStats.deepPathTimeMs) * 1e-6);
-			ROW("Shadow", "%.1f M (%.1f M/s)", renderStats.shadowRayCount * 1e-6, PerSec(renderStats.shadowRayCount, renderStats.shadowTimeMs) * 1e-6);
+		SPACE;
 
-			SPACE;
+		// rays
+		ROW("Rays", "%.1f M (%.1f M/s)", renderStats.pathCount * 1e-6, PerSec(renderStats.pathCount, GuiHelpers::GetFrameTimeMs()) * 1e-6);
+		ROW("Primaries", "%.1f M (%.1f M/s)", renderStats.primaryPathCount * 1e-6, PerSec(renderStats.primaryPathCount, renderStats.primaryPathTimeMs) * 1e-6);
+		ROW("Secondaries", "%.1f M (%.1f M/s)", renderStats.secondaryPathCount * 1e-6, PerSec(renderStats.secondaryPathCount, renderStats.secondaryPathTimeMs) * 1e-6);
+		ROW("Deep", "%.1f M (%.1f M/s)", renderStats.deepPathCount * 1e-6, PerSec(renderStats.deepPathCount, renderStats.deepPathTimeMs) * 1e-6);
+		ROW("Shadow", "%.1f M (%.1f M/s)", renderStats.shadowRayCount * 1e-6, PerSec(renderStats.shadowRayCount, renderStats.shadowTimeMs) * 1e-6);
 
-			// scene
-			ROW("Instance count", "%lld", scene->InstanceCount());
-			ROW("Model count", "%lld", scene->InstancedModelCount());
-			ROW("Texture count", "%lld", scene->TextureCount());
-			ROW("Triangle count", "%s", ThousandSeparators(scene->TriangleCount()).c_str());
-			ROW("Unique triangle count", "%s", ThousandSeparators(scene->UniqueTriangleCount()).c_str());
-			ROW("Lights", "%s", ThousandSeparators(scene->LightCount()).c_str());
-			ROW("Unique lights", "%s", ThousandSeparators(scene->UniqueLightCount()).c_str());
+		SPACE;
 
-			ImGui::Columns();
-		}
+		// scene
+		ROW("Instance count", "%lld", scene->InstanceCount());
+		ROW("Model count", "%lld", scene->InstancedModelCount());
+		ROW("Texture count", "%lld", scene->TextureCount());
+		ROW("Triangle count", "%s", ThousandSeparators(scene->TriangleCount()).c_str());
+		ROW("Unique triangle count", "%s", ThousandSeparators(scene->UniqueTriangleCount()).c_str());
+		ROW("Lights", "%s", ThousandSeparators(scene->LightCount()).c_str());
+		ROW("Unique lights", "%s", ThousandSeparators(scene->UniqueLightCount()).c_str());
+
+		ImGui::Columns();
 
 #undef SPACE
 #undef ROW
@@ -591,10 +599,10 @@ namespace Tracer
 	{
 		Scene* scene = GuiHelpers::GetScene();
 
-		const int columns = 4;
-		const float buttonWidth = (1.f / columns) * .9f;
+		constexpr int columns = 4;
+		constexpr float buttonWidth = (1.f / columns) * .9f;
 
-		ImGui::Columns(4, nullptr, false);
+		ImGui::Columns(columns, nullptr, false);
 
 		// Load scene
 		if(ImGui::Button("Load scene", ImVec2(ImGui::GetWindowWidth() * buttonWidth, 0)))

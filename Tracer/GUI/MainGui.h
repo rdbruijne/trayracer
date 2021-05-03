@@ -34,12 +34,6 @@ namespace Tracer
 		void SkyElements();
 		void StatisticsElements();
 
-		// debug
-		std::map<std::string, std::string> mDebugItems;
-
-		// material
-		std::weak_ptr<Material> mSelectedMaterial = {};
-
 		// scene
 		void Scene_Scene();
 		void Scene_Models();
@@ -48,9 +42,17 @@ namespace Tracer
 		void SelectModel(int ix);
 		void SelectInstance(int ix);
 
+		// debug
+		std::map<std::string, std::string> mDebugItems;
+
+		// renderer
+		int2 mResolution = make_int2(-1, -1);
+
+		// selection
 		static constexpr int mNameBufferSize = 128;
 
-		int2 mResolution = make_int2(-1, -1);
+		// material
+		std::weak_ptr<Material> mSelectedMaterial = {};
 
 		int mSelectedModelIx = 0;
 		char mModelName[mNameBufferSize] = {};
