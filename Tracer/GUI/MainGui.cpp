@@ -7,6 +7,7 @@
 #include "GUI/GuiExtensions.h"
 #include "GUI/GuiHelpers.h"
 #include "OpenGL/Window.h"
+#include "Optix/Denoiser.h"
 #include "Renderer/Renderer.h"
 #include "Renderer/Scene.h"
 #include "Renderer/Sky.h"
@@ -428,13 +429,15 @@ namespace Tracer
 		ImGui::Spacing();
 		ImGui::Text("Denoiser");
 
-		bool denoising = renderer->DenoisingEnabled();
-		if(ImGui::Checkbox("Enabled", &denoising))
-			renderer->SetDenoiserEnabled(denoising);
+		std::shared_ptr<Denoiser> denoiser = renderer->GetDenoiser();
 
-		int32_t denoiserSampleThreshold = renderer->DenoiserSampleThreshold();
+		bool denoising = denoiser->IsEnabled();
+		if(ImGui::Checkbox("Enabled", &denoising))
+			denoiser->SetEnabled(denoising);
+
+		int32_t denoiserSampleThreshold = denoiser->SampleTreshold();
 		if(ImGui::SliderInt("Sample threshold", &denoiserSampleThreshold, 0, 100))
-			renderer->SetDenoiserSampleThreshold(denoiserSampleThreshold);
+			denoiser->SetSampleTreshold(denoiserSampleThreshold);
 	}
 
 
@@ -532,7 +535,7 @@ namespace Tracer
 		// fetch stats
 		const Scene* scene = GuiHelpers::GetScene();
 		const Window* window = GuiHelpers::GetRenderWindow();
-		const Renderer::RenderStats renderStats = renderer->Statistics();
+		const RenderStatistics renderStats = renderer->Statistics();
 
 		// init column layout
 		ImGui::Columns(2);
@@ -544,8 +547,8 @@ namespace Tracer
 
 		// kernel
 		ROW("Kernel", std::string(magic_enum::enum_name(renderer->RenderMode())).c_str());
-		ROW("Samples","%d", renderer->SampleCount());
-		ROW("Denoised samples","%d", renderer->DenoisedSampleCount());
+		ROW("Samples", "%d", renderer->SampleCount());
+		ROW("Denoised samples","%d", renderer->GetDenoiser()->SampleCount());
 		ROW("Resolution", "%i x %i", window->Resolution().x, window->Resolution().y);
 
 		SPACE;

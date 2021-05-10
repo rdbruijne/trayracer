@@ -3,6 +3,8 @@
 // Project
 #include "Common/CommonStructs.h"
 #include "CUDA/CudaBuffer.h"
+#include "CUDA/CudaTimeEvent.h"
+#include "Renderer/RenderStatistics.h"
 #include "Utility/LinearMath.h"
 
 // Magic Enum
@@ -13,6 +15,7 @@
 
 // C++
 #include <array>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -20,7 +23,9 @@
 namespace Tracer
 {
 	class CameraNode;
+	class Denoiser;
 	class GLTexture;
+	class OptixRenderer;
 	class Scene;
 	class Texture;
 	class Renderer
@@ -54,29 +59,7 @@ namespace Tracer
 		void SetMaterialPropertyId(MaterialPropertyIds id);
 
 		// statistics
-		struct RenderStats
-		{
-			uint64_t pathCount = 0;
-
-			uint64_t primaryPathCount = 0;
-			uint64_t secondaryPathCount = 0;
-			uint64_t deepPathCount = 0;
-			uint64_t shadowRayCount = 0;
-
-			float renderTimeMs = 0;
-			float primaryPathTimeMs = 0;
-			float secondaryPathTimeMs = 0;
-			float deepPathTimeMs = 0;
-			float shadowTimeMs = 0;
-			float shadeTimeMs = 0;
-			float denoiseTimeMs = 0;
-
-			float buildTimeMs = 0;
-			float geoBuildTimeMs = 0;
-			float matBuildTimeMs = 0;
-			float skyBuildTimeMs = 0;
-		};
-		inline RenderStats Statistics() const { return mRenderStats; }
+		inline RenderStatistics Statistics() const { return mRenderStats; }
 		inline uint32_t SampleCount() const { return mLaunchParams.sampleCount; }
 
 		// ray picking
@@ -85,13 +68,9 @@ namespace Tracer
 		// device
 		const cudaDeviceProp& CudaDeviceProperties() const { return mDeviceProperties; }
 
-		// denoising
-		inline bool DenoisingEnabled() const { return mDenoisingEnabled; }
-		inline void SetDenoiserEnabled(bool enabled) { mDenoisingEnabled = enabled; }
-
-		inline uint32_t DenoisedSampleCount() const { return mDenoisedSampleCount; }
-		inline uint32_t DenoiserSampleThreshold() const { return mDenoiserSampleThreshold; }
-		inline void SetDenoiserSampleThreshold(uint32_t Threshold) { mDenoiserSampleThreshold = Threshold; }
+		// denoiser
+		inline std::shared_ptr<Denoiser> GetDenoiser() { return mDenoiser; }
+		inline const std::shared_ptr<Denoiser> GetDenoiser() const { return mDenoiser; }
 
 		// kernel settings
 #define KERNEL_SETTING(type, name, func, reqClear)				\
@@ -117,51 +96,40 @@ namespace Tracer
 		void Resize(GLTexture* renderTexture);
 		bool ShouldDenoise() const;
 
-		// Creation
-		void CreateContext();
-		void CreateDenoiser();
-		void CreateModule();
-		void CreatePrograms();
-		void CreatePipeline();
-		void CreateShaderBindingTable();
-
 		// scene building
 		void BuildGeometry(Scene* scene);
 		void BuildMaterials(Scene* scene);
 		void BuildSky(Scene* scene);
 
+		// rendering
+		void PreRenderUpdate();
+		void PostRenderUpdate();
+		void RenderBounce(int pathLength, uint32_t& pathCount);
+		void DenoiseFrame();
+		void UploadFrame(GLTexture* renderTexture);
+
 		// render mode
 		RenderModes mRenderMode = RenderModes::PathTracing;
 		MaterialPropertyIds mMaterialPropertyId = MaterialPropertyIds::Diffuse;
+
+		// Optix renderer
+		std::unique_ptr<OptixRenderer> mOptixRenderer = nullptr;
+
+		// Denoiser
+		std::shared_ptr<Denoiser> mDenoiser = nullptr;
 
 		// saving
 		std::string mSavePath = "";
 
 		// stats
-		RenderStats mRenderStats = {};
+		RenderStatistics mRenderStats = {};
 
 		// timing
-		class TimeEvent
-		{
-		public:
-			TimeEvent();
-			~TimeEvent();
-
-			void Start(cudaStream_t stream = nullptr);
-			void Stop(cudaStream_t stream = nullptr);
-
-			float Elapsed() const;
-
-		private:
-			cudaEvent_t mStart = nullptr;
-			cudaEvent_t mEnd = nullptr;
-		};
-
-		TimeEvent mRenderTimeEvents = {};
-		TimeEvent mDenoiseTimeEvents = {};
-		std::array<TimeEvent, MaxTraceDepth> mTraceTimeEvents = {};
-		std::array<TimeEvent, MaxTraceDepth> mShadeTimeEvents = {};
-		std::array<TimeEvent, MaxTraceDepth> mShadowTimeEvents = {};
+		CudaTimeEvent mRenderTimeEvent = {};
+		CudaTimeEvent mDenoiseTimeEvent = {};
+		std::array<CudaTimeEvent, MaxTraceDepth> mTraceTimeEvents = {};
+		std::array<CudaTimeEvent, MaxTraceDepth> mShadeTimeEvents = {};
+		std::array<CudaTimeEvent, MaxTraceDepth> mShadowTimeEvents = {};
 
 		// Render buffer
 		CudaBuffer mAccumulator = {};
@@ -176,17 +144,6 @@ namespace Tracer
 		CudaBuffer mShadowRayData = {};		// (O.xyz, pixelIx)[], (D.xyz, dist)[], (radiance, ?)[]
 		CudaBuffer mCountersBuffer = {};
 
-		// Denoiser
-		OptixDenoiser mDenoiser;
-		CudaBuffer mDenoiserScratch = {};
-		CudaBuffer mDenoiserState = {};
-		CudaBuffer mDenoisedBuffer = {};
-		CudaBuffer mDenoiserHdrIntensity = {};
-
-		bool mDenoisingEnabled = true;
-		uint32_t mDenoisedSampleCount = 0;
-		uint32_t mDenoiserSampleThreshold = 10;
-
 		// Launch parameters
 		LaunchParams mLaunchParams = {};
 		CudaBuffer mLaunchParamsBuffer = {};
@@ -195,36 +152,6 @@ namespace Tracer
 		CUcontext mCudaContext = nullptr;
 		CUstream mStream = nullptr;
 		cudaDeviceProp mDeviceProperties = {};
-
-		// Optix module
-		OptixModule mModule = nullptr;
-		OptixModuleCompileOptions mModuleCompileOptions = {};
-
-		// Optix pipeline
-		OptixPipeline mPipeline = nullptr;
-		OptixPipelineCompileOptions mPipelineCompileOptions = {};
-		OptixPipelineLinkOptions mPipelineLinkOptions = {};
-
-		// Optix device context
-		OptixDeviceContext mOptixContext = nullptr;
-
-		// Programs
-		OptixProgramGroup mRayGenProgram;
-		OptixProgramGroup mMissProgram;
-		OptixProgramGroup mHitgroupProgram;
-
-		CudaBuffer mRayGenRecordsBuffer = {};
-		CudaBuffer mMissRecordsBuffer = {};
-		CudaBuffer mHitRecordsBuffer = {};
-
-		// shader bindings
-		OptixShaderBindingTable mShaderBindingTable = {};
-
-		// Geometry #TODO: remove
-		std::vector<CudaBuffer> mVertexBuffers;
-		std::vector<CudaBuffer> mNormalBuffers;
-		std::vector<CudaBuffer> mTexcoordBuffers;
-		std::vector<CudaBuffer> mIndexBuffers;
 
 		// Meshes
 		CudaBuffer mCudaMeshData = {};
@@ -240,13 +167,5 @@ namespace Tracer
 
 		// sky
 		CudaBuffer mSkyData = {};
-		CudaBuffer mSkyStateX = {};
-		CudaBuffer mSkyStateY = {};
-		CudaBuffer mSkyStateZ = {};
-
-		// Optix scene
-		OptixTraversableHandle mSceneRoot = 0;
-		CudaBuffer mAccelBuffer = {};
-		CudaBuffer mInstancesBuffer = {};
 	};
 }

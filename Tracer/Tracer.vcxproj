@@ -151,6 +151,7 @@
     <ClCompile Include="App\RunApp.cpp" />
     <ClCompile Include="CUDA\CudaBuffer.cpp" />
     <ClCompile Include="CUDA\CudaError.cpp" />
+    <ClCompile Include="CUDA\CudaTimeEvent.cpp" />
     <ClCompile Include="FileIO\BinaryFile.cpp" />
     <ClCompile Include="FileIO\ModelFile.cpp" />
     <ClCompile Include="FileIO\SceneFile.cpp" />
@@ -162,7 +163,9 @@
     <ClCompile Include="OpenGL\GLTexture.cpp" />
     <ClCompile Include="OpenGL\Shader.cpp" />
     <ClCompile Include="OpenGL\Window.cpp" />
+    <ClCompile Include="Optix\Denoiser.cpp" />
     <ClCompile Include="Optix\OptixError.cpp" />
+    <ClCompile Include="Optix\OptixRenderer.cpp" />
     <ClCompile Include="Renderer\Renderer.cpp" />
     <ClCompile Include="Renderer\Scene.cpp" />
     <ClCompile Include="Renderer\Sky.cpp" />
@@ -182,6 +185,7 @@
     <ClInclude Include="Common\CommonStructs.h" />
     <ClInclude Include="CUDA\CudaBuffer.h" />
     <ClInclude Include="CUDA\CudaError.h" />
+    <ClInclude Include="CUDA\CudaTimeEvent.h" />
     <ClInclude Include="CUDA\GPU\CudaFwd.h" />
     <ClInclude Include="CUDA\GPU\CudaGlobals.h" />
     <ClInclude Include="CUDA\GPU\CudaLights.h" />
@@ -223,8 +227,11 @@
     <ClInclude Include="OpenGL\Input.h" />
     <ClInclude Include="OpenGL\Shader.h" />
     <ClInclude Include="OpenGL\Window.h" />
+    <ClInclude Include="Optix\Denoiser.h" />
     <ClInclude Include="Optix\OptixError.h" />
+    <ClInclude Include="Optix\OptixRenderer.h" />
     <ClInclude Include="Renderer\Renderer.h" />
+    <ClInclude Include="Renderer\RenderStatistics.h" />
     <ClInclude Include="Renderer\Scene.h" />
     <ClInclude Include="Renderer\Sky.h" />
     <ClInclude Include="Resources\CameraNode.h" />

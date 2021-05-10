@@ -53,7 +53,6 @@ float3 expf(const float3& a)
 
 
 
-
 static inline __device__
 float mix(float a, float b, float t)
 {

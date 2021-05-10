@@ -82,6 +82,15 @@
     <ClCompile Include="OpenGL\GLFramebuffer.cpp">
       <Filter>OpenGL</Filter>
     </ClCompile>
+    <ClCompile Include="CUDA\CudaTimeEvent.cpp">
+      <Filter>CUDA</Filter>
+    </ClCompile>
+    <ClCompile Include="Optix\Denoiser.cpp">
+      <Filter>Optix</Filter>
+    </ClCompile>
+    <ClCompile Include="Optix\OptixRenderer.cpp">
+      <Filter>Optix</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">
@@ -316,6 +325,18 @@
     </ClInclude>
     <ClInclude Include="CUDA\GPU\CudaMaterial.h">
       <Filter>CUDA</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\CudaTimeEvent.h">
+      <Filter>CUDA</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\RenderStatistics.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Optix\Denoiser.h">
+      <Filter>Optix</Filter>
+    </ClInclude>
+    <ClInclude Include="Optix\OptixRenderer.h">
+      <Filter>Optix</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
