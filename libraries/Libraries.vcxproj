@@ -72,7 +72,8 @@
       <IgnoreSpecificDefaultLibraries>LIBCMT;MSVCRT</IgnoreSpecificDefaultLibraries>
     </Lib>
     <PostBuildEvent>
-      <Command>for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(SolutionDir)bin\"</Command>
+      <Command>if not exist "$(SolutionDir)bin\" mkdir "$(SolutionDir)bin\"
+for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(SolutionDir)bin\"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Copy Library DLLs</Message>
@@ -103,7 +104,8 @@
       <IgnoreSpecificDefaultLibraries>LIBCMT;MSVCRT</IgnoreSpecificDefaultLibraries>
     </Lib>
     <PostBuildEvent>
-      <Command>for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(SolutionDir)bin\"</Command>
+      <Command>if not exist "$(SolutionDir)bin\" mkdir "$(SolutionDir)bin\"
+for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy %%f "$(SolutionDir)bin\"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Copy Library DLLs</Message>
