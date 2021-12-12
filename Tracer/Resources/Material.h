@@ -14,6 +14,7 @@
 
 namespace Tracer
 {
+	class Renderer;
 	class Texture;
 	class Material : public Resource
 	{
@@ -53,6 +54,8 @@ namespace Tracer
 
 			// build
 			void Build();
+			void Upload(Renderer* renderer);
+
 			inline const CudaMaterialProperty& CudaProperty() const;
 
 		private:
@@ -60,9 +63,11 @@ namespace Tracer
 			float3 mColor = make_float3(0.f);
 			std::shared_ptr<Texture> mTexture = nullptr;
 
+			// mutex
+			std::mutex mMutex;
+
 			// build data
-			std::mutex mBuildMutex;
-			CudaMaterialProperty mCudaProperty;
+			CudaMaterialProperty mCudaProperty = {};
 		};
 
 	public:
@@ -93,6 +98,9 @@ namespace Tracer
 		// build
 		void Build();
 
+		// upload
+		void Upload(Renderer* renderer);
+
 		// build info
 		inline const CudaMatarial& CudaMaterial() const;
 
@@ -102,8 +110,10 @@ namespace Tracer
 
 		std::array<Property, magic_enum::enum_count<Material::MaterialPropertyIds>()> mProperties = {};
 
-		// build data
-		std::mutex mBuildMutex;
+		// mutex
+		std::mutex mMutex;
+
+		// GPU data
 		CudaMatarial mCudaMaterial = {};
 	};
 

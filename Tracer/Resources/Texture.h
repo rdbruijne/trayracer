@@ -12,6 +12,7 @@
 
 namespace Tracer
 {
+	class Renderer;
 	class Texture : public Resource
 	{
 	public:
@@ -23,15 +24,22 @@ namespace Tracer
 
 		Texture& operator =(const Texture& t) = delete;
 
+		// path
 		std::string Path() { return mPath; }
 		const std::string& Path() const { return mPath; }
 
+		// resolution
 		const int2& Resolution() const { return mResolution; }
 		const std::vector<half4>& Pixels() const { return mPixels; }
+
+		// validity
 		bool IsValid() const { return mResolution.x > 0 && mResolution.y > 0 && mPixels.size() > 0; }
 
 		// build
 		void Build();
+
+		// upload
+		void Upload(Renderer* renderer);
 
 		// build info
 		cudaArray_t CudaArray() const { return mCudaArray; }
@@ -47,8 +55,10 @@ namespace Tracer
 		int2 mResolution = make_int2(0, 0);
 		std::vector<half4> mPixels;
 
-		// build data
-		std::mutex mBuildMutex;
+		// mutex
+		std::mutex mMutex;
+
+		// GPU data
 		cudaArray_t mCudaArray = nullptr;
 		cudaTextureObject_t mCudaObject = 0;
 

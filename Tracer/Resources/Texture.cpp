@@ -65,10 +65,27 @@ namespace Tracer
 
 	void Texture::Build()
 	{
-		std::lock_guard<std::mutex> l(mBuildMutex);
+		std::lock_guard<std::mutex> l(mMutex);
 
 		// dirty check
 		if(!IsDirty())
+			return;
+
+		// mark out of sync
+		MarkOutOfSync();
+
+		// mark clean
+		MarkClean();
+	}
+
+
+
+	void Texture::Upload(Renderer* renderer)
+	{
+		std::lock_guard<std::mutex> l(mMutex);
+
+		// sync check
+		if(!IsOutOfSync())
 			return;
 
 		// cleanup
@@ -86,21 +103,11 @@ namespace Tracer
 			return;
 		}
 
-		// create channel descriptor
+		// dimensions
 		constexpr uint32_t numComponents = 4;
 		const uint32_t width  = mResolution.x;
 		const uint32_t height = mResolution.y;
 		const uint32_t pitch  = width * numComponents * sizeof(half);
-		cudaChannelFormatDesc channelDesc = cudaCreateChannelDescHalf4();
-
-		// upload pixels
-		CUDA_CHECK(cudaMallocArray(&mCudaArray, &channelDesc, width, height));
-		CUDA_CHECK(cudaMemcpy2DToArrayAsync(mCudaArray, 0, 0, mPixels.data(), pitch, pitch, height, cudaMemcpyHostToDevice));
-
-		// resource descriptor
-		cudaResourceDesc resourceDesc = {};
-		resourceDesc.resType = cudaResourceTypeArray;
-		resourceDesc.res.array.array = mCudaArray;
 
 		// texture descriptor
 		cudaTextureDesc texDesc     = {};
@@ -116,14 +123,26 @@ namespace Tracer
 		texDesc.minMipmapLevelClamp = 0;
 		texDesc.maxMipmapLevelClamp = 99;
 
+		// create channel descriptor
+		const cudaChannelFormatDesc channelDesc = cudaCreateChannelDescHalf4();
+
+		// upload pixels
+		CUDA_CHECK(cudaMallocArray(&mCudaArray, &channelDesc, width, height));
+		CUDA_CHECK(cudaMemcpy2DToArrayAsync(mCudaArray, 0, 0, mPixels.data(), pitch, pitch, height, cudaMemcpyHostToDevice));
+
+		// resource descriptor
+		cudaResourceDesc resourceDesc = {};
+		resourceDesc.resType = cudaResourceTypeArray;
+		resourceDesc.res.array.array = mCudaArray;
+
 		// texture object
 		CUDA_CHECK(cudaCreateTextureObject(&mCudaObject, &resourceDesc, &texDesc, nullptr));
 
 		// signal for OpenGL texture rebuild
 		mRebuildGlTex = true;
 
-		// mark clean
-		MarkClean();
+		// mark synced
+		MarkSynced();
 	}
 
 

@@ -3,6 +3,7 @@
 // Project
 #include "Utility/Defilable.h"
 #include "Utility/Named.h"
+#include "Utility/Syncable.h"
 
 // C++
 #include <memory>
@@ -11,7 +12,7 @@
 
 namespace Tracer
 {
-	class Resource : public Defilable, public Named
+	class Resource : public Defilable, public Named, public Syncable
 	{
 	public:
 		Resource() = default;

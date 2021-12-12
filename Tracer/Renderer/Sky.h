@@ -3,18 +3,15 @@
 // Project
 #include "Common/CommonStructs.h"
 #include "CUDA/CudaBuffer.h"
+#include "Resources/Resource.h"
 #include "Utility/LinearMath.h"
 
 namespace Tracer
 {
-	class Sky
+	class Renderer;
+	class Sky : public Resource
 	{
 	public:
-		// dirty state
-		inline bool IsDirty() { return mIsDirty; }
-		inline void MarkDirty() { mIsDirty = true; }
-		inline void MarkClean() { mIsDirty = false; }
-
 		// Sky
 		bool Enabled() const { return mEnabled; }
 		void SetEnabled(bool enabled);
@@ -40,13 +37,13 @@ namespace Tracer
 		// build
 		void Build();
 
+		// upload
+		void Upload(Renderer* renderer);
+
 		// build info
-		const SkyData& CudaData() const { return mCudaData; }
+		const CudaBuffer& CudaData() const { return mCudaData; }
 
 	private:
-		// dirty state
-		bool mIsDirty = true;
-
 		// sky
 		bool mEnabled = true;
 
@@ -59,7 +56,10 @@ namespace Tracer
 		// ground
 		float mTurbidity = 4.f;
 
-		// CUDA data
-		SkyData mCudaData = {};
+		// build data
+		SkyData mSkyData = {};
+
+		// GPU data
+		CudaBuffer mCudaData = {};
 	};
 }

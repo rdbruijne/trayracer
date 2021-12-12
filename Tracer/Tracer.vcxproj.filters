@@ -344,6 +344,9 @@
     <ClInclude Include="CUDA\CudaDevice.h">
       <Filter>CUDA</Filter>
     </ClInclude>
+    <ClInclude Include="Utility\Syncable.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Model.h">

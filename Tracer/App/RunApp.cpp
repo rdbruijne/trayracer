@@ -107,7 +107,7 @@ namespace Tracer
 			Stopwatch buildTimer;
 			if(app->GetScene()->IsDirty())
 			{
-				renderer->BuildScene(app->GetScene());
+				renderer->UpdateScene(app->GetScene());
 				app->GetScene()->MarkClean();
 			}
 			const float buildTime = buildTimer.ElapsedMs();

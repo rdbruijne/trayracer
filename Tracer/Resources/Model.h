@@ -18,6 +18,7 @@
 namespace Tracer
 {
 	class Material;
+	class Renderer;
 	class Model : public Resource
 	{
 	public:
@@ -55,8 +56,11 @@ namespace Tracer
 				 std::vector<uint32_t> materialIndices);
 
 		// build
-		void Build(OptixDeviceContext optixContext, CUstream stream);
+		void Build();
 		bool BuildLights();
+
+		// upload
+		void Upload(Renderer* renderer);
 
 		// build info
 		OptixInstance InstanceData(uint32_t instanceId, const float3x4& transform) const;
@@ -74,12 +78,15 @@ namespace Tracer
 		std::vector<float2> mTexCoords;
 		std::vector<uint3>  mIndices;
 		std::vector<uint32_t> mMaterialIndices;
+
+		// mutex
+		std::mutex mMutex;
+
+		// build data
 		std::vector<PackedTriangle> mPackedTriangles;
 		std::vector<LightTriangle> mLightTriangles;
 
-		// build data
-		std::mutex mBuildMutex;
-
+		// GPU data
 		CudaBuffer mTriangleBuffer = {};
 		CudaBuffer mMaterialIndexBuffer = {};
 

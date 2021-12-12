@@ -26,6 +26,7 @@ namespace Tracer
 	class CudaDevice;
 	class Denoiser;
 	class GLTexture;
+	class Material;
 	class OptixRenderer;
 	class Scene;
 	class Texture;
@@ -40,7 +41,7 @@ namespace Tracer
 		~Renderer();
 
 		// render
-		void BuildScene(Scene* scene);
+		void UpdateScene(Scene* scene);
 		void RenderFrame(GLTexture* renderTexture);
 		void Reset();
 
@@ -70,6 +71,10 @@ namespace Tracer
 		std::shared_ptr<CudaDevice> Device() { return mCudaDevice; }
 		const std::shared_ptr<CudaDevice> Device() const { return mCudaDevice; }
 
+		// Optix renderer
+		OptixRenderer* Optix() { return mOptixRenderer.get(); }
+		const OptixRenderer* const Optix() const { return mOptixRenderer.get(); }
+
 		// denoiser
 		inline std::shared_ptr<Denoiser> GetDenoiser() { return mDenoiser; }
 		inline const std::shared_ptr<Denoiser> GetDenoiser() const { return mDenoiser; }
@@ -98,10 +103,15 @@ namespace Tracer
 		void Resize(GLTexture* renderTexture);
 		bool ShouldDenoise() const;
 
-		// scene building
+		// build scene
 		void BuildGeometry(Scene* scene);
 		void BuildMaterials(Scene* scene);
 		void BuildSky(Scene* scene);
+
+		// upload scene
+		void UploadGeometry(Scene* scene);
+		void UploadMaterials(Scene* scene);
+		void UploadSky(Scene* scene);
 
 		// rendering
 		void PreRenderUpdate();
@@ -149,6 +159,11 @@ namespace Tracer
 		// Launch parameters
 		LaunchParams mLaunchParams = {};
 		CudaBuffer mLaunchParamsBuffer = {};
+
+		// build data
+		std::vector<std::shared_ptr<Material>> mMaterials;
+		std::vector<uint32_t> mModelIndices;
+		std::vector<uint32_t> mMaterialOffsets;
 
 		// CUDA device properties
 		std::shared_ptr<CudaDevice> mCudaDevice;

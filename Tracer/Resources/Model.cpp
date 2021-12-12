@@ -1,7 +1,10 @@
 #include "Model.h"
 
 // project
+#include "CUDA/CudaDevice.h"
 #include "Optix/OptixError.h"
+#include "Optix/OptixRenderer.h"
+#include "Renderer/Renderer.h"
 #include "Resources/Material.h"
 
 // Optix
@@ -88,9 +91,9 @@ namespace Tracer
 
 
 
-	void Model::Build(OptixDeviceContext optixContext, CUstream stream)
+	void Model::Build()
 	{
-		std::lock_guard<std::mutex> l(mBuildMutex);
+		std::lock_guard<std::mutex> l(mMutex);
 
 		// dirty check
 		if(!IsDirty())
@@ -157,57 +160,8 @@ namespace Tracer
 			mPackedTriangles.push_back(t);
 		}
 
-		// CUDA
-		mTriangleBuffer.Upload(mPackedTriangles, true);
-		mMaterialIndexBuffer.Upload(mMaterialIndices, true);
-		mCudaMesh.triangles = mTriangleBuffer.Ptr<PackedTriangle>();
-		mCudaMesh.materialIndices = mMaterialIndexBuffer.Ptr<uint32_t>();
-
-		// prepare build input
-		mBuildInput = {};
-		mBuildInput.type = OPTIX_BUILD_INPUT_TYPE_TRIANGLES;
-
-		// vertices
-		static_assert(sizeof(PackedTriangle) % 3 == 0, "Size of PackedTriangle must multiple of 3");
-		mBuildInput.triangleArray.vertexFormat        = OPTIX_VERTEX_FORMAT_FLOAT3;
-		mBuildInput.triangleArray.vertexStrideInBytes = sizeof(PackedTriangle) / 3;
-		mBuildInput.triangleArray.numVertices         = static_cast<unsigned int>(mPackedTriangles.size() * 3);
-		mBuildInput.triangleArray.vertexBuffers       = mTriangleBuffer.DevicePtrPtr();
-
-		// other
-		static uint32_t buildFlags[] = { 0 };
-		mBuildInput.triangleArray.flags              = buildFlags;
-		mBuildInput.triangleArray.numSbtRecords      = 1;
-
-		// Acceleration setup
-		OptixAccelBuildOptions buildOptions = {};
-		buildOptions.buildFlags = OPTIX_BUILD_FLAG_ALLOW_COMPACTION | OPTIX_BUILD_FLAG_PREFER_FAST_TRACE;
-		buildOptions.operation  = OPTIX_BUILD_OPERATION_BUILD;
-
-		OptixAccelBufferSizes accelBufferSizes = {};
-		OPTIX_CHECK(optixAccelComputeMemoryUsage(optixContext, &buildOptions, &mBuildInput, 1, &accelBufferSizes));
-
-		// Prepare for compacting
-		CudaBuffer compactedSizeBuffer(sizeof(uint64_t));
-
-		OptixAccelEmitDesc emitDesc;
-		emitDesc.type   = OPTIX_PROPERTY_TYPE_COMPACTED_SIZE;
-		emitDesc.result = compactedSizeBuffer.DevicePtr();
-
-		// Execute build
-		CudaBuffer tempBuffer(accelBufferSizes.tempSizeInBytes);
-		CudaBuffer outputBuffer(accelBufferSizes.outputSizeInBytes);
-		OPTIX_CHECK(optixAccelBuild(optixContext, stream, &buildOptions, &mBuildInput, 1, tempBuffer.DevicePtr(), tempBuffer.Size(),
-									outputBuffer.DevicePtr(), outputBuffer.Size(), &mTraversableHandle, &emitDesc, 1));
-
-		// Compact
-		uint64_t compactedSize = 0;
-		compactedSizeBuffer.Download(&compactedSize);
-
-		if(mAccelBuffer.Size() != compactedSize)
-			mAccelBuffer.Alloc(compactedSize);
-		OPTIX_CHECK(optixAccelCompact(optixContext, stream, mTraversableHandle, mAccelBuffer.DevicePtr(), mAccelBuffer.Size(), &mTraversableHandle));
-		CUDA_CHECK(cudaDeviceSynchronize());
+		// mark out of sync
+		MarkOutOfSync();
 
 		// mark clean
 		MarkClean();
@@ -217,6 +171,8 @@ namespace Tracer
 
 	bool Model::BuildLights()
 	{
+		std::lock_guard<std::mutex> l(mMutex);
+
 		// check for emissive changes
 		bool emissiveChanged = false;
 		bool hasEmissiveMaterial = false;
@@ -278,6 +234,76 @@ namespace Tracer
 		// clear unused memory
 		mLightTriangles.shrink_to_fit();
 		return true;
+	}
+
+
+
+	void Model::Upload(Renderer* renderer)
+	{
+		std::lock_guard<std::mutex> l(mMutex);
+
+		// sync check
+		if(!IsOutOfSync())
+			return;
+
+		// cache data
+		OptixDeviceContext optixContext = renderer->Optix()->DeviceContext();
+		CUstream stream = renderer->Device()->Stream();
+
+		// CUDA
+		mTriangleBuffer.Upload(mPackedTriangles, true);
+		mMaterialIndexBuffer.Upload(mMaterialIndices, true);
+		mCudaMesh.triangles = mTriangleBuffer.Ptr<PackedTriangle>();
+		mCudaMesh.materialIndices = mMaterialIndexBuffer.Ptr<uint32_t>();
+
+		// prepare build input
+		mBuildInput = {};
+		mBuildInput.type = OPTIX_BUILD_INPUT_TYPE_TRIANGLES;
+
+		// vertices
+		static_assert(sizeof(PackedTriangle) % 3 == 0, "Size of PackedTriangle must multiple of 3");
+		mBuildInput.triangleArray.vertexFormat        = OPTIX_VERTEX_FORMAT_FLOAT3;
+		mBuildInput.triangleArray.vertexStrideInBytes = sizeof(PackedTriangle) / 3;
+		mBuildInput.triangleArray.numVertices         = static_cast<unsigned int>(mPackedTriangles.size() * 3);
+		mBuildInput.triangleArray.vertexBuffers       = mTriangleBuffer.DevicePtrPtr();
+
+		// other
+		static uint32_t buildFlags[] = { 0 };
+		mBuildInput.triangleArray.flags              = buildFlags;
+		mBuildInput.triangleArray.numSbtRecords      = 1;
+
+		// Acceleration setup
+		OptixAccelBuildOptions buildOptions = {};
+		buildOptions.buildFlags = OPTIX_BUILD_FLAG_ALLOW_COMPACTION | OPTIX_BUILD_FLAG_PREFER_FAST_TRACE;
+		buildOptions.operation  = OPTIX_BUILD_OPERATION_BUILD;
+
+		OptixAccelBufferSizes accelBufferSizes = {};
+		OPTIX_CHECK(optixAccelComputeMemoryUsage(optixContext, &buildOptions, &mBuildInput, 1, &accelBufferSizes));
+
+		// Prepare for compacting
+		CudaBuffer compactedSizeBuffer(sizeof(uint64_t));
+
+		OptixAccelEmitDesc emitDesc;
+		emitDesc.type   = OPTIX_PROPERTY_TYPE_COMPACTED_SIZE;
+		emitDesc.result = compactedSizeBuffer.DevicePtr();
+
+		// Execute build
+		CudaBuffer tempBuffer(accelBufferSizes.tempSizeInBytes);
+		CudaBuffer outputBuffer(accelBufferSizes.outputSizeInBytes);
+		OPTIX_CHECK(optixAccelBuild(optixContext, stream, &buildOptions, &mBuildInput, 1, tempBuffer.DevicePtr(), tempBuffer.Size(),
+									outputBuffer.DevicePtr(), outputBuffer.Size(), &mTraversableHandle, &emitDesc, 1));
+
+		// Compact
+		uint64_t compactedSize = 0;
+		compactedSizeBuffer.Download(&compactedSize);
+
+		if(mAccelBuffer.Size() != compactedSize)
+			mAccelBuffer.Alloc(compactedSize);
+		OPTIX_CHECK(optixAccelCompact(optixContext, stream, mTraversableHandle, mAccelBuffer.DevicePtr(), mAccelBuffer.Size(), &mTraversableHandle));
+		CUDA_CHECK(cudaDeviceSynchronize());
+
+		// mark synced
+		MarkSynced();
 	}
 
 

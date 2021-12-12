@@ -42,14 +42,14 @@ __constant__ SkyData* Sky = nullptr;
 //------------------------------------------------------------------------------------------------------------------------------
 // Global setters
 //------------------------------------------------------------------------------------------------------------------------------
-__host__ void SetCudaCounters(RayCounters* data)
+__host__ void SetCudaCounters(const RayCounters* data)
 {
 	cudaMemcpyToSymbol(Counters, &data, sizeof(void*));
 }
 
 
 
-__host__ void SetCudaLaunchParams(LaunchParams* data)
+__host__ void SetCudaLaunchParams(const LaunchParams* data)
 {
 	cudaMemcpyToSymbol(Params, &data, sizeof(void*));
 }
@@ -57,7 +57,7 @@ __host__ void SetCudaLaunchParams(LaunchParams* data)
 
 
 // geometry
-__host__ void SetCudaMeshData(CudaMeshData* data)
+__host__ void SetCudaMeshData(const CudaMeshData* data)
 {
 	cudaMemcpyToSymbol(MeshData, &data, sizeof(void*));
 }
@@ -65,14 +65,14 @@ __host__ void SetCudaMeshData(CudaMeshData* data)
 
 
 // materials
-__host__ void SetCudaMatarialData(CudaMatarial* data)
+__host__ void SetCudaMatarialData(const CudaMatarial* data)
 {
 	cudaMemcpyToSymbol(MaterialData, &data, sizeof(void*));
 }
 
 
 
-__host__ void SetCudaMatarialOffsets(uint32_t* data)
+__host__ void SetCudaMatarialOffsets(const uint32_t* data)
 {
 	cudaMemcpyToSymbol(MaterialOffsets, &data, sizeof(void*));
 }
@@ -80,14 +80,14 @@ __host__ void SetCudaMatarialOffsets(uint32_t* data)
 
 
 // instances
-__host__ void SetCudaInvTransforms(float4* data)
+__host__ void SetCudaInvTransforms(const float4* data)
 {
 	cudaMemcpyToSymbol(InvInstTransforms, &data, sizeof(void*));
 }
 
 
 
-__host__ void SetCudaModelIndices(uint32_t* data)
+__host__ void SetCudaModelIndices(const uint32_t* data)
 {
 	cudaMemcpyToSymbol(ModelIndices, &data, sizeof(void*));
 }
@@ -109,7 +109,7 @@ __host__ void SetCudaLightEnergy(float energy)
 
 
 
-__host__ void SetCudaLights(LightTriangle* data)
+__host__ void SetCudaLights(const LightTriangle* data)
 {
 	cudaMemcpyToSymbol(Lights, &data, sizeof(void*));
 }
@@ -117,7 +117,7 @@ __host__ void SetCudaLights(LightTriangle* data)
 
 
 // sky
-__host__ void SetCudaSkyData(SkyData* data)
+__host__ void SetCudaSkyData(const SkyData* data)
 {
 	cudaMemcpyToSymbol(Sky, &data, sizeof(void*));
 }

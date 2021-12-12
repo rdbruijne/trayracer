@@ -86,7 +86,7 @@ namespace Tracer
 
 
 
-	void Renderer::BuildScene(Scene* scene)
+	void Renderer::UpdateScene(Scene* scene)
 	{
 		// #NOTE: build order is important for dirty checks
 		Stopwatch sw;
@@ -96,15 +96,30 @@ namespace Tracer
 		BuildGeometry(scene);
 		mRenderStats.geoBuildTimeMs = sw2.ElapsedMs();
 
-		// build the materials
+		// upload geometry
+		sw2.Reset();
+		UploadGeometry(scene);
+		mRenderStats.geoUploadTimeMs = sw2.ElapsedMs();
+
+		// build materials
 		sw2.Reset();
 		BuildMaterials(scene);
 		mRenderStats.matBuildTimeMs = sw2.ElapsedMs();
 
-		// build the sky
+		// upload materials
+		sw2.Reset();
+		UploadMaterials(scene);
+		mRenderStats.matUploadTimeMs = sw2.ElapsedMs();
+
+		// build sky
 		sw2.Reset();
 		BuildSky(scene);
 		mRenderStats.skyBuildTimeMs = sw2.ElapsedMs();
+
+		// upload sky
+		sw2.Reset();
+		UploadSky(scene);
+		mRenderStats.skyUploadTimeMs = sw2.ElapsedMs();
 
 		// update launch params
 		mLaunchParams.sceneRoot = mOptixRenderer->SceneRoot();
@@ -291,66 +306,141 @@ namespace Tracer
 
 	void Renderer::BuildGeometry(Scene* scene)
 	{
-		std::vector<CudaMeshData> meshData;
-		std::vector<uint32_t> modelIndices;
-		std::vector<float3x4> invTransforms;
+		if(!scene)
+			return;
 
-		std::vector<OptixInstance> instances;
+		// flag to check for light rebuild
+		bool rebuildLights = false;
 
-		if(scene)
+		// build models
+		const std::vector<std::shared_ptr<Model>>& models = scene->Models();
+		std::vector<std::thread> modelBuilders;
+		std::atomic_size_t modelIx = 0;
+		for(size_t i = 0; i < std::thread::hardware_concurrency(); i++)
 		{
-			// flag to check for light rebuild
-			bool rebuildLights = false;
-
-			// build models
-			const std::vector<std::shared_ptr<Model>>& models = scene->Models();
-			std::vector<std::thread> modelBuilders;
-			std::atomic_size_t modelIx = 0;
-			for(size_t i = 0; i < std::thread::hardware_concurrency(); i++)
+			modelBuilders.push_back(std::thread([this, &modelIx, &models, &rebuildLights]()
 			{
-				modelBuilders.push_back(std::thread([this, &modelIx, &models, &rebuildLights]()
+				size_t ix = modelIx++;
+				while(ix < models.size())
 				{
-					size_t ix = modelIx++;
-					while(ix < models.size())
+					std::shared_ptr<Model> m = models[ix];
+					if(m->IsDirty())
 					{
-						std::shared_ptr<Model> m = models[ix];
-						if(m->IsDirty())
-						{
-							if(m->IsDirty(false))
-								m->Build(mOptixRenderer->DeviceContext(), mCudaDevice->Stream());
-							rebuildLights = rebuildLights || m->BuildLights();
-						}
-						ix = modelIx++;
+						if(m->IsDirty(false))
+							m->Build();
+						if(m->BuildLights())
+							rebuildLights = true;
 					}
-				}));
-			}
-			for(std::thread& b : modelBuilders)
-				b.join();
+					ix = modelIx++;
+				}
+			}));
+		}
+		for(std::thread& b : modelBuilders)
+			b.join();
 
-			// place instances
-			uint32_t instanceId = 0;
-			const std::vector<std::shared_ptr<Instance>>& sceneInstances = scene->Instances();
-			instances.reserve(sceneInstances.size());
-			meshData.reserve(sceneInstances.size());
-			invTransforms.reserve(sceneInstances.size());
-			for(const std::shared_ptr<Instance>& inst : sceneInstances)
-			{
-				const std::shared_ptr<Model>& model = inst->GetModel();
-				instances.push_back(model->InstanceData(instanceId++, inst->Transform()));
-				meshData.push_back(model->CudaMesh());
-				invTransforms.push_back(inverse(inst->Transform()));
-				rebuildLights = rebuildLights || (inst->IsDirty() && (model->LightCount() > 0));
-				inst->MarkClean();
-			}
-
-			// build lights
-			if(rebuildLights)
-				scene->GatherLights();
+		// check instances
+		for(const std::shared_ptr<Instance>& inst : scene->Instances())
+		{
+			rebuildLights = rebuildLights || (inst->IsDirty() && (inst->GetModel()->LightCount() > 0));
+			inst->MarkClean();
 		}
 
-		if(!scene || meshData.size() == 0)
+		// build lights
+		if(rebuildLights)
+			scene->GatherLights();
+	}
+
+
+
+	void Renderer::BuildMaterials(Scene* scene)
+	{
+		if(!scene || scene->MaterialCount() == 0)
 		{
+			mCudaMaterialOffsets.Free();
+			mCudaMaterialData.Free();
+			mCudaModelIndices.Free();
+
+			SetCudaMatarialData(mCudaMaterialData.Ptr<CudaMatarial>());
+			SetCudaMatarialOffsets(mCudaMaterialOffsets.Ptr<uint32_t>());
+			SetCudaModelIndices(mCudaModelIndices.Ptr<uint32_t>());
+
+			return;
+		}
+
+		uint32_t lastMaterialOffset = 0;
+		std::vector<std::shared_ptr<Model>> parsedModels;
+
+		mMaterialOffsets.clear();
+		mMaterialOffsets.reserve(scene->Instances().size());
+
+		mModelIndices.clear();
+		mModelIndices.reserve(scene->Instances().size());
+
+		parsedModels.reserve(scene->Instances().size());
+
+		// gather materials to build
+		mMaterials.clear();
+		for(const std::shared_ptr<Instance>& inst : scene->Instances())
+		{
+			// find the model
+			const std::shared_ptr<Model>& model = inst->GetModel();
+			std::vector<std::shared_ptr<Model>>::iterator it = std::find(parsedModels.begin(), parsedModels.end(), model);
+			if(it != parsedModels.end())
+			{
+				// model already parsed
+				mModelIndices.push_back(static_cast<uint32_t>(std::distance(parsedModels.begin(), it)));
+			}
+			else
+			{
+				// add materials
+				const std::vector<std::shared_ptr<Material>>& modelMats = model->Materials();
+				mMaterials.insert(mMaterials.end(), modelMats.begin(), modelMats.end());
+
+				// increment offsets
+				mMaterialOffsets.push_back(lastMaterialOffset);
+				lastMaterialOffset += static_cast<uint32_t>(model->Materials().size());
+
+				mModelIndices.push_back(static_cast<uint32_t>(parsedModels.size()));
+				parsedModels.push_back(model);
+			}
+		}
+
+		// build the materials
+		std::atomic_size_t matIx = 0;
+		std::vector<std::thread> materialBuilders;
+		for(size_t i = 0; i < std::thread::hardware_concurrency(); i++)
+		{
+			materialBuilders.push_back(std::thread([this, &matIx]()
+			{
+				size_t ix = matIx++;
+				while(ix < mMaterials.size())
+				{
+					mMaterials[ix]->Build();
+					ix = matIx++;
+				}
+			}));
+		}
+		for(std::thread& b : materialBuilders)
+			b.join();
+	}
+
+
+
+	void Renderer::BuildSky(Scene* scene)
+	{
+		if(scene && scene->GetSky())
+			scene->GetSky()->Build();
+	}
+
+
+
+	void Renderer::UploadGeometry(Scene* scene)
+	{
+		if(!scene || scene->InstanceCount() == 0)
+		{
+			// upload empty scene data
 			mCudaMeshData.Free();
+			mCudaInstanceInverseTransforms.Free();
 			mCudaLightsBuffer.Free();
 
 			SetCudaMeshData(nullptr);
@@ -359,108 +449,68 @@ namespace Tracer
 			SetCudaLightCount(0);
 			SetCudaLightEnergy(0);
 
-			mOptixRenderer->BuildAccel(instances);
+			mOptixRenderer->BuildAccel({});
+			return;
 		}
-		else
+
+		// upload models
+		for(const std::shared_ptr<Model>& model : scene->Models())
+			model->Upload(this);
+
+		// place instances
+		std::vector<OptixInstance> instances;
+		std::vector<CudaMeshData> meshData;
+		std::vector<float3x4> invTransforms;
+
+		const size_t instanceCount = scene->InstanceCount();
+		instances.reserve(instanceCount);
+		meshData.reserve(instanceCount);
+		invTransforms.reserve(instanceCount);
+
+		uint32_t instanceId = 0;
+		for(const std::shared_ptr<Instance>& inst : scene->Instances())
 		{
-			// CUDA mesh data
-			mCudaMeshData.UploadAsync(meshData, true);
-			SetCudaMeshData(mCudaMeshData.Ptr<CudaMeshData>());
-
-			// CUDA inverse instance transforms
-			mCudaInstanceInverseTransforms.UploadAsync(invTransforms, true);
-			SetCudaInvTransforms(mCudaInstanceInverseTransforms.Ptr<float4>());
-
-			// upload lights
-			const std::vector<LightTriangle>& lightData = scene->Lights();
-			mCudaLightsBuffer.UploadAsync(lightData, true);
-			SetCudaLights(mCudaLightsBuffer.Ptr<LightTriangle>());
-			SetCudaLightCount(static_cast<int32_t>(lightData.size()));
-			SetCudaLightEnergy(lightData.size() == 0 ? 0 : lightData.back().sumEnergy);
-
-			// build Optix scene
-			mOptixRenderer->BuildAccel(instances);
+			const std::shared_ptr<Model>& model = inst->GetModel();
+			instances.push_back(model->InstanceData(instanceId++, inst->Transform()));
+			meshData.push_back(model->CudaMesh());
+			invTransforms.push_back(inverse(inst->Transform()));
 		}
+
+		// CUDA mesh data
+		mCudaMeshData.UploadAsync(meshData, true);
+		SetCudaMeshData(mCudaMeshData.Ptr<CudaMeshData>());
+
+		// CUDA inverse instance transforms
+		mCudaInstanceInverseTransforms.UploadAsync(invTransforms, true);
+		SetCudaInvTransforms(mCudaInstanceInverseTransforms.Ptr<float4>());
+
+		// upload lights
+		const std::vector<LightTriangle>& lightData = scene->Lights();
+		mCudaLightsBuffer.UploadAsync(lightData, true);
+		SetCudaLights(mCudaLightsBuffer.Ptr<LightTriangle>());
+		SetCudaLightCount(static_cast<int32_t>(lightData.size()));
+		SetCudaLightEnergy(lightData.size() == 0 ? 0 : lightData.back().sumEnergy);
+
+		// build Optix scene
+		mOptixRenderer->BuildAccel(instances);
 	}
 
 
 
-	void Renderer::BuildMaterials(Scene* scene)
+	void Renderer::UploadMaterials(Scene* scene)
 	{
-		const size_t modelCount = scene ? scene->MaterialCount() : 0;
-		if(modelCount == 0)
+		std::vector<CudaMatarial> materialData;
+		materialData.reserve(mMaterials.size());
+		for(const std::shared_ptr<Material>& material : mMaterials)
 		{
-			mCudaMaterialOffsets.Free();
-			mCudaMaterialData.Free();
+			material->Upload(this);
+			materialData.push_back(material->CudaMaterial());
 		}
-		else
-		{
-			uint32_t lastMaterialOffset = 0;
-			std::vector<uint32_t> materialOffsets;
-			std::vector<uint32_t> modelIndices;
-			std::vector<std::shared_ptr<Model>> parsedModels;
 
-			materialOffsets.reserve(scene->Instances().size());
-			modelIndices.reserve(scene->Instances().size());
-			parsedModels.reserve(scene->Instances().size());
-
-			// gather materials to build
-			std::atomic_size_t matIx = 0;
-			std::vector<std::shared_ptr<Material>> materials;
-			for(const std::shared_ptr<Instance>& inst : scene->Instances())
-			{
-				// find the model
-				const std::shared_ptr<Model>& model = inst->GetModel();
-				std::vector<std::shared_ptr<Model>>::iterator it = std::find(parsedModels.begin(), parsedModels.end(), model);
-				if(it != parsedModels.end())
-				{
-					// model already parsed
-					modelIndices.push_back(static_cast<uint32_t>(std::distance(parsedModels.begin(), it)));
-				}
-				else
-				{
-					// add materials
-					const std::vector<std::shared_ptr<Material>>& modelMats = model->Materials();
-					materials.insert(materials.end(), modelMats.begin(), modelMats.end());
-
-					// increment offsets
-					materialOffsets.push_back(lastMaterialOffset);
-					lastMaterialOffset += static_cast<uint32_t>(model->Materials().size());
-
-					modelIndices.push_back(static_cast<uint32_t>(parsedModels.size()));
-					parsedModels.push_back(model);
-				}
-			}
-
-			// build the materials
-			std::vector<CudaMatarial> materialData;
-			materialData.resize(materials.size());
-
-			matIx = 0;
-			std::vector<std::thread> materialBuilders;
-			for(size_t i = 0; i < std::thread::hardware_concurrency(); i++)
-			{
-				materialBuilders.push_back(std::thread([&matIx, &materials, &materialData]()
-				{
-					size_t ix = matIx++;
-					while(ix < materials.size())
-					{
-						std::shared_ptr<Material> mat = materials[ix];
-						if(mat->IsDirty())
-							mat->Build();
-						materialData[ix] = mat->CudaMaterial();
-						ix = matIx++;
-					}
-				}));
-			}
-			for(std::thread& b : materialBuilders)
-				b.join();
-
-			// upload data
-			mCudaMaterialOffsets.UploadAsync(materialOffsets, true);
-			mCudaMaterialData.UploadAsync(materialData, true);
-			mCudaModelIndices.UploadAsync(modelIndices, true);
-		}
+		// upload data
+		mCudaMaterialOffsets.UploadAsync(mMaterialOffsets, true);
+		mCudaMaterialData.UploadAsync(materialData, true);
+		mCudaModelIndices.UploadAsync(mModelIndices, true);
 
 		// assign to cuda
 		SetCudaMatarialData(mCudaMaterialData.Ptr<CudaMatarial>());
@@ -470,16 +520,16 @@ namespace Tracer
 
 
 
-	void Renderer::BuildSky(Scene* scene)
+	void Renderer::UploadSky(Scene* scene)
 	{
-		std::shared_ptr<Sky> sky = scene->GetSky();
-		if(sky->IsDirty())
-		{
-			sky->Build();
+		if(!scene)
+			return;
 
-			const SkyData& skyData = sky->CudaData();
-			mSkyData.UploadAsync(&skyData, 1, true);
-			SetCudaSkyData(mSkyData.Ptr<SkyData>());
+		std::shared_ptr<Sky> sky = scene->GetSky();
+		if(sky && sky->IsOutOfSync())
+		{
+			sky->Upload(this);
+			SetCudaSkyData(sky->CudaData().Ptr<SkyData>());
 		}
 	}
 

@@ -247,6 +247,7 @@
     <ClInclude Include="Utility\Logger.h" />
     <ClInclude Include="Utility\Named.h" />
     <ClInclude Include="Utility\Stopwatch.h" />
+    <ClInclude Include="Utility\Syncable.h" />
     <ClInclude Include="Utility\Utility.h" />
   </ItemGroup>
   <ItemGroup>

@@ -22,8 +22,13 @@ namespace Tracer
 		float denoiseTimeMs = 0;
 
 		float buildTimeMs = 0;
+
 		float geoBuildTimeMs = 0;
 		float matBuildTimeMs = 0;
 		float skyBuildTimeMs = 0;
+
+		float geoUploadTimeMs = 0;
+		float matUploadTimeMs = 0;
+		float skyUploadTimeMs = 0;
 	};
 }

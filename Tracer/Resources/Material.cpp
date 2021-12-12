@@ -45,7 +45,7 @@ namespace Tracer
 
 	void Material::Property::Build()
 	{
-		std::lock_guard<std::mutex> l(mBuildMutex);
+		std::lock_guard<std::mutex> l(mMutex);
 
 		// dirty check
 		if(!IsDirty())
@@ -65,6 +65,19 @@ namespace Tracer
 
 		// mark clean
 		MarkClean();
+	}
+
+
+
+	void Material::Property::Upload(Renderer* renderer)
+	{
+		std::lock_guard<std::mutex> l(mMutex);
+
+		if(mTexture)
+		{
+			mTexture->Upload(renderer);
+			mCudaProperty.textureMap = mTexture->CudaObject();
+		}
 	}
 
 
@@ -122,23 +135,43 @@ namespace Tracer
 
 	void Material::Build()
 	{
-		std::lock_guard<std::mutex> l(mBuildMutex);
+		std::lock_guard<std::mutex> l(mMutex);
 
 		// dirty check
 		if(!IsDirty())
 			return;
 
 		// build properties
-		for(size_t i = 0; i < magic_enum::enum_count<MaterialPropertyIds>(); i++)
-			if(mProperties[i].IsDirty())
-				mProperties[i].Build();
+		for(Property& prop : mProperties)
+			prop.Build();
+
+		// mark out of sync
+		MarkOutOfSync();
+
+		// mark clean
+		MarkClean();
+	}
+
+
+
+	void Material::Upload(Renderer* renderer)
+	{
+		std::lock_guard<std::mutex> l(mMutex);
+
+		// sync check
+		if(!IsOutOfSync())
+			return;
+
+		// upload properties
+		for(Property& prop : mProperties)
+			prop.Upload(renderer);
 
 		// assign properties
 		for(size_t i = 0; i < magic_enum::enum_count<MaterialPropertyIds>(); i++)
 			mCudaMaterial.properties[i] = mProperties[i].CudaProperty();
 
-		// mark clean
-		MarkClean();
+		// mark synced
+		MarkSynced();
 	}
 
 
