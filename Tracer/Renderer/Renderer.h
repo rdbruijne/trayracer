@@ -23,6 +23,7 @@
 namespace Tracer
 {
 	class CameraNode;
+	class CudaDevice;
 	class Denoiser;
 	class GLTexture;
 	class OptixRenderer;
@@ -66,7 +67,8 @@ namespace Tracer
 		RayPickResult PickRay(int2 pixelIndex);
 
 		// device
-		const cudaDeviceProp& CudaDeviceProperties() const { return mDeviceProperties; }
+		std::shared_ptr<CudaDevice> Device() { return mCudaDevice; }
+		const std::shared_ptr<CudaDevice> Device() const { return mCudaDevice; }
 
 		// denoiser
 		inline std::shared_ptr<Denoiser> GetDenoiser() { return mDenoiser; }
@@ -149,9 +151,7 @@ namespace Tracer
 		CudaBuffer mLaunchParamsBuffer = {};
 
 		// CUDA device properties
-		CUcontext mCudaContext = nullptr;
-		CUstream mStream = nullptr;
-		cudaDeviceProp mDeviceProperties = {};
+		std::shared_ptr<CudaDevice> mCudaDevice;
 
 		// Meshes
 		CudaBuffer mCudaMeshData = {};

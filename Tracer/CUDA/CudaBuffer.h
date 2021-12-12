@@ -13,11 +13,15 @@ namespace Tracer
 	class CudaBuffer
 	{
 	public:
-		NO_COPY_ALLOWED(CudaBuffer)
-
 		CudaBuffer() = default;
 		CudaBuffer(size_t size);
+		CudaBuffer(const CudaBuffer& buffer);
+		CudaBuffer(CudaBuffer&& buffer) noexcept;
 		~CudaBuffer();
+
+		// assign
+		CudaBuffer& operator = (const CudaBuffer& buffer);
+		CudaBuffer& operator = (CudaBuffer&& buffer) noexcept;
 
 		// Memory management
 		void Alloc(size_t size);
@@ -45,6 +49,10 @@ namespace Tracer
 		void DownloadAsync(TYPE* data, size_t count = 1) const;
 		template<typename TYPE>
 		void DownloadAsync(std::vector<TYPE>& data) const;
+
+		// copy from other device
+		void CopyFrom(int srcDeviceId, CudaBuffer& data);
+		void CopyFrom(int srcDeviceId, CudaBuffer& data, size_t offset, size_t size);
 
 		// members
 		inline size_t Size() const { return mSize; }

@@ -150,6 +150,7 @@
   <ItemGroup>
     <ClCompile Include="App\RunApp.cpp" />
     <ClCompile Include="CUDA\CudaBuffer.cpp" />
+    <ClCompile Include="CUDA\CudaDevice.cpp" />
     <ClCompile Include="CUDA\CudaError.cpp" />
     <ClCompile Include="CUDA\CudaTimeEvent.cpp" />
     <ClCompile Include="FileIO\BinaryFile.cpp" />
@@ -184,6 +185,7 @@
     <ClInclude Include="App\RunApp.h" />
     <ClInclude Include="Common\CommonStructs.h" />
     <ClInclude Include="CUDA\CudaBuffer.h" />
+    <ClInclude Include="CUDA\CudaDevice.h" />
     <ClInclude Include="CUDA\CudaError.h" />
     <ClInclude Include="CUDA\CudaTimeEvent.h" />
     <ClInclude Include="CUDA\GPU\CudaFwd.h" />

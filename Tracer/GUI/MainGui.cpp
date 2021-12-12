@@ -1,6 +1,7 @@
 #include "MainGui.h"
 
 // Project
+#include "CUDA/CudaDevice.h"
 #include "FileIO/ModelFile.h"
 #include "FileIO/SceneFile.h"
 #include "FileIO/TextureFile.h"
@@ -541,7 +542,7 @@ namespace Tracer
 		ImGui::Columns(2);
 
 		// device
-		const cudaDeviceProp& devProps = renderer->CudaDeviceProperties();
+		const cudaDeviceProp& devProps = renderer->Device()->DeviceProperties();
 		ROW("Device", devProps.name);
 		SPACE;
 

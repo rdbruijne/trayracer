@@ -2,7 +2,7 @@ namespace Tracer
 {
 	// Read
 	template<typename TYPE>
-	TYPE Tracer::BinaryFile::Read()
+	TYPE BinaryFile::Read()
 	{
 		assert(mMode == FileMode::Read);
 
@@ -36,7 +36,7 @@ namespace Tracer
 
 
 	template<typename TYPE>
-	std::vector<TYPE> Tracer::BinaryFile::ReadVec()
+	std::vector<TYPE> BinaryFile::ReadVec()
 	{
 		assert(mMode == FileMode::Read);
 
@@ -56,7 +56,7 @@ namespace Tracer
 
 	// Write
 	template<typename TYPE>
-	void Tracer::BinaryFile::Write(const TYPE& data)
+	void BinaryFile::Write(const TYPE& data)
 	{
 		assert(mMode == FileMode::Write);
 
@@ -88,7 +88,7 @@ namespace Tracer
 
 
 	template<typename TYPE>
-	void Tracer::BinaryFile::WriteVec(const std::vector<TYPE>& v)
+	void BinaryFile::WriteVec(const std::vector<TYPE>& v)
 	{
 		assert(mMode == FileMode::Write);
 

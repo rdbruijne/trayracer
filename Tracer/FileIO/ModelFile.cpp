@@ -330,7 +330,6 @@ namespace Tracer
 		Stopwatch sw;
 		const std::string globalPath = GlobalPath(filePath);
 
-
 #if MODEL_CACHE_ENABLED
 		// check the cache
 		if(std::shared_ptr<Model> model = LoadFromCache(scene, globalPath, name))

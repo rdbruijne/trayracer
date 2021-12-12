@@ -1,6 +1,7 @@
 #include "Renderer/Renderer.h"
 
 // Project
+#include "CUDA/CudaDevice.h"
 #include "GUI/MainGui.h"
 #include "OpenGL/GLTexture.h"
 #include "Optix/Denoiser.h"
@@ -53,18 +54,12 @@ namespace Tracer
 			Logger::Info(" - %s", devProps.name);
 		}
 
-		// init CUDA
+		// init devices
 		constexpr int deviceID = 0;
-		CUDA_CHECK(cudaSetDevice(deviceID));
-		CUDA_CHECK(cudaStreamCreate(&mStream));
-
-		CUDA_CHECK(cudaGetDeviceProperties(&mDeviceProperties, deviceID));
-		Logger::Info("Running on %s", mDeviceProperties.name);
-
-		CUDA_CHECK(cuCtxGetCurrent(&mCudaContext));
+		mCudaDevice = std::make_shared<CudaDevice>(deviceID);
 
 		// create Optix renderer
-		mOptixRenderer = std::make_unique<OptixRenderer>(mCudaContext);
+		mOptixRenderer = std::make_unique<OptixRenderer>(mCudaDevice->Context());
 
 		// create denoiser
 		mDenoiser = std::make_shared<Denoiser>(mOptixRenderer->DeviceContext());
@@ -137,10 +132,10 @@ namespace Tracer
 
 		// loop
 		uint32_t pathCount = mLaunchParams.resX * mLaunchParams.resY * mLaunchParams.multiSample;
-		mRenderTimeEvent.Start(mStream);
+		mRenderTimeEvent.Start(mCudaDevice->Stream());
 		for(int pathLength = 0; pathLength < mLaunchParams.maxDepth; pathLength++)
 			RenderBounce(pathLength, pathCount);
-		mRenderTimeEvent.Stop(mStream);
+		mRenderTimeEvent.Stop(mCudaDevice->Stream());
 
 		// finalize the frame
 		mLaunchParams.sampleCount += mLaunchParams.multiSample;
@@ -235,7 +230,7 @@ namespace Tracer
 		mLaunchParamsBuffer.Upload(&mLaunchParams);
 
 		// launch the kernel
-		mOptixRenderer->TraceRays(mStream, mLaunchParamsBuffer, 1, 1, 1);
+		mOptixRenderer->TraceRays(mCudaDevice->Stream(), mLaunchParamsBuffer, 1, 1, 1);
 
 		// read the raypick result
 		RayPickResult result;
@@ -322,7 +317,7 @@ namespace Tracer
 						if(m->IsDirty())
 						{
 							if(m->IsDirty(false))
-								m->Build(mOptixRenderer->DeviceContext(), mStream);
+								m->Build(mOptixRenderer->DeviceContext(), mCudaDevice->Stream());
 							rebuildLights = rebuildLights || m->BuildLights();
 						}
 						ix = modelIx++;
@@ -552,13 +547,13 @@ namespace Tracer
 	void Renderer::RenderBounce(int pathLength, uint32_t& pathCount)
 	{
 		// launch Optix
-		mTraceTimeEvents[pathLength].Start(mStream);
+		mTraceTimeEvents[pathLength].Start(mCudaDevice->Stream());
 		InitCudaCounters();
 		if(pathLength == 0)
 		{
 			// primary
 			mRenderStats.primaryPathCount = pathCount;
-			mOptixRenderer->TraceRays(mStream, mLaunchParamsBuffer, static_cast<unsigned int>(mLaunchParams.resX),
+			mOptixRenderer->TraceRays(mCudaDevice->Stream(), mLaunchParamsBuffer, static_cast<unsigned int>(mLaunchParams.resX),
 									static_cast<unsigned int>(mLaunchParams.resY), static_cast<unsigned int>(mLaunchParams.multiSample));
 		}
 		else if(pathCount > 0)
@@ -570,10 +565,10 @@ namespace Tracer
 				mRenderStats.secondaryPathCount = pathCount;
 			else
 				mRenderStats.deepPathCount += pathCount;
-			mOptixRenderer->TraceRays(mStream, mLaunchParamsBuffer, pathCount, 1, 1);
+			mOptixRenderer->TraceRays(mCudaDevice->Stream(), mLaunchParamsBuffer, pathCount, 1, 1);
 		}
 		mRenderStats.pathCount += pathCount;
-		mTraceTimeEvents[pathLength].Stop(mStream);
+		mTraceTimeEvents[pathLength].Stop(mCudaDevice->Stream());
 
 		// determine shade flags
 		uint32_t shadeFlags = 0;
@@ -582,12 +577,12 @@ namespace Tracer
 
 		// shade
 		const uint32_t stride = mLaunchParams.resX * mLaunchParams.resY * mLaunchParams.multiSample;
-		mShadeTimeEvents[pathLength].Start(mStream);
+		mShadeTimeEvents[pathLength].Start(mCudaDevice->Stream());
 		Shade(mRenderMode, pathCount,
 				mAccumulator.Ptr<float4>(), mAlbedoBuffer.Ptr<float4>(), mNormalBuffer.Ptr<float4>(),
 				mPathStates.Ptr<float4>(), mHitData.Ptr<uint4>(), mShadowRayData.Ptr<float4>(),
 				make_int2(mLaunchParams.resX, mLaunchParams.resY), stride, pathLength, shadeFlags);
-		mShadeTimeEvents[pathLength].Stop(mStream);
+		mShadeTimeEvents[pathLength].Stop(mCudaDevice->Stream());
 
 		// update counters
 		RayCounters counters = {};
@@ -598,11 +593,11 @@ namespace Tracer
 		if(counters.shadowRays > 0)
 		{
 			// fire shadow rays
-			mShadowTimeEvents[pathLength].Start(mStream);
+			mShadowTimeEvents[pathLength].Start(mCudaDevice->Stream());
 			mLaunchParams.rayGenMode = RayGenModes::Shadow;
 			mLaunchParamsBuffer.Upload(&mLaunchParams);
-			mOptixRenderer->TraceRays(mStream, mLaunchParamsBuffer, counters.shadowRays, 1, 1);
-			mShadowTimeEvents[pathLength].Stop(mStream);
+			mOptixRenderer->TraceRays(mCudaDevice->Stream(), mLaunchParamsBuffer, counters.shadowRays, 1, 1);
+			mShadowTimeEvents[pathLength].Stop(mCudaDevice->Stream());
 
 			// update stats
 			mRenderStats.shadowRayCount += counters.shadowRays;
@@ -618,17 +613,17 @@ namespace Tracer
 		if(!ShouldDenoise())
 		{
 			// empty timing so that we can call "Elapsed"
-			mDenoiseTimeEvent.Start(mStream);
-			mDenoiseTimeEvent.Stop(mStream);
+			mDenoiseTimeEvent.Start(mCudaDevice->Stream());
+			mDenoiseTimeEvent.Stop(mCudaDevice->Stream());
 			return;
 		}
 
 		if(mLaunchParams.sampleCount >= (mDenoiser->SampleCount() * Phi))
 		{
-			mDenoiseTimeEvent.Start(mStream);
-			mDenoiser->DenoiseFrame(mStream, make_int2(mLaunchParams.resX, mLaunchParams.resY), mLaunchParams.sampleCount,
+			mDenoiseTimeEvent.Start(mCudaDevice->Stream());
+			mDenoiser->DenoiseFrame(mCudaDevice->Stream(), make_int2(mLaunchParams.resX, mLaunchParams.resY), mLaunchParams.sampleCount,
 									mColorBuffer, mAlbedoBuffer, mNormalBuffer);
-			mDenoiseTimeEvent.Stop(mStream);
+			mDenoiseTimeEvent.Stop(mCudaDevice->Stream());
 		}
 	}
 

@@ -91,6 +91,9 @@
     <ClCompile Include="Optix\OptixRenderer.cpp">
       <Filter>Optix</Filter>
     </ClCompile>
+    <ClCompile Include="CUDA\CudaDevice.cpp">
+      <Filter>CUDA</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">
@@ -337,6 +340,9 @@
     </ClInclude>
     <ClInclude Include="Optix\OptixRenderer.h">
       <Filter>Optix</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\CudaDevice.h">
+      <Filter>CUDA</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
