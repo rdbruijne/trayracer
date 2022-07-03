@@ -48,6 +48,9 @@
     <ClInclude Include="imgui\imgui.h">
       <Filter>imgui</Filter>
     </ClInclude>
+    <ClInclude Include="imgui\imgui_impl_opengl3_loader.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="imGuIZMO.quat\imGuIZMOquat.cpp">

@@ -398,19 +398,27 @@ namespace Tracer
 		// kernel settings
 		KernelSettings settings = renderer->Settings();
 		bool settingsChanged = false;
-		// #TODO: enable/disable based on active kernel
 		settingsChanged = ImGui::SliderInt("Multi-sample", &settings.multiSample, 1, Renderer::MaxTraceDepth) || settingsChanged;
 		settingsChanged = ImGui::SliderInt("Max depth", &settings.maxDepth, 1, 16) || settingsChanged;
-		settingsChanged = ImGui::SliderFloat("AO Dist", &settings.aoDist, 0.f, 1e4f, "%.3f", ImGuiSliderFlags_Logarithmic) || settingsChanged;
-		settingsChanged = ImGui::SliderFloat("Z-Depth max", &settings.zDepthMax, 0.f, 1e4f, "%.3f", ImGuiSliderFlags_Logarithmic) || settingsChanged;
 		settingsChanged = ImGui::SliderFloat("Ray epsilon", &settings.rayEpsilon, 0.f, 1.f, "%.5f", ImGuiSliderFlags_Logarithmic) || settingsChanged;
+
+		ImGui::BeginDisabled(renderMode != RenderModes::AmbientOcclusion);
+		settingsChanged = ImGui::SliderFloat("AO Dist", &settings.aoDist, 0.f, 1e4f, "%.3f", ImGuiSliderFlags_Logarithmic) || settingsChanged;
+		ImGui::EndDisabled();
+
+		ImGui::BeginDisabled(renderMode != RenderModes::ZDepth);
+		settingsChanged = ImGui::SliderFloat("Z-Depth max", &settings.zDepthMax, 0.f, 1e4f, "%.3f", ImGuiSliderFlags_Logarithmic) || settingsChanged;
+		ImGui::EndDisabled();
+
 		if(settingsChanged)
 			renderer->SetSettings(settings);
 
 		// debug property
 		MaterialPropertyIds matPropId = renderer->MaterialPropertyId();
-		if(ComboBox("Debug property", matPropId))
+		ImGui::BeginDisabled(renderMode != RenderModes::MaterialProperty);
+		if(ComboBox("Material property", matPropId))
 			renderer->SetMaterialPropertyId(matPropId);
+		ImGui::EndDisabled();
 
 		// post
 		ImGui::Spacing();
