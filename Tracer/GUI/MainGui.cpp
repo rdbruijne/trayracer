@@ -396,22 +396,18 @@ namespace Tracer
 			renderer->SetRenderMode(renderMode);
 
 		// kernel settings
-		int multiSample = renderer->MultiSample();
-		if(ImGui::SliderInt("Multi-sample", &multiSample, 1, Renderer::MaxTraceDepth))
-			renderer->SetMultiSample(multiSample);
+		KernelSettings settings = renderer->Settings();
+		bool settingsChanged = false;
+		// #TODO: enable/disable based on active kernel
+		settingsChanged = ImGui::SliderInt("Multi-sample", &settings.multiSample, 1, Renderer::MaxTraceDepth) || settingsChanged;
+		settingsChanged = ImGui::SliderInt("Max depth", &settings.maxDepth, 1, 16) || settingsChanged;
+		settingsChanged = ImGui::SliderFloat("AO Dist", &settings.aoDist, 0.f, 1e4f, "%.3f", ImGuiSliderFlags_Logarithmic) || settingsChanged;
+		settingsChanged = ImGui::SliderFloat("Z-Depth max", &settings.zDepthMax, 0.f, 1e4f, "%.3f", ImGuiSliderFlags_Logarithmic) || settingsChanged;
+		settingsChanged = ImGui::SliderFloat("Ray epsilon", &settings.rayEpsilon, 0.f, 1.f, "%.5f", ImGuiSliderFlags_Logarithmic) || settingsChanged;
+		if(settingsChanged)
+			renderer->SetSettings(settings);
 
-		int maxDepth = renderer->MaxDepth();
-		if(ImGui::SliderInt("Max depth", &maxDepth, 1, 16))
-			renderer->SetMaxDepth(maxDepth);
-
-		float aoDist = renderer->AODist();
-		if(ImGui::SliderFloat("AO Dist", &aoDist, 0.f, 1e4f, "%.3f", ImGuiSliderFlags_Logarithmic))
-			renderer->SetAODist(aoDist);
-
-		float zDepthMax = renderer->ZDepthMax();
-		if(ImGui::SliderFloat("Z-Depth max", &zDepthMax, 0.f, 1e4f, "%.3f", ImGuiSliderFlags_Logarithmic))
-			renderer->SetZDepthMax(zDepthMax);
-
+		// debug property
 		MaterialPropertyIds matPropId = renderer->MaterialPropertyId();
 		if(ComboBox("Debug property", matPropId))
 			renderer->SetMaterialPropertyId(matPropId);
@@ -555,30 +551,36 @@ namespace Tracer
 		SPACE;
 
 		// times
+		const RenderStatistics::DeviceStatistics& deviceStats = renderStats.devices[0];
+
 		ROW("FPS", "%.1f", 1e3f / GuiHelpers::GetFrameTimeMs());
 		ROW("Frame time", "%.1f ms", GuiHelpers::GetFrameTimeMs());
 		SPACE;
-		ROW("Primary rays", "%.1f ms", renderStats.primaryPathTimeMs);
-		ROW("Secondary rays", "%.1f ms", renderStats.secondaryPathTimeMs);
-		ROW("Deep rays", "%.1f ms", renderStats.deepPathTimeMs);
-		ROW("Shadow rays", "%.1f ms", renderStats.shadowTimeMs);
+		ROW("Primary rays", "%.1f ms", deviceStats.primaryPathTimeMs);
+		ROW("Secondary rays", "%.1f ms", deviceStats.secondaryPathTimeMs);
+		ROW("Deep rays", "%.1f ms", deviceStats.deepPathTimeMs);
+		ROW("Shadow rays", "%.1f ms", deviceStats.shadowTimeMs);
 		SPACE;
-		ROW("Shade time", "%.1f ms", renderStats.shadeTimeMs);
+		ROW("Shade time", "%.1f ms", deviceStats.shadeTimeMs);
 		ROW("Denoise time", "%.1f ms", renderStats.denoiseTimeMs);
 		SPACE;
 		ROW("Build time", "%.1f ms", renderStats.buildTimeMs);
+		SPACE;
 		ROW("Geometry build time", "%.1f ms", renderStats.geoBuildTimeMs);
 		ROW("Material build time", "%.1f ms", renderStats.matBuildTimeMs);
 		ROW("Sky build time", "%.1f ms", renderStats.skyBuildTimeMs);
-
+		SPACE;
+		ROW("Geometry upload time", "%.1f ms", renderStats.geoUploadTimeMs);
+		ROW("Material upload time", "%.1f ms", renderStats.matUploadTimeMs);
+		ROW("Sky upload time", "%.1f ms", renderStats.skyUploadTimeMs);
 		SPACE;
 
 		// rays
-		ROW("Rays", "%.1f M (%.1f M/s)", renderStats.pathCount * 1e-6, PerSec(renderStats.pathCount, GuiHelpers::GetFrameTimeMs()) * 1e-6);
-		ROW("Primaries", "%.1f M (%.1f M/s)", renderStats.primaryPathCount * 1e-6, PerSec(renderStats.primaryPathCount, renderStats.primaryPathTimeMs) * 1e-6);
-		ROW("Secondaries", "%.1f M (%.1f M/s)", renderStats.secondaryPathCount * 1e-6, PerSec(renderStats.secondaryPathCount, renderStats.secondaryPathTimeMs) * 1e-6);
-		ROW("Deep", "%.1f M (%.1f M/s)", renderStats.deepPathCount * 1e-6, PerSec(renderStats.deepPathCount, renderStats.deepPathTimeMs) * 1e-6);
-		ROW("Shadow", "%.1f M (%.1f M/s)", renderStats.shadowRayCount * 1e-6, PerSec(renderStats.shadowRayCount, renderStats.shadowTimeMs) * 1e-6);
+		ROW("Rays", "%.1f M (%.1f M/s)", deviceStats.pathCount * 1e-6, PerSec(deviceStats.pathCount, GuiHelpers::GetFrameTimeMs()) * 1e-6);
+		ROW("Primaries", "%.1f M (%.1f M/s)", deviceStats.primaryPathCount * 1e-6, PerSec(deviceStats.primaryPathCount, deviceStats.primaryPathTimeMs) * 1e-6);
+		ROW("Secondaries", "%.1f M (%.1f M/s)", deviceStats.secondaryPathCount * 1e-6, PerSec(deviceStats.secondaryPathCount, deviceStats.secondaryPathTimeMs) * 1e-6);
+		ROW("Deep", "%.1f M (%.1f M/s)", deviceStats.deepPathCount * 1e-6, PerSec(deviceStats.deepPathCount, deviceStats.deepPathTimeMs) * 1e-6);
+		ROW("Shadow", "%.1f M (%.1f M/s)", deviceStats.shadowRayCount * 1e-6, PerSec(deviceStats.shadowRayCount, deviceStats.shadowTimeMs) * 1e-6);
 
 		SPACE;
 

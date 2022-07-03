@@ -51,7 +51,7 @@ __global__ void AmbientOcclusionKernel(DECLARE_KERNEL_PARAMS)
 	}
 	else
 	{
-		const float z = (tmax > Params->aoDist) ? 1.f : tmax / Params->aoDist;
+		const float z = (tmax > Params->kernelSettings.aoDist) ? 1.f : tmax / Params->kernelSettings.aoDist;
 		accumulator[pixelIx] += make_float4(z, z, z, 0);
 	}
 }

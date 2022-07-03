@@ -40,13 +40,14 @@ namespace Demo
 		float3 up = node.Up() - dir * dot(node.Up(), dir);
 
 		// up is parallel to dir
-		if(dot(up, up) < (Epsilon * Epsilon))
+		constexpr float epsilonSqr = Epsilon * Epsilon;
+		if(dot(up, up) < (epsilonSqr))
 		{
 			// try old up
 			up = prevUp - dir * dot(prevUp, dir);
 
 			// up is still parallel to dir
-			if(dot(up, up) < (Epsilon * Epsilon))
+			if(dot(up, up) < (epsilonSqr))
 			{
 				up = SmallestAxis(dir);
 				up = up - dir * dot(up, dir);

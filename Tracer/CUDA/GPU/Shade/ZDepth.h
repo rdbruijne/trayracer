@@ -30,6 +30,6 @@ __global__ void ZDepthKernel(DECLARE_KERNEL_PARAMS)
 		return;
 	}
 
-	const float z = clamp(tmax * dot(D, Params->cameraForward) / Params->zDepthMax, 0.f, 1.f);
+	const float z = clamp(tmax * dot(D, Params->cameraForward) / Params->kernelSettings.zDepthMax, 0.f, 1.f);
 	accumulator[pixelIx] += make_float4(z, z, z, 0);
 }

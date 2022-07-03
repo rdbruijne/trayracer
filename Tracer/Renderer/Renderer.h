@@ -4,6 +4,7 @@
 #include "Common/CommonStructs.h"
 #include "CUDA/CudaBuffer.h"
 #include "CUDA/CudaTimeEvent.h"
+#include "Renderer/DeviceRenderer.h"
 #include "Renderer/RenderStatistics.h"
 #include "Utility/LinearMath.h"
 
@@ -25,6 +26,7 @@ namespace Tracer
 	class CameraNode;
 	class CudaDevice;
 	class Denoiser;
+	class DeviceRenderer;
 	class GLTexture;
 	class Material;
 	class OptixRenderer;
@@ -62,7 +64,7 @@ namespace Tracer
 
 		// statistics
 		inline RenderStatistics Statistics() const { return mRenderStats; }
-		inline uint32_t SampleCount() const { return mLaunchParams.sampleCount; }
+		inline uint32_t SampleCount() const { return mDeviceRenderer->SampleCount(); }
 
 		// ray picking
 		RayPickResult PickRay(int2 pixelIndex);
@@ -71,33 +73,21 @@ namespace Tracer
 		std::shared_ptr<CudaDevice> Device() { return mCudaDevice; }
 		const std::shared_ptr<CudaDevice> Device() const { return mCudaDevice; }
 
-		// Optix renderer
-		OptixRenderer* Optix() { return mOptixRenderer.get(); }
-		const OptixRenderer* const Optix() const { return mOptixRenderer.get(); }
+		// device renderer
+		std::shared_ptr<DeviceRenderer> DevRenderer() { return mDeviceRenderer; }
+		const std::shared_ptr<DeviceRenderer> DevRenderer() const { return mDeviceRenderer; }
 
 		// denoiser
 		inline std::shared_ptr<Denoiser> GetDenoiser() { return mDenoiser; }
 		inline const std::shared_ptr<Denoiser> GetDenoiser() const { return mDenoiser; }
 
 		// kernel settings
-#define KERNEL_SETTING(type, name, func, reqClear)				\
-		inline type func() const { return mLaunchParams.name; }	\
-		inline void Set##func(type name)						\
-		{														\
-			if(name != mLaunchParams.name)						\
-			{													\
-				mLaunchParams.name = name;						\
-				if (reqClear)									\
-					Reset();									\
-			}													\
+		KernelSettings Settings() const { return mKernelSettings; }
+		void SetSettings(const KernelSettings& settings)
+		{
+			mKernelSettings = settings;
+			Reset();
 		}
-
-		KERNEL_SETTING(int, multiSample, MultiSample, false);
-		KERNEL_SETTING(int, maxDepth, MaxDepth, true);
-		KERNEL_SETTING(float, aoDist, AODist, RenderMode() == RenderModes::AmbientOcclusion || RenderMode() == RenderModes::AmbientOcclusionShading);
-		KERNEL_SETTING(float, zDepthMax, ZDepthMax, RenderMode() == RenderModes::ZDepth);
-
-#undef KERNEL_SETTING
 
 	private:
 		void Resize(GLTexture* renderTexture);
@@ -114,9 +104,6 @@ namespace Tracer
 		void UploadSky(Scene* scene);
 
 		// rendering
-		void PreRenderUpdate();
-		void PostRenderUpdate();
-		void RenderBounce(int pathLength, uint32_t& pathCount);
 		void DenoiseFrame();
 		void UploadFrame(GLTexture* renderTexture);
 
@@ -124,8 +111,8 @@ namespace Tracer
 		RenderModes mRenderMode = RenderModes::PathTracing;
 		MaterialPropertyIds mMaterialPropertyId = MaterialPropertyIds::Diffuse;
 
-		// Optix renderer
-		std::unique_ptr<OptixRenderer> mOptixRenderer = nullptr;
+		// settings
+		KernelSettings mKernelSettings = {};
 
 		// Denoiser
 		std::shared_ptr<Denoiser> mDenoiser = nullptr;
@@ -139,34 +126,20 @@ namespace Tracer
 		// timing
 		CudaTimeEvent mRenderTimeEvent = {};
 		CudaTimeEvent mDenoiseTimeEvent = {};
-		std::array<CudaTimeEvent, MaxTraceDepth> mTraceTimeEvents = {};
-		std::array<CudaTimeEvent, MaxTraceDepth> mShadeTimeEvents = {};
-		std::array<CudaTimeEvent, MaxTraceDepth> mShadowTimeEvents = {};
 
 		// Render buffer
-		CudaBuffer mAccumulator = {};
-		CudaBuffer mAlbedoBuffer = {};
-		CudaBuffer mNormalBuffer = {};
-		CudaBuffer mColorBuffer = {};
 		cudaGraphicsResource* mCudaGraphicsResource = nullptr;
-
-		// SPT
-		CudaBuffer mPathStates = {};		// (O.xyz, pathIx)[], (D.xyz, onSensor)[], (throughput, pdf)[]
-		CudaBuffer mHitData = {};			// ((bary.x, bary.y), instIx, primIx, tmin)[]
-		CudaBuffer mShadowRayData = {};		// (O.xyz, pixelIx)[], (D.xyz, dist)[], (radiance, ?)[]
-		CudaBuffer mCountersBuffer = {};
-
-		// Launch parameters
-		LaunchParams mLaunchParams = {};
-		CudaBuffer mLaunchParamsBuffer = {};
-
-		// build data
-		std::vector<std::shared_ptr<Material>> mMaterials;
-		std::vector<uint32_t> mModelIndices;
-		std::vector<uint32_t> mMaterialOffsets;
 
 		// CUDA device properties
 		std::shared_ptr<CudaDevice> mCudaDevice;
+		std::shared_ptr<DeviceRenderer> mDeviceRenderer;
+
+		//
+		// build data
+		//
+		std::vector<std::shared_ptr<Material>> mMaterials;
+		std::vector<uint32_t> mModelIndices;
+		std::vector<uint32_t> mMaterialOffsets;
 
 		// Meshes
 		CudaBuffer mCudaMeshData = {};
@@ -182,5 +155,8 @@ namespace Tracer
 
 		// sky
 		CudaBuffer mSkyData = {};
+
+		// scene rendered last frame
+		Scene* mLastScene = nullptr;
 	};
 }

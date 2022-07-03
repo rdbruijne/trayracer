@@ -4,6 +4,7 @@
 #include "CUDA/CudaDevice.h"
 #include "Optix/OptixError.h"
 #include "Optix/OptixRenderer.h"
+#include "Renderer/DeviceRenderer.h"
 #include "Renderer/Renderer.h"
 #include "Resources/Material.h"
 
@@ -247,7 +248,7 @@ namespace Tracer
 			return;
 
 		// cache data
-		OptixDeviceContext optixContext = renderer->Optix()->DeviceContext();
+		OptixDeviceContext optixContext = renderer->DevRenderer()->Optix()->DeviceContext();
 		CUstream stream = renderer->Device()->Stream();
 
 		// CUDA

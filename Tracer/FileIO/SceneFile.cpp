@@ -58,6 +58,7 @@ using namespace rapidjson;
 #define Key_Path               "path"
 #define Key_Position           "position"
 #define Key_Post               "post"
+#define Key_RayEpsilon         "ray-epsilon"
 #define Key_Renderer           "renderer"
 #define Key_RotateX            "rotate-x"
 #define Key_RotateY            "rotate-y"
@@ -423,15 +424,19 @@ namespace Tracer
 			int i;
 			float f;
 
+			KernelSettings settings = renderer->Settings();
 			const Value& jsonRenderer = doc[Key_Renderer];
 			if(Read(jsonRenderer, Key_MultiSample, i))
-				renderer->SetMultiSample(i);
+				settings.multiSample = i;
 			if(Read(jsonRenderer, Key_MaxDepth, i))
-				renderer->SetMaxDepth(i);
+				settings.maxDepth = i;
 			if(Read(jsonRenderer, Key_AoDist, f))
-				renderer->SetAODist(f);
+				settings.aoDist = f;
 			if(Read(jsonRenderer, Key_ZDepthMax, f))
-				renderer->SetZDepthMax(f);
+				settings.zDepthMax = f;
+			if(Read(jsonRenderer, Key_RayEpsilon, f))
+				settings.rayEpsilon = f;
+			renderer->SetSettings(settings);
 		}
 
 
@@ -728,10 +733,12 @@ namespace Tracer
 				return;
 
 			Value jsonRenderer = Value(kObjectType);
-			Write(jsonRenderer, allocator, Key_MultiSample, renderer->MultiSample());
-			Write(jsonRenderer, allocator, Key_MaxDepth, renderer->MaxDepth());
-			Write(jsonRenderer, allocator, Key_AoDist, renderer->AODist());
-			Write(jsonRenderer, allocator, Key_ZDepthMax, renderer->ZDepthMax());
+			const KernelSettings& settings = renderer->Settings();
+			Write(jsonRenderer, allocator, Key_MultiSample, settings.multiSample);
+			Write(jsonRenderer, allocator, Key_MaxDepth, settings.maxDepth);
+			Write(jsonRenderer, allocator, Key_AoDist, settings.aoDist);
+			Write(jsonRenderer, allocator, Key_ZDepthMax, settings.zDepthMax);
+			Write(jsonRenderer, allocator, Key_RayEpsilon, settings.rayEpsilon);
 
 			// add new JSON node to the document
 			doc.AddMember(Key_Renderer, jsonRenderer, allocator);

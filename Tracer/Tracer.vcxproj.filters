@@ -94,6 +94,9 @@
     <ClCompile Include="CUDA\CudaDevice.cpp">
       <Filter>CUDA</Filter>
     </ClCompile>
+    <ClCompile Include="Renderer\DeviceRenderer.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">
@@ -346,6 +349,9 @@
     </ClInclude>
     <ClInclude Include="Utility\Syncable.h">
       <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\DeviceRenderer.h">
+      <Filter>Renderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

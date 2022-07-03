@@ -167,6 +167,7 @@
     <ClCompile Include="Optix\Denoiser.cpp" />
     <ClCompile Include="Optix\OptixError.cpp" />
     <ClCompile Include="Optix\OptixRenderer.cpp" />
+    <ClCompile Include="Renderer\DeviceRenderer.cpp" />
     <ClCompile Include="Renderer\Renderer.cpp" />
     <ClCompile Include="Renderer\Scene.cpp" />
     <ClCompile Include="Renderer\Sky.cpp" />
@@ -232,6 +233,7 @@
     <ClInclude Include="Optix\Denoiser.h" />
     <ClInclude Include="Optix\OptixError.h" />
     <ClInclude Include="Optix\OptixRenderer.h" />
+    <ClInclude Include="Renderer\DeviceRenderer.h" />
     <ClInclude Include="Renderer\Renderer.h" />
     <ClInclude Include="Renderer\RenderStatistics.h" />
     <ClInclude Include="Renderer\Scene.h" />

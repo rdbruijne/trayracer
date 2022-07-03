@@ -57,7 +57,7 @@ __global__ void AmbientOcclusionShadingKernel(DECLARE_KERNEL_PARAMS)
 		const float4 T4 = pathStates[jobIdx + (stride * 2)];
 		const float3 T = make_float3(T4);
 
-		const float z = (tmax > Params->aoDist) ? 1.f : tmax / Params->aoDist;
+		const float z = (tmax > Params->kernelSettings.aoDist) ? 1.f : tmax / Params->kernelSettings.aoDist;
 		accumulator[pixelIx] += make_float4(T * z, 0);
 	}
 }

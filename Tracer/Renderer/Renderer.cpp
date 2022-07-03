@@ -7,6 +7,7 @@
 #include "Optix/Denoiser.h"
 #include "Optix/OptixError.h"
 #include "Optix/OptixRenderer.h"
+#include "Renderer/DeviceRenderer.h"
 #include "Renderer/Scene.h"
 #include "Resources/CameraNode.h"
 #include "Resources/Instance.h"
@@ -58,21 +59,19 @@ namespace Tracer
 		constexpr int deviceID = 0;
 		mCudaDevice = std::make_shared<CudaDevice>(deviceID);
 
-		// create Optix renderer
-		mOptixRenderer = std::make_unique<OptixRenderer>(mCudaDevice->Context());
+		// init device renderer
+		mDeviceRenderer = std::make_shared<DeviceRenderer>(mCudaDevice);
 
 		// create denoiser
-		mDenoiser = std::make_shared<Denoiser>(mOptixRenderer->DeviceContext());
+		mDenoiser = std::make_shared<Denoiser>(mDeviceRenderer->Optix()->DeviceContext());
 
-		// allocate launch params
-		mLaunchParamsBuffer.Alloc(sizeof(LaunchParams));
-
-		// set launch param constants
-		mLaunchParams.multiSample  = 1;
-		mLaunchParams.maxDepth     = MaxTraceDepth;
-		mLaunchParams.epsilon      = Epsilon;
-		mLaunchParams.aoDist       = 1.f;
-		mLaunchParams.zDepthMax    = 1.f;
+		// init kernel settings
+		mKernelSettings;
+		mKernelSettings.multiSample = 1;
+		mKernelSettings.maxDepth = MaxTraceDepth;
+		mKernelSettings.aoDist = 1.f;
+		mKernelSettings.zDepthMax = 1.f;
+		mKernelSettings.rayEpsilon = Epsilon;
 	}
 
 
@@ -88,6 +87,22 @@ namespace Tracer
 
 	void Renderer::UpdateScene(Scene* scene)
 	{
+		if(mLastScene == scene && !scene->IsDirty())
+		{
+			// clear timers
+			mRenderStats.buildTimeMs     = 0;
+
+			mRenderStats.geoBuildTimeMs  = 0;
+			mRenderStats.matBuildTimeMs  = 0;
+			mRenderStats.skyBuildTimeMs  = 0;
+
+			mRenderStats.geoUploadTimeMs = 0;
+			mRenderStats.matUploadTimeMs = 0;
+			mRenderStats.skyUploadTimeMs = 0;
+
+			return;
+		}
+
 		// #NOTE: build order is important for dirty checks
 		Stopwatch sw;
 
@@ -121,14 +136,19 @@ namespace Tracer
 		UploadSky(scene);
 		mRenderStats.skyUploadTimeMs = sw2.ElapsedMs();
 
-		// update launch params
-		mLaunchParams.sceneRoot = mOptixRenderer->SceneRoot();
+		// reset accumulation
 		Reset();
 
 		// sync devices
 		CUDA_CHECK(cudaDeviceSynchronize());
 
 		mRenderStats.buildTimeMs = sw.ElapsedMs();
+
+		// mark scene as clean
+		scene->MarkClean();
+
+		// set last scene
+		mLastScene = scene;
 	}
 
 
@@ -140,32 +160,35 @@ namespace Tracer
 			return;
 
 		// resize the buffer
-		if(mLaunchParams.resX != texRes.x || mLaunchParams.resY != texRes.y)
+		if(mDeviceRenderer->Resolution() != texRes)
 			Resize(renderTexture);
 
-		PreRenderUpdate();
-
-		// loop
-		uint32_t pathCount = mLaunchParams.resX * mLaunchParams.resY * mLaunchParams.multiSample;
+		// render the frame
 		mRenderTimeEvent.Start(mCudaDevice->Stream());
-		for(int pathLength = 0; pathLength < mLaunchParams.maxDepth; pathLength++)
-			RenderBounce(pathLength, pathCount);
+		mDeviceRenderer->RenderFrame(mKernelSettings, mRenderMode, 0, texRes.y);
 		mRenderTimeEvent.Stop(mCudaDevice->Stream());
+		cudaStreamSynchronize(mCudaDevice->Stream());
 
-		// finalize the frame
-		mLaunchParams.sampleCount += mLaunchParams.multiSample;
-		FinalizeFrame(mAccumulator.Ptr<float4>(), mColorBuffer.Ptr<float4>(), make_int2(mLaunchParams.resX, mLaunchParams.resY), mLaunchParams.sampleCount);
-
+		// denoise the frame
 		DenoiseFrame();
+
+		// upload the frame
 		UploadFrame(renderTexture);
-		PostRenderUpdate();
+
+		// update timings
+		mRenderStats.renderTimeMs = mRenderTimeEvent.Elapsed();
+		mRenderStats.denoiseTimeMs = mDenoiseTimeEvent.Elapsed();
+
+		// copy from devices
+		mRenderStats.devices.clear();
+		mRenderStats.devices.push_back(mDeviceRenderer->Statistics());
 	}
 
 
 
 	void Renderer::Reset()
 	{
-		mLaunchParams.sampleCount = 0;
+		mDeviceRenderer->Reset();
 		mDenoiser->Reset();
 	}
 
@@ -187,20 +210,8 @@ namespace Tracer
 	{
 		if(camNode.IsDirty())
 		{
-			mLaunchParams.cameraPos            = camNode.Position();
-			mLaunchParams.cameraForward        = normalize(camNode.Target() - camNode.Position());
-			mLaunchParams.cameraSide           = normalize(cross(mLaunchParams.cameraForward, camNode.Up()));
-			mLaunchParams.cameraUp             = normalize(cross(mLaunchParams.cameraSide, mLaunchParams.cameraForward));
-
-			mLaunchParams.cameraAperture       = camNode.Aperture();
-			mLaunchParams.cameraDistortion     = camNode.Distortion();
-			mLaunchParams.cameraFocalDist      = camNode.FocalDist();
-			mLaunchParams.cameraFov            = camNode.Fov();
-			mLaunchParams.cameraBokehSideCount = camNode.BokehSideCount();
-			mLaunchParams.cameraBokehRotation  = camNode.BokehRotation();
-
+			mDeviceRenderer->SetCamera(camNode);
 			Reset();
-
 			camNode.MarkClean();
 		}
 	}
@@ -232,26 +243,7 @@ namespace Tracer
 
 	RayPickResult Renderer::PickRay(int2 pixelIndex)
 	{
-		// allocate result buffer
-		CudaBuffer resultBuffer;
-		resultBuffer.Alloc(sizeof(RayPickResult));
-
-		// set ray pick specific launch param options
-		mLaunchParams.rayGenMode    = RayGenModes::RayPick;
-		mLaunchParams.rayPickPixel  = pixelIndex;
-		mLaunchParams.rayPickResult = resultBuffer.Ptr<RayPickResult>();
-
-		// upload launch params
-		mLaunchParamsBuffer.Upload(&mLaunchParams);
-
-		// launch the kernel
-		mOptixRenderer->TraceRays(mCudaDevice->Stream(), mLaunchParamsBuffer, 1, 1, 1);
-
-		// read the raypick result
-		RayPickResult result;
-		resultBuffer.Download(&result);
-
-		return result;
+		return mDeviceRenderer->PickRay(pixelIndex);
 	}
 
 
@@ -260,19 +252,13 @@ namespace Tracer
 	{
 		const int2 resolution = renderTexture->Resolution();
 
-		// resize buffers
-		mAccumulator.Resize(sizeof(float4) * resolution.x * resolution.y);
-		mAlbedoBuffer.Resize(sizeof(float4) * resolution.x * resolution.y);
-		mNormalBuffer.Resize(sizeof(float4) * resolution.x * resolution.y);
-		mColorBuffer.Resize(sizeof(float4) * resolution.x * resolution.y);
-
 		// resize denoiser
 		mDenoiser->Resize(resolution);
 
+		// resize the renderer
+		mDeviceRenderer->Resize(resolution);
+
 		// update launch params
-		mLaunchParams.resX = resolution.x;
-		mLaunchParams.resY = resolution.y;
-		mLaunchParams.accumulator = mAccumulator.Ptr<float4>();
 		Reset();
 
 		// release the graphics resource
@@ -293,7 +279,7 @@ namespace Tracer
 		case RenderModes::AmbientOcclusionShading:
 		case RenderModes::DirectLight:
 		case RenderModes::PathTracing:
-			return mDenoiser->IsEnabled() && (mLaunchParams.sampleCount >= mDenoiser->SampleTreshold());
+			return mDenoiser->IsEnabled() && (mDeviceRenderer->SampleCount() >= mDenoiser->SampleTreshold());
 			break;
 
 		default:
@@ -449,7 +435,7 @@ namespace Tracer
 			SetCudaLightCount(0);
 			SetCudaLightEnergy(0);
 
-			mOptixRenderer->BuildAccel({});
+			mDeviceRenderer->Optix()->BuildAccel({});
 			return;
 		}
 
@@ -492,7 +478,7 @@ namespace Tracer
 		SetCudaLightEnergy(lightData.size() == 0 ? 0 : lightData.back().sumEnergy);
 
 		// build Optix scene
-		mOptixRenderer->BuildAccel(instances);
+		mDeviceRenderer->Optix()->BuildAccel(instances);
 	}
 
 
@@ -535,129 +521,6 @@ namespace Tracer
 
 
 
-	void Renderer::PreRenderUpdate()
-	{
-		// prepare SPT buffers
-		const uint32_t stride = mLaunchParams.resX * mLaunchParams.resY * mLaunchParams.multiSample;
-		if(mPathStates.Size() != sizeof(float4) * stride * 3)
-		{
-			mPathStates.Resize(sizeof(float4) * stride * 3);
-			mLaunchParams.pathStates = mPathStates.Ptr<float4>();
-		}
-
-		if(mHitData.Size() != sizeof(uint4) * stride)
-		{
-			mHitData.Resize(sizeof(uint4) * stride);
-			mLaunchParams.hitData = mHitData.Ptr<uint4>();
-		}
-
-		if(mShadowRayData.Size() != sizeof(float4) * stride * 3)
-		{
-			mShadowRayData.Resize(sizeof(float4) * stride * 3);
-			mLaunchParams.shadowRays = mShadowRayData.Ptr<float4>();
-		}
-
-		// update counters
-		RayCounters counters = {};
-		if(mCountersBuffer.Size() == 0)
-		{
-			mCountersBuffer.Upload(&counters, 1, true);
-			SetCudaCounters(mCountersBuffer.Ptr<RayCounters>());
-		}
-
-		// update launch params
-		mLaunchParams.rayGenMode = RayGenModes::Primary;
-		mLaunchParams.renderMode = mRenderMode;
-		mLaunchParamsBuffer.Upload(&mLaunchParams);
-		SetCudaLaunchParams(mLaunchParamsBuffer.Ptr<LaunchParams>());
-
-		// reset stats
-		mRenderStats = {};
-	}
-
-
-
-	void Renderer::PostRenderUpdate()
-	{
-		// update timings
-		mRenderStats.primaryPathTimeMs = mTraceTimeEvents[0].Elapsed();
-		mRenderStats.secondaryPathTimeMs = mLaunchParams.maxDepth > 1 ? mTraceTimeEvents[1].Elapsed() : 0;
-		for(int i = 2; i < mLaunchParams.maxDepth; i++)
-			mRenderStats.deepPathTimeMs += mTraceTimeEvents[i].Elapsed();
-		for(int i = 0; i < mLaunchParams.maxDepth; i++)
-			mRenderStats.shadeTimeMs += mShadeTimeEvents[i].Elapsed();
-		for(int i = 0; i < mLaunchParams.maxDepth; i++)
-			mRenderStats.shadowTimeMs += mShadowTimeEvents[i].Elapsed();
-		mRenderStats.renderTimeMs = mRenderTimeEvent.Elapsed();
-		mRenderStats.denoiseTimeMs = mDenoiseTimeEvent.Elapsed();
-	}
-
-
-
-	void Renderer::RenderBounce(int pathLength, uint32_t& pathCount)
-	{
-		// launch Optix
-		mTraceTimeEvents[pathLength].Start(mCudaDevice->Stream());
-		InitCudaCounters();
-		if(pathLength == 0)
-		{
-			// primary
-			mRenderStats.primaryPathCount = pathCount;
-			mOptixRenderer->TraceRays(mCudaDevice->Stream(), mLaunchParamsBuffer, static_cast<unsigned int>(mLaunchParams.resX),
-									static_cast<unsigned int>(mLaunchParams.resY), static_cast<unsigned int>(mLaunchParams.multiSample));
-		}
-		else if(pathCount > 0)
-		{
-			// bounce
-			mLaunchParams.rayGenMode = RayGenModes::Secondary;
-			mLaunchParamsBuffer.Upload(&mLaunchParams);
-			if(pathLength == 1)
-				mRenderStats.secondaryPathCount = pathCount;
-			else
-				mRenderStats.deepPathCount += pathCount;
-			mOptixRenderer->TraceRays(mCudaDevice->Stream(), mLaunchParamsBuffer, pathCount, 1, 1);
-		}
-		mRenderStats.pathCount += pathCount;
-		mTraceTimeEvents[pathLength].Stop(mCudaDevice->Stream());
-
-		// determine shade flags
-		uint32_t shadeFlags = 0;
-		if(mRenderMode == RenderModes::MaterialProperty)
-			shadeFlags = static_cast<uint32_t>(mMaterialPropertyId);
-
-		// shade
-		const uint32_t stride = mLaunchParams.resX * mLaunchParams.resY * mLaunchParams.multiSample;
-		mShadeTimeEvents[pathLength].Start(mCudaDevice->Stream());
-		Shade(mRenderMode, pathCount,
-				mAccumulator.Ptr<float4>(), mAlbedoBuffer.Ptr<float4>(), mNormalBuffer.Ptr<float4>(),
-				mPathStates.Ptr<float4>(), mHitData.Ptr<uint4>(), mShadowRayData.Ptr<float4>(),
-				make_int2(mLaunchParams.resX, mLaunchParams.resY), stride, pathLength, shadeFlags);
-		mShadeTimeEvents[pathLength].Stop(mCudaDevice->Stream());
-
-		// update counters
-		RayCounters counters = {};
-		mCountersBuffer.Download(&counters, 1);
-		pathCount = counters.extendRays;
-
-		// shadow rays
-		if(counters.shadowRays > 0)
-		{
-			// fire shadow rays
-			mShadowTimeEvents[pathLength].Start(mCudaDevice->Stream());
-			mLaunchParams.rayGenMode = RayGenModes::Shadow;
-			mLaunchParamsBuffer.Upload(&mLaunchParams);
-			mOptixRenderer->TraceRays(mCudaDevice->Stream(), mLaunchParamsBuffer, counters.shadowRays, 1, 1);
-			mShadowTimeEvents[pathLength].Stop(mCudaDevice->Stream());
-
-			// update stats
-			mRenderStats.shadowRayCount += counters.shadowRays;
-			mRenderStats.pathCount += counters.shadowRays;
-			counters.shadowRays = 0;
-		}
-	}
-
-
-
 	void Renderer::DenoiseFrame()
 	{
 		if(!ShouldDenoise())
@@ -668,11 +531,15 @@ namespace Tracer
 			return;
 		}
 
-		if(mLaunchParams.sampleCount >= (mDenoiser->SampleCount() * Phi))
+		if(mDeviceRenderer->SampleCount() >= (mDenoiser->SampleCount() * Phi))
 		{
 			mDenoiseTimeEvent.Start(mCudaDevice->Stream());
-			mDenoiser->DenoiseFrame(mCudaDevice->Stream(), make_int2(mLaunchParams.resX, mLaunchParams.resY), mLaunchParams.sampleCount,
-									mColorBuffer, mAlbedoBuffer, mNormalBuffer);
+			mDenoiser->DenoiseFrame(mCudaDevice->Stream(),
+									mDeviceRenderer->Resolution(),
+									mDeviceRenderer->SampleCount(),
+									mDeviceRenderer->ColorBuffer(),
+									mDeviceRenderer->AlbedoBuffer(),
+									mDeviceRenderer->NormalBuffer());
 			mDenoiseTimeEvent.Stop(mCudaDevice->Stream());
 		}
 	}
@@ -684,7 +551,7 @@ namespace Tracer
 		// copy to GL texture
 		const int2 texRes = renderTexture->Resolution();
 		cudaArray* cudaTexPtr = nullptr;
-		const void* srcBuffer = ShouldDenoise() ? mDenoiser->DenoisedBuffer().Ptr() : mColorBuffer.Ptr();
+		const void* srcBuffer = ShouldDenoise() ? mDenoiser->DenoisedBuffer().Ptr() : mDeviceRenderer->ColorBuffer().Ptr();
 		CUDA_CHECK(cudaGraphicsMapResources(1, &mCudaGraphicsResource, 0));
 		CUDA_CHECK(cudaGraphicsSubResourceGetMappedArray(&cudaTexPtr, mCudaGraphicsResource, 0, 0));
 		CUDA_CHECK(cudaMemcpy2DToArray(cudaTexPtr, 0, 0, srcBuffer, texRes.x * sizeof(float4), texRes.x * sizeof(float4), texRes.y, cudaMemcpyDeviceToDevice));

@@ -99,6 +99,17 @@ struct RayPickResult
 
 
 
+struct KernelSettings
+{
+	int multiSample;
+	int maxDepth;
+	float aoDist;
+	float zDepthMax;
+	float rayEpsilon;
+};
+
+
+
 struct LaunchParams
 {
 	// film
@@ -144,11 +155,7 @@ struct LaunchParams
 	RenderModes renderMode;
 
 	// render settings
-	int multiSample;
-	int maxDepth;
-	float epsilon;
-	float aoDist;
-	float zDepthMax;
+	KernelSettings kernelSettings;
 };
 
 

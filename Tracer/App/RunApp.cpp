@@ -105,11 +105,7 @@ namespace Tracer
 
 			// build the scene
 			Stopwatch buildTimer;
-			if(app->GetScene()->IsDirty())
-			{
-				renderer->UpdateScene(app->GetScene());
-				app->GetScene()->MarkClean();
-			}
+			renderer->UpdateScene(app->GetScene());
 			const float buildTime = buildTimer.ElapsedMs();
 
 			// run Optix

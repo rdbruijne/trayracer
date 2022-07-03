@@ -179,9 +179,9 @@ static inline __device__
 void InitializeFilm(int pixelIx)
 {
 	if(params.sampleCount == 0)
-		params.accumulator[pixelIx] = make_float4(0, 0, 0, params.multiSample);
+		params.accumulator[pixelIx] = make_float4(0, 0, 0, params.kernelSettings.multiSample);
 	else
-		params.accumulator[pixelIx].w += params.multiSample;
+		params.accumulator[pixelIx].w += params.kernelSettings.multiSample;
 }
 
 
@@ -225,7 +225,7 @@ void __raygen__()
 	// get the current pixel index
 	const uint3 launchIndex = optixGetLaunchIndex();
 	const uint3 launchDims = optixGetLaunchDimensions();
-	const uint32_t stride = params.resX * params.resY * params.multiSample;
+	const uint32_t stride = params.resX * params.resY * params.kernelSettings.multiSample;
 
 	switch(params.rayGenMode)
 	{
@@ -258,7 +258,7 @@ void __raygen__()
 			// trace the ray
 			if(T > 0)
 			{
-				optixTrace(params.sceneRoot, O, D, params.epsilon, DstMax, 0.f, 0xFF, OPTIX_RAY_FLAG_DISABLE_ANYHIT,
+				optixTrace(params.sceneRoot, O, D, params.kernelSettings.rayEpsilon, DstMax, 0.f, 0xFF, OPTIX_RAY_FLAG_DISABLE_ANYHIT,
 						   RayType_Surface, RayType_Count, RayType_Surface, bary, instIx, primIx, tmax);
 			}
 
@@ -302,7 +302,7 @@ void __raygen__()
 			uint32_t tmax = __float_as_uint(DstMax);
 
 			// trace the ray
-			optixTrace(params.sceneRoot, O, D, params.epsilon, DstMax, 0.f, 0xFF, OPTIX_RAY_FLAG_DISABLE_ANYHIT,
+			optixTrace(params.sceneRoot, O, D, params.kernelSettings.rayEpsilon, DstMax, 0.f, 0xFF, OPTIX_RAY_FLAG_DISABLE_ANYHIT,
 					   RayType_Surface, RayType_Count, RayType_Surface, bary, instIx, primIx, tmax);
 
 			// set hit data
@@ -327,7 +327,7 @@ void __raygen__()
 			uint32_t u1, u2, u3;
 
 			// trace the ray
-			optixTrace(params.sceneRoot, O, D, params.epsilon, D4.w - (2 * params.epsilon), 0.f, 0xFF,
+			optixTrace(params.sceneRoot, O, D, params.kernelSettings.rayEpsilon, D4.w - (2 * params.kernelSettings.rayEpsilon), 0.f, 0xFF,
 					   OPTIX_RAY_FLAG_DISABLE_ANYHIT | OPTIX_RAY_FLAG_TERMINATE_ON_FIRST_HIT,
 					   RayType_Surface, RayType_Count, RayType_Surface, u0, u1, u2, u3);
 
@@ -360,7 +360,7 @@ void __raygen__()
 			// trace the ray
 			if(T > 0)
 			{
-				optixTrace(params.sceneRoot, O, D, params.epsilon, DstMax, 0.f, OptixVisibilityMask(255), OPTIX_RAY_FLAG_DISABLE_ANYHIT,
+				optixTrace(params.sceneRoot, O, D, params.kernelSettings.rayEpsilon, DstMax, 0.f, OptixVisibilityMask(0xFF), OPTIX_RAY_FLAG_DISABLE_ANYHIT,
 						   RayType_Surface, RayType_Count, RayType_Surface, bary, instIx, primIx, tmax);
 			}
 
