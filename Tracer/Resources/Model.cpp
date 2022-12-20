@@ -316,7 +316,7 @@ namespace Tracer
 		inst.instanceId        = instanceId;
 		inst.sbtOffset         = 0;
 		inst.visibilityMask    = 0xFF;
-		inst.flags             = OPTIX_INSTANCE_FLAG_NONE | OPTIX_INSTANCE_FLAG_DISABLE_TRANSFORM;
+		inst.flags             = OPTIX_INSTANCE_FLAG_NONE;
 		inst.traversableHandle = mTraversableHandle;
 		return inst;
 	}
