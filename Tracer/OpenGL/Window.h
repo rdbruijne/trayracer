@@ -23,7 +23,7 @@ namespace Tracer
 		~Window() { Destroy(); }
 
 		// Open/Close
-		bool Open(const std::string& title, int2 resolution, bool fullscreen = false);
+		void Open(const std::string& title, int2 resolution, bool fullscreen = false);
 		void Close();
 		bool IsClosed() const;
 		void Destroy();
@@ -48,8 +48,8 @@ namespace Tracer
 		const GLTexture* RenderTexture() const { return mRenderTexture; }
 
 		// Framebuffer
-		GLFramebuffer* Framebuffer() { return mFramebuffer; }
-		const GLFramebuffer* Framebuffer() const { return mFramebuffer; }
+		GLFramebuffer* Framebuffer() { return mFramebuffers[(mPostStack.size() & 1) ^ 1]; }
+		const GLFramebuffer* Framebuffer() const { return mFramebuffers[(mPostStack.size() & 1) ^ 1]; }
 
 		std::shared_ptr<Texture> DownloadFramebuffer() const;
 
@@ -68,25 +68,9 @@ namespace Tracer
 		float2 ScrollDelta() const;
 
 		// post shader
-		struct ShaderProperties
-		{
-			enum class TonemapMethod
-			{
-				Aces,
-				Filmic,
-				Lottes,
-				Reinhard,
-				Reinhard2,
-				Uchimura,
-				Uncharted2
-			};
-
-			float exposure = 1.f;
-			float gamma = 2.2f;
-			TonemapMethod tonemap = TonemapMethod::Aces;
-		};
-		const ShaderProperties& PostShaderProperties() const { return mShaderProperties; }
-		void SetPostShaderProperties(const ShaderProperties& properties) { mShaderProperties = properties; }
+		std::vector<std::shared_ptr<Shader>>& PostStack() { return mPostStack; }
+		const std::vector<std::shared_ptr<Shader>>& PostStack() const { return mPostStack; }
+		void SetPostStack(const std::vector<std::shared_ptr<Shader>>& stack) { mPostStack = stack; }
 
 		// GL
 		GLFWwindow* GlfwWindow() { return mHandle; }
@@ -117,12 +101,11 @@ namespace Tracer
 		// Members
 		GLFWwindow* mHandle = nullptr;
 		GLTexture* mRenderTexture = nullptr;
-		GLFramebuffer* mFramebuffer = nullptr;
+		GLFramebuffer* mFramebuffers[2] = { nullptr, nullptr };
 
 		// post shader
 		Shader* mQuadShader = nullptr;
-		Shader* mTonemapShader = nullptr;
-		ShaderProperties mShaderProperties;
+		std::vector<std::shared_ptr<Shader>> mPostStack = {};
 
 		// Input
 		Input::State mPrevInputState = Input::State();

@@ -7,12 +7,16 @@
 #include "Tracer/FileIO/ModelFile.h"
 #include "Tracer/FileIO/SceneFile.h"
 #include "Tracer/GUI/MainGui.h"
+#include "Tracer/OpenGL/Shader.h"
 #include "Tracer/OpenGL/Window.h"
 #include "Tracer/Renderer/Scene.h"
 #include "Tracer/Renderer/Renderer.h"
 #include "Tracer/Resources/Instance.h"
 #include "Tracer/Resources/Model.h"
 #include "Tracer/Utility/LinearMath.h"
+
+// C++
+#include <memory>
 
 using namespace Tracer;
 namespace Demo
@@ -28,12 +32,16 @@ namespace Demo
 		renderer->SetCamera(mCamera);
 
 		// load a scene
-		//SceneFile::Load("../Resources/scenes/toad_on_a_plane.json", mScene.get(), &mCamera, renderer, window);
+		//SceneFile::Load("../Resources/scenes/toad_on_a_plane.json", mScene.get(), mScene->GetSky().get(), &mCamera, renderer, window);
 
 		// add a model
 		//std::shared_ptr<Model> toad = ModelFile::Import(mScene.get(), "../Resources/models/toad/toad.obj", "toad");
 		//std::shared_ptr<Instance> toadInst = std::make_shared<Instance>("toad", toad, make_float3x4());
 		//mScene->Add(toadInst);
+
+		// set post stack
+		std::shared_ptr<Shader> tonemap = std::make_shared<Shader>("Aces Tone Mapping", Shader::FullScreenQuadVert(), "glsl/TonemapAces.frag");
+		window->SetPostStack({tonemap});
 
 		MarkVariablesUsed(window);
 	}

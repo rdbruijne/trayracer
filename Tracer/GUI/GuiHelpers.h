@@ -17,7 +17,7 @@ namespace Tracer
 	{
 	public:
 		// initializations
-		static bool Init(Window* renderWindow);
+		static void Init(Window* renderWindow);
 		static void DeInit();
 
 		// drawing

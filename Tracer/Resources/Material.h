@@ -16,6 +16,10 @@ namespace Tracer
 {
 	class Renderer;
 	class Texture;
+
+	//--------------------------------------------------------------------------------------------------------------------------
+	// Material
+	//--------------------------------------------------------------------------------------------------------------------------
 	class Material : public Resource
 	{
 		class Property : public Defilable
@@ -108,7 +112,7 @@ namespace Tracer
 		inline const Property& GetProperty(MaterialPropertyIds id) const;
 		void SetProperty(MaterialPropertyIds id, const Property& prop);
 
-		std::array<Property, magic_enum::enum_count<Material::MaterialPropertyIds>()> mProperties = {};
+		std::array<Property, magic_enum::enum_count<MaterialPropertyIds>()> mProperties = {};
 
 		// mutex
 		std::mutex mMutex;

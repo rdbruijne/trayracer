@@ -1,0 +1,16 @@
+{
+    "name": "Uchimura Tone Mapping",
+    "uniforms": [
+        {
+            "name": "exposure",
+            "type": "Float",
+            "range": [ 0, 100 ],
+            "logarithmic": true
+        },
+        {
+            "name": "gamma",
+            "type": "Float",
+            "range": [ 0, 4 ]
+        }
+    ]
+}

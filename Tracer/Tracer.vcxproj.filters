@@ -97,6 +97,12 @@
     <ClCompile Include="Renderer\DeviceRenderer.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="FileIO\ShaderDescriptor.cpp">
+      <Filter>FileIO</Filter>
+    </ClCompile>
+    <ClCompile Include="FileIO\JsonHelpers.cpp">
+      <Filter>FileIO</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">
@@ -326,12 +332,6 @@
     <ClInclude Include="OpenGL\GLFramebuffer.h">
       <Filter>OpenGL</Filter>
     </ClInclude>
-    <ClInclude Include="CUDA\GPU\CudaLights.h">
-      <Filter>CUDA</Filter>
-    </ClInclude>
-    <ClInclude Include="CUDA\GPU\CudaMaterial.h">
-      <Filter>CUDA</Filter>
-    </ClInclude>
     <ClInclude Include="CUDA\CudaTimeEvent.h">
       <Filter>CUDA</Filter>
     </ClInclude>
@@ -353,16 +353,22 @@
     <ClInclude Include="Renderer\DeviceRenderer.h">
       <Filter>Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="CUDA\GPU\CudaLights.h">
+      <Filter>CUDA\GPU</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\GPU\CudaMaterial.h">
+      <Filter>CUDA\GPU</Filter>
+    </ClInclude>
+    <ClInclude Include="FileIO\ShaderDescriptor.h">
+      <Filter>FileIO</Filter>
+    </ClInclude>
+    <ClInclude Include="FileIO\JsonHelpers.h">
+      <Filter>FileIO</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Model.h">
       <Filter>Resources</Filter>
-    </None>
-    <None Include="glsl\FullScreenQuad.frag">
-      <Filter>glsl</Filter>
-    </None>
-    <None Include="glsl\FullScreenQuad.vert">
-      <Filter>glsl</Filter>
     </None>
     <None Include="CUDA\CudaBuffer.inl">
       <Filter>CUDA</Filter>
@@ -373,7 +379,61 @@
     <None Include="Resources\Material.inl">
       <Filter>Resources</Filter>
     </None>
+    <None Include="glsl\Monochrome.frag">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\Negative.frag">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\TonemapAces.frag">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\TonemapFilmic.frag">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\TonemapLottes.frag">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\TonemapReinhard.frag">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\TonemapReinhard2.frag">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\TonemapUchimura.frag">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\TonemapUncharted2.frag">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="FileIO\JsonHelpers.inl">
+      <Filter>FileIO</Filter>
+    </None>
+    <None Include="glsl\TonemapAces.json">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\TonemapFilmic.json">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\TonemapLottes.json">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\TonemapReinhard.json">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\TonemapReinhard2.json">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\TonemapUchimura.json">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\TonemapUncharted2.json">
+      <Filter>glsl</Filter>
+    </None>
     <None Include="glsl\Tonemap.frag">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\Tonemap.json">
       <Filter>glsl</Filter>
     </None>
   </ItemGroup>

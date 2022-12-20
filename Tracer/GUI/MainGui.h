@@ -29,6 +29,7 @@ namespace Tracer
 		void CameraElements();
 		void DebugElements();
 		void MaterialElements();
+		void PostElements();
 		void RendererElements();
 		void SceneElements();
 		void SkyElements();

@@ -9,6 +9,7 @@
 #include "GUI/MainGui.h"
 #include "OpenGL/GLHelpers.h"
 #include "OpenGL/Input.h"
+#include "OpenGL/Shader.h"
 #include "OpenGL/Window.h"
 #include "Renderer/Renderer.h"
 #include "Renderer/Scene.h"
@@ -61,8 +62,15 @@ namespace Tracer
 
 
 
-	int RunApp(App* app, const std::string& name, const int2& resolution, bool fullscreen)
+	int RunApp(App* app, const std::string& windowTitle, const int2& resolution, bool fullscreen)
 	{
+		// check params
+		if(!app)
+			FatalError("No app specified");
+
+		if((resolution.x <= 0) || (resolution.y <= 0))
+			FatalError("Invalid resolution: %i x %i", resolution.x, resolution.y);
+
 		// initialize OpenGL
 		InitGL();
 
@@ -71,7 +79,7 @@ namespace Tracer
 
 		// create window
 		Window* window = new Window();
-		window->Open(name, resolution, fullscreen);
+		window->Open(windowTitle, resolution, fullscreen);
 
 		// init GUI
 		GuiHelpers::Init(window);

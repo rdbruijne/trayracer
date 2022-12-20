@@ -24,6 +24,7 @@ namespace Tracer
 
 		virtual void Bind() const;
 		virtual void Unbind() const;
+		static void BindEmpty();
 
 		void Upload(const std::vector<uint32_t>& pixels);
 		void Upload(const std::vector<float4>& pixels);

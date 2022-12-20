@@ -7,6 +7,7 @@
 #include "FileIO/TextureFile.h"
 #include "GUI/GuiExtensions.h"
 #include "GUI/GuiHelpers.h"
+#include "OpenGL/Shader.h"
 #include "OpenGL/Window.h"
 #include "Optix/Denoiser.h"
 #include "Renderer/Renderer.h"
@@ -16,6 +17,7 @@
 #include "Resources/Instance.h"
 #include "Resources/Material.h"
 #include "Resources/Model.h"
+#include "Utility/Logger.h"
 #include "Utility/Utility.h"
 
 // Magic Enum
@@ -132,6 +134,10 @@ namespace Tracer
 		// material
 		if(ImGui::CollapsingHeader("Material"))
 			MaterialElements();
+
+		// post
+		if(ImGui::CollapsingHeader("Post"))
+			PostElements();
 
 		// renderer
 		if(ImGui::CollapsingHeader("Renderer"))
@@ -342,6 +348,162 @@ namespace Tracer
 
 
 
+	void MainGui::PostElements()
+	{
+		Window* window = GuiHelpers::GetRenderWindow();
+		std::vector<std::shared_ptr<Shader>>& postStack = window->PostStack();
+
+		std::vector<std::shared_ptr<Shader>>::iterator moveUp = postStack.end();
+		std::vector<std::shared_ptr<Shader>>::iterator moveDown = postStack.end();
+		std::vector<std::shared_ptr<Shader>>::iterator remove = postStack.end();
+
+		int ix = 0;
+		for(auto it = postStack.begin(); it != postStack.end(); it++)
+		{
+			std::shared_ptr<Shader>& shader = *it;
+			const std::string label = shader->Name() + "##" + std::to_string(ix++);
+			if(ImGui::TreeNode(label.c_str()))
+			{
+				// move up stack
+				ImGui::BeginDisabled(it == postStack.begin());
+				if(ImGui::Button("Up"))
+					moveUp = it;
+				ImGui::EndDisabled();
+				ImGui::SameLine();
+
+				// move down stack
+				ImGui::BeginDisabled(it == postStack.end() - 1);
+				if(ImGui::Button("Down"))
+					moveDown = it;
+				ImGui::EndDisabled();
+
+				// remove
+				ImGui::SameLine();
+				if(ImGui::Button("Remove"))
+					remove = it;
+
+				// enable/disable
+				ImGui::SameLine();
+				if(ImGui::Button(shader->IsEnabled() ? "Disable" : "Enable"))
+					shader->SetEnabled(!shader->IsEnabled());
+
+				// reload
+				ImGui::SameLine();
+				if(ImGui::Button("Reload"))
+					shader->Compile();
+
+				ImGui::Spacing();
+
+				if(!shader->IsValid())
+				{
+					ImGui::TextColored(ImVec4(1, 0, 0, 1), "Invalid shader:");
+					ImGui::Text(shader->ErrorLog().c_str());
+					ImGui::TreePop();
+					continue;
+				}
+
+				// uniforms
+				int i;
+				float f;
+				std::map<std::string, Shader::Uniform>& uniforms = shader->Uniforms();
+				for(auto& [identifier, uniform] : uniforms)
+				{
+					if(Shader::IsInternalUniform(identifier))
+						continue;
+
+					switch(uniform.Type())
+					{
+					case Shader::Uniform::Types::Float:
+						uniform.Get(&f);
+						if(uniform.HasRange())
+						{
+							float min, max;
+							uniform.GetRange(&min, &max);
+							if(ImGui::SliderFloat(identifier.c_str(), &f, min, max, "%.3f", uniform.IsLogarithmic() ? ImGuiSliderFlags_Logarithmic : 0))
+								uniform.Set(f);
+						}
+						else if(ImGui::InputFloat(identifier.c_str(), &f))
+						{
+							uniform.Set(f);
+						}
+						break;
+
+					case Shader::Uniform::Types::Int:
+						// #TODO: Enum editor
+						uniform.Get(&i);
+						if(uniform.IsEnum())
+						{
+							if(ComboBox(identifier, i, uniform.EnumKeys()))
+								uniform.Set(i);
+						}
+						else if(uniform.HasRange())
+						{
+							int min, max;
+							uniform.GetRange(&min, &max);
+							if(ImGui::SliderInt(identifier.c_str(), &i, min, max, "%d", uniform.IsLogarithmic() ? ImGuiSliderFlags_Logarithmic : 0))
+								uniform.Set(i);
+						}
+						else
+						{
+							if(ImGui::InputInt(identifier.c_str(), &i))
+								uniform.Set(i);
+						}
+						break;
+
+					case Shader::Uniform::Types::Texture:
+						{
+							ImGui::Text(format("[tex] %s", identifier.c_str()).c_str());
+						}
+						break;
+
+					case Shader::Uniform::Types::Unknown:
+					default:
+						break;
+					}
+				}
+
+				ImGui::Separator();
+				ImGui::TreePop();
+			}
+		}
+
+		// swap shaders
+		if(moveUp != postStack.end())
+		{
+			std::iter_swap(moveUp, moveUp - 1);
+			window->SetPostStack(postStack);
+		}
+
+		if(moveDown != postStack.end())
+		{
+			std::iter_swap(moveDown, moveDown + 1);
+			window->SetPostStack(postStack);
+		}
+
+		// remove shader
+		if(remove != postStack.end())
+		{
+			postStack.erase(remove);
+			window->SetPostStack(postStack);
+		}
+
+		// add new shader
+		if(ImGui::Button("Add"))
+		{
+			// #TODO: Shader creation window
+			std::string fragmentFile;
+			if(OpenFileDialog("Frag\0*.frag\0", "Select a fragment file", true, fragmentFile))
+			{
+				Logger::Debug("Adding new shader:");
+				Logger::Debug("Fragment: %s", fragmentFile.c_str());
+				postStack.push_back(std::make_shared<Shader>(FileNameWithoutExtension(fragmentFile), Shader::FullScreenQuadVert(), fragmentFile));
+				window->SetPostStack(postStack);
+			}
+		}
+	}
+
+
+
 	void MainGui::RendererElements()
 	{
 		Renderer* renderer = GuiHelpers::GetRenderer();
@@ -402,7 +564,7 @@ namespace Tracer
 		settingsChanged = ImGui::SliderInt("Max depth", &settings.maxDepth, 1, 16) || settingsChanged;
 		settingsChanged = ImGui::SliderFloat("Ray epsilon", &settings.rayEpsilon, 0.f, 1.f, "%.5f", ImGuiSliderFlags_Logarithmic) || settingsChanged;
 
-		ImGui::BeginDisabled(renderMode != RenderModes::AmbientOcclusion);
+		ImGui::BeginDisabled(renderMode != RenderModes::AmbientOcclusion && renderMode != RenderModes::AmbientOcclusionShading);
 		settingsChanged = ImGui::SliderFloat("AO Dist", &settings.aoDist, 0.f, 1e4f, "%.3f", ImGuiSliderFlags_Logarithmic) || settingsChanged;
 		ImGui::EndDisabled();
 
@@ -419,16 +581,6 @@ namespace Tracer
 		if(ComboBox("Material property", matPropId))
 			renderer->SetMaterialPropertyId(matPropId);
 		ImGui::EndDisabled();
-
-		// post
-		ImGui::Spacing();
-		ImGui::Text("Post");
-
-		Window::ShaderProperties shaderProps = window->PostShaderProperties();
-		ImGui::SliderFloat("Exposure", &shaderProps.exposure, 0.f, 100.f, "%.3f", ImGuiSliderFlags_Logarithmic);
-		ImGui::SliderFloat("Gamma", &shaderProps.gamma, 0.f, 4.f);
-		ComboBox("Tonemap method", shaderProps.tonemap);
-		window->SetPostShaderProperties(shaderProps);
 
 		// denoiser
 		ImGui::Spacing();

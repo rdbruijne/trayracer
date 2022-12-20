@@ -62,8 +62,7 @@ namespace Tracer
 
 	void CheckGL(const char* file, int line)
 	{
-		GLenum error = glGetError();
-		assert(error == GL_NO_ERROR);
+		const GLenum error = glGetError();
 		if(error != GL_NO_ERROR)
 			FatalError("GL error in \"%s\" @ %d: %s (%#x)", file, line, GlErrorToString(error).c_str(), error);
 	}

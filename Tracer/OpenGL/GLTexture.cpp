@@ -63,6 +63,13 @@ namespace Tracer
 
 
 
+	void GLTexture::BindEmpty()
+	{
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+
+
+
 	void GLTexture::Upload(const std::vector<uint32_t>& pixels)
 	{
 		assert(mType == Types::Byte4);

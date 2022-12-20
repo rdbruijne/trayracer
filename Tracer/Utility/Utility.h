@@ -22,6 +22,7 @@ namespace Tracer
 	std::string FileName(const std::string& filePath);
 	std::string FileExtension(const std::string& filePath);
 	std::string FileNameWithoutExtension(const std::string& filePath);
+	std::string ReplaceExtension(const std::string& filePath, const std::string& newExtension);
 
 	// path locations
 	std::string CurrentDirectory();

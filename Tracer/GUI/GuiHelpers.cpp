@@ -2,7 +2,7 @@
 
 // project
 #include "OpenGL/Window.h"
-#include "Utility/Logger.h"
+#include "Utility/Utility.h"
 
 // ImGUI
 #include "imgui/imgui.h"
@@ -16,39 +16,36 @@ namespace Tracer
 {
 	namespace
 	{
-		float sDpiScale = 1;
-		ImGuiStyle sStyleBackup;
+		float gDpiScale = 1;
+		ImGuiStyle gStyleBackup;
 
 
 
 		void SetDpi(Window* window)
 		{
 			const float dpiScale = Window::MonitorDPI(window->CurrentMonitor());
-			if(sDpiScale != dpiScale)
+			if(gDpiScale != dpiScale)
 			{
 				ImGuiStyle& style = ImGui::GetStyle();
-				memcpy(&style, &sStyleBackup, sizeof(ImGuiStyle));
+				memcpy(&style, &gStyleBackup, sizeof(ImGuiStyle));
 				style.ScaleAllSizes(dpiScale);
 
 				ImGuiIO& io = ImGui::GetIO();
 				io.FontGlobalScale = dpiScale;
 
-				sDpiScale = dpiScale;
+				gDpiScale = dpiScale;
 			}
 		}
 	}
 
 
 
-	bool GuiHelpers::Init(Window* renderWindow)
+	void GuiHelpers::Init(Window* renderWindow)
 	{
 		// init ImGUI
 		IMGUI_CHECKVERSION();
 		if(!ImGui::CreateContext())
-		{
-			Logger::Error("Failed to create ImGUI context");
-			return false;
-		}
+			FatalError("Failed to create ImGUI context");
 
 		ImGuiIO& io = ImGui::GetIO();
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
@@ -57,7 +54,7 @@ namespace Tracer
 		ImGui::StyleColorsDark();
 		ImGuiStyle& style = ImGui::GetStyle();
 		style.Colors[ImGuiCol_Header] = ImVec4(.5f, .5f, .75f, 1.f);
-		memcpy(&sStyleBackup, &style, sizeof(ImGuiStyle));
+		memcpy(&gStyleBackup, &style, sizeof(ImGuiStyle));
 
 		// DPI
 		SetDpi(renderWindow);
@@ -69,8 +66,6 @@ namespace Tracer
 		ImGui::SetColorEditOptions(ImGuiColorEditFlags_Float);
 
 		mRenderWindow = renderWindow;
-
-		return true;
 	}
 
 

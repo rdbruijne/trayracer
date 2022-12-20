@@ -1,8 +1,10 @@
 #include "SceneFile.h"
 
 // Project
+#include "FileIO/JsonHelpers.h"
 #include "FileIO/ModelFile.h"
 #include "FileIO/TextureFile.h"
+#include "OpenGL/Shader.h"
 #include "OpenGL/Window.h"
 #include "Renderer/Renderer.h"
 #include "Renderer/Scene.h"
@@ -13,15 +15,6 @@
 #include "Resources/Model.h"
 #include "Utility/Logger.h"
 #include "Utility/Stopwatch.h"
-
-// RapidJson
-#pragma warning(push)
-#pragma warning(disable: 4061 4464 4619)
-#include "RapidJson/document.h"
-#include "RapidJson/istreamwrapper.h"
-#include "RapidJson/ostreamwrapper.h"
-#include "RapidJson/prettywriter.h"
-#pragma warning(pop)
 
 // C++
 #include <fstream>
@@ -41,10 +34,9 @@ using namespace rapidjson;
 #define Key_Distortion         "distortion"
 #define Key_DrawSun            "drawsun"
 #define Key_Enabled            "enabled"
-#define Key_Exposure           "exposure"
 #define Key_FocalDist          "focaldist"
 #define Key_Fov                "fov"
-#define Key_Gamma              "gamma"
+#define Key_FragPath           "frag"
 #define Key_Instances          "instances"
 #define Key_Intensity          "intensity"
 #define Key_Map                "Map"
@@ -66,134 +58,18 @@ using namespace rapidjson;
 #define Key_Scale              "scale"
 #define Key_Sky                "sky"
 #define Key_Target             "target"
-#define Key_Tonemap            "tonemap"
 #define Key_Transform          "transform"
 #define Key_Translate          "translate"
 #define Key_Turbidity          "turbidity"
+#define Key_Uniforms           "uniforms"
 #define Key_Up                 "up"
+#define Key_VertPath           "vert"
 #define Key_ZDepthMax          "zdepthmax"
 
 namespace Tracer
 {
 	namespace
 	{
-		//----------------------------------------------------------------------------------------------------------------------
-		// read helpers
-		//----------------------------------------------------------------------------------------------------------------------
-		bool Read(const Value& jsonValue, const std::string_view& memberName, bool& result)
-		{
-			if(!jsonValue.HasMember(memberName.data()))
-				return false;
-
-			const Value& val = jsonValue[memberName.data()];
-			if(!val.IsBool())
-				return false;
-
-			result = val.GetBool();
-			return true;
-		}
-
-
-
-		bool Read(const Value& jsonValue, const std::string_view& memberName, float& result)
-		{
-			if(!jsonValue.HasMember(memberName.data()))
-				return false;
-
-			const Value& val = jsonValue[memberName.data()];
-			if(!val.IsNumber())
-				return false;
-
-			result = val.GetFloat();
-			return true;
-		}
-
-
-
-		bool Read(const Value& jsonValue, const std::string_view& memberName, int& result)
-		{
-			if(!jsonValue.HasMember(memberName.data()))
-				return false;
-
-			const Value& val = jsonValue[memberName.data()];
-			if(!val.IsNumber())
-				return false;
-
-			result = val.GetInt();
-			return true;
-		}
-
-
-
-		bool Read(const Value& jsonValue, const std::string_view& memberName, float3& result)
-		{
-			if(!jsonValue.HasMember(memberName.data()))
-				return false;
-
-			const Value& val = jsonValue[memberName.data()];
-			if(!val.IsArray() || val.Size() != 3 || !val[0].IsNumber() || !val[1].IsNumber() || !val[2].IsNumber())
-				return false;
-
-			result = make_float3(val[0].GetFloat(), val[1].GetFloat(), val[2].GetFloat());
-			return true;
-		}
-
-
-
-		bool Read(const Value& jsonValue, const std::string_view& memberName, float3x4& result)
-		{
-			if(!jsonValue.HasMember(memberName.data()))
-				return false;
-
-			const Value& val = jsonValue[memberName.data()];
-			if(!val.IsArray() || val.Size() != 12)
-				return false;
-
-			float m[12] = {};
-			for(SizeType i = 0; i < val.Size(); i++)
-			{
-				if(!val[i].IsNumber())
-					return false;
-				m[i] = val[i].GetFloat();
-			}
-
-			result = make_float3x4(m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8], m[9], m[10], m[11]);
-			return true;
-		}
-
-
-		bool Read(const Value& jsonValue, const std::string_view& memberName, std::string& result)
-		{
-			if(!jsonValue.HasMember(memberName.data()))
-				return false;
-
-			const Value& val = jsonValue[memberName.data()];
-			if(!val.IsString())
-				return false;
-
-			result = val.GetString();
-			return true;
-		}
-
-
-
-		template<typename Enum, typename = typename std::enable_if<std::is_enum<Enum>::value, Enum>::type>
-		bool Read(const Value& jsonValue, const std::string_view& memberName, Enum& result)
-		{
-			std::string s;
-			if(!Read(jsonValue, memberName, s))
-				return false;
-
-			auto e = magic_enum::enum_cast<Enum>(s);
-			if(!e.has_value())
-				return false;
-
-			result = e.value();
-			return true;
-		}
-
-
-
 		//----------------------------------------------------------------------------------------------------------------------
 		// Import sections
 		//----------------------------------------------------------------------------------------------------------------------
@@ -403,14 +279,62 @@ namespace Tracer
 			if(!window || !doc.HasMember(Key_Post))
 				return;
 
-			Window::ShaderProperties postProps = window->PostShaderProperties();
 			const Value& jsonPost = doc[Key_Post];
+			if(!jsonPost.IsArray())
+				return;
 
-			Read(jsonPost, Key_Exposure, postProps.exposure);
-			Read(jsonPost, Key_Gamma, postProps.gamma);
-			Read(jsonPost, Key_Tonemap, postProps.tonemap);
+			std::vector<std::shared_ptr<Shader>> shaders;
+			for(SizeType shaderIx = 0; shaderIx < jsonPost.Size(); shaderIx++)
+			{
+				const Value& jsonShader = jsonPost[shaderIx];
 
-			window->SetPostShaderProperties(postProps);
+				// parse shader
+				std::string name;
+				if(!Read(jsonShader, Key_Name, name))
+					continue;
+
+				std::string fragPath;
+				if(!Read(jsonShader, Key_FragPath, fragPath))
+					continue;
+
+				std::string vertPath;
+				if(!Read(jsonShader, Key_VertPath, vertPath))
+					continue;
+
+				// create shader
+				std::shared_ptr<Shader> s = std::make_shared<Shader>(name, vertPath, fragPath);
+
+				// parse uniforms
+				int i;
+				float f;
+
+				const Value& jsonUniforms = jsonShader[Key_Uniforms];
+				std::map<std::string, Shader::Uniform>& uniforms = s->Uniforms();
+				for (auto& [identifier, uniform] : uniforms)
+				{
+					switch (uniform.Type())
+					{
+					case Shader::Uniform::Types::Float:
+						if(Read(jsonUniforms, identifier, f))
+							uniform.Set(f);
+						break;
+
+					case Shader::Uniform::Types::Int:
+						if(Read(jsonUniforms, identifier, i))
+							uniform.Set(i);
+						break;
+
+					case Shader::Uniform::Types::Texture:
+						// #TODO: Parse texture paths
+
+					case Shader::Uniform::Types::Unknown:
+					default:
+						break;
+					}
+				}
+			}
+
+			window->SetPostStack(shaders);
 		}
 
 
@@ -498,99 +422,6 @@ namespace Tracer
 				else if(importedModels.find(i.modelName) != importedModels.end())
 					scene->Add(std::make_shared<Instance>(i.name, importedModels[i.modelName], i.transform));
 			}
-		}
-
-
-
-		//----------------------------------------------------------------------------------------------------------------------
-		// write helpers
-		//----------------------------------------------------------------------------------------------------------------------
-		void Write(Value& jsonValue, Document::AllocatorType& allocator, const std::string_view& memberName, bool val)
-		{
-			Value v = Value(kObjectType);
-			v.SetBool(val);
-
-			Value key = Value(memberName.data(), allocator);
-			jsonValue.AddMember(key, v, allocator);
-		}
-
-
-
-		void Write(Value& jsonValue, Document::AllocatorType& allocator, const std::string_view& memberName, float val)
-		{
-			Value v = Value(kObjectType);
-			v.SetFloat(val);
-
-			Value key = Value(memberName.data(), allocator);
-			jsonValue.AddMember(key, v, allocator);
-		}
-
-
-
-		void Write(Value& jsonValue, Document::AllocatorType& allocator,const std::string_view& memberName, int val)
-		{
-			Value v = Value(kObjectType);
-			v.SetInt(val);
-
-			Value key = Value(memberName.data(), allocator);
-			jsonValue.AddMember(key, v, allocator);
-		}
-
-
-
-		void Write(Value& jsonValue, Document::AllocatorType& allocator, const std::string_view& memberName, float3 val)
-		{
-			Value jsonVector = Value(kArrayType);
-			jsonVector.PushBack(val.x, allocator);
-			jsonVector.PushBack(val.y, allocator);
-			jsonVector.PushBack(val.z, allocator);
-
-			Value key = Value(memberName.data(), allocator);
-			jsonValue.AddMember(key, jsonVector, allocator);
-		}
-
-
-
-		void Write(Value& jsonValue, Document::AllocatorType& allocator, const std::string_view& memberName, float3x4 val)
-		{
-			const float tempVals[12] =
-			{
-				val.x.x, val.x.y, val.x.z,
-				val.y.x, val.y.y, val.y.z,
-				val.z.x, val.z.y, val.z.z,
-				val.tx, val.ty, val.tz
-			};
-
-			Value jsonMatrix = Value(kArrayType);
-			for(int i = 0; i < 12; i++)
-			{
-				Value f = Value(kObjectType);
-				f.SetFloat(tempVals[i]);
-				jsonMatrix.PushBack(f, allocator);
-			}
-
-			Value key = Value(memberName.data(), allocator);
-			jsonValue.AddMember(key, jsonMatrix, allocator);
-		}
-
-
-
-		void Write(Value& jsonValue, Document::AllocatorType& allocator, const std::string_view& memberName, const std::string& val)
-		{
-			Value v = Value(kObjectType);
-			v.SetString(val.c_str(), static_cast<SizeType>(val.length()), allocator);
-
-			Value key = Value(memberName.data(), allocator);
-			jsonValue.AddMember(key, v, allocator);
-		}
-
-
-
-		template<typename Enum, typename = typename std::enable_if<std::is_enum<Enum>::value, Enum>::type>
-		void Write(Value& jsonValue, Document::AllocatorType& allocator, const std::string_view& memberName, Enum& val)
-		{
-			const std::string s = std::string(magic_enum::enum_name(val));
-			Write(jsonValue, allocator, memberName, s);
 		}
 
 
@@ -770,12 +601,50 @@ namespace Tracer
 			if(!window)
 				return;
 
-			const Window::ShaderProperties& postProps = window->PostShaderProperties();
+			Value jsonPost = Value(kArrayType);
 
-			Value jsonPost = Value(kObjectType);
-			Write(jsonPost, allocator, Key_Exposure, postProps.exposure);
-			Write(jsonPost, allocator, Key_Gamma, postProps.gamma);
-			Write(jsonPost, allocator, Key_Tonemap, postProps.tonemap);
+			// export shaders
+			std::vector<std::shared_ptr<Shader>>& postStack = window->PostStack();
+			for (std::shared_ptr<Shader>& shader : postStack)
+			{
+				Value jsonShader = Value(kObjectType);
+				Write(jsonShader, allocator, Key_Name, shader->Name());
+				Write(jsonShader, allocator, Key_FragPath, shader->FragmentFile());
+				Write(jsonShader, allocator, Key_VertPath, shader->VertexFile());
+
+				// export uniforms
+				Value jsonUniforms = Value(kObjectType);
+
+				int i;
+				float f;
+
+				std::map<std::string, Shader::Uniform>& uniforms = shader->Uniforms();
+				for (auto& [identifier, uniform] : uniforms)
+				{
+					switch (uniform.Type())
+					{
+					case Shader::Uniform::Types::Float:
+						uniform.Get(&f);
+						Write(jsonUniforms, allocator, identifier, f);
+						break;
+
+					case Shader::Uniform::Types::Int:
+						uniform.Get(&i);
+						Write(jsonUniforms, allocator, identifier, i);
+						break;
+
+					case Shader::Uniform::Types::Texture:
+						// #TODO: Export texture paths
+
+					case Shader::Uniform::Types::Unknown:
+					default:
+						break;
+					}
+				}
+
+				jsonShader.AddMember(Key_Uniforms, jsonUniforms, allocator);
+				jsonPost.PushBack(jsonShader, allocator);
+			}
 
 			// add new JSON node to the document
 			doc.AddMember(Key_Post, jsonPost, allocator);

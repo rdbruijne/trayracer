@@ -132,6 +132,14 @@ namespace Tracer
 
 
 
+	std::string ReplaceExtension(const std::string& filePath, const std::string& newExtension)
+	{
+		assert(newExtension[0] == '.');
+		return filePath.substr(0, filePath.find_last_of('.')) + newExtension;
+	}
+
+
+
 	std::string CurrentDirectory()
 	{
 		char path[MAX_PATH] = {};

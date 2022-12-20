@@ -29,10 +29,10 @@
 
 namespace Tracer
 {
-	bool Window::Open(const std::string& title, int2 resolution, bool fullscreen)
+	void Window::Open(const std::string& title, int2 resolution, bool fullscreen)
 	{
 		if(!IsClosed())
-			return false;
+			return;
 
 		// clean state
 		Destroy();
@@ -49,10 +49,7 @@ namespace Tracer
 		mHandle = glfwCreateWindow(resolution.x, resolution.y, title.c_str(), fullscreen ? glfwGetPrimaryMonitor() : nullptr, nullptr);
 
 		if(!mHandle)
-		{
-			Logger::Error("Failed to create glfw window");
-			return false;
-		}
+			FatalError("Failed to create glfw window");
 
 		// user pointer setup
 		glfwSetWindowUserPointer(mHandle, this);
@@ -73,10 +70,7 @@ namespace Tracer
 
 		// init GL
 		if(glewInit() != GLEW_OK)
-		{
-			Logger::Error("Failed to init glew");
-			return false;
-		}
+			FatalError("Failed to init glew");
 
 		// size buffers
 		SetResolution(resolution);
@@ -89,11 +83,8 @@ namespace Tracer
 		glDisable(GL_DEPTH_TEST);
 		glDepthMask(GL_FALSE);
 
-		// init shaders
-		mQuadShader = new Shader("glsl/FullScreenQuad.vert", "glsl/FullScreenQuad.frag");
-		mTonemapShader = new Shader("glsl/FullScreenQuad.vert", "glsl/Tonemap.frag");
-
-		return true;
+		// init shader
+		mQuadShader = new Shader("quad", Shader::FullScreenQuadVert(), Shader::FullScreenQuadFrag());
 	}
 
 
@@ -121,22 +112,18 @@ namespace Tracer
 			mQuadShader = nullptr;
 		}
 
-		if(mTonemapShader)
-		{
-			delete mTonemapShader;
-			mTonemapShader = nullptr;
-		}
-
 		if(mRenderTexture)
 		{
 			delete mRenderTexture;
 			mRenderTexture = nullptr;
 		}
 
-		if(mFramebuffer)
+		if(mFramebuffers)
 		{
-			delete mFramebuffer;
-			mFramebuffer = nullptr;
+			delete mFramebuffers[0];
+			delete mFramebuffers[1];
+			mFramebuffers[0] = nullptr;
+			mFramebuffers[1] = nullptr;
 		}
 
 		if (mHandle)
@@ -200,10 +187,12 @@ namespace Tracer
 			mRenderTexture = new GLTexture(resolution, GLTexture::Types::Float4);
 		}
 
-		if(!mFramebuffer || mFramebuffer->Resolution() != resolution)
+		if(!mFramebuffers[0] || mFramebuffers[0]->Resolution() != resolution)
 		{
-			delete mFramebuffer;
-			mFramebuffer = new GLFramebuffer(resolution);
+			delete mFramebuffers[0];
+			delete mFramebuffers[1];
+			mFramebuffers[0] = new GLFramebuffer(resolution);
+			mFramebuffers[1] = new GLFramebuffer(resolution);
 		}
 
 		const float dpiScale = MonitorDPI(CurrentMonitor());
@@ -267,7 +256,7 @@ namespace Tracer
 	std::shared_ptr<Texture> Window::DownloadFramebuffer() const
 	{
 		std::vector<float4> pixels;
-		mFramebuffer->Texture()->Download(pixels);
+		Framebuffer()->Texture()->Download(pixels);
 		return std::make_shared<Texture>("", Resolution(), pixels);
 	}
 
@@ -287,20 +276,30 @@ namespace Tracer
 		glDisable(GL_LIGHTING);
 		glDisable(GL_DEPTH_TEST);
 
-		// draw to the framebuffer
-		mFramebuffer->Bind();
-		mTonemapShader->Bind();
-		mTonemapShader->Set(0, "convergeBuffer", mRenderTexture);
-		mTonemapShader->Set("exposure", mShaderProperties.exposure);
-		mTonemapShader->Set("gamma", mShaderProperties.gamma);
-		mTonemapShader->Set("tonemapMethod", static_cast<int>(mShaderProperties.tonemap));
-		glDrawArrays(GL_TRIANGLES, 0, 3);
-		mTonemapShader->Unbind();
-		mFramebuffer->Unbind();
+		// execute the shaders
+		int bufferIx = 0;
+		GLTexture* prevTex = mRenderTexture;
+		for(const std::shared_ptr<Shader>& shader : mPostStack)
+		{
+			if(!shader->IsEnabled() || !shader->IsValid())
+				continue;
+
+			mFramebuffers[bufferIx]->Bind();
+			shader->Bind();
+			shader->ApplyUniforms();
+			shader->Set("convergeBuffer", 0, prevTex);
+			glDrawArrays(GL_TRIANGLES, 0, 3);
+			shader->Unbind();
+			mFramebuffers[bufferIx]->Unbind();
+
+			prevTex = mFramebuffers[bufferIx]->Texture();
+			bufferIx ^= 1;
+		}
 
 		// draw the framebuffer to the screen
 		mQuadShader->Bind();
-		mQuadShader->Set(0, "convergeBuffer", mFramebuffer->Texture());
+		mQuadShader->ApplyUniforms();
+		mQuadShader->Set("convergeBuffer", 0, prevTex);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		mQuadShader->Unbind();
 

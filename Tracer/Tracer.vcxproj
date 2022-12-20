@@ -154,8 +154,10 @@
     <ClCompile Include="CUDA\CudaError.cpp" />
     <ClCompile Include="CUDA\CudaTimeEvent.cpp" />
     <ClCompile Include="FileIO\BinaryFile.cpp" />
+    <ClCompile Include="FileIO\JsonHelpers.cpp" />
     <ClCompile Include="FileIO\ModelFile.cpp" />
     <ClCompile Include="FileIO\SceneFile.cpp" />
+    <ClCompile Include="FileIO\ShaderDescriptor.cpp" />
     <ClCompile Include="FileIO\TextureFile.cpp" />
     <ClCompile Include="GUI\MainGui.cpp" />
     <ClCompile Include="GUI\GuiHelpers.cpp" />
@@ -217,8 +219,10 @@
     <ClInclude Include="CUDA\GPU\Shade\ZDepth.h" />
     <ClInclude Include="FileIO\BinaryFile.h" />
     <ClInclude Include="FileIO\FileInfo.h" />
+    <ClInclude Include="FileIO\JsonHelpers.h" />
     <ClInclude Include="FileIO\ModelFile.h" />
     <ClInclude Include="FileIO\SceneFile.h" />
+    <ClInclude Include="FileIO\ShaderDescriptor.h" />
     <ClInclude Include="FileIO\TextureFile.h" />
     <ClInclude Include="GUI\GuiExtensions.h" />
     <ClInclude Include="GUI\GuiWindow.h" />
@@ -255,9 +259,25 @@
   <ItemGroup>
     <None Include="CUDA\CudaBuffer.inl" />
     <None Include="FileIO\BinaryFile.inl" />
-    <None Include="glsl\FullScreenQuad.frag" />
-    <None Include="glsl\FullScreenQuad.vert" />
+    <None Include="FileIO\JsonHelpers.inl" />
+    <None Include="glsl\Monochrome.frag" />
+    <None Include="glsl\Negative.frag" />
     <None Include="glsl\Tonemap.frag" />
+    <None Include="glsl\Tonemap.json" />
+    <None Include="glsl\TonemapAces.frag" />
+    <None Include="glsl\TonemapAces.json" />
+    <None Include="glsl\TonemapFilmic.frag" />
+    <None Include="glsl\TonemapFilmic.json" />
+    <None Include="glsl\TonemapLottes.frag" />
+    <None Include="glsl\TonemapLottes.json" />
+    <None Include="glsl\TonemapReinhard.frag" />
+    <None Include="glsl\TonemapReinhard.json" />
+    <None Include="glsl\TonemapReinhard2.frag" />
+    <None Include="glsl\TonemapReinhard2.json" />
+    <None Include="glsl\TonemapUchimura.frag" />
+    <None Include="glsl\TonemapUchimura.json" />
+    <None Include="glsl\TonemapUncharted2.frag" />
+    <None Include="glsl\TonemapUncharted2.json" />
     <None Include="Resources\Material.inl" />
     <None Include="Resources\Model.h" />
   </ItemGroup>
