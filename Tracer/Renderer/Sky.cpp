@@ -54,6 +54,26 @@ namespace Tracer
 
 
 
+	void Sky::SetSelectionBias(float bias)
+	{
+		mSelectionBias = bias;
+		MarkDirty();
+	}
+
+
+
+	float Sky::SunEnergy() const
+	{
+		const float sunDiameterRadians = mSunAngularDiameter * Pi / (60.f * 180.f);
+		const float sunRadiusRadians   = sunDiameterRadians * .5f;
+		const float sunArea            = Pi * sunRadiusRadians * sunRadiusRadians;
+		const float selectionBias      = exp(mSelectionBias);
+
+		return mEnabled ? mSunIntensity * sunArea * exp(mSelectionBias) : 0;
+	}
+
+
+
 	void Sky::Build()
 	{
 		// dirty check
@@ -62,15 +82,19 @@ namespace Tracer
 
 		const float sunDiameterRadians = mSunAngularDiameter * Pi / (60.f * 180.f);
 		const float sunRadiusRadians   = sunDiameterRadians * .5f;
+		const float sunArea            = Pi * sunRadiusRadians * sunRadiusRadians;
+		const float selectionBias      = exp(mSelectionBias);
 
 		// fill data
 		mSkyData.sunDir                = mSunDir;
 		mSkyData.skyEnabled            = mEnabled;
 		mSkyData.drawSun               = mDrawSun ? 1.f : 0.f;
-		mSkyData.sunArea               = Pi * sunRadiusRadians * sunRadiusRadians;
+		mSkyData.sunArea               = sunArea;
 		mSkyData.cosSunAngularDiameter = cosf(sunDiameterRadians);
 		mSkyData.sunIntensity          = mSunIntensity;
 		mSkyData.turbidity             = mTurbidity;
+		mSkyData.selectionBias         = selectionBias;
+		mSkyData.sunEnergy             = mEnabled ? mSunIntensity * sunArea * selectionBias : 0;
 
 		// mark out of sync
 		MarkOutOfSync();

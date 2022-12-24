@@ -656,13 +656,16 @@ namespace Tracer
 		if(ImGui::SliderFloat("Sun intensity", &sunIntensity, 0.f, 1e6f, "%.3f", ImGuiSliderFlags_Logarithmic))
 			sky->SetSunIntensity(sunIntensity);
 
+		float selectionBias = sky->SelectionBias();
+		if(ImGui::SliderFloat("Selection Bias", &selectionBias, 0.f, 100.f))
+			sky->SetSelectionBias(selectionBias);
+
 		// ground
 		ImGui::Text("Ground");
 
 		float turbidity = sky->Turbidity();
 		if(ImGui::SliderFloat("Turbidity", &turbidity, 1.f, 10.f))
 			sky->SetTurbidity(turbidity);
-
 	}
 
 
@@ -752,6 +755,8 @@ namespace Tracer
 		ROW("Unique triangle count", "%s", ThousandSeparators(scene->UniqueTriangleCount()).c_str());
 		ROW("Lights", "%s", ThousandSeparators(scene->LightCount()).c_str());
 		ROW("Unique lights", "%s", ThousandSeparators(scene->UniqueLightCount()).c_str());
+		ROW("Light energy", "%f", scene->LightEnergy());
+		ROW("Sun energy", "%f", scene->SunEnergy());
 
 		ImGui::Columns();
 

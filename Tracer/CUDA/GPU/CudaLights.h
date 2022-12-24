@@ -61,9 +61,7 @@ static inline __device__
 float3 SampleLight(uint32_t& seed, const float3& I, const float3& N, float& prob, float& pdf, float3& radiance, float& dist)
 {
 	// energy
-	const float3 sunRadiance = SampleSky(Sky->sunDir, false);
-	const float sunEnergy = (sunRadiance.x + sunRadiance.y + sunRadiance.z) * Sky->sunArea;
-	const float totalEnergy = sunEnergy + LightEnergy;
+	const float totalEnergy = Sky->sunEnergy + LightEnergy;
 
 	// check for any energy
 	if(totalEnergy == 0)
@@ -75,11 +73,11 @@ float3 SampleLight(uint32_t& seed, const float3& I, const float3& N, float& prob
 	}
 
 	// try to pick the sun
-	if(rnd(seed) * totalEnergy <= sunEnergy)
+	if(rnd(seed) * totalEnergy <= Sky->sunEnergy)
 	{
-		prob     = sunEnergy / totalEnergy;
+		prob     = Sky->sunEnergy / totalEnergy;
 		pdf      = 1.f;
-		radiance = sunRadiance;
+		radiance = SampleSky(Sky->sunDir, false);
 		dist     = 1e20f;
 		return Sky->sunDir;
 	}

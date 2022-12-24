@@ -34,6 +34,13 @@ namespace Tracer
 		float Turbidity() const { return mTurbidity; }
 		void SetTurbidity(float turbidity);
 
+		// selection bias
+		float SelectionBias() const { return mSelectionBias; }
+		void SetSelectionBias(float bias);
+
+		// for statistics
+		float SunEnergy() const;
+
 		// build
 		void Build();
 
@@ -55,6 +62,9 @@ namespace Tracer
 
 		// ground
 		float mTurbidity = 4.f;
+
+		// selection bias
+		float mSelectionBias = 1.f;
 
 		// build data
 		SkyData mSkyData = {};

@@ -150,6 +150,21 @@ namespace Tracer
 
 
 
+	float Scene::LightEnergy() const
+	{
+		const std::vector<LightTriangle>& lightData = Lights();
+		return lightData.size() == 0 ? 0 : lightData.back().sumEnergy;
+	}
+
+
+
+	float Scene::SunEnergy() const
+	{
+		return mSky->SunEnergy();
+	}
+
+
+
 	void Scene::Add(std::shared_ptr<Model> model)
 	{
 		if(model && std::find(mModels.begin(), mModels.end(), model) == mModels.end())

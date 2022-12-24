@@ -29,6 +29,7 @@ using namespace rapidjson;
 #define Key_AngularDiameter    "angulardiameter"
 #define Key_Aperture           "aperture"
 #define Key_AoDist             "aodist"
+#define Key_Bias               "bias"
 #define Key_Camera             "camera"
 #define Key_Dir                "dir"
 #define Key_Distortion         "distortion"
@@ -388,6 +389,8 @@ namespace Tracer
 				sky->SetSunIntensity(f);
 			if(Read(jsonSky, Key_Turbidity, f))
 				sky->SetTurbidity(f);
+			if(Read(jsonSky, Key_Bias, f))
+				sky->SetSelectionBias(f);
 		}
 
 
@@ -589,6 +592,7 @@ namespace Tracer
 			Write(jsonRenderer, allocator, Key_AngularDiameter, sky->SunAngularDiameter());
 			Write(jsonRenderer, allocator, Key_Intensity, sky->SunIntensity());
 			Write(jsonRenderer, allocator, Key_Turbidity, sky->Turbidity());
+			Write(jsonRenderer, allocator, Key_Bias, sky->SelectionBias());
 
 			// add new JSON node to the document
 			doc.AddMember(Key_Sky, jsonRenderer, allocator);

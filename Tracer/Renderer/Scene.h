@@ -36,6 +36,8 @@ namespace Tracer
 		size_t UniqueTriangleCount() const;
 		size_t LightCount() const;
 		size_t UniqueLightCount() const;
+		float LightEnergy() const;
+		float SunEnergy() const;
 
 		void Add(std::shared_ptr<Model> model);
 		void Add(std::shared_ptr<Instance> instance);

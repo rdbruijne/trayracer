@@ -278,4 +278,7 @@ struct SkyData
 	float sunIntensity;
 
 	float turbidity;
+	float selectionBias;
+	float sunEnergy;
+	float dummy;
 };
