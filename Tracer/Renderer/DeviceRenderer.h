@@ -42,7 +42,7 @@ namespace Tracer
 
 		// rendering
 		RayPickResult PickRay(const int2& pixelIndex);
-		void RenderFrame(const KernelSettings& kernelSettings, const RenderModes& renderMode, int firstRow, int rowCount);
+		void RenderFrame(int firstRow, int rowCount, const KernelSettings& kernelSettings, const RenderModes& renderMode, uint32_t renderFlags = 0);
 
 		// statistics
 		uint32_t SampleCount() const { return mLaunchParams.sampleCount; }

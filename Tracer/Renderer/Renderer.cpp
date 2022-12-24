@@ -163,9 +163,14 @@ namespace Tracer
 		if(mDeviceRenderer->Resolution() != texRes)
 			Resize(renderTexture);
 
+		// determine render flags
+		uint32_t renderFlags = 0;
+		if(mRenderMode == RenderModes::MaterialProperty)
+			renderFlags = static_cast<uint32_t>(mMaterialPropertyId);
+
 		// render the frame
 		mRenderTimeEvent.Start(mCudaDevice->Stream());
-		mDeviceRenderer->RenderFrame(mKernelSettings, mRenderMode, 0, texRes.y);
+		mDeviceRenderer->RenderFrame(0, texRes.y, mKernelSettings, mRenderMode, renderFlags);
 		mRenderTimeEvent.Stop(mCudaDevice->Stream());
 		cudaStreamSynchronize(mCudaDevice->Stream());
 

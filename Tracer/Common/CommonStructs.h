@@ -150,9 +150,10 @@ struct LaunchParams
 	// Shadow
 	float4* shadowRays;
 
-	// optix
+	// render modes
 	RayGenModes rayGenMode;
 	RenderModes renderMode;
+	uint32_t renderFlags;
 
 	// render settings
 	KernelSettings kernelSettings;

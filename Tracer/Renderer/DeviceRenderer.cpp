@@ -93,12 +93,13 @@ namespace Tracer
 
 
 
-	void DeviceRenderer::RenderFrame(const KernelSettings& kernelSettings, const RenderModes& renderMode, int firstRow, int rowCount)
+	void DeviceRenderer::RenderFrame(int firstRow, int rowCount, const KernelSettings& kernelSettings, const RenderModes& renderMode, uint32_t renderFlags)
 	{
 		assert(Device()->IsCurrent());
 
 		// set the render mode
 		mLaunchParams.renderMode  = renderMode;
+		mLaunchParams.renderFlags = renderFlags;
 
 		// set render settings
 		mLaunchParams.kernelSettings = kernelSettings;
@@ -224,21 +225,13 @@ namespace Tracer
 		mRenderStats.pathCount += pathCount;
 		mTraceTimeEvents[pathLength].Stop(mDevice->Stream());
 
-		// determine shade flags
-		uint32_t shadeFlags = 0;
-#if false
-		// #TODO: Reimplement
-		if(mRenderMode == RenderModes::MaterialProperty)
-			shadeFlags = static_cast<uint32_t>(mMaterialPropertyId);
-#endif
-
 		// shade
 		const uint32_t stride = mLaunchParams.resX * mLaunchParams.resY * mLaunchParams.kernelSettings.multiSample;
 		mShadeTimeEvents[pathLength].Start(mDevice->Stream());
 		Shade(mLaunchParams.renderMode, pathCount,
 				mAccumulator.Ptr<float4>(), mAlbedoBuffer.Ptr<float4>(), mNormalBuffer.Ptr<float4>(),
 				mPathStates.Ptr<float4>(), mHitData.Ptr<uint4>(), mShadowRayData.Ptr<float4>(),
-				make_int2(mLaunchParams.resX, mLaunchParams.resY), stride, pathLength, shadeFlags);
+				make_int2(mLaunchParams.resX, mLaunchParams.resY), stride, pathLength, mLaunchParams.renderFlags);
 		mShadeTimeEvents[pathLength].Stop(mDevice->Stream());
 
 		// update counters
