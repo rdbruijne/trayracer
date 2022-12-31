@@ -83,4 +83,32 @@ namespace Tracer
 	{
 		glfwTerminate();
 	}
+
+
+
+	const char* GLRenderer()
+	{
+		return reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+	}
+
+
+
+	const char* GLShadingLanguageVersion()
+	{
+		return reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
+	}
+
+
+
+	const char* GLVendor()
+	{
+		return reinterpret_cast<const char*>(glGetString(GL_VENDOR));
+	}
+
+
+
+	const char* GLVersion()
+	{
+		return reinterpret_cast<const char*>(glGetString(GL_VERSION));
+	}
 }

@@ -21,8 +21,12 @@ namespace Tracer
 		const CUcontext Context() const { return mCudaContext; }
 		const cudaDeviceProp& DeviceProperties() const { return mDeviceProperties; }
 
+		void MemoryUsage(size_t& free, size_t& total);
+
 		bool IsCurrent() const;
 		void SetCurrent();
+
+		static int Count();
 
 	private:
 		int mDeviceId;

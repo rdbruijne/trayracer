@@ -31,6 +31,14 @@ namespace Tracer
 
 
 
+	void CudaDevice::MemoryUsage(size_t& free, size_t& total)
+	{
+		SetCurrent();
+		CUDA_CHECK(cudaMemGetInfo(&free, &total));
+	}
+
+
+
 	bool CudaDevice::IsCurrent() const
 	{
 		int deviceId = -1;
@@ -43,5 +51,14 @@ namespace Tracer
 	void CudaDevice::SetCurrent()
 	{
 		CUDA_CHECK(cudaSetDevice(mDeviceId));
+	}
+
+
+
+	int CudaDevice::Count()
+	{
+		int count;
+		CUDA_CHECK(cudaGetDeviceCount(&count));
+		return count;
 	}
 }

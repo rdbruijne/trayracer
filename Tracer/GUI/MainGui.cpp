@@ -7,6 +7,7 @@
 #include "FileIO/TextureFile.h"
 #include "GUI/GuiExtensions.h"
 #include "GUI/GuiHelpers.h"
+#include "OpenGL/GLHelpers.h"
 #include "OpenGL/Shader.h"
 #include "OpenGL/Window.h"
 #include "Optix/Denoiser.h"
@@ -700,9 +701,30 @@ namespace Tracer
 		// init column layout
 		ImGui::Columns(2);
 
+		// drivers
+		int driverVersion;
+		int cudaRuntime;
+		CUDA_CHECK(cudaDriverGetVersion(&driverVersion));
+		CUDA_CHECK(cudaRuntimeGetVersion(&cudaRuntime));
+		ROW("CUDA API", "%d.%d", CUDA_VERSION / 1000, (CUDA_VERSION % 1000) / 10);
+		ROW("CUDA driver", "%d.%d", driverVersion / 1000, (driverVersion % 1000) / 10);
+		ROW("CUDA runtime", "%d.%d", cudaRuntime / 1000, (cudaRuntime % 1000) / 10);
+		ROW("Optix", "%d.%d", OPTIX_VERSION / 10000, (OPTIX_VERSION % 10000) / 100, OPTIX_VERSION % 100);
+		SPACE;
+
+		// OpenGL
+		ROW("OpenGL Version", GLVersion());
+		ROW("OpenGL Vendor", GLVendor());
+		ROW("OpenGL Renderer", GLRenderer());
+		ROW("OpenGL Shading Language Version", GLShadingLanguageVersion());
+		SPACE;
+
 		// device
 		const cudaDeviceProp& devProps = renderer->Device()->DeviceProperties();
+		size_t freeDeviceMem, totalDeviceMem;
+		renderer->Device()->MemoryUsage(freeDeviceMem, totalDeviceMem);
 		ROW("Device", devProps.name);
+		ROW("Memory size", "%d / %d MB", freeDeviceMem >> 20, devProps.totalGlobalMem >> 20);
 		SPACE;
 
 		// kernel

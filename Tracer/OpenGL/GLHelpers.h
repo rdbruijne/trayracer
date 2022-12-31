@@ -8,4 +8,10 @@ namespace Tracer
 
 	void InitGL();
 	void TerminateGL();
+
+	// strings
+	const char* GLRenderer();
+	const char* GLShadingLanguageVersion();
+	const char* GLVendor();
+	const char* GLVersion();
 }
