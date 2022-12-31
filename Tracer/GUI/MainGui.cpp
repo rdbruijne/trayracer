@@ -914,7 +914,7 @@ namespace Tracer
 			float3 pos;
 			float3 scale;
 			float3 euler;
-			decompose(inst->Transform(), pos, euler, scale);
+			inst->DecomposedTransform(pos, euler, scale);
 
 			float p[] = { pos.x, pos.y, pos.z };
 			float s[] = { scale.x, scale.y, scale.z };
@@ -940,7 +940,9 @@ namespace Tracer
 			}
 
 			if(changed)
-				inst->SetTransform(rotate_3x4(euler) * scale_3x4(scale) * translate_3x4(pos));
+			{
+				inst->SetDecomposedTransform(pos, euler, scale);
+			}
 
 
 			// delete

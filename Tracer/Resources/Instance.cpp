@@ -11,5 +11,6 @@ namespace Tracer
 		mModel(model)
 	{
 		AddDependency(model);
+		decompose(mTransform, mPos, mEuler, mScale);
 	}
 }

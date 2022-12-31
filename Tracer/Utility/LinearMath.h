@@ -86,6 +86,14 @@ namespace Tracer
 
 
 
+	// fix floating point error numbers
+	inline bool isfinite(float f) { return f == f; }
+	inline float2 fixnan(const float2& a) { return isfinite(a.x + a.y) ? a : make_float2(0); }
+	inline float3 fixnan(const float3& a) { return isfinite(a.x + a.y + a.z) ? a : make_float3(0); }
+	inline float4 fixnan(const float4& a) { return isfinite(a.x + a.y + a.z + a.w) ? a : make_float4(0); }
+
+
+
 	//--------------------------------------------------------------------------------------------------------------------------
 	// vector math
 	//--------------------------------------------------------------------------------------------------------------------------
@@ -468,6 +476,10 @@ namespace Tracer
 		{
 			euler = make_float3(atan2f(-ty.z, ty.y), atan2f(-tz.x, tx.x), asinf(ty.x));
 		}
+
+		pos = fixnan(pos);
+		scale = fixnan(scale);
+		euler = fixnan(euler);
 	}
 
 
