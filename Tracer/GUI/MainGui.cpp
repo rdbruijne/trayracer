@@ -258,45 +258,29 @@ namespace Tracer
 			return;
 		}
 
-		// texture resolution
-		const ImVec2 textureDisplayRes = ImVec2(100, 100) * ImGui::GetIO().FontGlobalScale;
-
 		// fetch material
 		std::shared_ptr<Material> mat = mSelectedMaterial.lock();
 
-		// name
-		ImGui::Text(mat->Name().c_str());
-
-		// properties
-		for(size_t i = 0; i < magic_enum::enum_count<MaterialPropertyIds>(); i++)
+		const ImGuiTableFlags tableFlags = ImGuiTableFlags_SizingStretchProp;
+		if(ImGui::BeginTable(mat->Name().c_str(), 2, tableFlags))
 		{
-			const MaterialPropertyIds id = static_cast<MaterialPropertyIds>(i);
-			const std::string propName = std::string(magic_enum::enum_name(id));
+			// header
+			ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+			ImGui::TableNextColumn();
+			ImGui::TableNextColumn();
+			ImGui::Text(mat->Name().c_str());
 
-			if(ImGui::TreeNode(propName.c_str()))
+			const int texScale = 200;
+			const ImVec2 textureDisplayRes = ImVec2(texScale, texScale) * ImGui::GetIO().FontGlobalScale;
+
+			// properties
+			for(size_t i = 0; i < magic_enum::enum_count<MaterialPropertyIds>(); i++)
 			{
-				// float color
-				if(mat->IsFloatColorEnabled(id))
-				{
-					const std::string colorName = "##" + propName;
-					float c = mat->FloatColor(id);
-					const float2 cRange = mat->FloatColorRange(id);
-					if(ImGui::SliderFloat(colorName.c_str(), &c, cRange.x, cRange.y))
-						mat->Set(id, c);
-				}
+				const MaterialPropertyIds id = static_cast<MaterialPropertyIds>(i);
+				const std::string propName = std::string(magic_enum::enum_name(id));
 
-				// rgb color
-				if(mat->IsRgbColorEnabled(id))
-				{
-					const std::string colorName = "##" + propName;
-					const ImGuiColorEditFlags colorFlags =
-						ImGuiColorEditFlags_HDR |
-						ImGuiColorEditFlags_Float |
-						ImGuiColorEditFlags_PickerHueWheel;
-					float3 c = mat->RgbColor(id);
-					if(ImGui::ColorEdit3(colorName.c_str(), reinterpret_cast<float*>(&c), colorFlags))
-						mat->Set(id, c);
-				}
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
 
 				// texture
 				if(mat->IsTextureEnabled(id))
@@ -304,46 +288,73 @@ namespace Tracer
 					const std::string texName = "##" + propName + "map";
 					std::shared_ptr<Texture> tex = mat->TextureMap(id);
 
-					if(!tex)
+					// tooltip
+					auto textureTooltip = [tex, textureDisplayRes]() -> void
 					{
-						// load button
-						const std::string buttonName = "Load texture" + texName;
-						if(ImGui::Button(buttonName.c_str()))
+						if (ImGui::IsItemHovered() && tex.get())
 						{
-							std::string texFile = ImportTextureDialog();
-							if(!texFile.empty())
-								mat->Set(id, TextureFile::Import(GuiHelpers::GetScene(), texFile));
+							const std::string path = tex->Path();
+							const int2 res = tex->Resolution();
+
+							ImGui::BeginTooltip();
+							ImGui::Text(Directory(path, true).c_str());
+							ImGui::Text(FileName(path).c_str());
+							ImGui::Text(format("%i x %i", res.x, res.y).c_str());
+							tex->CreateGLTex();
+							const size_t texId = static_cast<size_t>(tex->GLTex()->ID());
+							ImGui::Image(reinterpret_cast<ImTextureID>(texId), textureDisplayRes);
+							ImGui::EndTooltip();
 						}
+					};
+
+					// texture button
+					const std::string texButtonLabel = "Texture" + texName;
+					if(ImGui::Button(texButtonLabel.c_str()))
+					{
+						std::string texFile = ImportTextureDialog();
+						if(!texFile.empty())
+							mat->Set(id, TextureFile::Import(GuiHelpers::GetScene(), texFile));
 					}
-					else
+					textureTooltip();
+
+					// remove texture button
+					if(tex)
 					{
-						const std::string path = tex->Path();
-						const int2 res = tex->Resolution();
-
-						// display texture
-						tex->CreateGLTex();
-						const size_t texId = static_cast<size_t>(tex->GLTex()->ID());
-						if(ImGui::ImageButton(reinterpret_cast<ImTextureID>(texId), textureDisplayRes))
-						{
-							std::string texFile = ImportTextureDialog();
-							if(!texFile.empty())
-								mat->Set(id, TextureFile::Import(GuiHelpers::GetScene(), texFile));
-						}
-
-						// remove texture button
-						const std::string buttonName = "X" + texName;
+						const std::string removeButtonLabel = "X" + texName;
 						ImGui::SameLine();
-						if(ImGui::Button(buttonName.c_str()))
+						if(ImGui::Button(removeButtonLabel.c_str()))
 							mat->Set(id, nullptr);
-
-						// display name & resolution
-						ImGui::Text(format("%s (%i x %i)", path.c_str(), res.x, res.y).c_str());
+						textureTooltip();
 					}
 				}
+				ImGui::TableNextColumn();
 
-				ImGui::TreePop();
-				ImGui::Separator();
+				// color
+				const std::string sliderLabel = propName;
+				if(mat->IsFloatColorEnabled(id))
+				{
+					float c = mat->FloatColor(id);
+					const float2 cRange = mat->FloatColorRange(id);
+					if(ImGui::SliderFloat(sliderLabel.c_str(), &c, cRange.x, cRange.y))
+						mat->Set(id, c);
+				}
+				else if(mat->IsRgbColorEnabled(id))
+				{
+					const ImGuiColorEditFlags colorFlags =
+						ImGuiColorEditFlags_HDR |
+						ImGuiColorEditFlags_Float |
+						ImGuiColorEditFlags_PickerHueWheel;
+					float3 c = mat->RgbColor(id);
+					if(ImGui::ColorEdit3(sliderLabel.c_str(), reinterpret_cast<float*>(&c), colorFlags))
+						mat->Set(id, c);
+				}
+				else
+				{
+					ImGui::LabelText(sliderLabel.c_str(), "");
+				}
 			}
+
+			ImGui::EndTable();
 		}
 	}
 

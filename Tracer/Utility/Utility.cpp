@@ -89,11 +89,19 @@ namespace Tracer
 
 
 
-	std::string Directory(const std::string& filePath)
+	std::string Directory(const std::string& filePath, bool includeTrailingSeparator)
 	{
 		std::string folderPath = filePath;
-		folderPath = folderPath.substr(0, folderPath.find_last_of('/'));
-		folderPath = folderPath.substr(0, folderPath.find_last_of('\\'));
+		const size_t sizeOffset = includeTrailingSeparator ? 1 : 0;
+
+		const size_t lastSlash = folderPath.find_last_of('/');
+		if(lastSlash != std::string::npos)
+			folderPath = folderPath.substr(0, lastSlash + sizeOffset);
+
+		const size_t lastBackslash = folderPath.find_last_of('\\');
+		if(lastBackslash != std::string::npos)
+			folderPath = folderPath.substr(0, lastBackslash + sizeOffset);
+
 		return folderPath;
 	}
 

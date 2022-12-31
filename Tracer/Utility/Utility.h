@@ -18,7 +18,7 @@ namespace Tracer
 	std::string ReplaceAll(const std::string& str, const std::string& toReplace, const std::string& replaceStr);
 
 	// file paths
-	std::string Directory(const std::string& filePath);
+	std::string Directory(const std::string& filePath, bool includeTrailingSeparator = false);
 	std::string FileName(const std::string& filePath);
 	std::string FileExtension(const std::string& filePath);
 	std::string FileNameWithoutExtension(const std::string& filePath);
