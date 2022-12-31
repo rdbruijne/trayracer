@@ -142,7 +142,7 @@
     </PostBuildEvent>
     <ProjectReference />
     <Lib>
-      <AdditionalDependencies>assimp-vc142-mt.lib;IrrXML.lib;zlibstatic.lib;FreeImage.lib;cuda.lib;cudart.lib;opengl32.lib;glew32s.lib;glfw3.lib;nvrtc.lib;cudart_static.lib;Shlwapi.lib</AdditionalDependencies>
+      <AdditionalDependencies>assimp-vc142-mt.lib;IrrXML.lib;zlibstatic.lib;FreeImage.lib;cuda.lib;cudart.lib;opengl32.lib;glew32s.lib;glfw3.lib;nvrtc.lib;cudart_static.lib;Shlwapi.lib;Shcore.lib;</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)libraries\assimp;$(SolutionDir)libraries\FreeImage;$(SolutionDir)libraries\GL;$(SolutionDir)libraries\glfw;$(CUDA_PATH)\lib\x64;$(CudaToolkitLibDir)</AdditionalLibraryDirectories>
       <AdditionalOptions>/ignore:4006 %(AdditionalOptions)</AdditionalOptions>
     </Lib>

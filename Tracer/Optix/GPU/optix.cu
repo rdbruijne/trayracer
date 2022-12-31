@@ -328,7 +328,7 @@ void __raygen__()
 
 			// trace the ray
 			optixTrace(params.sceneRoot, O, D, params.kernelSettings.rayEpsilon, D4.w - (2 * params.kernelSettings.rayEpsilon), 0.f, 0xFF,
-					   OPTIX_RAY_FLAG_DISABLE_ANYHIT | OPTIX_RAY_FLAG_TERMINATE_ON_FIRST_HIT,
+					   OPTIX_RAY_FLAG_DISABLE_ANYHIT | OPTIX_RAY_FLAG_DISABLE_CLOSESTHIT | OPTIX_RAY_FLAG_TERMINATE_ON_FIRST_HIT,
 					   RayType_Surface, RayType_Count, RayType_Surface, u0, u1, u2, u3);
 
 			if(!u0)

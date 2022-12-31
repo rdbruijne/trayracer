@@ -1,5 +1,8 @@
 #pragma once
 
+// Project
+#include "CUDA/GPU/CudaLinearMath.h"
+
 // CUDA
 #include "CUDA/random.h"
 
