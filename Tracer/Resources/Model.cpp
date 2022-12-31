@@ -306,18 +306,4 @@ namespace Tracer
 		// mark synced
 		MarkSynced();
 	}
-
-
-
-	OptixInstance Model::InstanceData(uint32_t instanceId, const float3x4& transform) const
-	{
-		OptixInstance inst = {};
-		memcpy(inst.transform, &transform, 12 * sizeof(float));
-		inst.instanceId        = instanceId;
-		inst.sbtOffset         = 0;
-		inst.visibilityMask    = 0xFF;
-		inst.flags             = OPTIX_INSTANCE_FLAG_NONE;
-		inst.traversableHandle = mTraversableHandle;
-		return inst;
-	}
 }

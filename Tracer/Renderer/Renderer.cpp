@@ -462,7 +462,7 @@ namespace Tracer
 		for(const std::shared_ptr<Instance>& inst : scene->Instances())
 		{
 			const std::shared_ptr<Model>& model = inst->GetModel();
-			instances.push_back(model->InstanceData(instanceId++, inst->Transform()));
+			instances.push_back(inst->InstanceData(instanceId++));
 			meshData.push_back(model->CudaMesh());
 			invTransforms.push_back(inverse(inst->Transform()));
 		}

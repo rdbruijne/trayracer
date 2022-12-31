@@ -1,6 +1,7 @@
 #pragma once
 
 // Project
+#include "Common/CommonStructs.h"
 #include "Resources/Resource.h"
 #include "Utility/LinearMath.h"
 
@@ -21,14 +22,17 @@ namespace Tracer
 		// model
 		inline std::shared_ptr<Model> GetModel() const { return mModel; }
 
-		// transform
-		inline const float3x4& Transform() const { return mTransform; }
-		inline void SetTransform(const float3x4& transform)
+		// visibility
+		inline bool IsVisible() const { return mVisible; }
+		inline void SetVisible(bool visible)
 		{
-			mTransform = transform;
-			decompose(mTransform, mPos, mEuler, mScale);
+			mVisible = visible;
 			MarkDirty();
 		}
+
+		// transform
+		inline const float3x4& Transform() const { return mTransform; }
+		void SetTransform(const float3x4& transform);
 
 		// decomposed transform
 		inline void DecomposedTransform(float3& pos, float3& euler, float3& scale) const
@@ -37,16 +41,13 @@ namespace Tracer
 			euler = mEuler;
 			scale = mScale;
 		}
-		inline void SetDecomposedTransform(const float3& pos, const float3& euler, const float3& scale)
-		{
-			mPos = pos;
-			mEuler = euler;
-			mScale = scale;
-			mTransform = rotate_3x4(euler) * scale_3x4(scale) * translate_3x4(pos);
-			MarkDirty();
-		}
+		void SetDecomposedTransform(const float3& pos, const float3& euler, const float3& scale);
+
+		// instance data
+		OptixInstance InstanceData(uint32_t instanceId) const;
 
 	private:
+		bool mVisible = true;
 		float3 mPos = make_float3(0);
 		float3 mEuler = make_float3(0);
 		float3 mScale = make_float3(1);

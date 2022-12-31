@@ -13,4 +13,37 @@ namespace Tracer
 		AddDependency(model);
 		decompose(mTransform, mPos, mEuler, mScale);
 	}
+
+
+
+	void Instance::SetTransform(const float3x4& transform)
+	{
+		mTransform = transform;
+		decompose(mTransform, mPos, mEuler, mScale);
+		MarkDirty();
+	}
+
+
+
+	void Instance::SetDecomposedTransform(const float3& pos, const float3& euler, const float3& scale)
+	{
+		mPos = pos;
+		mEuler = euler;
+		mScale = scale;
+		mTransform = rotate_3x4(euler) * scale_3x4(scale) * translate_3x4(pos);
+		MarkDirty();
+	}
+
+
+
+	OptixInstance Instance::InstanceData(uint32_t instanceId) const
+	{
+		OptixInstance inst = {};
+		inst.instanceId        = instanceId;
+		inst.sbtOffset         = 0;
+		inst.visibilityMask    = mVisible ? 0xFF : 0x00;
+		inst.flags             = OPTIX_INSTANCE_FLAG_NONE;
+		inst.traversableHandle = mModel->TraversableHandle();
+		return inst;
+	}
 }

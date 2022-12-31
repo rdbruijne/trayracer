@@ -63,10 +63,12 @@ namespace Tracer
 		void Upload(Renderer* renderer);
 
 		// build info
-		OptixInstance InstanceData(uint32_t instanceId, const float3x4& transform) const;
 		inline CudaMeshData CudaMesh() { return mCudaMesh; }
 		inline const CudaMeshData& CudaMesh() const { return mCudaMesh; }
 		inline const std::vector<LightTriangle>& Lights() const { return mLightTriangles; }
+
+		// optix info
+		inline OptixTraversableHandle TraversableHandle() const { return mTraversableHandle; }
 
 	private:
 		std::string mFilePath;
