@@ -208,8 +208,8 @@ namespace Tracer
 			if(aMat->GetTexture(aiTextureType_DIFFUSE, 0, &texPath) == aiReturn_SUCCESS)
 				mat->Set(MaterialPropertyIds::Diffuse, TextureFile::Import(scene, texPath.C_Str(), importDir));
 
-			//if(aMat->GetTexture(aiTextureType_SPECULAR, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->Set(MaterialPropertyIds::Specular, TextureFile::Import(scene, texPath.C_Str(), importDir));
+			if(aMat->GetTexture(aiTextureType_SPECULAR, 0, &texPath) == aiReturn_SUCCESS)
+				mat->Set(MaterialPropertyIds::Specular, TextureFile::Import(scene, texPath.C_Str(), importDir));
 
 			//if(aMat->GetTexture(aiTextureType_EMISSIVE, 0, &texPath) == aiReturn_SUCCESS)
 			//	mat->Set(MaterialPropertyIds::Emissive, TextureFile::Import(scene, texPath.C_Str(), importDir));
@@ -235,11 +235,11 @@ namespace Tracer
 			//if(aMat->GetTexture(aiTextureType_EMISSION_COLOR, 0, &texPath) == aiReturn_SUCCESS)
 			//	mat->Set(MaterialPropertyIds::EmissionColor, TextureFile::Import(scene, texPath.C_Str(), importDir));
 
-			//if(aMat->GetTexture(aiTextureType_METALNESS, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->Set(MaterialPropertyIds::Metalness, TextureFile::Import(scene, texPath.C_Str(), importDir));
+			if(aMat->GetTexture(aiTextureType_METALNESS, 0, &texPath) == aiReturn_SUCCESS)
+				mat->Set(MaterialPropertyIds::Metallic, TextureFile::Import(scene, texPath.C_Str(), importDir));
 
-			//if(aMat->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &texPath) == aiReturn_SUCCESS)
-			//	mat->Set(MaterialPropertyIds::DiffuseRoughness, TextureFile::Import(scene, texPath.C_Str(), importDir));
+			if(aMat->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &texPath) == aiReturn_SUCCESS)
+				mat->Set(MaterialPropertyIds::Roughness, TextureFile::Import(scene, texPath.C_Str(), importDir));
 
 			return mat;
 		}
