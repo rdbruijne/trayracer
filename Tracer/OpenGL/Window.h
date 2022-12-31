@@ -77,10 +77,12 @@ namespace Tracer
 		const GLFWwindow* GlfwWindow() const { return mHandle; }
 
 		// monitor info
+		float DpiScale() const;
 		int CurrentMonitor() const;
+
 		static int MonitorCount();
-		static float PrimaryMonitorDPI();
-		static float MonitorDPI(int monitorIndex);
+		static float PrimaryMonitorDpiScale();
+		static float MonitorDpiScale(int monitorIndex);
 
 		// drag/drop
 		bool HasDrops() const { return mDrops.size() > 0; }

@@ -23,7 +23,7 @@ namespace Tracer
 
 		void SetDpi(Window* window)
 		{
-			const float dpiScale = Window::MonitorDPI(window->CurrentMonitor());
+			const float dpiScale = window->DpiScale();
 			if(gDpiScale != dpiScale)
 			{
 				ImGuiStyle& style = ImGui::GetStyle();

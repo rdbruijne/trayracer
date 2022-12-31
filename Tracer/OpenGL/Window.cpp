@@ -168,7 +168,7 @@ namespace Tracer
 		{
 			glfwGetWindowSize(mHandle, &resolution.x, &resolution.y);
 
-			const float dpiScale = MonitorDPI(CurrentMonitor());
+			const float dpiScale = DpiScale();
 			resolution = make_int2(static_cast<int>(resolution.x / dpiScale), static_cast<int>(resolution.y / dpiScale));
 		}
 		return resolution;
@@ -195,7 +195,7 @@ namespace Tracer
 			mFramebuffers[1] = new GLFramebuffer(resolution);
 		}
 
-		const float dpiScale = MonitorDPI(CurrentMonitor());
+		const float dpiScale = DpiScale();
 		const int2 dpiRes = make_int2(static_cast<int>(resolution.x * dpiScale), static_cast<int>(resolution.y * dpiScale));
 		glfwSetWindowSize(mHandle, dpiRes.x, dpiRes.y);
 
@@ -382,7 +382,7 @@ namespace Tracer
 
 	float2 Window::CursorPos() const
 	{
-		return mCurInputState.MousePos / MonitorDPI(CurrentMonitor());
+		return mCurInputState.MousePos / DpiScale();
 	}
 
 
@@ -404,6 +404,13 @@ namespace Tracer
 	float2 Window::ScrollDelta() const
 	{
 		return mCurInputState.MouseScroll - mPrevInputState.MouseScroll;
+	}
+
+
+
+	float Window::DpiScale() const
+	{
+		return MonitorDpiScale(CurrentMonitor());
 	}
 
 
@@ -441,7 +448,7 @@ namespace Tracer
 
 
 
-	float Window::PrimaryMonitorDPI()
+	float Window::PrimaryMonitorDpiScale()
 	{
 		float xScale = 0;
 		float yScale = 0;
@@ -451,7 +458,7 @@ namespace Tracer
 
 
 
-	float Window::MonitorDPI(int monitorIndex)
+	float Window::MonitorDpiScale(int monitorIndex)
 	{
 		int count = 0;
 		GLFWmonitor** monitors = glfwGetMonitors(&count);
