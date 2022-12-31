@@ -227,25 +227,19 @@ namespace Tracer
 
 	void MainGui::DebugElements()
 	{
-		ImGui::Columns(2);
-
-		// table header
-		ImGui::Separator();
-		ImGui::Text("Data");
-		ImGui::NextColumn();
-		ImGui::Text("Value");
-		ImGui::NextColumn();
-		ImGui::Separator();
-
-		// data
-		for(auto& [key, value] : mDebugItems)
+		const ImGuiTableFlags tableFlags = ImGuiTableFlags_RowBg;
+		if(ImGui::BeginTable("Debug info", 2, tableFlags))
 		{
-			ImGui::Text(key.c_str());
-			ImGui::NextColumn();
-			ImGui::Text(value.c_str());
-			ImGui::NextColumn();
+			for(auto& [key, value] : mDebugItems)
+			{
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+				ImGui::Text(key.c_str());
+				ImGui::TableNextColumn();
+				ImGui::Text(value.c_str());
+			}
+			ImGui::EndTable();
 		}
-		ImGui::Columns();
 	}
 
 
@@ -684,18 +678,23 @@ namespace Tracer
 
 	void MainGui::StatisticsElements()
 	{
-#define SPACE						\
-		for(int i = 0; i < 4; i++)	\
-		{							\
-			ImGui::Spacing();		\
-			ImGui::NextColumn();	\
+#define HEADER(s)						\
+		{								\
+			ImGui::TableNextRow();		\
+			ImGui::TableNextColumn();	\
+			ImGui::Text(s);				\
 		}
 
-#define ROW(s, ...)					\
-		ImGui::Text(s);				\
-		ImGui::NextColumn();		\
-		ImGui::Text(__VA_ARGS__);	\
-		ImGui::NextColumn();
+#define ROW(s, ...)						\
+		{								\
+			ImGui::TableNextRow();		\
+			ImGui::TableNextColumn();	\
+			ImGui::Indent(16.0f);		\
+			ImGui::Text(s);				\
+			ImGui::Unindent(16.f);		\
+			ImGui::TableNextColumn();	\
+			ImGui::Text(__VA_ARGS__);	\
+		}
 
 		const Renderer* renderer = GuiHelpers::GetRenderer();
 		if(!renderer)
@@ -708,92 +707,95 @@ namespace Tracer
 		const Scene* scene = GuiHelpers::GetScene();
 		const Window* window = GuiHelpers::GetRenderWindow();
 		const RenderStatistics renderStats = renderer->Statistics();
-
-		// init column layout
-		ImGui::Columns(2);
-
-		// drivers
-		int driverVersion;
-		int cudaRuntime;
-		CUDA_CHECK(cudaDriverGetVersion(&driverVersion));
-		CUDA_CHECK(cudaRuntimeGetVersion(&cudaRuntime));
-		ROW("CUDA API", "%d.%d", CUDA_VERSION / 1000, (CUDA_VERSION % 1000) / 10);
-		ROW("CUDA driver", "%d.%d", driverVersion / 1000, (driverVersion % 1000) / 10);
-		ROW("CUDA runtime", "%d.%d", cudaRuntime / 1000, (cudaRuntime % 1000) / 10);
-		ROW("Optix", "%d.%d", OPTIX_VERSION / 10000, (OPTIX_VERSION % 10000) / 100, OPTIX_VERSION % 100);
-		SPACE;
-
-		// OpenGL
-		ROW("OpenGL Version", GLVersion());
-		ROW("OpenGL Vendor", GLVendor());
-		ROW("OpenGL Renderer", GLRenderer());
-		ROW("OpenGL Shading Language Version", GLShadingLanguageVersion());
-		SPACE;
-
-		// device
-		const cudaDeviceProp& devProps = renderer->Device()->DeviceProperties();
-		size_t freeDeviceMem, totalDeviceMem;
-		renderer->Device()->MemoryUsage(freeDeviceMem, totalDeviceMem);
-		ROW("Device", devProps.name);
-		ROW("Memory size", "%d / %d MB", freeDeviceMem >> 20, devProps.totalGlobalMem >> 20);
-		SPACE;
-
-		// kernel
-		ROW("Kernel", std::string(magic_enum::enum_name(renderer->RenderMode())).c_str());
-		ROW("Samples", "%d", renderer->SampleCount());
-		ROW("Denoised samples","%d", renderer->GetDenoiser()->SampleCount());
-		ROW("Resolution", "%i x %i", window->Resolution().x, window->Resolution().y);
-
-		SPACE;
-
-		// times
 		const RenderStatistics::DeviceStatistics& deviceStats = renderStats.devices[0];
 
-		ROW("FPS", "%.1f", 1e3f / GuiHelpers::GetFrameTimeMs());
-		ROW("Frame time", "%.1f ms", GuiHelpers::GetFrameTimeMs());
-		SPACE;
-		ROW("Primary rays", "%.1f ms", deviceStats.primaryPathTimeMs);
-		ROW("Secondary rays", "%.1f ms", deviceStats.secondaryPathTimeMs);
-		ROW("Deep rays", "%.1f ms", deviceStats.deepPathTimeMs);
-		ROW("Shadow rays", "%.1f ms", deviceStats.shadowTimeMs);
-		SPACE;
-		ROW("Shade time", "%.1f ms", deviceStats.shadeTimeMs);
-		ROW("Denoise time", "%.1f ms", renderStats.denoiseTimeMs);
-		SPACE;
-		ROW("Build time", "%.1f ms", renderStats.buildTimeMs);
-		SPACE;
-		ROW("Geometry build time", "%.1f ms", renderStats.geoBuildTimeMs);
-		ROW("Material build time", "%.1f ms", renderStats.matBuildTimeMs);
-		ROW("Sky build time", "%.1f ms", renderStats.skyBuildTimeMs);
-		SPACE;
-		ROW("Geometry upload time", "%.1f ms", renderStats.geoUploadTimeMs);
-		ROW("Material upload time", "%.1f ms", renderStats.matUploadTimeMs);
-		ROW("Sky upload time", "%.1f ms", renderStats.skyUploadTimeMs);
-		SPACE;
+		// init column layout
+		const ImGuiTableFlags tableFlags = ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInner;
+		if(ImGui::BeginTable("statistics", 2, tableFlags))
+		{
+			// device
+			const cudaDeviceProp& devProps = renderer->Device()->DeviceProperties();
+			size_t freeDeviceMem, totalDeviceMem;
+			renderer->Device()->MemoryUsage(freeDeviceMem, totalDeviceMem);
+			HEADER("Devices");
+			ROW("Device", devProps.name);
+			ROW("Memory used / total", "%d / %d MB", (totalDeviceMem - freeDeviceMem) >> 20, totalDeviceMem >> 20);
 
-		// rays
-		ROW("Rays", "%.1f M (%.1f M/s)", deviceStats.pathCount * 1e-6, PerSec(deviceStats.pathCount, GuiHelpers::GetFrameTimeMs()) * 1e-6);
-		ROW("Primaries", "%.1f M (%.1f M/s)", deviceStats.primaryPathCount * 1e-6, PerSec(deviceStats.primaryPathCount, deviceStats.primaryPathTimeMs) * 1e-6);
-		ROW("Secondaries", "%.1f M (%.1f M/s)", deviceStats.secondaryPathCount * 1e-6, PerSec(deviceStats.secondaryPathCount, deviceStats.secondaryPathTimeMs) * 1e-6);
-		ROW("Deep", "%.1f M (%.1f M/s)", deviceStats.deepPathCount * 1e-6, PerSec(deviceStats.deepPathCount, deviceStats.deepPathTimeMs) * 1e-6);
-		ROW("Shadow", "%.1f M (%.1f M/s)", deviceStats.shadowRayCount * 1e-6, PerSec(deviceStats.shadowRayCount, deviceStats.shadowTimeMs) * 1e-6);
+			// kernel
+			HEADER("Kernel");
+			ROW("Kernel", std::string(magic_enum::enum_name(renderer->RenderMode())).c_str());
+			ROW("Samples", "%d", renderer->SampleCount());
+			ROW("Denoised samples","%d", renderer->GetDenoiser()->SampleCount());
+			ROW("Resolution", "%i x %i", window->Resolution().x, window->Resolution().y);
 
-		SPACE;
+			// times
+			HEADER("Framerate");
+			ROW("FPS", "%.1f", 1e3f / GuiHelpers::GetFrameTimeMs());
+			ROW("Frame time", "%.1f ms", GuiHelpers::GetFrameTimeMs());
 
-		// scene
-		ROW("Instance count", "%lld", scene->InstanceCount());
-		ROW("Model count", "%lld", scene->InstancedModelCount());
-		ROW("Texture count", "%lld", scene->TextureCount());
-		ROW("Triangle count", "%s", ThousandSeparators(scene->TriangleCount()).c_str());
-		ROW("Unique triangle count", "%s", ThousandSeparators(scene->UniqueTriangleCount()).c_str());
-		ROW("Lights", "%s", ThousandSeparators(scene->LightCount()).c_str());
-		ROW("Unique lights", "%s", ThousandSeparators(scene->UniqueLightCount()).c_str());
-		ROW("Light energy", "%f", scene->LightEnergy());
-		ROW("Sun energy", "%f", scene->SunEnergy());
+			HEADER("Ray times");
+			ROW("Primary rays", "%.1f ms", deviceStats.primaryPathTimeMs);
+			ROW("Secondary rays", "%.1f ms", deviceStats.secondaryPathTimeMs);
+			ROW("Deep rays", "%.1f ms", deviceStats.deepPathTimeMs);
+			ROW("Shadow rays", "%.1f ms", deviceStats.shadowTimeMs);
 
-		ImGui::Columns();
+			HEADER("Post");
+			ROW("Shade time", "%.1f ms", deviceStats.shadeTimeMs);
+			ROW("Denoise time", "%.1f ms", renderStats.denoiseTimeMs);
 
-#undef SPACE
+			HEADER("Build");
+			ROW("Build time", "%.1f ms", renderStats.buildTimeMs);
+			ROW("Geometry build time", "%.1f ms", renderStats.geoBuildTimeMs);
+			ROW("Material build time", "%.1f ms", renderStats.matBuildTimeMs);
+			ROW("Sky build time", "%.1f ms", renderStats.skyBuildTimeMs);
+
+			HEADER("Upload");
+			ROW("Geometry upload time", "%.1f ms", renderStats.geoUploadTimeMs);
+			ROW("Material upload time", "%.1f ms", renderStats.matUploadTimeMs);
+			ROW("Sky upload time", "%.1f ms", renderStats.skyUploadTimeMs);
+
+			// rays
+			HEADER("Rays/sec");
+			ROW("Rays", "%.1f M (%.1f M/s)", deviceStats.pathCount * 1e-6, PerSec(deviceStats.pathCount, GuiHelpers::GetFrameTimeMs()) * 1e-6);
+			ROW("Primaries", "%.1f M (%.1f M/s)", deviceStats.primaryPathCount * 1e-6, PerSec(deviceStats.primaryPathCount, deviceStats.primaryPathTimeMs) * 1e-6);
+			ROW("Secondaries", "%.1f M (%.1f M/s)", deviceStats.secondaryPathCount * 1e-6, PerSec(deviceStats.secondaryPathCount, deviceStats.secondaryPathTimeMs) * 1e-6);
+			ROW("Deep", "%.1f M (%.1f M/s)", deviceStats.deepPathCount * 1e-6, PerSec(deviceStats.deepPathCount, deviceStats.deepPathTimeMs) * 1e-6);
+			ROW("Shadow", "%.1f M (%.1f M/s)", deviceStats.shadowRayCount * 1e-6, PerSec(deviceStats.shadowRayCount, deviceStats.shadowTimeMs) * 1e-6);
+
+			// scene
+			HEADER("Scene");
+			ROW("Instance count", "%lld", scene->InstanceCount());
+			ROW("Model count", "%lld", scene->InstancedModelCount());
+			ROW("Texture count", "%lld", scene->TextureCount());
+			ROW("Triangle count", "%s", ThousandSeparators(scene->TriangleCount()).c_str());
+			ROW("Unique triangle count", "%s", ThousandSeparators(scene->UniqueTriangleCount()).c_str());
+			ROW("Lights", "%s", ThousandSeparators(scene->LightCount()).c_str());
+			ROW("Unique lights", "%s", ThousandSeparators(scene->UniqueLightCount()).c_str());
+			ROW("Light energy", "%f", scene->LightEnergy());
+			ROW("Sun energy", "%f", scene->SunEnergy());
+
+			// drivers
+			int driverVersion;
+			int cudaRuntime;
+			CUDA_CHECK(cudaDriverGetVersion(&driverVersion));
+			CUDA_CHECK(cudaRuntimeGetVersion(&cudaRuntime));
+			HEADER("CUDA");
+			ROW("CUDA API", "%d.%d", CUDA_VERSION / 1000, (CUDA_VERSION % 1000) / 10);
+			ROW("CUDA driver", "%d.%d", driverVersion / 1000, (driverVersion % 1000) / 10);
+			ROW("CUDA runtime", "%d.%d", cudaRuntime / 1000, (cudaRuntime % 1000) / 10);
+			ROW("Optix", "%d.%d", OPTIX_VERSION / 10000, (OPTIX_VERSION % 10000) / 100, OPTIX_VERSION % 100);
+
+			// OpenGL
+			HEADER("OpenGL");
+			ROW("OpenGL Version", GLVersion());
+			ROW("OpenGL Vendor", GLVendor());
+			ROW("OpenGL Renderer", GLRenderer());
+			ROW("OpenGL Shading Language Version", GLShadingLanguageVersion());
+
+			ImGui::EndTable();
+		}
+
+#undef HEADER
 #undef ROW
 	}
 
@@ -805,48 +807,52 @@ namespace Tracer
 
 		constexpr int columns = 4;
 		constexpr float buttonWidth = (1.f / columns) * .9f;
-
-		ImGui::Columns(columns, nullptr, false);
-
-		// Load scene
-		if(ImGui::Button("Load scene", ImVec2(ImGui::GetWindowWidth() * buttonWidth, 0)))
+		const ImGuiTableFlags tableFlags = ImGuiTableFlags_None;
+		if(ImGui::BeginTable("scene buttons", 4, tableFlags))
 		{
-			std::string sceneFile;
-			if(OpenFileDialog("Json\0*.json\0", "Select a scene file", true, sceneFile))
+			ImGui::TableNextRow();
+
+			// Load scene
+			ImGui::TableNextColumn();
+			if(ImGui::Button("Load scene", ImVec2(ImGui::GetWindowWidth() * buttonWidth, 0)))
+			{
+				std::string sceneFile;
+				if(OpenFileDialog("Json\0*.json\0", "Select a scene file", true, sceneFile))
+				{
+					scene->Clear();
+					SceneFile::Load(sceneFile, scene, scene->GetSky().get(), GuiHelpers::GetCamNode(), GuiHelpers::GetRenderer(), GuiHelpers::GetRenderWindow());
+				}
+			}
+
+			// Add scene
+			ImGui::TableNextColumn();
+			if(ImGui::Button("Add scene", ImVec2(ImGui::GetWindowWidth() * buttonWidth, 0)))
+			{
+				std::string sceneFile;
+				if(OpenFileDialog("Json\0*.json\0", "Select a scene file", true, sceneFile))
+				{
+					SceneFile::Load(sceneFile, scene, nullptr, nullptr, nullptr, nullptr);
+				}
+			}
+
+			// Save scene
+			ImGui::TableNextColumn();
+			if(ImGui::Button("Save scene", ImVec2(ImGui::GetWindowWidth() * buttonWidth, 0)))
+			{
+				std::string sceneFile;
+				if(SaveFileDialog("Json\0*.json\0", "Select a scene file", sceneFile))
+					SceneFile::Save(sceneFile, scene, scene->GetSky().get(), GuiHelpers::GetCamNode(), GuiHelpers::GetRenderer(), GuiHelpers::GetRenderWindow());
+			}
+
+			// Clear scene
+			ImGui::TableNextColumn();
+			if(ImGui::Button("Clear scene", ImVec2(ImGui::GetWindowWidth() * buttonWidth, 0)))
 			{
 				scene->Clear();
-				SceneFile::Load(sceneFile, scene, scene->GetSky().get(), GuiHelpers::GetCamNode(), GuiHelpers::GetRenderer(), GuiHelpers::GetRenderWindow());
 			}
-		}
-		ImGui::NextColumn();
 
-		// Add scene
-		if(ImGui::Button("Add scene", ImVec2(ImGui::GetWindowWidth() * buttonWidth, 0)))
-		{
-			std::string sceneFile;
-			if(OpenFileDialog("Json\0*.json\0", "Select a scene file", true, sceneFile))
-			{
-				SceneFile::Load(sceneFile, scene, nullptr, nullptr, nullptr, nullptr);
-			}
+			ImGui::EndTable();
 		}
-		ImGui::NextColumn();
-
-		// Save scene
-		if(ImGui::Button("Save scene", ImVec2(ImGui::GetWindowWidth() * buttonWidth, 0)))
-		{
-			std::string sceneFile;
-			if(SaveFileDialog("Json\0*.json\0", "Select a scene file", sceneFile))
-				SceneFile::Save(sceneFile, scene, scene->GetSky().get(), GuiHelpers::GetCamNode(), GuiHelpers::GetRenderer(), GuiHelpers::GetRenderWindow());
-		}
-		ImGui::NextColumn();
-
-		// Clear scene
-		if(ImGui::Button("Clear scene", ImVec2(ImGui::GetWindowWidth() * buttonWidth, 0)))
-		{
-			scene->Clear();
-		}
-
-		ImGui::Columns();
 	}
 
 
@@ -855,8 +861,6 @@ namespace Tracer
 	{
 		Scene* scene = GuiHelpers::GetScene();
 
-		ImGui::Columns(2, nullptr, true);
-
 		// Gather model names
 		std::vector<std::shared_ptr<Model>> models = scene->Models();
 		std::vector<const char*> modelNames;
@@ -864,59 +868,66 @@ namespace Tracer
 		for(const std::shared_ptr<Model>& m : models)
 			modelNames.push_back(m->Name().c_str());
 
-		// Model selection
-		if(ImGui::ListBox("Models", &mSelectedModelIx, modelNames.data(), static_cast<int>(modelNames.size())))
-			SelectModel(mSelectedModelIx);
-		ImGui::NextColumn();
-
-		// Import model
-		if(ImGui::Button("Import"))
+		const ImGuiTableFlags tableFlags = ImGuiTableFlags_BordersInnerV;
+		if(ImGui::BeginTable("Scene models", 2, tableFlags))
 		{
-			std::string modelFile = ImportModelDialog();
-			if(!modelFile.empty())
+			ImGui::TableNextRow();
+
+			// Model selection
+			ImGui::TableNextColumn();
+			if(ImGui::ListBox("Models", &mSelectedModelIx, modelNames.data(), static_cast<int>(modelNames.size())))
+				SelectModel(mSelectedModelIx);
+
+			// model manipulation
+			ImGui::TableNextColumn();
+
+			// Import model
+			if(ImGui::Button("Import"))
 			{
-				std::shared_ptr<Model> model = ModelFile::Import(scene, modelFile);
-				if(model)
-					scene->Add(model);
+				std::string modelFile = ImportModelDialog();
+				if(!modelFile.empty())
+				{
+					std::shared_ptr<Model> model = ModelFile::Import(scene, modelFile);
+					if(model)
+						scene->Add(model);
 
-				models = scene->Models();
-				mSelectedModelIx = static_cast<int>(models.size() - 1);
-				strcpy_s(mModelName, mNameBufferSize, models[mSelectedModelIx]->Name().c_str());
+					models = scene->Models();
+					mSelectedModelIx = static_cast<int>(models.size() - 1);
+					strcpy_s(mModelName, mNameBufferSize, models[mSelectedModelIx]->Name().c_str());
+				}
 			}
+
+			if(mSelectedModelIx >= static_cast<int>(models.size()))
+				mSelectedModelIx = 0;
+			std::shared_ptr<Model> model = models.size() > 0 ? models[mSelectedModelIx] : nullptr;
+
+			// delete
+			if(ImGui::Button("Delete##delete_model"))
+			{
+				scene->Remove(model);
+				models = scene->Models();
+				SelectModel(0);
+			}
+
+			// create instance
+			if(ImGui::Button("Create instance") && model)
+			{
+				scene->Add(std::make_shared<Instance>(model->Name(), model, make_float3x4()));
+				strcpy_s(mInstanceName, mNameBufferSize, scene->Instances()[mSelectedInstanceIx]->Name().c_str());
+			}
+
+			// Properties
+			if(ImGui::InputText("Name##model_name", mModelName, mNameBufferSize, ImGuiInputTextFlags_EnterReturnsTrue) && model && strlen(mModelName) > 0)
+				model->SetName(mModelName);
+
+			ImGui::EndTable();
 		}
-
-		if(mSelectedModelIx >= static_cast<int>(models.size()))
-			mSelectedModelIx = 0;
-		std::shared_ptr<Model> model = models.size() > 0 ? models[mSelectedModelIx] : nullptr;
-
-		// delete
-		if(ImGui::Button("Delete##delete_model"))
-		{
-			scene->Remove(model);
-			models = scene->Models();
-			SelectModel(0);
-		}
-
-		// create instance
-		if(ImGui::Button("Create instance") && model)
-		{
-			scene->Add(std::make_shared<Instance>(model->Name(), model, make_float3x4()));
-			strcpy_s(mInstanceName, mNameBufferSize, scene->Instances()[mSelectedInstanceIx]->Name().c_str());
-		}
-
-		// Properties
-		if(ImGui::InputText("Name##model_name", mModelName, mNameBufferSize, ImGuiInputTextFlags_EnterReturnsTrue) && model && strlen(mModelName) > 0)
-			model->SetName(mModelName);
-
-		ImGui::Columns();
 	}
 
 
 
 	void MainGui::Scene_Instances()
 	{
-		ImGui::Columns(2, nullptr, true);
-
 		// Gather instance names
 		const std::vector<std::shared_ptr<Instance>>& instances = GuiHelpers::GetScene()->Instances();
 		std::vector<const char*> instanceNames;
@@ -924,69 +935,83 @@ namespace Tracer
 		for(std::shared_ptr<Instance> inst : instances)
 			instanceNames.push_back(inst->Name().c_str());
 
-		// Instance selection
-		if(ImGui::ListBox("Instances", &mSelectedInstanceIx, instanceNames.data(), static_cast<int>(instanceNames.size())))
-			SelectInstance(mSelectedInstanceIx);
-		ImGui::NextColumn();
-
-		if(instances.size() > 0)
+		const ImGuiTableFlags tableFlags = ImGuiTableFlags_BordersInnerV;
+		if(ImGui::BeginTable("Scene instances", 2, tableFlags))
 		{
-			if(mSelectedInstanceIx >= static_cast<int>(instances.size()))
-				mSelectedInstanceIx = 0;
+			ImGui::TableNextRow();
 
-			std::shared_ptr<Instance> inst = instances[mSelectedInstanceIx];
-			std::shared_ptr<Model> model = inst->GetModel();
+			// Instance selection
+			ImGui::TableNextColumn();
+			if(ImGui::ListBox("Instances", &mSelectedInstanceIx, instanceNames.data(), static_cast<int>(instanceNames.size())))
+				SelectInstance(mSelectedInstanceIx);
 
-			// Name
-			if(ImGui::InputText("Name##inst_name", mInstanceName, mNameBufferSize, ImGuiInputTextFlags_EnterReturnsTrue) && inst && strlen(mInstanceName) > 0)
-				inst->SetName(mInstanceName);
-
-			ImGui::InputText("Model", model ? const_cast<char*>(model->Name().c_str()) : nullptr, model ? static_cast<int>(model->Name().length()) : 0, ImGuiInputTextFlags_ReadOnly);
-
-			// transform
-			float3 pos;
-			float3 scale;
-			float3 euler;
-			inst->DecomposedTransform(pos, euler, scale);
-
-			float p[] = { pos.x, pos.y, pos.z };
-			float s[] = { scale.x, scale.y, scale.z };
-			float e[] = { euler.x * RadToDeg, euler.y * RadToDeg, euler.z * RadToDeg };
-
-			bool changed = false;
-			if(ImGui::InputFloat3("Pos", p, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue))
+			// manipulate instance
+			ImGui::TableNextColumn();
+			if(instances.size() > 0)
 			{
-				pos = make_float3(p[0], p[1], p[2]);
-				changed = true;
+				if(mSelectedInstanceIx >= static_cast<int>(instances.size()))
+					mSelectedInstanceIx = 0;
+
+				std::shared_ptr<Instance> inst = instances[mSelectedInstanceIx];
+				std::shared_ptr<Model> model = inst->GetModel();
+
+				// Name
+				if(ImGui::InputText("Name##inst_name", mInstanceName, mNameBufferSize, ImGuiInputTextFlags_EnterReturnsTrue) && inst && strlen(mInstanceName) > 0)
+					inst->SetName(mInstanceName);
+
+				ImGui::InputText("Model", model ? const_cast<char*>(model->Name().c_str()) : nullptr, model ? static_cast<int>(model->Name().length()) : 0, ImGuiInputTextFlags_ReadOnly);
+
+				// transform
+				float3 pos;
+				float3 scale;
+				float3 euler;
+				inst->DecomposedTransform(pos, euler, scale);
+
+				float p[] = { pos.x, pos.y, pos.z };
+				float s[] = { scale.x, scale.y, scale.z };
+				float e[] = { euler.x * RadToDeg, euler.y * RadToDeg, euler.z * RadToDeg };
+
+				bool changed = false;
+				if(ImGui::InputFloat3("Pos", p, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue))
+				{
+					pos = make_float3(p[0], p[1], p[2]);
+					changed = true;
+				}
+
+				if(ImGui::InputFloat3("Scale", s, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue))
+				{
+					scale = make_float3(s[0], s[1], s[2]);
+					changed = true;
+				}
+
+				if(ImGui::InputFloat3("Euler", e, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue))
+				{
+					euler = make_float3(e[0] * DegToRad, e[1] * DegToRad, e[2] * DegToRad);
+					changed = true;
+				}
+
+				if(changed)
+				{
+					inst->SetDecomposedTransform(pos, euler, scale);
+				}
+
+				// show/hide
+				if(ImGui::Button(inst->IsVisible() ? "Hide" : "Show"))
+				{
+					inst->SetVisible(!inst->IsVisible());
+				}
+
+				// delete
+				ImGui::SameLine();
+				if(ImGui::Button("Delete##delete_instance"))
+				{
+					GuiHelpers::GetScene()->Remove(inst);
+					SelectInstance(0);
+				}
 			}
 
-			if(ImGui::InputFloat3("Scale", s, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue))
-			{
-				scale = make_float3(s[0], s[1], s[2]);
-				changed = true;
-			}
-
-			if(ImGui::InputFloat3("Euler", e, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue))
-			{
-				euler = make_float3(e[0] * DegToRad, e[1] * DegToRad, e[2] * DegToRad);
-				changed = true;
-			}
-
-			if(changed)
-			{
-				inst->SetDecomposedTransform(pos, euler, scale);
-			}
-
-
-			// delete
-			if(ImGui::Button("Delete##delete_instance"))
-			{
-				GuiHelpers::GetScene()->Remove(inst);
-				SelectInstance(0);
-			}
+			ImGui::EndTable();
 		}
-
-		ImGui::Columns();
 	}
 
 
