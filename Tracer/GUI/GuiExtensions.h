@@ -15,7 +15,7 @@
 namespace Tracer
 {
 	// enum combo box
-	template<typename Enum, typename = typename std::enable_if<std::is_enum<Enum>::value, Enum>::type>
+	template<typename Enum, std::enable_if_t<std::is_enum_v<Enum>, bool> = true>
 	static bool ComboBox(const std::string& name, Enum& value)
 	{
 		bool changed = false;

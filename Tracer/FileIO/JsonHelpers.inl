@@ -1,6 +1,6 @@
 namespace Tracer
 {
-	template<typename Enum, typename>
+	template<typename Enum, std::enable_if_t<std::is_enum_v<Enum>, bool>>
 	bool Read(const rapidjson::Value& jsonValue, const std::string_view& memberName, Enum& result)
 	{
 		std::string s;
@@ -17,7 +17,7 @@ namespace Tracer
 
 
 
-	template<typename Enum, typename>
+	template<typename Enum, std::enable_if_t<std::is_enum_v<Enum>, bool>>
 	void Write(rapidjson::Value& jsonValue, rapidjson::Document::AllocatorType& allocator, const std::string_view& memberName, Enum val)
 	{
 		const std::string s = std::string(magic_enum::enum_name(val));
