@@ -18,14 +18,16 @@
 #include "Utility/LinearMath.h"
 #include "Utility/Logger.h"
 #include "Utility/Stopwatch.h"
-#include "Utility/Utility.h"
 
 // SPT
 #include "CUDA/GPU/CudaFwd.h"
 
 // Optix
 #pragma warning(push)
-#pragma warning(disable: 4061 4365 5039 6011 6387 26451)
+#pragma warning(disable: 5039) // 'function': pointer or reference to potentially throwing function passed to extern C function under -EHc. Undefined behavior may occur if this function throws an exception.
+#pragma warning(disable: 6011) // Dereferencing NULL pointer 'pointer-name'.
+#pragma warning(disable: 6387) // 'argument' may be 'value': this does not adhere to the specification for the function 'function name': Lines: x, y
+#pragma warning(disable: 26451) // Arithmetic overflow: Using operator 'operator' on a size-a byte value and then casting the result to a size-b byte value. Cast the value to the wider type before calling operator 'operator' to avoid overflow (io.2)
 #include "optix7/optix.h"
 #include "optix7/optix_stubs.h"
 #pragma warning(pop)
@@ -170,7 +172,7 @@ namespace Tracer
 
 		// render the frame
 		mRenderTimeEvent.Start(mCudaDevice->Stream());
-		mDeviceRenderer->RenderFrame(0, texRes.y, mKernelSettings, mRenderMode, renderFlags);
+		mDeviceRenderer->RenderFrame(mKernelSettings, mRenderMode, renderFlags);
 		mRenderTimeEvent.Stop(mCudaDevice->Stream());
 		cudaStreamSynchronize(mCudaDevice->Stream());
 
@@ -185,8 +187,7 @@ namespace Tracer
 		mRenderStats.denoiseTimeMs = mDenoiseTimeEvent.Elapsed();
 
 		// copy from devices
-		mRenderStats.devices.clear();
-		mRenderStats.devices.push_back(mDeviceRenderer->Statistics());
+		mRenderStats.device = mDeviceRenderer->Statistics();
 	}
 
 
@@ -276,8 +277,6 @@ namespace Tracer
 
 	bool Renderer::ShouldDenoise() const
 	{
-#pragma warning(push)
-#pragma warning(disable: 4061)
 		switch(mRenderMode)
 		{
 		case RenderModes::AmbientOcclusion:
@@ -290,7 +289,6 @@ namespace Tracer
 		default:
 			return false;
 		}
-#pragma warning(pop)
 	}
 
 
@@ -309,7 +307,7 @@ namespace Tracer
 		std::atomic_size_t modelIx = 0;
 		for(size_t i = 0; i < std::thread::hardware_concurrency(); i++)
 		{
-			modelBuilders.push_back(std::thread([this, &modelIx, &models, &rebuildLights]()
+			modelBuilders.push_back(std::thread([&modelIx, &models, &rebuildLights]()
 			{
 				size_t ix = modelIx++;
 				while(ix < models.size())
@@ -488,7 +486,7 @@ namespace Tracer
 
 
 
-	void Renderer::UploadMaterials(Scene* scene)
+	void Renderer::UploadMaterials(Scene* /*scene*/)
 	{
 		std::vector<CudaMatarial> materialData;
 		materialData.reserve(mMaterials.size());
@@ -536,7 +534,9 @@ namespace Tracer
 			return;
 		}
 
-		if(mDeviceRenderer->SampleCount() >= (mDenoiser->SampleCount() * Phi))
+		const uint32_t denoisedSamples = mDenoiser->SampleCount();
+		const uint32_t denoiseThreshold = denoisedSamples + (denoisedSamples >> 1);
+		if(mDeviceRenderer->SampleCount() >= denoiseThreshold)
 		{
 			mDenoiseTimeEvent.Start(mCudaDevice->Stream());
 			mDenoiser->DenoiseFrame(mCudaDevice->Stream(),
@@ -557,9 +557,11 @@ namespace Tracer
 		const int2 texRes = renderTexture->Resolution();
 		cudaArray* cudaTexPtr = nullptr;
 		const void* srcBuffer = ShouldDenoise() ? mDenoiser->DenoisedBuffer().Ptr() : mDeviceRenderer->ColorBuffer().Ptr();
+		const size_t pitch = static_cast<size_t>(texRes.x) * sizeof(float4);
+		const size_t width = pitch;
 		CUDA_CHECK(cudaGraphicsMapResources(1, &mCudaGraphicsResource, 0));
 		CUDA_CHECK(cudaGraphicsSubResourceGetMappedArray(&cudaTexPtr, mCudaGraphicsResource, 0, 0));
-		CUDA_CHECK(cudaMemcpy2DToArray(cudaTexPtr, 0, 0, srcBuffer, texRes.x * sizeof(float4), texRes.x * sizeof(float4), texRes.y, cudaMemcpyDeviceToDevice));
+		CUDA_CHECK(cudaMemcpy2DToArray(cudaTexPtr, 0, 0, srcBuffer, pitch, width, static_cast<size_t>(texRes.y), cudaMemcpyDeviceToDevice));
 		CUDA_CHECK(cudaGraphicsUnmapResources(1, &mCudaGraphicsResource, 0));
 		CUDA_CHECK(cudaDeviceSynchronize());
 	}

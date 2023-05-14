@@ -5,9 +5,10 @@
 #include "Renderer/Scene.h"
 #include "Resources/Material.h"
 #include "Resources/Texture.h"
+#include "Utility/FileSystem.h"
 #include "Utility/Logger.h"
 #include "Utility/Stopwatch.h"
-#include "Utility/Utility.h"
+#include "Utility/Strings.h"
 
 // FreeImage
 #include "FreeImage/FreeImage.h"
@@ -32,7 +33,7 @@ namespace Tracer
 		bool SaveToCache(std::shared_ptr<Texture> tex, const std::string& filePath)
 		{
 			// create file
-			const std::string cacheFile = BinaryFile::GenFilename(filePath);
+			const std::string cacheFile = BinaryFile::CachedFilePath(filePath);
 			BinaryFile f(cacheFile, BinaryFile::FileMode::Write);
 
 			// write the header
@@ -48,10 +49,10 @@ namespace Tracer
 
 
 
-		std::shared_ptr<Texture> LoadFromCache(Scene* scene, const std::string& filePath, const std::string& importDir = "")
+		std::shared_ptr<Texture> LoadFromCache(const std::string& filePath)
 		{
 			// cache file name
-			const std::string cacheFile = BinaryFile::GenFilename(filePath);
+			const std::string cacheFile = BinaryFile::CachedFilePath(filePath);
 
 			// compare write times
 			if(!FileExists(cacheFile) || FileLastWriteTime(filePath) > FileLastWriteTime(cacheFile))
@@ -87,9 +88,9 @@ namespace Tracer
 		static std::vector<FileInfo> result;
 		if(result.size() == 0)
 		{
-			const int formatCount = FreeImage_GetFIFCount();
+			const size_t formatCount = static_cast<size_t>(FreeImage_GetFIFCount());
 			result.reserve(formatCount);
-			for(int i = 0; i < formatCount; i++)
+			for(size_t i = 0; i < formatCount; i++)
 			{
 				FREE_IMAGE_FORMAT fif = static_cast<FREE_IMAGE_FORMAT>(i);
 				if(FreeImage_FIFSupportsReading(fif))
@@ -131,7 +132,7 @@ namespace Tracer
 
 #if TEXTURE_CACHE_ENABLED
 		// check the cache
-		if(std::shared_ptr<Texture> tex = LoadFromCache(scene, globalPath, importDir))
+		if(std::shared_ptr<Texture> tex = LoadFromCache(globalPath))
 		{
 			Logger::Info("Loaded \"%s\" from cache in %s", globalPath.c_str(), sw.ElapsedString().c_str());
 			return tex;
@@ -150,10 +151,10 @@ namespace Tracer
 		FIBITMAP* dib = FreeImage_ConvertToRGBAF(tmp);
 		FreeImage_Unload(tmp);
 
-		const uint32_t width  = FreeImage_GetWidth(dib);
-		const uint32_t height = FreeImage_GetHeight(dib);
-		std::vector<float4> pixels(width * height);
-		for(uint32_t y = 0; y < height; y++)
+		const int width  = static_cast<int>(FreeImage_GetWidth(dib));
+		const int height = static_cast<int>(FreeImage_GetHeight(dib));
+		std::vector<float4> pixels(static_cast<size_t>(width) * height);
+		for(int y = 0; y < height; y++)
 		{
 			const uint8_t* line = FreeImage_GetScanLine(dib, y);
 			memcpy(pixels.data() + (y * width), line, width * sizeof(float4));
@@ -207,7 +208,7 @@ namespace Tracer
 				p.rgbGreen    = static_cast<BYTE>(src->y * 255.f);
 				p.rgbBlue     = static_cast<BYTE>(src->z * 255.f);
 				p.rgbReserved = static_cast<BYTE>(src->w * 255.f);
-				FreeImage_SetPixelColor(bitmap, x, y, &p);
+				FreeImage_SetPixelColor(bitmap, static_cast<unsigned int>(x), static_cast<unsigned int>(y), &p);
 				src++;
 			}
 		}

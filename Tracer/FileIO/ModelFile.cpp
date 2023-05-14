@@ -7,13 +7,16 @@
 #include "Resources/Material.h"
 #include "Resources/Model.h"
 #include "Resources/Texture.h"
+#include "Utility/FileSystem.h"
 #include "Utility/Logger.h"
 #include "Utility/Stopwatch.h"
-#include "Utility/Utility.h"
+#include "Utility/Strings.h"
 
 // Assimp
 #pragma warning(push)
-#pragma warning(disable: 4061 4619 26451 26495)
+#pragma warning(disable: 4619) // #pragma warning : there is no warning number 'number'
+#pragma warning(disable: 26451) // Arithmetic overflow: Using operator 'operator' on a size-a byte value and then casting the result to a size-b byte value. Cast the value to the wider type before calling operator 'operator' to avoid overflow (io.2)
+#pragma warning(disable: 26495) // Variable 'variable' is uninitialized. Always initialize a member variable (type.6).
 #include "assimp/Importer.hpp"
 #include "assimp/DefaultLogger.hpp"
 #include "assimp/scene.h"
@@ -36,15 +39,18 @@ namespace Tracer
 {
 	namespace
 	{
+#pragma warning(push)
+#pragma warning(disable: 5264) // 'const Tracer::`anonymous namespace'::ImportLogStream::`vftable'': 'const' variable is not used
 		// stream to attach to assimp logger
 		class ImportLogStream : public Assimp::LogStream
 		{
 		public:
-			void write(const char* message)
+			void write(const char* message) override
 			{
 				Logger::Info("[Assimp] %s", message);
 			}
 		};
+#pragma warning(pop)
 
 
 
@@ -54,7 +60,7 @@ namespace Tracer
 		bool SaveToCache(std::shared_ptr<Model> model, const std::string& filePath)
 		{
 			// create file
-			const std::string cacheFile = BinaryFile::GenFilename(filePath);
+			const std::string cacheFile = BinaryFile::CachedFilePath(filePath);
 			BinaryFile f(cacheFile, BinaryFile::FileMode::Write);
 
 			// write the header
@@ -98,7 +104,7 @@ namespace Tracer
 		std::shared_ptr<Model> LoadFromCache(Scene* scene, const std::string& filePath, const std::string& name = "")
 		{
 			// cache file name
-			const std::string cacheFile = BinaryFile::GenFilename(filePath);
+			const std::string cacheFile = BinaryFile::CachedFilePath(filePath);
 
 			// compare write times
 			if(!FileExists(cacheFile) || FileLastWriteTime(filePath) > FileLastWriteTime(cacheFile))
@@ -246,7 +252,7 @@ namespace Tracer
 
 
 
-		void ImportMesh(std::shared_ptr<Model> model, aiMesh* aMesh, const std::vector<std::shared_ptr<Material>>& materials)
+		void ImportMesh(std::shared_ptr<Model> model, aiMesh* aMesh)
 		{
 			// positions
 			std::vector<float3> positions(aMesh->mNumVertices, make_float3(0));
@@ -425,7 +431,7 @@ namespace Tracer
 		uint32_t polyCount = 0;
 		for(uint32_t i = 0; i < aScene->mNumMeshes; i++)
 		{
-			ImportMesh(model, aScene->mMeshes[i], model->Materials());
+			ImportMesh(model, aScene->mMeshes[i]);
 			polyCount += aScene->mMeshes[i]->mNumFaces;
 		}
 

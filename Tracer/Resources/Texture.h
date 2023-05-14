@@ -15,14 +15,16 @@ namespace Tracer
 	class Renderer;
 	class Texture : public Resource
 	{
+		// disable copying
+		Texture(const Texture&) = delete;
+		Texture& operator =(const Texture&) = delete;
+
 	public:
 		Texture() = default;
 		explicit Texture(const std::string& path, const int2& resolution, const std::vector<half4>& pixels);
 		explicit Texture(const std::string& path, const int2& resolution, const std::vector<float4>& pixels);
 		explicit Texture(const std::string& path, const int2& resolution, const std::vector<uint32_t>& pixels);
 		~Texture();
-
-		Texture& operator =(const Texture& t) = delete;
 
 		// path
 		std::string Path() { return mPath; }

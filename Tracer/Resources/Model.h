@@ -21,11 +21,13 @@ namespace Tracer
 	class Renderer;
 	class Model : public Resource
 	{
+		// disable copying
+		Model(const Model&) = delete;
+		Model& operator =(const Model&) = delete;
+
 	public:
 		Model() = default;
 		explicit Model(const std::string& filePath, const std::string& name = "");
-
-		Model& operator =(const Model& m) = delete;
 
 		// info
 		const std::string& FilePath() const { return mFilePath; }

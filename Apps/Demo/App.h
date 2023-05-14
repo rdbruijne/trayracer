@@ -10,9 +10,16 @@ namespace Demo
 {
 	class App : public Tracer::App
 	{
+		// disable copying
+		App(const App&) = delete;
+		App& operator =(const App&) = delete;
+
+		// disable moving
+		App(App&&) = delete;
+		App& operator =(const App&&) = delete;
+
 	public:
 		App() = default;
-		App(App&&) = delete;
 
 		void Init(Tracer::Renderer* renderer, Tracer::Window* window) override;
 		void DeInit(Tracer::Renderer* renderer, Tracer::Window* window) override;

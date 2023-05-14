@@ -93,7 +93,7 @@ namespace Tracer
 
 
 
-	void DeviceRenderer::RenderFrame(int firstRow, int rowCount, const KernelSettings& kernelSettings, const RenderModes& renderMode, uint32_t renderFlags)
+	void DeviceRenderer::RenderFrame(const KernelSettings& kernelSettings, const RenderModes& renderMode, uint32_t renderFlags)
 	{
 		assert(Device()->IsCurrent());
 
@@ -114,10 +114,10 @@ namespace Tracer
 		PreRender();
 
 		// loop
-		uint32_t pathCount = mLaunchParams.resX * mLaunchParams.resY * mLaunchParams.kernelSettings.multiSample;
+		uint32_t pathCount = static_cast<uint32_t>(mLaunchParams.resX) * mLaunchParams.resY * mLaunchParams.kernelSettings.multiSample;
 		mRenderTimeEvent.Start(mDevice->Stream());
-		for(int pathLength = 0; pathLength < mLaunchParams.kernelSettings.maxDepth; pathLength++)
-			RenderBounce(firstRow, rowCount, pathLength, pathCount);
+		for(int pathLength = 0; pathLength < mLaunchParams.kernelSettings.maxDepth && pathCount > 0; pathLength++)
+			RenderBounce(static_cast<uint32_t>(pathLength), pathCount);
 		mRenderTimeEvent.Stop(mDevice->Stream());
 		cudaStreamSynchronize(mDevice->Stream());
 
@@ -135,7 +135,8 @@ namespace Tracer
 		assert(Device()->IsCurrent());
 
 		// prepare SPT buffers
-		const uint32_t stride = mLaunchParams.resX * mLaunchParams.resY * mLaunchParams.kernelSettings.multiSample;
+		const uint32_t stride = static_cast<uint32_t>(mLaunchParams.resX) * mLaunchParams.resY * mLaunchParams.kernelSettings.multiSample;
+
 		if(mPathStates.Size() != sizeof(float4) * stride * 3)
 		{
 			mPathStates.Resize(sizeof(float4) * stride * 3);
@@ -181,23 +182,22 @@ namespace Tracer
 		mRenderStats.primaryPathTimeMs = mTraceTimeEvents[0].Elapsed();
 		mRenderStats.secondaryPathTimeMs = mLaunchParams.kernelSettings.maxDepth > 1 ? mTraceTimeEvents[1].Elapsed() : 0;
 		for(int i = 2; i < mLaunchParams.kernelSettings.maxDepth; i++)
-			mRenderStats.deepPathTimeMs += mTraceTimeEvents[i].Elapsed();
+			mRenderStats.deepPathTimeMs += mTraceTimeEvents[static_cast<size_t>(i)].Elapsed();
 		for(int i = 0; i < mLaunchParams.kernelSettings.maxDepth; i++)
-			mRenderStats.shadeTimeMs += mShadeTimeEvents[i].Elapsed();
+			mRenderStats.shadeTimeMs += mShadeTimeEvents[static_cast<size_t>(i)].Elapsed();
 		for(int i = 0; i < mLaunchParams.kernelSettings.maxDepth; i++)
-			mRenderStats.shadowTimeMs += mShadowTimeEvents[i].Elapsed();
+			mRenderStats.shadowTimeMs += mShadowTimeEvents[static_cast<size_t>(i)].Elapsed();
 		mRenderStats.renderTimeMs = mRenderTimeEvent.Elapsed();
 	}
 
 
 
-	void DeviceRenderer::RenderBounce(int firstRow, int rowCount, int pathLength, uint32_t& pathCount)
+	void DeviceRenderer::RenderBounce(uint32_t pathLength, uint32_t& pathCount)
 	{
-		// #TODO: use firstRow & rowCount
 		assert(Device()->IsCurrent());
 
 		// prepare counters
-		mTraceTimeEvents[pathLength].Start(mDevice->Stream());
+		mTraceTimeEvents[static_cast<size_t>(pathLength)].Start(mDevice->Stream());
 		InitCudaCounters();
 
 		// trace rays
@@ -223,16 +223,16 @@ namespace Tracer
 
 		// update counters
 		mRenderStats.pathCount += pathCount;
-		mTraceTimeEvents[pathLength].Stop(mDevice->Stream());
+		mTraceTimeEvents[static_cast<size_t>(pathLength)].Stop(mDevice->Stream());
 
 		// shade
-		const uint32_t stride = mLaunchParams.resX * mLaunchParams.resY * mLaunchParams.kernelSettings.multiSample;
-		mShadeTimeEvents[pathLength].Start(mDevice->Stream());
+		const uint32_t stride = static_cast<uint32_t>(mLaunchParams.resX) * mLaunchParams.resY * mLaunchParams.kernelSettings.multiSample;
+		mShadeTimeEvents[static_cast<size_t>(pathLength)].Start(mDevice->Stream());
 		Shade(mLaunchParams.renderMode, pathCount,
 				mAccumulator.Ptr<float4>(), mAlbedoBuffer.Ptr<float4>(), mNormalBuffer.Ptr<float4>(),
 				mPathStates.Ptr<float4>(), mHitData.Ptr<uint4>(), mShadowRayData.Ptr<float4>(),
 				make_int2(mLaunchParams.resX, mLaunchParams.resY), stride, pathLength, mLaunchParams.renderFlags);
-		mShadeTimeEvents[pathLength].Stop(mDevice->Stream());
+		mShadeTimeEvents[static_cast<size_t>(pathLength)].Stop(mDevice->Stream());
 
 		// update counters
 		RayCounters counters = {};

@@ -116,7 +116,7 @@ float3 SampleSky(const float3& sampleDir, bool drawSun)
 	const float cosSunUpAngle = dot(sunDir, SKY_UP);
 
 	// Rayleigh coefficient
-	float sunfade = 1.f - saturate(1.f - expf(-sunDir.z / 500.f));
+	float sunfade = 1.f - __saturatef(1.f - expf(-sunDir.z / 500.f));
 	const float rayleighCoefficient = SKY_RAYLEIGH_COEFFICIENT - (1.f * (1.f - sunfade));
 	const float3 betaR = TotalRayleigh(SKY_PRIMARY_WAVE_LENGTHS) * rayleighCoefficient;
 
@@ -142,7 +142,7 @@ float3 SampleSky(const float3& sampleDir, bool drawSun)
 	float3 Lin = pow(sunE * ((betaRTheta + betaMTheta) / (betaR + betaM)) * (1.f - Fex), 1.5f);
 	Lin *= mix(make_float3(1.f),
 			   pow(sunE * ((betaRTheta + betaMTheta) / (betaR + betaM)) * Fex, 0.5f),
-			   saturate(powf(1.f - cosSunUpAngle, 5.f)));
+			   __saturatef(powf(1.f - cosSunUpAngle, 5.f)));
 
 	// Composition + solar disc
 	const float sundisk = smoothstep(sunAngularDiameterCos, sunAngularDiameterCos + 2e-5f, cosTheta);

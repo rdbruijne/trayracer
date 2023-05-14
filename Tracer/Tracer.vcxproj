@@ -20,19 +20,19 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.1.props" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.8.props" />
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
@@ -59,8 +59,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;GLEW_STATIC;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;__STDC_WANT_SECURE_LIB__=1;NOMINMAX;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
-      <DisableSpecificWarnings>4100;4324;4365;4505;4514;4625;4626;4668;4710;4711;4774;4820;5039;5045;5219;26812</DisableSpecificWarnings>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <DisableSpecificWarnings>4061;4365;4505;4514;4710;4711;4820;5045</DisableSpecificWarnings>
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)libraries;$(CUDA_PATH)\include</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
@@ -73,11 +73,13 @@
     <CudaCompile>
       <Include>$(ProjectDir);$(SolutionDir)libraries</Include>
       <TargetMachinePlatform>64</TargetMachinePlatform>
-      <CodeGeneration>compute_61,sm_61</CodeGeneration>
-      <AdditionalCompilerOptions>/wd4505 /wd4514 /wd4668 /wd4711 /wd4820 /wd5039</AdditionalCompilerOptions>
+      <CodeGeneration>compute_87,sm_87</CodeGeneration>
+      <AdditionalCompilerOptions>/wd4505 /wd4514 /wd4668 /wd4711 /wd4820 /wd5039 /wd5247 /wd5248</AdditionalCompilerOptions>
       <Keep>true</Keep>
       <KeepDir>$(IntDir)</KeepDir>
       <InterleaveSourceInPTX>true</InterleaveSourceInPTX>
+      <CompileOut>$(IntDir)\%(Filename)%(Extension).cubin</CompileOut>
+      <FastMath>true</FastMath>
     </CudaCompile>
     <PreBuildEvent>
       <Command>
@@ -106,8 +108,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;GLEW_STATIC;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;__STDC_WANT_SECURE_LIB__=1;NOMINMAX;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
-      <DisableSpecificWarnings>4100;4324;4365;4505;4514;4625;4626;4668;4710;4711;4774;4820;5039;5045;5219;26812</DisableSpecificWarnings>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <DisableSpecificWarnings>4061;4365;4505;4514;4710;4711;4820;5045</DisableSpecificWarnings>
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)libraries;$(CUDA_PATH)\include</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
@@ -120,11 +122,13 @@
     <CudaCompile>
       <Include>$(ProjectDir);$(SolutionDir)libraries</Include>
       <TargetMachinePlatform>64</TargetMachinePlatform>
-      <CodeGeneration>compute_61,sm_61</CodeGeneration>
-      <AdditionalCompilerOptions>/wd4505 /wd4514 /wd4668 /wd4711 /wd4820 /wd5039</AdditionalCompilerOptions>
+      <CodeGeneration>compute_87,sm_87</CodeGeneration>
+      <AdditionalCompilerOptions>/wd4505 /wd4514 /wd4668 /wd4711 /wd4820 /wd5039 /wd5247 /wd5248</AdditionalCompilerOptions>
       <Keep>true</Keep>
       <KeepDir>$(IntDir)</KeepDir>
       <InterleaveSourceInPTX>true</InterleaveSourceInPTX>
+      <CompileOut>$(IntDir)\%(Filename)%(Extension).cubin</CompileOut>
+      <FastMath>true</FastMath>
     </CudaCompile>
     <PreBuildEvent>
       <Command>
@@ -179,9 +183,12 @@
     <ClCompile Include="Resources\Model.cpp" />
     <ClCompile Include="Resources\Resource.cpp" />
     <ClCompile Include="Resources\Texture.cpp" />
+    <ClCompile Include="Utility\Errors.cpp" />
+    <ClCompile Include="Utility\Filesystem.cpp" />
     <ClCompile Include="Utility\Logger.cpp" />
     <ClCompile Include="Utility\Stopwatch.cpp" />
-    <ClCompile Include="Utility\Utility.cpp" />
+    <ClCompile Include="Utility\Strings.cpp" />
+    <ClCompile Include="Utility\System.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App\App.h" />
@@ -249,12 +256,15 @@
     <ClInclude Include="Resources\Texture.h" />
     <ClInclude Include="Utility\Defilable.h" />
     <ClInclude Include="Utility\Enum.h" />
+    <ClInclude Include="Utility\Errors.h" />
+    <ClInclude Include="Utility\Filesystem.h" />
     <ClInclude Include="Utility\LinearMath.h" />
     <ClInclude Include="Utility\Logger.h" />
     <ClInclude Include="Utility\Named.h" />
     <ClInclude Include="Utility\Stopwatch.h" />
+    <ClInclude Include="Utility\Strings.h" />
     <ClInclude Include="Utility\Syncable.h" />
-    <ClInclude Include="Utility\Utility.h" />
+    <ClInclude Include="Utility\System.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CUDA\CudaBuffer.inl" />
@@ -297,6 +307,6 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.1.targets" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.8.targets" />
   </ImportGroup>
 </Project>

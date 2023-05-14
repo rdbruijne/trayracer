@@ -1,7 +1,7 @@
 #include "CudaError.h"
 
 // Project
-#include "Utility/Utility.h"
+#include "Utility/Errors.h"
 
 // C++
 #include <cassert>

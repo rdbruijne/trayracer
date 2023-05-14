@@ -18,19 +18,31 @@
 #include "Resources/Instance.h"
 #include "Resources/Material.h"
 #include "Resources/Model.h"
+#include "Utility/FileSystem.h"
 #include "Utility/Logger.h"
-#include "Utility/Utility.h"
+#include "Utility/Strings.h"
+#include "Utility/System.h"
 
 // Magic Enum
 #pragma warning(push)
-#pragma warning(disable: 4346 5027)
+#pragma warning(disable: 4346) // 'name' : dependent name is not a type
+#pragma warning(disable: 4626) // 'derived class' : assignment operator was implicitly defined as deleted because a base class assignment operator is inaccessible or deleted
+#pragma warning(disable: 5027) // 'type': move assignment operator was implicitly defined as deleted
 #include "magic_enum/magic_enum.hpp"
 #pragma warning(pop)
 
 // ImGUI
 #include "imgui/imgui.h"
 #pragma warning(push)
-#pragma warning(disable: 4201 4263 4264 4458 5027 5038)
+#pragma warning(disable: 4100) // 'identifier' : unreferenced formal parameter
+#pragma warning(disable: 4201) // nonstandard extension used : nameless struct/union
+#pragma warning(disable: 4263) // 'function' : member function does not override any base class virtual member function
+#pragma warning(disable: 4264) // 'virtual_function' : no override available for virtual member function from base 'class'; function is hidden
+#pragma warning(disable: 4626) // 'derived class' : assignment operator was implicitly defined as deleted because a base class assignment operator is inaccessible or deleted
+#pragma warning(disable: 4458) // declaration of 'identifier' hides class member
+#pragma warning(disable: 5027) // 'type': move assignment operator was implicitly defined as deleted
+#pragma warning(disable: 5038) // data member 'member1' will be initialized after data member 'member2' | data member 'member' will be initialized after base class 'base_class'
+#pragma warning(disable: 5039) // '_function_': pointer or reference to potentially throwing function passed to `extern C` function under `-EHc`. Undefined behavior may occur if this function throws an exception.
 #include "imGuIZMO.quat/imGuIZMOquat.h"
 #pragma warning(pop)
 
@@ -291,8 +303,8 @@ namespace Tracer
 							const int2 res = tex->Resolution();
 
 							ImGui::BeginTooltip();
-							ImGui::Text(Directory(path, true).c_str());
-							ImGui::Text(FileName(path).c_str());
+							ImGui::Text(Directory(path).c_str());
+							ImGui::Text(FileNameExt(path).c_str());
 							ImGui::Text(format("%i x %i", res.x, res.y).c_str());
 							tex->CreateGLTex();
 							const size_t texId = static_cast<size_t>(tex->GLTex()->ID());
@@ -502,7 +514,7 @@ namespace Tracer
 			{
 				Logger::Debug("Adding new shader:");
 				Logger::Debug("Fragment: %s", fragmentFile.c_str());
-				postStack.push_back(std::make_shared<Shader>(FileNameWithoutExtension(fragmentFile), Shader::FullScreenQuadVert(), fragmentFile));
+				postStack.push_back(std::make_shared<Shader>(FileName(fragmentFile), Shader::FullScreenQuadVert(), fragmentFile));
 				window->SetPostStack(postStack);
 			}
 		}
@@ -598,9 +610,9 @@ namespace Tracer
 		if(ImGui::Checkbox("Enabled", &denoising))
 			denoiser->SetEnabled(denoising);
 
-		int32_t denoiserSampleThreshold = denoiser->SampleTreshold();
+		int32_t denoiserSampleThreshold = static_cast<int32_t>(denoiser->SampleTreshold());
 		if(ImGui::SliderInt("Sample threshold", &denoiserSampleThreshold, 0, 100))
-			denoiser->SetSampleTreshold(denoiserSampleThreshold);
+			denoiser->SetSampleTreshold(static_cast<uint32_t>(denoiserSampleThreshold < 0 ? 0 : denoiserSampleThreshold));
 	}
 
 
@@ -707,7 +719,7 @@ namespace Tracer
 		const Scene* scene = GuiHelpers::GetScene();
 		const Window* window = GuiHelpers::GetRenderWindow();
 		const RenderStatistics renderStats = renderer->Statistics();
-		const RenderStatistics::DeviceStatistics& deviceStats = renderStats.devices[0];
+		const RenderStatistics::DeviceStatistics& deviceStats = renderStats.device;
 
 		// init column layout
 		const ImGuiTableFlags tableFlags = ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInner;
@@ -756,11 +768,11 @@ namespace Tracer
 
 			// rays
 			HEADER("Rays/sec");
-			ROW("Rays", "%.1f M (%.1f M/s)", deviceStats.pathCount * 1e-6, PerSec(deviceStats.pathCount, GuiHelpers::GetFrameTimeMs()) * 1e-6);
-			ROW("Primaries", "%.1f M (%.1f M/s)", deviceStats.primaryPathCount * 1e-6, PerSec(deviceStats.primaryPathCount, deviceStats.primaryPathTimeMs) * 1e-6);
-			ROW("Secondaries", "%.1f M (%.1f M/s)", deviceStats.secondaryPathCount * 1e-6, PerSec(deviceStats.secondaryPathCount, deviceStats.secondaryPathTimeMs) * 1e-6);
-			ROW("Deep", "%.1f M (%.1f M/s)", deviceStats.deepPathCount * 1e-6, PerSec(deviceStats.deepPathCount, deviceStats.deepPathTimeMs) * 1e-6);
-			ROW("Shadow", "%.1f M (%.1f M/s)", deviceStats.shadowRayCount * 1e-6, PerSec(deviceStats.shadowRayCount, deviceStats.shadowTimeMs) * 1e-6);
+			ROW("Rays", "%.1f M (%.1f M/s)", static_cast<float>(deviceStats.pathCount) / 1e6f, PerSec(deviceStats.pathCount, GuiHelpers::GetFrameTimeMs()) / 1e6f);
+			ROW("Primaries", "%.1f M (%.1f M/s)", static_cast<float>(deviceStats.primaryPathCount) / 1e6f, PerSec(deviceStats.primaryPathCount, deviceStats.primaryPathTimeMs) / 1e6f);
+			ROW("Secondaries", "%.1f M (%.1f M/s)", static_cast<float>(deviceStats.secondaryPathCount) / 1e6f, PerSec(deviceStats.secondaryPathCount, deviceStats.secondaryPathTimeMs) / 1e6f);
+			ROW("Deep", "%.1f M (%.1f M/s)", static_cast<float>(deviceStats.deepPathCount) / 1e6f, PerSec(deviceStats.deepPathCount, deviceStats.deepPathTimeMs) / 1e6f);
+			ROW("Shadow", "%.1f M (%.1f M/s)", static_cast<float>(deviceStats.shadowRayCount) / 1e6f, PerSec(deviceStats.shadowRayCount, deviceStats.shadowTimeMs) / 1e6f);
 
 			// scene
 			HEADER("Scene");
@@ -893,13 +905,13 @@ namespace Tracer
 
 					models = scene->Models();
 					mSelectedModelIx = static_cast<int>(models.size() - 1);
-					strcpy_s(mModelName, mNameBufferSize, models[mSelectedModelIx]->Name().c_str());
+					strcpy_s(mModelName, mNameBufferSize, models[static_cast<size_t>(mSelectedModelIx)]->Name().c_str());
 				}
 			}
 
 			if(mSelectedModelIx >= static_cast<int>(models.size()))
 				mSelectedModelIx = 0;
-			std::shared_ptr<Model> model = models.size() > 0 ? models[mSelectedModelIx] : nullptr;
+			std::shared_ptr<Model> model = models.size() > 0 ? models[static_cast<size_t>(mSelectedModelIx)] : nullptr;
 
 			// delete
 			if(ImGui::Button("Delete##delete_model"))
@@ -913,7 +925,7 @@ namespace Tracer
 			if(ImGui::Button("Create instance") && model)
 			{
 				scene->Add(std::make_shared<Instance>(model->Name(), model, make_float3x4()));
-				strcpy_s(mInstanceName, mNameBufferSize, scene->Instances()[mSelectedInstanceIx]->Name().c_str());
+				strcpy_s(mInstanceName, mNameBufferSize, scene->Instances()[static_cast<size_t>(mSelectedInstanceIx)]->Name().c_str());
 			}
 
 			// Properties
@@ -952,14 +964,17 @@ namespace Tracer
 				if(mSelectedInstanceIx >= static_cast<int>(instances.size()))
 					mSelectedInstanceIx = 0;
 
-				std::shared_ptr<Instance> inst = instances[mSelectedInstanceIx];
+				std::shared_ptr<Instance> inst = instances[static_cast<size_t>(mSelectedInstanceIx)];
 				std::shared_ptr<Model> model = inst->GetModel();
 
 				// Name
 				if(ImGui::InputText("Name##inst_name", mInstanceName, mNameBufferSize, ImGuiInputTextFlags_EnterReturnsTrue) && inst && strlen(mInstanceName) > 0)
 					inst->SetName(mInstanceName);
 
-				ImGui::InputText("Model", model ? const_cast<char*>(model->Name().c_str()) : nullptr, model ? static_cast<int>(model->Name().length()) : 0, ImGuiInputTextFlags_ReadOnly);
+				ImGui::InputText("Model",
+								 model ? const_cast<char*>(model->Name().c_str()) : nullptr,
+								 model ? static_cast<int>(model->Name().length()) : 0ull,
+								 ImGuiInputTextFlags_ReadOnly);
 
 				// transform
 				float3 pos;
@@ -1021,7 +1036,7 @@ namespace Tracer
 		mSelectedModelIx = ix;
 		const std::vector<std::shared_ptr<Model>>& models = GuiHelpers::GetScene()->Models();
 		if(static_cast<int>(models.size()) > mSelectedModelIx)
-			strcpy_s(mModelName, mNameBufferSize, models[mSelectedModelIx]->Name().c_str());
+			strcpy_s(mModelName, mNameBufferSize, models[static_cast<size_t>(mSelectedModelIx)]->Name().c_str());
 		else
 			mModelName[0] = '\0';
 	}
@@ -1033,7 +1048,7 @@ namespace Tracer
 		mSelectedInstanceIx = ix;
 		const std::vector<std::shared_ptr<Instance>>& instances = GuiHelpers::GetScene()->Instances();
 		if(static_cast<int>(instances.size()) > mSelectedInstanceIx)
-			strcpy_s(mInstanceName, mNameBufferSize, instances[mSelectedInstanceIx]->Name().c_str());
+			strcpy_s(mInstanceName, mNameBufferSize, instances[static_cast<size_t>(mSelectedInstanceIx)]->Name().c_str());
 		else
 			mInstanceName[0] = '\0';
 	}

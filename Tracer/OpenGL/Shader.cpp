@@ -4,12 +4,15 @@
 #include "FileIO/ShaderDescriptor.h"
 #include "OpenGL/GLHelpers.h"
 #include "OpenGL/GLTexture.h"
+#include "Utility/Errors.h"
+#include "Utility/FileSystem.h"
 #include "Utility/Logger.h"
-#include "Utility/Utility.h"
 
 // Magic Enum
 #pragma warning(push)
-#pragma warning(disable: 4346 5027)
+#pragma warning(disable: 4346) // 'name' : dependent name is not a type
+#pragma warning(disable: 4626) // 'derived class' : assignment operator was implicitly defined as deleted because a base class assignment operator is inaccessible or deleted
+#pragma warning(disable: 5027) // 'type': move assignment operator was implicitly defined as deleted
 #include "magic_enum/magic_enum.hpp"
 #pragma warning(pop)
 
@@ -26,7 +29,7 @@ namespace Tracer
 {
 	namespace
 	{
-		bool ValidateShader(GLint shaderID, std::string& log)
+		bool ValidateShader(GLuint shaderID, std::string& log)
 		{
 			GLint result = 0;
 			glGetShaderiv(shaderID, GL_COMPILE_STATUS, &result);
@@ -44,7 +47,7 @@ namespace Tracer
 
 
 
-		bool ValidateProgram(GLint programID, std::string& log)
+		bool ValidateProgram(GLuint programID, std::string& log)
 		{
 			GLint result = 0;
 			glGetProgramiv(programID, GL_LINK_STATUS, &result);
@@ -183,7 +186,7 @@ namespace Tracer
 					uniform.mData.t.t->Bind();
 				else
 					GLTexture::BindEmpty();
-				glUniform1i(glGetUniformLocation(mShaderID, identifier.c_str()), uniform.mData.t.slot);
+				glUniform1i(glGetUniformLocation(mShaderID, identifier.c_str()), static_cast<int>(uniform.mData.t.slot));
 				break;
 
 			case Uniform::Types::Unknown:
@@ -223,7 +226,7 @@ namespace Tracer
 	{
 		static const std::array<std::string, 1> sInternals =
 		{
-			"convergeBuffer"
+			{"convergeBuffer" }
 		};
 
 		return std::find(sInternals.begin(), sInternals.end(), name) != sInternals.end();
@@ -443,7 +446,7 @@ void main()\n\
 
 
 	// texture
-	void Shader::Uniform::Get(int* slot, GLTexture** tex) const
+	void Shader::Uniform::Get(uint32_t* slot, GLTexture** tex) const
 	{
 		assert(slot);
 		assert(tex);
@@ -454,7 +457,7 @@ void main()\n\
 
 
 
-	void Shader::Uniform::Set(int slot, GLTexture* tex)
+	void Shader::Uniform::Set(uint32_t slot, GLTexture* tex)
 	{
 		assert(mType == Types::Texture);
 		mData.t.slot = slot;

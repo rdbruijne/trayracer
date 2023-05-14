@@ -16,12 +16,9 @@ namespace Tracer
 {
 	class Renderer;
 	class Texture;
-
-	//--------------------------------------------------------------------------------------------------------------------------
-	// Material
-	//--------------------------------------------------------------------------------------------------------------------------
 	class Material : public Resource
 	{
+		// material property
 		class Property : public Defilable
 		{
 		public:
@@ -34,6 +31,7 @@ namespace Tracer
 			};
 
 			Property() = default;
+			Property(const Property& p);
 			explicit inline Property(Flags flags);
 			explicit inline Property(float c, bool textureEnabled, float minVal = 0, float maxVal = 1);
 			explicit inline Property(const float3& c, bool textureEnabled);
@@ -74,11 +72,13 @@ namespace Tracer
 			CudaMaterialProperty mCudaProperty = {};
 		};
 
+		// disable copying
+		Material(const Material&) = delete;
+		Material& operator =(const Material&) = delete;
+
 	public:
 		// construction
 		explicit Material(const std::string& name);
-
-		Material& operator =(const Material& t) = delete;
 
 		// float color
 		inline bool IsFloatColorEnabled(MaterialPropertyIds id) const;

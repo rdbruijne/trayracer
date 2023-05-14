@@ -5,6 +5,16 @@ namespace Tracer
 	//----------------------------------------------------------------------------------------------------------------------------
 	// Material Property
 	//----------------------------------------------------------------------------------------------------------------------------
+	Material::Property::Property(const Property& p) :
+		mFlags(p.mFlags),
+		mColor(p.mColor),
+		mTexture(p.mTexture)
+	{
+		MarkDirty();
+	}
+
+
+
 	Material::Property& Material::Property::operator =(const Property& p)
 	{
 		mFlags = p.mFlags;
@@ -60,8 +70,8 @@ namespace Tracer
 		mCudaProperty.g = __float2half(mColor.y);
 		mCudaProperty.b = __float2half(mColor.z);
 		mCudaProperty.textureMap    = mTexture ? mTexture->CudaObject() : 0;
-		mCudaProperty.colorChannels = IsFloatColorEnabled() ? 1 : (IsRgbColorEnabled() ? 3 : 0);
-		mCudaProperty.useTexture    = IsTextureEnabled() ? 1 : 0;
+		mCudaProperty.colorChannels = IsFloatColorEnabled() ? 1u : (IsRgbColorEnabled() ? 3u : 0u);
+		mCudaProperty.useTexture    = IsTextureEnabled() ? 1u : 0u;
 
 		// mark clean
 		MarkClean();

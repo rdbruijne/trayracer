@@ -79,7 +79,7 @@ namespace Disney
 	static inline __device__
 	float schlick_fresnel(float u)
 	{
-		const float m = saturate(1.0f - u);
+		const float m = __saturatef(1.0f - u);
 		const float m2 = square(m);
 		const float m4 = square(m2);
 		return m4 * m;

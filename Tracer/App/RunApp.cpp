@@ -14,16 +14,23 @@
 #include "Renderer/Renderer.h"
 #include "Renderer/Scene.h"
 #include "Resources/Instance.h"
+#include "Utility/Errors.h"
+#include "Utility/FileSystem.h"
 #include "Utility/Logger.h"
 #include "Utility/Stopwatch.h"
-#include "Utility/Utility.h"
+#include "Utility/Strings.h"
 
 // C++
 #include <iostream>
 #include <map>
 
 // Windows
+#pragma warning(push)
+#pragma warning(disable: 4668) // 'symbol' is not defined as a preprocessor macro, replacing with '0' for 'directives'
+#pragma warning(disable: 5039) // '_function_': pointer or reference to potentially throwing function passed to `extern C` function under `-EHc`. Undefined behavior may occur if this function throws an exception.
+#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#pragma warning(pop)
 
 namespace Tracer
 {
@@ -53,7 +60,7 @@ namespace Tracer
 				else if(ModelFile::Supports(d))
 				{
 					std::shared_ptr<Model> model = ModelFile::Import(app->GetScene(), d);
-					std::shared_ptr<Instance> inst = std::make_shared<Instance>(FileName(d), model, make_float3x4());
+					std::shared_ptr<Instance> inst = std::make_shared<Instance>(FileNameExt(d), model, make_float3x4());
 					app->GetScene()->Add(inst);
 				}
 			}
@@ -112,9 +119,7 @@ namespace Tracer
 			app->Tick(renderer, window, frameTimeMs * 1e-3f);
 
 			// build the scene
-			Stopwatch buildTimer;
 			renderer->UpdateScene(app->GetScene());
-			const float buildTime = buildTimer.ElapsedMs();
 
 			// run Optix
 			renderer->RenderFrame(window->RenderTexture());

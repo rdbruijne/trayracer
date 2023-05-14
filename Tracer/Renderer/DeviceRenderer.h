@@ -20,10 +20,15 @@ namespace Tracer
 	class OptixRenderer;
 	class DeviceRenderer
 	{
+		// disable copying
+		DeviceRenderer(const DeviceRenderer&) = delete;
+		DeviceRenderer& operator =(const DeviceRenderer&) = delete;
+
 	public:
 		// settings
 		static constexpr int MaxTraceDepth = 16;
 
+		DeviceRenderer() = default;
 		explicit DeviceRenderer(std::shared_ptr<CudaDevice> device);
 		~DeviceRenderer() = default;
 
@@ -42,7 +47,7 @@ namespace Tracer
 
 		// rendering
 		RayPickResult PickRay(const int2& pixelIndex);
-		void RenderFrame(int firstRow, int rowCount, const KernelSettings& kernelSettings, const RenderModes& renderMode, uint32_t renderFlags = 0);
+		void RenderFrame(const KernelSettings& kernelSettings, const RenderModes& renderMode, uint32_t renderFlags = 0);
 
 		// statistics
 		uint32_t SampleCount() const { return mLaunchParams.sampleCount; }
@@ -59,7 +64,7 @@ namespace Tracer
 		// render
 		void PreRender();
 		void PostRender();
-		void RenderBounce(int firstRow, int rowCount, int pathLength, uint32_t& pathCount);
+		void RenderBounce(uint32_t pathLength, uint32_t& pathCount);
 
 		// device
 		std::shared_ptr<CudaDevice> mDevice = nullptr;

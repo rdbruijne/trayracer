@@ -24,7 +24,7 @@ __host__ void InitCudaCounters()
 //------------------------------------------------------------------------------------------------------------------------------
 // Finalize frame
 //------------------------------------------------------------------------------------------------------------------------------
-__global__ void FimalizeFrameKernel(float4* accumulator, float4* colors, int pixelCount, int sampleCount)
+__global__ void FimalizeFrameKernel(float4* accumulator, float4* colors, int pixelCount, uint32_t sampleCount)
 {
 	const int jobIdx = threadIdx.x + (blockIdx.x * blockDim.x);
 	if(jobIdx < pixelCount)
@@ -35,7 +35,7 @@ __global__ void FimalizeFrameKernel(float4* accumulator, float4* colors, int pix
 
 
 
-__host__ void FinalizeFrame(float4* accumulator, float4* colors, int2 resolution, int sampleCount)
+__host__ void FinalizeFrame(float4* accumulator, float4* colors, int2 resolution, uint32_t sampleCount)
 {
 	const int32_t pixelCount = resolution.x * resolution.y;
 	const uint32_t threadsPerBlock = 128;

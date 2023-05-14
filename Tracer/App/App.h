@@ -12,6 +12,10 @@ namespace Tracer
 	class Window;
 	class App
 	{
+		// disable copying
+		App(const App&) = delete;
+		App& operator =(const App&) = delete;
+
 	public:
 		App() = default;
 		virtual ~App() = default;

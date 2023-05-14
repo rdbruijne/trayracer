@@ -7,9 +7,6 @@
     <ClCompile Include="Utility\Stopwatch.cpp">
       <Filter>Utility</Filter>
     </ClCompile>
-    <ClCompile Include="Utility\Utility.cpp">
-      <Filter>Utility</Filter>
-    </ClCompile>
     <ClCompile Include="Resources\Material.cpp">
       <Filter>Resources</Filter>
     </ClCompile>
@@ -103,6 +100,18 @@
     <ClCompile Include="FileIO\JsonHelpers.cpp">
       <Filter>FileIO</Filter>
     </ClCompile>
+    <ClCompile Include="Utility\Filesystem.cpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\Strings.cpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\System.cpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\Errors.cpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">
@@ -162,9 +171,6 @@
       <Filter>Utility</Filter>
     </ClInclude>
     <ClInclude Include="Utility\Stopwatch.h">
-      <Filter>Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="Utility\Utility.h">
       <Filter>Utility</Filter>
     </ClInclude>
     <ClInclude Include="OpenGL\Input.h">
@@ -364,6 +370,18 @@
     </ClInclude>
     <ClInclude Include="FileIO\JsonHelpers.h">
       <Filter>FileIO</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\Filesystem.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\Strings.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\System.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\Errors.h">
+      <Filter>Utility</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

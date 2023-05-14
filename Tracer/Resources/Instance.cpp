@@ -39,9 +39,10 @@ namespace Tracer
 	OptixInstance Instance::InstanceData(uint32_t instanceId) const
 	{
 		OptixInstance inst = {};
+		memcpy(inst.transform, &mTransform, 12 * sizeof(float));
 		inst.instanceId        = instanceId;
 		inst.sbtOffset         = 0;
-		inst.visibilityMask    = mVisible ? 0xFF : 0x00;
+		inst.visibilityMask    = mVisible ? 0xFFu : 0x00u;
 		inst.flags             = OPTIX_INSTANCE_FLAG_NONE;
 		inst.traversableHandle = mModel->TraversableHandle();
 		return inst;

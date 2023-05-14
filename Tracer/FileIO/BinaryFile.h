@@ -1,17 +1,18 @@
 #pragma once
 
-// Project
-#include "Utility/Utility.h"
-
 // C++
 #include <cassert>
 #include <string>
+#include <vector>
 
 namespace Tracer
 {
 	class BinaryFile
 	{
-		NO_COPY_ALLOWED(BinaryFile);
+		// disable copying
+		BinaryFile(const BinaryFile&) = delete;
+		BinaryFile& operator =(const BinaryFile&) = delete;
+
 	public:
 		enum class FileMode
 		{
@@ -41,7 +42,7 @@ namespace Tracer
 		template<typename TYPE> void WriteVec(const std::vector<TYPE>& v);
 
 		// helper functions
-		static std::string GenFilename(const std::string& path);
+		static std::string CachedFilePath(const std::string& path);
 
 	private:
 		void Grow();

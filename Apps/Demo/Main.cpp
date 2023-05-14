@@ -12,7 +12,12 @@
 #include <map>
 
 // Windows
+#pragma warning(push)
+#pragma warning(disable: 4668) // 'symbol' is not defined as a preprocessor macro, replacing with '0' for 'directives'
+#pragma warning(disable: 5039) // '_function_': pointer or reference to potentially throwing function passed to `extern C` function under `-EHc`. Undefined behavior may occur if this function throws an exception.
+#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#pragma warning(pop)
 
 namespace
 {

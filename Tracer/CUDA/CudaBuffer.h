@@ -2,7 +2,6 @@
 
 // Project
 #include "CUDA/CudaError.h"
-#include "Utility/Utility.h"
 
 // C++
 #include <assert.h>

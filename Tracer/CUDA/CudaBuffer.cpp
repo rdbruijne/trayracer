@@ -21,7 +21,7 @@ namespace Tracer
 
 
 	CudaBuffer::CudaBuffer(CudaBuffer&& buffer) noexcept :
-		mSize(std::exchange(buffer.mSize, 0)),
+		mSize(std::exchange(buffer.mSize, 0ull)),
 		mPtr(std::exchange(buffer.mPtr, nullptr))
 	{
 	}
@@ -46,7 +46,7 @@ namespace Tracer
 
 	CudaBuffer& CudaBuffer::operator = (CudaBuffer&& buffer) noexcept
 	{
-		mSize = std::exchange(buffer.mSize, 0);
+		mSize = std::exchange(buffer.mSize, 0ull);
 		mPtr  = std::exchange(buffer.mPtr, nullptr);
 		return *this;
 	}

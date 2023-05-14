@@ -2,7 +2,9 @@
 
 // Magic Enum
 #pragma warning(push)
-#pragma warning(disable: 4346 5027)
+#pragma warning(disable: 4346) // 'name' : dependent name is not a type
+#pragma warning(disable: 4626) // 'derived class' : assignment operator was implicitly defined as deleted because a base class assignment operator is inaccessible or deleted
+#pragma warning(disable: 5027) // 'type': move assignment operator was implicitly defined as deleted
 #include "magic_enum/magic_enum.hpp"
 #pragma warning(pop)
 
@@ -47,12 +49,12 @@ namespace Tracer
 	static bool ComboBox(const std::string& name, int& value, const std::vector<std::string>& keys)
 	{
 		bool changed = false;
-		const std::string propName = (value >= 0 && value < static_cast<int>(keys.size())) ? keys[value] : "";
+		const std::string propName = (value >= 0 && value < static_cast<int>(keys.size())) ? keys[static_cast<size_t>(value)] : "";
 		if(ImGui::BeginCombo(name.c_str(), propName.c_str()))
 		{
 			for(int i = 0; i < static_cast<int>(keys.size()); i++)
 			{
-				const std::string itemName = keys[i];
+				const std::string itemName = keys[static_cast<size_t>(i)];
 				if(ImGui::Selectable(itemName.c_str(), i == value))
 				{
 					value = i;

@@ -69,7 +69,7 @@ namespace Tracer
 		const float sunArea            = Pi * sunRadiusRadians * sunRadiusRadians;
 		const float selectionBias      = exp(mSelectionBias);
 
-		return mEnabled ? mSunIntensity * sunArea * exp(mSelectionBias) : 0;
+		return mEnabled ? mSunIntensity * sunArea * selectionBias : 0;
 	}
 
 
@@ -105,7 +105,7 @@ namespace Tracer
 
 
 
-	void Sky::Upload(Renderer* renderer)
+	void Sky::Upload(Renderer* /*renderer*/)
 	{
 		// sync check
 		if(!IsOutOfSync())

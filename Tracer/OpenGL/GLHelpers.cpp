@@ -1,8 +1,8 @@
 #include "GLHelpers.h"
 
 // Project
-#include "Utility/Utility.h"
 #include "Utility/Logger.h"
+#include "Utility/Errors.h"
 
 // GL
 #include "GL/glew.h"

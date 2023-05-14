@@ -7,6 +7,7 @@ namespace Tracer
 {
 	struct RenderStatistics
 	{
+		// device statistics
 		struct DeviceStatistics
 		{
 			uint64_t pathCount = 0;
@@ -23,7 +24,9 @@ namespace Tracer
 			float shadowTimeMs = 0;
 			float shadeTimeMs = 0;
 		};
+		DeviceStatistics device;
 
+		// render times
 		float renderTimeMs = 0;
 		float denoiseTimeMs = 0;
 
@@ -40,7 +43,6 @@ namespace Tracer
 		float matUploadTimeMs = 0;
 		float skyUploadTimeMs = 0;
 
-		// device statistics
-		std::vector<DeviceStatistics> devices;
+		
 	};
 }

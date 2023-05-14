@@ -5,7 +5,8 @@
 #include "OpenGL/Shader.h"
 #include "Utility/LinearMath.h"
 #include "Utility/Logger.h"
-#include "Utility/Utility.h"
+#include "Utility/FileSystem.h"
+#include "Utility/Strings.h"
 #include "Utility/Stopwatch.h"
 
 // C++

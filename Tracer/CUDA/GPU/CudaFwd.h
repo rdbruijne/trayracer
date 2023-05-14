@@ -30,5 +30,5 @@ __host__ void SetCudaSkyData(const SkyData* data);
 
 // rendering
 __host__ void InitCudaCounters();
-__host__ void FinalizeFrame(float4* accumulator, float4* colors, int2 resolution, int sampleCount);
+__host__ void FinalizeFrame(float4* accumulator, float4* colors, int2 resolution, uint32_t sampleCount);
 __host__ void Shade(RenderModes renderMode, DECLARE_KERNEL_PARAMS);

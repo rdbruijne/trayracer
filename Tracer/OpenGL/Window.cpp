@@ -5,9 +5,9 @@
 #include "OpenGL/GLTexture.h"
 #include "OpenGL/Shader.h"
 #include "Resources/Texture.h"
+#include "Utility/Errors.h"
 #include "Utility/LinearMath.h"
 #include "Utility/Logger.h"
-#include "Utility/Utility.h"
 
 // GL
 #include "GL/glew.h"
@@ -25,7 +25,12 @@
 #ifdef APIENTRY
 #undef APIENTRY
 #endif
+#pragma warning(push)
+#pragma warning(disable: 4668) // 'symbol' is not defined as a preprocessor macro, replacing with '0' for 'directives'
+#pragma warning(disable: 5039) // '_function_': pointer or reference to potentially throwing function passed to `extern C` function under `-EHc`. Undefined behavior may occur if this function throws an exception.
+#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#pragma warning(pop)
 
 namespace Tracer
 {
@@ -169,7 +174,9 @@ namespace Tracer
 			glfwGetWindowSize(mHandle, &resolution.x, &resolution.y);
 
 			const float dpiScale = DpiScale();
-			resolution = make_int2(static_cast<int>(resolution.x / dpiScale), static_cast<int>(resolution.y / dpiScale));
+			const int scaledResX = static_cast<int>(static_cast<float>(resolution.x) / dpiScale);
+			const int scaledResY = static_cast<int>(static_cast<float>(resolution.y) / dpiScale);
+			resolution = make_int2(scaledResX, scaledResY);
 		}
 		return resolution;
 	}
@@ -196,7 +203,9 @@ namespace Tracer
 		}
 
 		const float dpiScale = DpiScale();
-		const int2 dpiRes = make_int2(static_cast<int>(resolution.x * dpiScale), static_cast<int>(resolution.y * dpiScale));
+		const int scaledResX = static_cast<int>(static_cast<float>(resolution.x) * dpiScale);
+		const int scaledResY = static_cast<int>(static_cast<float>(resolution.y) * dpiScale);
+		const int2 dpiRes = make_int2(scaledResX, scaledResY);
 		glfwSetWindowSize(mHandle, dpiRes.x, dpiRes.y);
 
 		glfwMakeContextCurrent(mHandle);
@@ -475,7 +484,7 @@ namespace Tracer
 	//--------------------------------------------------------------------------------------------------------------------------
 	// GLFW Input callbacks
 	//--------------------------------------------------------------------------------------------------------------------------
-	void Window::KeyCallback(GLFWwindow* handle, int key, int scancode, int action, int mods) noexcept
+	void Window::KeyCallback(GLFWwindow* handle, int key, int /*scancode*/, int action, int /*mods*/) noexcept
 	{
 		if(ImGui::GetIO().WantCaptureKeyboard)
 			return;
@@ -487,21 +496,21 @@ namespace Tracer
 
 
 
-	void Window::CharCallback(GLFWwindow* handle, unsigned int codepoint) noexcept
+	void Window::CharCallback(GLFWwindow* /*handle*/, unsigned int /*codepoint*/) noexcept
 	{
 		//Window* const window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(handle));
 	}
 
 
 
-	void Window::CharModsCallback(GLFWwindow* handle, unsigned int codepoint, int mods) noexcept
+	void Window::CharModsCallback(GLFWwindow* /*handle*/, unsigned int /*codepoint*/, int /*mods*/) noexcept
 	{
 		//Window* const window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(handle));
 	}
 
 
 
-	void Window::MouseButtonCallback(GLFWwindow* handle, int button, int action, int mods) noexcept
+	void Window::MouseButtonCallback(GLFWwindow* handle, int button, int action, int /*mods*/) noexcept
 	{
 		if(ImGui::GetIO().WantCaptureMouse)
 			return;

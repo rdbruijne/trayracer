@@ -2,7 +2,7 @@
 
 // project
 #include "OpenGL/Window.h"
-#include "Utility/Utility.h"
+#include "Utility/Errors.h"
 
 // ImGUI
 #include "imgui/imgui.h"

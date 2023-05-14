@@ -21,7 +21,7 @@
 using namespace Tracer;
 namespace Demo
 {
-	void App::Init(Renderer* renderer, Window* window)
+	void App::Init([[maybe_unused]] Renderer* renderer, [[maybe_unused]] Window* window)
 	{
 		mScene = std::make_unique<Scene>();
 
@@ -42,19 +42,17 @@ namespace Demo
 		// set post stack
 		std::shared_ptr<Shader> tonemap = std::make_shared<Shader>("Aces Tone Mapping", Shader::FullScreenQuadVert(), "glsl/TonemapAces.frag");
 		window->SetPostStack({tonemap});
-
-		MarkVariablesUsed(window);
 	}
 
 
 
-	void App::DeInit(Renderer* /*renderer*/, Window* /*window*/)
+	void App::DeInit([[maybe_unused]] Renderer* renderer, [[maybe_unused]] Window* window)
 	{
 	}
 
 
 
-	void App::Tick(Renderer* renderer, Window* window, float /*dt*/)
+	void App::Tick([[maybe_unused]] Renderer* renderer, [[maybe_unused]] Window* window, [[maybe_unused]] float dt)
 	{
 		// handle camera controller
 		OrbitCameraController::HandleInput(mCamera, &mControlScheme, window);

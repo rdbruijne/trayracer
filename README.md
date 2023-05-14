@@ -29,7 +29,7 @@ Personal path tracer project.
 
 # Dependencies
 
-* [CUDA Toolkit 11.1](https://developer.nvidia.com/cuda-11.1.0-download-archive)
+* [CUDA Toolkit 11.8](https://developer.nvidia.com/cuda-11-8-0-download-archive)
 * [Windows 10.0 SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk/)
 
 # Resources

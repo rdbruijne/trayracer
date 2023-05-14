@@ -1,5 +1,8 @@
 #include "BinaryFile.h"
 
+// Project
+#include "Utility/Filesystem.h"
+
 // C++
 #include <filesystem>
 #include <fstream>
@@ -22,7 +25,7 @@ namespace Tracer
 			fileStream.seekg(0, std::ios::beg);
 
 			mBuffer = static_cast<char*>(malloc(mCapacity));
-			fileStream.read(mBuffer, mCapacity);
+			fileStream.read(mBuffer, static_cast<std::streamsize>(mCapacity));
 			fileStream.close();
 		}
 		else
@@ -61,7 +64,7 @@ namespace Tracer
 
 
 
-	std::string BinaryFile::GenFilename(const std::string& path)
+	std::string BinaryFile::CachedFilePath(const std::string& path)
 	{
 		const size_t pathHash = std::hash<std::string>{}(path);
 		return "cache/" + std::to_string(pathHash) + ".bin";

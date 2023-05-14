@@ -2,7 +2,7 @@
 
 // Project
 #include "CUDA/CudaError.h"
-#include "Utility/Utility.h"
+#include "Utility/Filesystem.h"
 
 // CUDA
 #include <cuda_fp16.h>
@@ -10,7 +10,7 @@
 namespace Tracer
 {
 	Texture::Texture(const std::string& path, const int2& resolution, const std::vector<half4>& pixels) :
-		Resource(FileName(path)),
+		Resource(FileNameExt(path)),
 		mPath(path),
 		mResolution(resolution),
 		mPixels(pixels)
@@ -20,7 +20,7 @@ namespace Tracer
 
 
 	Texture::Texture(const std::string& path, const int2& resolution, const std::vector<float4>& pixels) :
-		Resource(FileName(path)),
+		Resource(FileNameExt(path)),
 		mPath(path),
 		mResolution(resolution)
 	{
@@ -33,7 +33,7 @@ namespace Tracer
 
 
 	Texture::Texture(const std::string& path, const int2& resolution, const std::vector<uint32_t>& pixels) :
-		Resource(FileName(path)),
+		Resource(FileNameExt(path)),
 		mPath(path),
 		mResolution(resolution)
 	{
@@ -80,7 +80,7 @@ namespace Tracer
 
 
 
-	void Texture::Upload(Renderer* renderer)
+	void Texture::Upload(Renderer* /*renderer*/)
 	{
 		std::lock_guard<std::mutex> l(mMutex);
 
@@ -105,9 +105,9 @@ namespace Tracer
 
 		// dimensions
 		constexpr uint32_t numComponents = 4;
-		const uint32_t width  = mResolution.x;
-		const uint32_t height = mResolution.y;
-		const uint32_t pitch  = width * numComponents * sizeof(half);
+		const uint32_t width  = static_cast<uint32_t>(mResolution.x);
+		const uint32_t height = static_cast<uint32_t>(mResolution.y);
+		const uint32_t pitch  = static_cast<uint32_t>(width) * numComponents * sizeof(half);
 
 		// texture descriptor
 		cudaTextureDesc texDesc     = {};

@@ -7,10 +7,11 @@
 #include "Renderer/DeviceRenderer.h"
 #include "Renderer/Renderer.h"
 #include "Resources/Material.h"
+#include "Utility/Filesystem.h"
 
 // Optix
 #pragma warning(push)
-#pragma warning(disable: 4061)
+#pragma warning(disable: 5039) // '_function_': pointer or reference to potentially throwing function passed to `extern C` function under `-EHc`. Undefined behavior may occur if this function throws an exception.
 #include "optix7/optix.h"
 #include "optix7/optix_stubs.h"
 #pragma warning(pop)
@@ -18,7 +19,7 @@
 namespace Tracer
 {
 	Model::Model(const std::string& filePath, const std::string& name) :
-		Resource(name.empty() ? FileName(filePath) : name),
+		Resource(name.empty() ? FileNameExt(filePath) : name),
 		mFilePath(filePath)
 	{
 	}
@@ -269,7 +270,7 @@ namespace Tracer
 		mBuildInput.triangleArray.vertexBuffers       = mTriangleBuffer.DevicePtrPtr();
 
 		// other
-		static uint32_t buildFlags[] = { 0 };
+		static uint32_t buildFlags[] = { OPTIX_GEOMETRY_FLAG_DISABLE_TRIANGLE_FACE_CULLING };
 		mBuildInput.triangleArray.flags              = buildFlags;
 		mBuildInput.triangleArray.numSbtRecords      = 1;
 

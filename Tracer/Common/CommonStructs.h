@@ -6,7 +6,9 @@
 #ifndef __CUDACC__
 // Magic Enum
 #pragma warning(push)
-#pragma warning(disable: 4346 5027)
+#pragma warning(disable: 4346) // 'name' : dependent name is not a type
+#pragma warning(disable: 4626) // 'derived class' : assignment operator was implicitly defined as deleted because a base class assignment operator is inaccessible or deleted
+#pragma warning(disable: 5027) // 'type': move assignment operator was implicitly defined as deleted
 #include "magic_enum/magic_enum.hpp"
 #pragma warning(pop)
 #endif
@@ -163,8 +165,8 @@ struct LaunchParams
 
 struct RayCounters
 {
-	int32_t extendRays = 0;
-	int32_t shadowRays = 0;
+	uint32_t extendRays = 0;
+	uint32_t shadowRays = 0;
 };
 
 

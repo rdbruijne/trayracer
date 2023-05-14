@@ -13,8 +13,10 @@
 #include "Resources/Instance.h"
 #include "Resources/Material.h"
 #include "Resources/Model.h"
+#include "Utility/FileSystem.h"
 #include "Utility/Logger.h"
 #include "Utility/Stopwatch.h"
+#include "Utility/Strings.h"
 
 // C++
 #include <fstream>
@@ -522,7 +524,7 @@ namespace Tracer
 
 						if(mat->IsTextureEnabled(id))
 							Write(jsonMat, allocator, propName + Key_Map,
-								  mat->TextureMap(id) ? ReplaceAll(RelativeFilePath(mat->TextureMap(id)->Path()), "\\", "/") : "");
+								  mat->TextureMap(id) ? NormalizePath(RelativeFilePath(mat->TextureMap(id)->Path())) : "");
 					}
 
 					// add mat to model material array
@@ -549,7 +551,7 @@ namespace Tracer
 			{
 				Value jsonModel = Value(kObjectType);
 				Write(jsonModel, allocator, Key_Name, name);
-				Write(jsonModel, allocator, Key_Path, ReplaceAll(RelativeFilePath(model->FilePath()), "\\", "/"));
+				Write(jsonModel, allocator, Key_Path, NormalizePath(RelativeFilePath(model->FilePath())));
 
 				// add model to array
 				jsonModelList.PushBack(jsonModel, allocator);

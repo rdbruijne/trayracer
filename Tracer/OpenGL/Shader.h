@@ -125,8 +125,8 @@ namespace Tracer
 		void SetRange(int min, int max);
 
 		// texture
-		void Get(int* slot, GLTexture** tex) const;
-		void Set(int slot, GLTexture* tex);
+		void Get(uint32_t* slot, GLTexture** tex) const;
+		void Set(uint32_t slot, GLTexture* tex);
 
 	private:
 		Types mType = Types::Unknown;
