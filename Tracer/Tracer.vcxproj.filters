@@ -254,9 +254,6 @@
     <ClInclude Include="CUDA\GPU\Shade\Bitangent.h">
       <Filter>CUDA\GPU\Shade</Filter>
     </ClInclude>
-    <ClInclude Include="CUDA\GPU\Shade\DirectLight.h">
-      <Filter>CUDA\GPU\Shade</Filter>
-    </ClInclude>
     <ClInclude Include="CUDA\GPU\Shade\GeometricNormal.h">
       <Filter>CUDA\GPU\Shade</Filter>
     </ClInclude>
@@ -382,6 +379,9 @@
     </ClInclude>
     <ClInclude Include="Utility\Errors.h">
       <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="CUDA\GPU\Shade\BSDF\Lambert.h">
+      <Filter>CUDA\GPU\Shade\BSDF</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

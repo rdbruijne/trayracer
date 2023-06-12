@@ -216,7 +216,7 @@ namespace Tracer
 				lt.V0 = mVertices[indices.x];
 				lt.V1 = mVertices[indices.y];
 				lt.V2 = mVertices[indices.z];
-				lt.N = normalize(cross(lt.V1 - lt.V0, lt.V2 - lt.V0));
+				lt.N = normalize(mNormals[indices.x] + mNormals[indices.y] + mNormals[indices.z]);
 
 				const float a = length(lt.V1 - lt.V0);
 				const float b = length(lt.V2 - lt.V1);

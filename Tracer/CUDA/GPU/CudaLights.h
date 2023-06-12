@@ -8,6 +8,8 @@
 // CUDA
 #include "CUDA/random.h"
 
+#define ENABLE_SKY_NEE false
+
 static inline __device__
 float LightPdf(const float3& D, float dst, float lightArea, const float3& lightNormal)
 {
@@ -19,10 +21,14 @@ float LightPdf(const float3& D, float dst, float lightArea, const float3& lightN
 static inline __device__
 float LightPickProbability(float area, const float3& em)
 {
+#if ENABLE_SKY_NEE
 	// scene energy
 	const float3 sunRadiance = SampleSky(Sky->sunDir, false);
 	const float sunEnergy = (sunRadiance.x + sunRadiance.y + sunRadiance.z) * Sky->sunArea;
 	const float totalEnergy = sunEnergy + LightEnergy;
+#else
+	const float totalEnergy = LightEnergy;
+#endif
 
 	// light energy
 	const float3 energy = em * area;
@@ -60,6 +66,7 @@ int32_t SelectLight(uint32_t& seed)
 static inline __device__
 float3 SampleLight(uint32_t& seed, const float3& I, const float3& N, float& prob, float& pdf, float3& radiance, float& dist)
 {
+#if ENABLE_SKY_NEE
 	// energy
 	const float totalEnergy = Sky->sunEnergy + LightEnergy;
 
@@ -81,27 +88,39 @@ float3 SampleLight(uint32_t& seed, const float3& I, const float3& N, float& prob
 		dist     = 1e20f;
 		return Sky->sunDir;
 	}
+#else
+	const float totalEnergy = LightEnergy;
+
+	// check for any energy
+	if(totalEnergy == 0)
+	{
+		prob = 0;
+		pdf = 0;
+		radiance = make_float3(0);
+		dist = 1e20f;
+		return make_float3(0, 1, 0);
+	}
+#endif
 
 	// pick random light
 	const int32_t lightIx = SelectLight(seed);
-	const LightTriangle& tri = Lights[lightIx];
+	const LightTriangle& light = Lights[lightIx];
 
 	// select point on light
 	const float3 bary = make_float3(rnd(seed), rnd(seed), rnd(seed));
-	const float3 pointOnLight = (bary.x * tri.V0) + (bary.y * tri.V1) + (bary.z * tri.V2);
+	const float3 pointOnLight = (bary.x * light.V0) + (bary.y * light.V1) + (bary.z * light.V2);
 
 	// sample direction (light -> hit)
 	float3 L = I - pointOnLight;
 	const float sqDist = dot(L, L);
 	L = normalize(L);
-	const float LNdotL = dot(tri.N, L);
-	const float NdotL = dot(N, L);
+	const float LNdotL = dot(light.N, L);
 
 	// set output parameters
-	prob = tri.energy / totalEnergy;
-	pdf = (NdotL < 0 && LNdotL > 0) ? sqDist / (tri.area * LNdotL) : 0;
+	prob = light.energy / totalEnergy;
+	pdf = (LNdotL > 0 && dot(N, L)) ? sqDist / (light.area * LNdotL) : 0;
 	dist = sqrtf(sqDist);
-	radiance = tri.radiance;
+	radiance = light.radiance;
 
 	// return hit -> light
 	return -L;

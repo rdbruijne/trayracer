@@ -2,9 +2,12 @@
 
 #include "CudaUtility.h"
 
+// z = local up
+
 enum BsdfFlags
 {
-	None		= 0,
+	None = 0,
+	Specular
 };
 
 

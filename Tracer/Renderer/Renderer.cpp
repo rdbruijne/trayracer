@@ -281,7 +281,6 @@ namespace Tracer
 		{
 		case RenderModes::AmbientOcclusion:
 		case RenderModes::AmbientOcclusionShading:
-		case RenderModes::DirectLight:
 		case RenderModes::PathTracing:
 			return mDenoiser->IsEnabled() && (mDeviceRenderer->SampleCount() >= mDenoiser->SampleTreshold());
 			break;

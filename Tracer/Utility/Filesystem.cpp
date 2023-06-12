@@ -169,7 +169,7 @@ namespace Tracer
 	{
 		char path[MAX_PATH] = {};
 		GetCurrentDirectoryA(MAX_PATH, path);
-		return std::string(path) + "/";
+		return std::string(path) + "\\";
 	}
 
 
@@ -192,7 +192,7 @@ namespace Tracer
 
 
 
-	std::string ReadFile(const std::string filePath)
+	std::string ReadFile(const std::string& filePath)
 	{
 		std::ifstream fileStream(filePath);
 		assert(fileStream.is_open());
@@ -212,7 +212,25 @@ namespace Tracer
 
 
 
-	void WriteFile(const std::string filePath, const std::string& text)
+	std::vector<char> ReadBinaryFile(const std::string& filePath)
+	{
+		std::ifstream fileStream(filePath, std::ios::binary);
+		assert(!fileStream.fail());
+		if(fileStream.fail())
+			return std::vector<char>();
+
+		std::vector<char> data(std::istreambuf_iterator<char>(fileStream), {});
+
+		assert(!fileStream.fail());
+		if (fileStream.fail())
+			return std::vector<char>();
+
+		return data;
+	}
+
+
+
+	void WriteFile(const std::string& filePath, const std::string& text)
 	{
 		std::ofstream fileStream;
 		fileStream.open(filePath, std::ofstream::out | std::ofstream::trunc);

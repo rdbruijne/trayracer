@@ -6,32 +6,37 @@
 namespace Diffuse
 {
 	static inline __device__
-	BsdfResult Evaluate(const float3& wo, const float3& wi)
+	BsdfResult Evaluate(const float3& wo, const float3& wi, const HitMaterial& mat)
 	{
-		const float pdf = 1.f / Pi;
-
 		BsdfResult result;
 		result.wi  = wi;
-		result.pdf = pdf;
-		result.T   = make_float3(pdf * wi.z);
+		result.pdf = RcpPi * wi.z;
+		result.T   = make_float3(RcpPi) * mat.diffuse;
 		return result;
 	}
 
 
 
 	static inline __device__
-	BsdfResult Sample(const float3& wo, float r0, float r1)
+	BsdfResult Sample(const float3& wo, const HitMaterial& mat, float r0, float r1)
 	{
-		return Evaluate(wo, SampleHemisphere(r0, r1));
+		const float3 wi = SampleCosineHemisphere(r0, r1);
+
+		BsdfResult result;
+		result.wi    = wi;
+		result.pdf   = RcpPi * wi.z;
+		result.T     = make_float3(RcpPi) * mat.diffuse;
+		result.flags = BsdfFlags::None;
+		return result;
 	}
 }
 
 
 
 static inline __device__
-Closure DiffuseClosure(const ShadingInfo& shadingInfo, const HitMaterial& /*mat*/, float r0, float r1)
+Closure DiffuseClosure(const ShadingInfo& shadingInfo, const HitMaterial& mat, float r0, float r1)
 {
-	const BsdfResult eval   = Diffuse::Evaluate(shadingInfo.wo, shadingInfo.wi);
-	const BsdfResult sample = Diffuse::Sample(shadingInfo.wo, r0, r1);
+	const BsdfResult eval   = Diffuse::Evaluate(shadingInfo.wo, shadingInfo.wi, mat);
+	const BsdfResult sample = Diffuse::Sample(shadingInfo.wo, mat, r0, r1);
 	return FinalizeClosure(shadingInfo, eval, sample);
 }

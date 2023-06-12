@@ -95,8 +95,8 @@ namespace Tracer
 		CudaBuffer mColorBuffer = {};
 
 		// SPT
-		CudaBuffer mPathStates = {};		// (O.xyz, pathIx)[], (D.xyz, onSensor)[], (throughput, pdf)[]
-		CudaBuffer mHitData = {};			// ((bary.x, bary.y), instIx, primIx, tmin)[]
+		CudaBuffer mPathStates = {};		// (O.xyz, (pathIx << PATHIX_SHIFT) | flags)[], (D.xyz, N)[], (throughput, pdf)[]
+		CudaBuffer mHitData = {};			// ((bary.x, bary.y), instIx, primIx, tmax)[]
 		CudaBuffer mShadowRayData = {};		// (O.xyz, pixelIx)[], (D.xyz, dist)[], (radiance, ?)[]
 		CudaBuffer mCountersBuffer = {};
 	};

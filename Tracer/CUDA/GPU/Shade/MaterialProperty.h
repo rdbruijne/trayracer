@@ -1,17 +1,18 @@
 #pragma once
 
-__global__ void MaterialPropertyKernel(DECLARE_KERNEL_PARAMS)
+__global__ __launch_bounds__(128, 2)
+void MaterialPropertyKernel(DECLARE_KERNEL_PARAMS)
 {
-	const int jobIdx = threadIdx.x + (blockIdx.x * blockDim.x);
-	if(jobIdx >= pathCount)
+	const int jobIx = threadIdx.x + (blockIdx.x * blockDim.x);
+	if(jobIx >= pathCount)
 		return;
 
 	// gather path data
-	const float4 O4 = pathStates[jobIdx + (stride * 0)];
+	const float4 O4 = pathStates[jobIx + (stride * 0)];
 
 	// extract path data
-	const int32_t pathIx = __float_as_int(O4.w);
-	const int32_t pixelIx = pathIx % (resolution.x * resolution.y);
+	const uint32_t pathIx = PathIx(__float_as_uint(O4.w));
+	const uint32_t pixelIx = pathIx % (resolution.x * resolution.y);
 
 	// hit data
 	const uint4 hd = hitData[pathIx];
@@ -30,7 +31,7 @@ __global__ void MaterialPropertyKernel(DECLARE_KERNEL_PARAMS)
 
 	// cache propery value
 	float3 c;
-	switch(static_cast<MaterialPropertyIds>(flags))
+	switch(static_cast<MaterialPropertyIds>(renderFlags))
 	{
 	case MaterialPropertyIds::Anisotropic:
 		c = make_float3(hitMaterial.anisotropic);

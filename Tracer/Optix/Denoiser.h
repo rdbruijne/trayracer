@@ -41,7 +41,7 @@ namespace Tracer
 		OptixDenoiser mOptixDenoiser;
 
 		// state
-		bool mEnabled = true;
+		bool mEnabled = false;
 		uint32_t mSampleCount = 0;
 		uint32_t mSampleThreshold = 10;
 

@@ -116,8 +116,11 @@ namespace Tracer
 		// loop
 		uint32_t pathCount = static_cast<uint32_t>(mLaunchParams.resX) * mLaunchParams.resY * mLaunchParams.kernelSettings.multiSample;
 		mRenderTimeEvent.Start(mDevice->Stream());
-		for(int pathLength = 0; pathLength < mLaunchParams.kernelSettings.maxDepth && pathCount > 0; pathLength++)
+		int pathLength = 0;
+		do
+		{
 			RenderBounce(static_cast<uint32_t>(pathLength), pathCount);
+		} while(++pathLength < mLaunchParams.kernelSettings.maxDepth && pathCount > 0);
 		mRenderTimeEvent.Stop(mDevice->Stream());
 		cudaStreamSynchronize(mDevice->Stream());
 
@@ -135,7 +138,7 @@ namespace Tracer
 		assert(Device()->IsCurrent());
 
 		// prepare SPT buffers
-		const uint32_t stride = static_cast<uint32_t>(mLaunchParams.resX) * mLaunchParams.resY * mLaunchParams.kernelSettings.multiSample;
+		const uint32_t stride = mLaunchParams.resX * mLaunchParams.resY * mLaunchParams.kernelSettings.multiSample;
 
 		if(mPathStates.Size() != sizeof(float4) * stride * 3)
 		{
@@ -196,6 +199,9 @@ namespace Tracer
 	{
 		assert(Device()->IsCurrent());
 
+		if(pathCount == 0)
+			return;
+
 		// prepare counters
 		mTraceTimeEvents[static_cast<size_t>(pathLength)].Start(mDevice->Stream());
 		InitCudaCounters();
@@ -206,8 +212,9 @@ namespace Tracer
 			// primary
 			mRenderStats.primaryPathCount = pathCount;
 			mOptixRenderer->TraceRays(mDevice->Stream(), mLaunchParamsBuffer,
-									  static_cast<unsigned int>(mLaunchParams.resX), static_cast<unsigned int>(mLaunchParams.resY),
-									  static_cast<unsigned int>(mLaunchParams.kernelSettings.multiSample));
+				static_cast<unsigned int>(mLaunchParams.resX),
+				static_cast<unsigned int>(mLaunchParams.resY),
+				static_cast<unsigned int>(mLaunchParams.kernelSettings.multiSample));
 		}
 		else if(pathCount > 0)
 		{
@@ -226,12 +233,20 @@ namespace Tracer
 		mTraceTimeEvents[static_cast<size_t>(pathLength)].Stop(mDevice->Stream());
 
 		// shade
-		const uint32_t stride = static_cast<uint32_t>(mLaunchParams.resX) * mLaunchParams.resY * mLaunchParams.kernelSettings.multiSample;
+		const uint32_t stride = mLaunchParams.resX * mLaunchParams.resY * mLaunchParams.kernelSettings.multiSample;
 		mShadeTimeEvents[static_cast<size_t>(pathLength)].Start(mDevice->Stream());
-		Shade(mLaunchParams.renderMode, pathCount,
-				mAccumulator.Ptr<float4>(), mAlbedoBuffer.Ptr<float4>(), mNormalBuffer.Ptr<float4>(),
-				mPathStates.Ptr<float4>(), mHitData.Ptr<uint4>(), mShadowRayData.Ptr<float4>(),
-				make_int2(mLaunchParams.resX, mLaunchParams.resY), stride, pathLength, mLaunchParams.renderFlags);
+		Shade(mLaunchParams.renderMode,		// RenderModes renderMode
+			pathCount,						// uint32_t pathCount
+			mAccumulator.Ptr<float4>(),		// float4* accumulator
+			mAlbedoBuffer.Ptr<float4>(),	// float4* albedo
+			mNormalBuffer.Ptr<float4>(),	// float4* normals
+			mPathStates.Ptr<float4>(),		// float4* pathStates
+			mHitData.Ptr<uint4>(),			// uint4* hitData
+			mShadowRayData.Ptr<float4>(),	// float4* shadowRays
+			make_int2(mLaunchParams.resX, mLaunchParams.resY), // int2 resolution
+			stride,							// uint32_t stride
+			pathLength,						// uint32_t pathLength
+			mLaunchParams.renderFlags);		// uint32_t renderFlags
 		mShadeTimeEvents[static_cast<size_t>(pathLength)].Stop(mDevice->Stream());
 
 		// update counters

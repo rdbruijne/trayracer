@@ -8,7 +8,6 @@
 #include "Shade/AmbientOcclusion.h"
 #include "Shade/AmbientOcclusionShading.h"
 #include "Shade/Bitangent.h"
-#include "Shade/DirectLight.h"
 #include "Shade/GeometricNormal.h"
 #include "Shade/MaterialID.h"
 #include "Shade/MaterialProperty.h"
@@ -37,10 +36,6 @@ __host__ void Shade(RenderModes renderMode, DECLARE_KERNEL_PARAMS)
 
 	case RenderModes::Bitangent:
 		BitangentKernel<<<blockCount, threadsPerBlock>>>(PASS_KERNEL_PARAMS);
-		break;
-
-	case RenderModes::DirectLight:
-		DirectLightKernel<<<blockCount, threadsPerBlock>>>(PASS_KERNEL_PARAMS);
 		break;
 
 	case RenderModes::GeometricNormal:

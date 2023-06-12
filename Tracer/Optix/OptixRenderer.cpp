@@ -3,6 +3,7 @@
 // Project
 #include "Optix/OptixError.h"
 #include "Renderer/Renderer.h"
+#include "Utility/Errors.h"
 #include "Utility/Logger.h"
 #include "Utility/FileSystem.h"
 
@@ -142,39 +143,46 @@ namespace Tracer
 		// module compile options
 		OptixModuleCompileOptions moduleCompileOptions = {};
 		moduleCompileOptions.maxRegisterCount = OPTIX_COMPILE_DEFAULT_MAX_REGISTER_COUNT;
-#if false
+#ifdef _DEBUG
 		moduleCompileOptions.optLevel   = OPTIX_COMPILE_OPTIMIZATION_LEVEL_0;
 		moduleCompileOptions.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_FULL;
 #else
 		moduleCompileOptions.optLevel   = OPTIX_COMPILE_OPTIMIZATION_LEVEL_3;
-		moduleCompileOptions.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_NONE;
+		moduleCompileOptions.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_MINIMAL;
 #endif
 
 		// pipeline compile options
 		OptixPipelineCompileOptions pipelineCompileOptions = {};
-		pipelineCompileOptions.traversableGraphFlags            = OPTIX_TRAVERSABLE_GRAPH_FLAG_ALLOW_ANY;
 		pipelineCompileOptions.usesMotionBlur                   = false;
+		pipelineCompileOptions.traversableGraphFlags            = OPTIX_TRAVERSABLE_GRAPH_FLAG_ALLOW_ANY;
 		pipelineCompileOptions.numPayloadValues                 = 4;
 		pipelineCompileOptions.numAttributeValues               = 2;
-		pipelineCompileOptions.exceptionFlags                   = OPTIX_EXCEPTION_FLAG_NONE;
+		pipelineCompileOptions.exceptionFlags                   = OPTIX_EXCEPTION_FLAG_STACK_OVERFLOW | OPTIX_EXCEPTION_FLAG_TRACE_DEPTH | OPTIX_EXCEPTION_FLAG_DEBUG;
 		pipelineCompileOptions.pipelineLaunchParamsVariableName = "params";
 		pipelineCompileOptions.usesPrimitiveTypeFlags           = static_cast<unsigned int>(OPTIX_PRIMITIVE_TYPE_FLAGS_TRIANGLE);
 
 		// pipeline link options
 		OptixPipelineLinkOptions pipelineLinkOptions = {};
 		pipelineLinkOptions.maxTraceDepth          = 1;
-		pipelineLinkOptions.debugLevel             = OPTIX_COMPILE_DEBUG_LEVEL_NONE;
+		pipelineLinkOptions.debugLevel             = moduleCompileOptions.debugLevel;
 
 		// load PTX
-		const std::string ptxCode = ReadFile("optix.ptx");
+#ifdef _DEBUG
+		std::vector<char> ptxCode = ReadBinaryFile("optix_debug.optixir");
 		assert(!ptxCode.empty());
+#else
+		std::vector<char> ptxCode = ReadBinaryFile("optix.optixir");
+#endif
 
-		char log[2048];
+		char log[1u << 16];
 		size_t sizeof_log = sizeof(log);
-		OPTIX_CHECK(optixModuleCreateFromPTX(mDeviceContext, &moduleCompileOptions, &pipelineCompileOptions, ptxCode.c_str(),
-											 ptxCode.size(), log, &sizeof_log, &mModule));
-		if(sizeof_log > 1)
-			Logger::Info("%s", log);
+		const OptixResult moduleCreateResult = optixModuleCreateFromPTX(mDeviceContext, &moduleCompileOptions,
+			&pipelineCompileOptions, ptxCode.data(), ptxCode.size(), log, &sizeof_log, &mModule);
+		if(moduleCreateResult != OPTIX_SUCCESS)
+			FatalError(log);
+
+			if(sizeof_log > 1)
+				Logger::Info("%s", log);
 
 		// ray gen
 		OptixProgramGroupDesc raygenDesc      = {};

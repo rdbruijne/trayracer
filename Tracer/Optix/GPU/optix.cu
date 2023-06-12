@@ -69,8 +69,10 @@ float2 SampleDisk(uint32_t& seed)
 		r = lensCoord.y;
 		theta = PiOver2 - PiOver4 * (lensCoord.x / lensCoord.y);
 	}
-
-	return r * make_float2(cosf(theta), sinf(theta));
+	
+	float sinTheta, cosTheta;
+	sincosf(theta, &sinTheta, &cosTheta);
+	return r * make_float2(cosTheta, sinTheta);
 }
 
 
@@ -98,8 +100,8 @@ float2 SampleBokeh(uint32_t& seed)
 	const float step = (2.f * Pi) / params.cameraBokehSideCount;
 
 	float sin0, sin1, cos0, cos1;
-	__sincosf(params.cameraBokehRotation + (index * step), &sin0, &cos0);
-	__sincosf(params.cameraBokehRotation + (index + 1) * step, &sin1, &cos1);
+	sincosf(params.cameraBokehRotation + (index * step), &sin0, &cos0);
+	sincosf(params.cameraBokehRotation + (index + 1) * step, &sin1, &cos1);
 
 	const float2 c0 = make_float2(0, 0);
 	const float2 c1 = make_float2(cos0, sin0);
@@ -127,7 +129,7 @@ bool Distort(float2& lensCoord, float tanFov2, float distortion)
 	const float distorted = (scale * distortion * atanf(d)) / d;
 
 	// distortions larger than (Pi / 2) don't hit the sensor
-	if(distorted >= 1.57079632679f)
+	if(distorted >= PiOver2)
 		return false;
 
 	lensCoord *= tanf(distorted) / (scale * distortion);
@@ -231,11 +233,11 @@ void __raygen__()
 	{
 	case RayGenModes::Primary:
 		{
-			const int pixelIx = launchIndex.x + (launchIndex.y * launchDims.x);
-			const int pathIx = pixelIx + (launchIndex.z * launchDims.x * launchDims.y);
-			const int ix = launchIndex.x;
-			const int iy = launchIndex.y;
-			const int sampleIx = launchIndex.z;
+			const uint32_t pixelIx = launchIndex.x + (launchIndex.y * launchDims.x);
+			const uint32_t pathIx = pixelIx + (launchIndex.z * launchDims.x * launchDims.y);
+			const uint32_t ix = launchIndex.x;
+			const uint32_t iy = launchIndex.y;
+			const uint32_t sampleIx = launchIndex.z;
 
 			if(sampleIx == 0)
 				InitializeFilm(pixelIx);
@@ -263,9 +265,9 @@ void __raygen__()
 			}
 
 			// set path data
-			params.pathStates[pathIx + (stride * 0)] = make_float4(O, __int_as_float(pathIx));
+			params.pathStates[pathIx + (stride * 0)] = make_float4(O, __uint_as_float(Pack(pathIx)));
 			params.pathStates[pathIx + (stride * 1)] = make_float4(D, 0);
-			params.pathStates[pathIx + (stride * 2)] = make_float4(T, T, T, 1.f);
+			params.pathStates[pathIx + (stride * 2)] = make_float4(T, T, T, 1);
 
 			// set hit data
 			params.hitData[pathIx] = make_uint4(bary, instIx, primIx, tmax);
@@ -274,7 +276,7 @@ void __raygen__()
 
 	case RayGenModes::Secondary:
 		{
-			const int rayIx = launchIndex.x + (launchIndex.y * launchDims.x);
+			const uint32_t rayIx = launchIndex.x + (launchIndex.y * launchDims.x) + (launchIndex.z * launchDims.x * launchDims.z);
 
 			// extract info
 			const float4 O4 = params.pathStates[rayIx + (stride * 0)];
@@ -284,7 +286,7 @@ void __raygen__()
 			// unpack info
 			float3 O = make_float3(O4);
 			float3 D = make_float3(D4);
-			const int pathIx = __float_as_int(O4.w);
+			const int pathIx = PathIx(__float_as_uint(O4.w));
 
 			// generate new ray for wireframe mode
 			if(params.renderMode == RenderModes::Wireframe)
@@ -312,15 +314,15 @@ void __raygen__()
 
 	case RayGenModes::Shadow:
 		{
-			const int rayIx = launchIndex.x + (launchIndex.y * launchDims.x);
+			const uint32_t rayIx = launchIndex.x + (launchIndex.y * launchDims.x) + (launchIndex.z * launchDims.x * launchDims.z);
 
 			// extract info
 			const float4 O4 = params.shadowRays[rayIx + (stride * 0)];
 			const float4 D4 = params.shadowRays[rayIx + (stride * 1)];
+			const float4 T4 = params.shadowRays[rayIx + (stride * 2)];
 
 			const float3 O = make_float3(O4);
 			const float3 D = make_float3(D4);
-			const int pathIx = __float_as_int(O4.w);
 
 			// prepare the payload
 			uint32_t u0 = ~0u;
@@ -333,7 +335,6 @@ void __raygen__()
 
 			if(!u0)
 			{
-				const float4 T4 = params.shadowRays[rayIx + (stride * 2)];
 				const int pixelIx = __float_as_int(O4.w);
 				params.accumulator[pixelIx] += make_float4(T4.x, T4.y, T4.z, 0);
 			}

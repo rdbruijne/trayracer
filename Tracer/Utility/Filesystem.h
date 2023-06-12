@@ -2,6 +2,7 @@
 
 #include "Utility/Strings.h"
 
+#include <memory>
 #include <optional>
 #include <string>
 
@@ -41,8 +42,9 @@ namespace Tracer
 	std::string RelativeFilePath(const std::string& path);
 
 	// file handling
-	std::string ReadFile(const std::string filePath);
-	void WriteFile(const std::string filePath, const std::string& text);
+	std::string ReadFile(const std::string& filePath);
+	std::vector<char> ReadBinaryFile(const std::string& filePath);
+	void WriteFile(const std::string& filePath, const std::string& text);
 	bool FileExists(const std::string& filePath);
 
 	// file times

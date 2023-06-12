@@ -23,10 +23,55 @@
 //------------------------------------------------------------------------------------------------------------------------------
 // params
 //------------------------------------------------------------------------------------------------------------------------------
-#define DECLARE_KERNEL_PARAMS	uint32_t pathCount, float4* accumulator, float4* albedo, float4* normals, float4* pathStates, \
-								uint4* hitData, float4* shadowRays, int2 resolution, uint32_t stride, uint32_t pathLength, uint32_t flags
+#define DECLARE_KERNEL_PARAMS	uint32_t pathCount, float4* __restrict__ accumulator, float4* __restrict__ albedo, \
+								float4* __restrict__ normals, float4* __restrict__ pathStates, \
+								uint4* hitData, float4* shadowRays, int2 resolution, \
+								uint32_t stride, uint32_t pathLength, uint32_t renderFlags
 
-#define PASS_KERNEL_PARAMS		pathCount, accumulator, albedo, normals, pathStates, hitData, shadowRays, resolution, stride, pathLength, flags
+#define PASS_KERNEL_PARAMS		pathCount, accumulator, albedo, normals, pathStates, hitData, shadowRays, resolution, stride, pathLength, renderFlags
+
+
+
+//------------------------------------------------------------------------------------------------------------------------------
+// PathIx & Flags packing
+//------------------------------------------------------------------------------------------------------------------------------
+// Max pathIx (1920x1080 = 2'073'600 pixels):
+//   shift  0: 4'294'967'295
+//   shift  1: 2'147'483'647
+//   shift  2: 1'073'741'823
+//   shift  3:   536'870'911
+//   shift  4:   268'435'455
+//   shift  5:   134'217'727
+//   shift  6:    67'108'863
+//   shift  7:    33'554'431
+//   shift  8:    16'777'215
+//   shift  9:     8'388'607
+//   shift 10:     4'194'303
+
+constexpr uint32_t PackedPathIxShift = 4;
+constexpr uint32_t PackedFlagsMask = (1u << PackedPathIxShift) - 1;
+
+static __forceinline__ __device__
+uint32_t PathIx(uint32_t packed)
+{
+	return packed >> PackedPathIxShift;
+}
+
+
+
+static __forceinline__ __device__
+uint32_t Flags(uint32_t packed)
+{
+	return packed & PackedFlagsMask;
+}
+
+
+
+static __forceinline__ __device__
+uint32_t Pack(uint32_t pathIx, uint32_t flags = 0)
+{
+	return (pathIx << PackedPathIxShift) | (flags & PackedFlagsMask);
+}
 
 
 
@@ -70,7 +115,6 @@ enum class RenderModes : uint32_t
 	AmbientOcclusion,
 	AmbientOcclusionShading,
 	Bitangent,
-	DirectLight,
 	GeometricNormal,
 	MaterialID,
 	MaterialProperty,
@@ -115,8 +159,8 @@ struct KernelSettings
 struct LaunchParams
 {
 	// film
-	int32_t resX;
-	int32_t resY;
+	uint32_t resX;
+	uint32_t resY;
 	uint32_t sampleCount;
 	int dummy;
 

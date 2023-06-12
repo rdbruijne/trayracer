@@ -70,6 +70,14 @@ float3 mix(const float3& a, const float3& b, float t)
 
 
 static inline __device__
+float3 mix(const float3& a, const float3& b, const float3& t)
+{
+	return (a * (make_float3(1.f) - t)) + (b * t);
+}
+
+
+
+static inline __device__
 float3 pow(const float3& f, float p)
 {
 	return make_float3(powf(f.x, p), powf(f.y, p), powf(f.z, p));

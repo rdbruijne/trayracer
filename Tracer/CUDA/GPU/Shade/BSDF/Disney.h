@@ -93,7 +93,7 @@ namespace Disney
 		float3 value = mix_one_with_spectra(mat.tint, mat.specularTint);
 		value *= mat.specular * 0.08f;
 		value = mix_spectra(value, mat.diffuse, mat.metallic);
-		const float cos_oh = fabs(dot(o, h));
+		const float cos_oh = fabsf(dot(o, h));
 		return mix_spectra_with_one(value, schlick_fresnel(cos_oh));
 	}
 
@@ -102,7 +102,7 @@ namespace Disney
 	static inline __device__
 	float3 DisneyClearcoatFresnel(const HitMaterial& mat, const float3& o, const float3& h)
 	{
-		const float cos_oh = fabs(dot(o, h));
+		const float cos_oh = fabsf(dot(o, h));
 		return make_float3(mix(0.04f, 1.0f, schlick_fresnel(cos_oh)) * 0.25f * mat.clearcoat);
 	}
 
@@ -373,7 +373,7 @@ namespace Disney
 	//--------------------------------------------------------------------------------------------------------------------------
 	static inline __device__
 	bool compute_component_weights(const HitMaterial& mat,
-										  float& diffuseWeight, float& sheenWeight, float& specularWeight, float& clearcoatWeight)
+		float& diffuseWeight, float& sheenWeight, float& specularWeight, float& clearcoatWeight)
 	{
 		// Compute component weights.
 		diffuseWeight   = lerp(mat.luminance, 0.f, mat.metallic);
@@ -553,9 +553,10 @@ namespace Disney
 
 		// Create closure
 		BsdfResult result;
-		result.wi  = wi;
-		result.pdf = probability > 1e-6f ? probability : 0;
-		result.T   = value;
+		result.wi    = wi;
+		result.pdf   = probability > 1e-6f ? probability : 0;
+		result.T     = value;
+		result.flags = mat.roughness < Epsilon ? BsdfFlags::Specular : BsdfFlags::None;
 		return result;
 	}
 }

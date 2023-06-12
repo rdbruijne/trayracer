@@ -28,8 +28,9 @@ float3 IdToColor(uint32_t id)
 
 
 
+// Linear <-> CIE XYZ
 static inline __device__
-float3 LinearRGBToCIEXYZ(const float3& rgb)
+float3 LinearToCIEXYZ(const float3& rgb)
 {
 	return make_float3(
 		max(0.0f, 0.412453f * rgb.x + 0.357580f * rgb.y + 0.180423f * rgb.z),
@@ -40,12 +41,69 @@ float3 LinearRGBToCIEXYZ(const float3& rgb)
 
 
 static inline __device__
-float3 CIEXYZToLinearRGB(const float3& xyz)
+float3 CIEXYZToLinear(const float3& xyz)
 {
 	return make_float3(
 		max(0.0f,  3.240479f * xyz.x - 1.537150f * xyz.y - 0.498535f * xyz.z),
 		max(0.0f, -0.969256f * xyz.x + 1.875992f * xyz.y + 0.041556f * xyz.z),
 		max(0.0f,  0.055648f * xyz.x - 0.204043f * xyz.y + 1.057311f * xyz.z));
+}
+
+
+
+// Linear <-> sRGB
+static inline __device__
+float3 LessThan(const float3& f3, const float reference)
+{
+	return make_float3(
+		f3.x < reference ? 1.f : 0.f,
+		f3.y < reference ? 1.f : 0.f,
+		f3.z < reference ? 1.f : 0.f);
+}
+
+
+
+static inline __device__
+float3 LinearToSRGB(const float3& rgb)
+{
+	const float3 clamped = clamp(rgb, 0.f, 1.f);
+	return mix(
+		pow(clamped, 1.f / 2.4f) * 1.055f - 0.055f,
+		clamped * 12.92f,
+		LessThan(clamped, 0.0031308f));
+}
+
+
+
+static inline __device__
+float3 SRGBToLinear(const float3& srgb)
+{
+	const float3 clamped = clamp(srgb, 0.f, 1.f);
+	return mix(
+		pow((clamped + 0.055f) / 1.055f, 2.4f),
+		clamped / 12.92f,
+		LessThan(clamped, 0.04045f));
+}
+
+
+
+// reduce fireflies
+__constant__ float gMaxColorIntensity = 10.f;
+
+
+
+static inline __device__
+float3 SafeColor(const float3& f3)
+{
+	return fixnan(clamp_scaled(f3, gMaxColorIntensity));
+}
+
+
+
+static inline __device__
+float3 SafeColor(const float& f)
+{
+	return SafeColor(make_float3(f, f, f));
 }
 
 
@@ -69,6 +127,16 @@ float3 Barycentric(float2 bc, const float3& v0, const float3& v1, const float3& 
 
 
 
+static __device__
+uint32_t EncodeBarycentrics(const float2& barycentrics)
+{
+	const uint32_t bx = static_cast<uint32_t>(barycentrics.x * 65535.f) & 0xFFFF;
+	const uint32_t by = static_cast<uint32_t>(barycentrics.y * 65535.f) & 0xFFFF;
+	return (bx << 16) | by;
+}
+
+
+
 static inline __device__
 float2 DecodeBarycentrics(uint32_t barycentrics)
 {
@@ -80,7 +148,7 @@ float2 DecodeBarycentrics(uint32_t barycentrics)
 
 
 //------------------------------------------------------------------------------------------------------------------------------
-// Packing
+// Normal Packing
 //------------------------------------------------------------------------------------------------------------------------------
 static inline __device__
 uint32_t PackNormal(const float3& N)
@@ -180,7 +248,21 @@ float3 SampleHemisphere(float r0, float r1)
 	const float sinTheta = sqrtf(1.f - r1);
 	const float cosTheta = sqrtf(r1);
 	const float phi = TwoPi * r0;
-	return make_float3(sinTheta * cosf(phi), sinTheta * sinf(phi), cosTheta);
+	float sinPhi, cosPhi;
+	sincosf(phi, &sinPhi, &cosPhi);
+	return make_float3(sinTheta * cosPhi, sinTheta * sinPhi, cosTheta);
+}
+
+
+
+static inline __device__
+float3 SampleHemisphere(const float3& normal, float r0, float r1)
+{
+	float3 tangent, bitangent;
+	OrthonormalBase(normal, tangent, bitangent);
+
+	const float3 f = SampleHemisphere(r0, r1);
+	return f.x*tangent + f.y*bitangent + f.z*normal;
 }
 
 

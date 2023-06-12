@@ -1,20 +1,21 @@
 #pragma once
 
-__global__ void AmbientOcclusionKernel(DECLARE_KERNEL_PARAMS)
+__global__ __launch_bounds__(128, 2)
+void AmbientOcclusionKernel(DECLARE_KERNEL_PARAMS)
 {
-	const int jobIdx = threadIdx.x + (blockIdx.x * blockDim.x);
-	if(jobIdx >= pathCount)
+	const int jobIx = threadIdx.x + (blockIdx.x * blockDim.x);
+	if(jobIx >= pathCount)
 		return;
 
 	// gather path data
-	const float4 O4 = pathStates[jobIdx + (stride * 0)];
-	const float4 D4 = pathStates[jobIdx + (stride * 1)];
+	const float4 O4 = pathStates[jobIx + (stride * 0)];
+	const float4 D4 = pathStates[jobIx + (stride * 1)];
 
 	// extract path data
 	const float3 O = make_float3(O4);
 	const float3 D = make_float3(D4);
-	const int32_t pathIx = __float_as_int(O4.w);
-	const int32_t pixelIx = pathIx % (resolution.x * resolution.y);
+	const uint32_t pathIx = PathIx(__float_as_uint(O4.w));
+	const uint32_t pixelIx = pathIx % (resolution.x * resolution.y);
 
 	// hit data
 	const uint4 hd = hitData[pathIx];
@@ -28,8 +29,9 @@ __global__ void AmbientOcclusionKernel(DECLARE_KERNEL_PARAMS)
 		// didn't hit anything
 		if(primIx == ~0)
 			return;
-
-		uint32_t seed = tea<2>(pathIx, Params->sampleCount + pathLength + 1);
+		
+		uint32_t seed = tea<2>(pathIx, pathLength + 1);
+		seed = rot_seed(seed, Params->sampleCount);
 
 		// fetch intersection info
 		Intersection intersection = {};
@@ -41,8 +43,8 @@ __global__ void AmbientOcclusionKernel(DECLARE_KERNEL_PARAMS)
 		const float3 newDir = SampleCosineHemisphere(intersection.shadingNormal, rnd(seed), rnd(seed));
 
 		// update path states
-		const int32_t extendIx = atomicAdd(&Counters->extendRays, 1);
-		pathStates[extendIx + (stride * 0)] = make_float4(newOrigin, __int_as_float(pathIx));
+		const uint32_t extendIx = atomicAdd(&Counters->extendRays, 1);
+		pathStates[extendIx + (stride * 0)] = make_float4(newOrigin, __uint_as_float(Pack(pathIx)));
 		pathStates[extendIx + (stride * 1)] = make_float4(newDir, 0);
 
 		// denoiser data
@@ -52,6 +54,6 @@ __global__ void AmbientOcclusionKernel(DECLARE_KERNEL_PARAMS)
 	else
 	{
 		const float z = (tmax > Params->kernelSettings.aoDist) ? 1.f : tmax / Params->kernelSettings.aoDist;
-		accumulator[pixelIx] += make_float4(z, z, z, 0);
+		accumulator[pixelIx] += make_float4(SafeColor(z), 0);
 	}
 }

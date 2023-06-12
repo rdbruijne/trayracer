@@ -212,8 +212,8 @@
     <ClInclude Include="CUDA\GPU\Shade\BSDF\Closure.h" />
     <ClInclude Include="CUDA\GPU\Shade\BSDF\Diffuse.h" />
     <ClInclude Include="CUDA\GPU\Shade\BSDF\Disney.h" />
+    <ClInclude Include="CUDA\GPU\Shade\BSDF\Lambert.h" />
     <ClInclude Include="CUDA\GPU\Shade\BSDF\Microfacet.h" />
-    <ClInclude Include="CUDA\GPU\Shade\DirectLight.h" />
     <ClInclude Include="CUDA\GPU\Shade\GeometricNormal.h" />
     <ClInclude Include="CUDA\GPU\Shade\MaterialID.h" />
     <ClInclude Include="CUDA\GPU\Shade\MaterialProperty.h" />
@@ -294,10 +294,10 @@
   <ItemGroup>
     <CudaCompile Include="CUDA\GPU\cuda.cu" />
     <CudaCompile Include="Optix\GPU\optix.cu">
-      <CompileOut Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)bin\%(Filename).ptx</CompileOut>
-      <NvccCompilation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ptx</NvccCompilation>
-      <CompileOut Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)bin\%(Filename).ptx</CompileOut>
-      <NvccCompilation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ptx</NvccCompilation>
+      <CompileOut Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)bin\%(Filename).optixir</CompileOut>
+      <NvccCompilation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">optix-ir</NvccCompilation>
+      <CompileOut Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)bin\%(Filename)_debug.optixir</CompileOut>
+      <NvccCompilation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">optix-ir</NvccCompilation>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>

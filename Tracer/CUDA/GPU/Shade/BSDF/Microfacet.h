@@ -54,8 +54,7 @@ namespace Microfacet
 	void sample_phi(float s, float& cos_phi, float& sin_phi)
 	{
 		const float phi = TwoPi * s;
-		cos_phi = cosf(phi);
-		sin_phi = sinf(phi);
+		sincosf(phi, &sin_phi, &cos_phi);
 	}
 
 
@@ -80,7 +79,7 @@ namespace Microfacet
 			return alpha_x;
 
 		const float cos_phi_2_ax_2 = square((m.x * alpha_x) / sin_theta);
-		const float sin_phi_2_ay_2 = square((m.z * alpha_y) / sin_theta);
+		const float sin_phi_2_ay_2 = square((m.y * alpha_y) / sin_theta);
 		return sqrtf(cos_phi_2_ax_2 + sin_phi_2_ay_2);
 	}
 
@@ -118,7 +117,7 @@ namespace Microfacet
 		static inline __device__
 		float Lambda(const float3& v, float alpha_x, float alpha_y)
 		{
-			const float cos_theta = v.y;
+			const float cos_theta = v.z;
 			if (cos_theta == 0.0f)
 				return 0.0f;
 
@@ -194,8 +193,10 @@ namespace Microfacet
 					? r1 / a * Pi
 					: Pi + (r1 - a) / (1.0f - a) * Pi;
 
-			const float p1 = r * cosf(phi);
-			const float p2 = r * sinf(phi) * (r1 < a ? 1.0f : stretched.z);
+			float sinPhi, cosPhi;
+			sincosf(phi, &sinPhi, &cosPhi);
+			const float p1 = r * cosPhi;
+			const float p2 = r * sinPhi * (r1 < a ? 1.0f : stretched.z);
 
 			// Compute normal.
 			const float3 h = p1 * t1 + p2 * t2 + sqrtf(max(0.0f, 1.0f - p1 * p1 - p2 * p2)) * stretched;

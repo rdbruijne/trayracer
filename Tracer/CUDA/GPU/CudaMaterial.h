@@ -5,6 +5,9 @@
 #include "CudaLinearMath.h"
 #include "CudaUtility.h"
 
+//------------------------------------------------------------------------------------------------------------------------------
+// Intersection data
+//------------------------------------------------------------------------------------------------------------------------------
 struct Intersection
 {
 	float3 geometricNormal;
@@ -22,9 +25,12 @@ struct Intersection
 
 
 
-// #TODO: Pack material properties
+//------------------------------------------------------------------------------------------------------------------------------
+// Material data for intersection
+//------------------------------------------------------------------------------------------------------------------------------
 struct HitMaterial
 {
+	// #TODO: Pack material properties
 	float3 diffuse;
 	float metallic;
 
@@ -47,6 +53,9 @@ struct HitMaterial
 
 
 
+//------------------------------------------------------------------------------------------------------------------------------
+// CudaMaterial properties
+//------------------------------------------------------------------------------------------------------------------------------
 static inline __device__
 int ColorChannels(const CudaMatarial& mat, MaterialPropertyIds propId)
 {
@@ -87,12 +96,12 @@ float3 GetColor(const CudaMatarial& mat, MaterialPropertyIds propId, const float
 
 
 
-
+//------------------------------------------------------------------------------------------------------------------------------
+// Intersection
+//------------------------------------------------------------------------------------------------------------------------------
 static inline __device__
 void GetIntersectionAttributes(uint32_t instIx, uint32_t primIx, float2 bary, Intersection& intersection, HitMaterial& hitMaterial)
 {
-	// #TODO: apply instance transform
-
 	// fetch triangle
 	const CudaMeshData& md = MeshData[instIx];
 	const PackedTriangle& tri = md.triangles[primIx];
@@ -124,6 +133,34 @@ void GetIntersectionAttributes(uint32_t instIx, uint32_t primIx, float2 bary, In
 	intersection.shadingNormal = normalize(Barycentric(bary, N0, N1, N2));
 	intersection.geometricNormal = make_float3(__half2float(tri.Nx), __half2float(tri.Ny), __half2float(tri.Nz));
 
+	// material
+	const CudaMatarial& mat   = MaterialData[intersection.matIx];
+
+	hitMaterial.diffuse        = GetColor(mat, MaterialPropertyIds::Diffuse, texcoord);
+	const float3 tintXYZ       = LinearToCIEXYZ(hitMaterial.diffuse);
+
+	hitMaterial.metallic       = GetColor(mat, MaterialPropertyIds::Metallic, texcoord).x;
+	hitMaterial.emissive       = GetColor(mat, MaterialPropertyIds::Emissive, texcoord) * hitMaterial.diffuse;
+	hitMaterial.subsurface     = GetColor(mat, MaterialPropertyIds::Subsurface, texcoord).x;
+	hitMaterial.tint           = tintXYZ.y > 0 ? CIEXYZToLinear(tintXYZ * (1.f / tintXYZ.y)) : make_float3(1);
+	hitMaterial.specular       = GetColor(mat, MaterialPropertyIds::Specular, texcoord).x;
+	hitMaterial.roughness      = GetColor(mat, MaterialPropertyIds::Roughness, texcoord).x;
+	hitMaterial.specularTint   = GetColor(mat, MaterialPropertyIds::SpecularTint, texcoord).x;
+	hitMaterial.anisotropic    = GetColor(mat, MaterialPropertyIds::Anisotropic, texcoord).x;
+	hitMaterial.sheen          = GetColor(mat, MaterialPropertyIds::Sheen, texcoord).x;
+	hitMaterial.sheenTint      = GetColor(mat, MaterialPropertyIds::SheenTint, texcoord).x;
+	hitMaterial.clearcoat      = GetColor(mat, MaterialPropertyIds::Clearcoat, texcoord).x;
+	hitMaterial.clearcoatGloss = GetColor(mat, MaterialPropertyIds::ClearcoatGloss, texcoord).x;
+	hitMaterial.luminance      = tintXYZ.y;
+
+	// apply normal map
+	if(HasTexture(mat, MaterialPropertyIds::Normal))
+	{
+		const float3 normalMap = GetColor(mat, MaterialPropertyIds::Normal, texcoord);
+		const float3 norMap = (normalMap * 2.f) - make_float3(1.f);
+		intersection.shadingNormal = normalize(norMap.x * intersection.tangent + norMap.y * intersection.bitangent + norMap.z * intersection.shadingNormal);
+	}
+
 	// calculate tangents
 	const float s1 = __half2float(tri.uv1x - tri.uv0x);
 	const float t1 = __half2float(tri.uv1y - tri.uv0y);
@@ -146,34 +183,6 @@ void GetIntersectionAttributes(uint32_t instIx, uint32_t primIx, float2 bary, In
 
 		intersection.bitangent = normalize(t - intersection.shadingNormal * dot(intersection.shadingNormal, t));
 		intersection.tangent   = normalize(cross(intersection.shadingNormal, intersection.bitangent));
-	}
-
-	// material
-	const CudaMatarial& mat   = MaterialData[intersection.matIx];
-
-	hitMaterial.diffuse        = GetColor(mat, MaterialPropertyIds::Diffuse, texcoord);
-	const float3 tintXYZ       = LinearRGBToCIEXYZ(hitMaterial.diffuse);
-
-	hitMaterial.metallic       = GetColor(mat, MaterialPropertyIds::Metallic, texcoord).x;
-	hitMaterial.emissive       = GetColor(mat, MaterialPropertyIds::Emissive, texcoord) * hitMaterial.diffuse;
-	hitMaterial.subsurface     = GetColor(mat, MaterialPropertyIds::Subsurface, texcoord).x;
-	hitMaterial.tint           = tintXYZ.y > 0 ? CIEXYZToLinearRGB(tintXYZ * (1.f / tintXYZ.y)) : make_float3(1);
-	hitMaterial.specular       = GetColor(mat, MaterialPropertyIds::Specular, texcoord).x;
-	hitMaterial.roughness      = GetColor(mat, MaterialPropertyIds::Roughness, texcoord).x;
-	hitMaterial.specularTint   = GetColor(mat, MaterialPropertyIds::SpecularTint, texcoord).x;
-	hitMaterial.anisotropic    = GetColor(mat, MaterialPropertyIds::Anisotropic, texcoord).x;
-	hitMaterial.sheen          = GetColor(mat, MaterialPropertyIds::Sheen, texcoord).x;
-	hitMaterial.sheenTint      = GetColor(mat, MaterialPropertyIds::SheenTint, texcoord).x;
-	hitMaterial.clearcoat      = GetColor(mat, MaterialPropertyIds::Clearcoat, texcoord).x;
-	hitMaterial.clearcoatGloss = GetColor(mat, MaterialPropertyIds::ClearcoatGloss, texcoord).x;
-	hitMaterial.luminance      = tintXYZ.y;
-
-	// apply normal map
-	if(HasTexture(mat, MaterialPropertyIds::Normal))
-	{
-		const float3 normalMap = GetColor(mat, MaterialPropertyIds::Normal, texcoord);
-		const float3 norMap = (normalMap * 2.f) - make_float3(1.f);
-		intersection.shadingNormal = normalize(norMap.x * intersection.tangent + norMap.y * intersection.bitangent + norMap.z * intersection.shadingNormal);
 	}
 
 	// object -> worldspace
