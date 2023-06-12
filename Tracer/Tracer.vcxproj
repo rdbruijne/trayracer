@@ -292,6 +292,7 @@
     <None Include="glsl\TonemapUncharted2.json" />
     <None Include="Resources\Material.inl" />
     <None Include="Resources\Model.h" />
+    <None Include="Utility\Strings.inl" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="CUDA\GPU\cuda.cu" />

@@ -106,6 +106,34 @@ namespace Tracer
 		{
 			return (count == 0 || elapsedMs == 0) ? 0 : (static_cast<float>(count) / (elapsedMs * 1e-3f));
 		}
+
+
+
+		inline void TableHeader(const std::string& text)
+		{
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+			ImGui::Text(text.c_str());
+		}
+
+
+
+		template<int Indent=0, typename ... Arg>
+		inline void TableRow(const std::string& identifier, const std::string& fmt, Arg... args)
+		{
+			constexpr float IndentSize = 16.f;
+
+			ImGui::TableNextRow();
+
+			const float indent = IndentSize * (Indent + 1);
+			ImGui::TableNextColumn();
+			ImGui::Indent(indent);
+			ImGui::Text(identifier.c_str());
+			ImGui::Unindent(indent);
+
+			ImGui::TableNextColumn();
+			ImGui::Text(format(fmt.c_str(), std::forward<Arg>(args)...).c_str());
+		}
 	}
 
 
@@ -137,41 +165,32 @@ namespace Tracer
 
 	void MainGui::DrawImpl()
 	{
-		if(!ImGui::Begin("Tray Racer", &mEnabled))
-			return;
+		if(ImGui::Begin("Tray Racer", &mEnabled))
+		{
+			if(ImGui::CollapsingHeader("Camera"))
+				CameraElements();
 
-		// camera
-		if(ImGui::CollapsingHeader("Camera"))
-			CameraElements();
+			if(ImGui::CollapsingHeader("Material"))
+				MaterialElements();
 
-		// material
-		if(ImGui::CollapsingHeader("Material"))
-			MaterialElements();
+			if(ImGui::CollapsingHeader("Post"))
+				PostElements();
 
-		// post
-		if(ImGui::CollapsingHeader("Post"))
-			PostElements();
+			if(ImGui::CollapsingHeader("Renderer"))
+				RendererElements();
 
-		// renderer
-		if(ImGui::CollapsingHeader("Renderer"))
-			RendererElements();
+			if(ImGui::CollapsingHeader("Scene"))
+				SceneElements();
 
-		// scene
-		if(ImGui::CollapsingHeader("Scene"))
-			SceneElements();
+			if(ImGui::CollapsingHeader("Sky"))
+				SkyElements();
 
-		// statistics
-		if(ImGui::CollapsingHeader("Sky"))
-			SkyElements();
+			if(ImGui::CollapsingHeader("Statistics"))
+				StatisticsElements();
 
-		// statistics
-		if(ImGui::CollapsingHeader("Statistics"))
-			StatisticsElements();
-
-		// debug
-		if(ImGui::CollapsingHeader("Debug"))
-			DebugElements();
-
+			if(ImGui::CollapsingHeader("Debug"))
+				DebugElements();
+		}
 		ImGui::End();
 	}
 
@@ -690,24 +709,6 @@ namespace Tracer
 
 	void MainGui::StatisticsElements()
 	{
-#define HEADER(s)						\
-		{								\
-			ImGui::TableNextRow();		\
-			ImGui::TableNextColumn();	\
-			ImGui::Text(s);				\
-		}
-
-#define ROW(s, ...)						\
-		{								\
-			ImGui::TableNextRow();		\
-			ImGui::TableNextColumn();	\
-			ImGui::Indent(16.0f);		\
-			ImGui::Text(s);				\
-			ImGui::Unindent(16.f);		\
-			ImGui::TableNextColumn();	\
-			ImGui::Text(__VA_ARGS__);	\
-		}
-
 		const Renderer* renderer = GuiHelpers::GetRenderer();
 		if(!renderer)
 		{
@@ -729,86 +730,83 @@ namespace Tracer
 			const cudaDeviceProp& devProps = renderer->Device()->DeviceProperties();
 			size_t freeDeviceMem, totalDeviceMem;
 			renderer->Device()->MemoryUsage(freeDeviceMem, totalDeviceMem);
-			HEADER("Devices");
-			ROW("Device", devProps.name);
-			ROW("Memory used / total", "%d / %d MB", (totalDeviceMem - freeDeviceMem) >> 20, totalDeviceMem >> 20);
+			TableHeader("Devices");
+			TableRow("Device", devProps.name);
+			TableRow("Memory used / total", "%d / %d MB", (totalDeviceMem - freeDeviceMem) >> 20, totalDeviceMem >> 20);
 
 			// kernel
-			HEADER("Kernel");
-			ROW("Kernel", std::string(magic_enum::enum_name(renderer->RenderMode())).c_str());
-			ROW("Samples", "%d", renderer->SampleCount());
-			ROW("Denoised samples","%d", renderer->GetDenoiser()->SampleCount());
-			ROW("Resolution", "%i x %i", window->Resolution().x, window->Resolution().y);
+			TableHeader("Kernel");
+			TableRow("Kernel", std::string(magic_enum::enum_name(renderer->RenderMode())).c_str());
+			TableRow("Samples", "%d", renderer->SampleCount());
+			TableRow("Denoised samples","%d", renderer->GetDenoiser()->SampleCount());
+			TableRow("Resolution", "%i x %i", window->Resolution().x, window->Resolution().y);
 
 			// times
-			HEADER("Framerate");
-			ROW("FPS", "%.1f", 1e3f / GuiHelpers::GetFrameTimeMs());
-			ROW("Frame time", "%.1f ms", GuiHelpers::GetFrameTimeMs());
+			TableHeader("Framerate");
+			TableRow("FPS", "%.1f", 1e3f / GuiHelpers::GetFrameTimeMs());
+			TableRow("Frame time", "%.1f ms", GuiHelpers::GetFrameTimeMs());
 
-			HEADER("Ray times");
-			ROW("Primary rays", "%.1f ms", deviceStats.primaryPathTimeMs);
-			ROW("Secondary rays", "%.1f ms", deviceStats.secondaryPathTimeMs);
-			ROW("Deep rays", "%.1f ms", deviceStats.deepPathTimeMs);
-			ROW("Shadow rays", "%.1f ms", deviceStats.shadowTimeMs);
+			TableHeader("Ray times");
+			TableRow("Primary rays", "%.1f ms", deviceStats.primaryPathTimeMs);
+			TableRow("Secondary rays", "%.1f ms", deviceStats.secondaryPathTimeMs);
+			TableRow("Deep rays", "%.1f ms", deviceStats.deepPathTimeMs);
+			TableRow("Shadow rays", "%.1f ms", deviceStats.shadowTimeMs);
 
-			HEADER("Post");
-			ROW("Shade time", "%.1f ms", deviceStats.shadeTimeMs);
-			ROW("Denoise time", "%.1f ms", renderStats.denoiseTimeMs);
+			TableHeader("Post");
+			TableRow("Shade time", "%.1f ms", deviceStats.shadeTimeMs);
+			TableRow("Denoise time", "%.1f ms", renderStats.denoiseTimeMs);
 
-			HEADER("Build");
-			ROW("Build time", "%.1f ms", renderStats.buildTimeMs);
-			ROW("Geometry build time", "%.1f ms", renderStats.geoBuildTimeMs);
-			ROW("Material build time", "%.1f ms", renderStats.matBuildTimeMs);
-			ROW("Sky build time", "%.1f ms", renderStats.skyBuildTimeMs);
+			TableHeader("Build");
+			TableRow("Build time", "%.1f ms", renderStats.buildTimeMs);
+			TableRow("Geometry build time", "%.1f ms", renderStats.geoBuildTimeMs);
+			TableRow("Material build time", "%.1f ms", renderStats.matBuildTimeMs);
+			TableRow("Sky build time", "%.1f ms", renderStats.skyBuildTimeMs);
 
-			HEADER("Upload");
-			ROW("Geometry upload time", "%.1f ms", renderStats.geoUploadTimeMs);
-			ROW("Material upload time", "%.1f ms", renderStats.matUploadTimeMs);
-			ROW("Sky upload time", "%.1f ms", renderStats.skyUploadTimeMs);
+			TableHeader("Upload");
+			TableRow("Geometry upload time", "%.1f ms", renderStats.geoUploadTimeMs);
+			TableRow("Material upload time", "%.1f ms", renderStats.matUploadTimeMs);
+			TableRow("Sky upload time", "%.1f ms", renderStats.skyUploadTimeMs);
 
 			// rays
-			HEADER("Rays/sec");
-			ROW("Rays", "%.1f M (%.1f M/s)", static_cast<float>(deviceStats.pathCount) / 1e6f, PerSec(deviceStats.pathCount, GuiHelpers::GetFrameTimeMs()) / 1e6f);
-			ROW("Primaries", "%.1f M (%.1f M/s)", static_cast<float>(deviceStats.primaryPathCount) / 1e6f, PerSec(deviceStats.primaryPathCount, deviceStats.primaryPathTimeMs) / 1e6f);
-			ROW("Secondaries", "%.1f M (%.1f M/s)", static_cast<float>(deviceStats.secondaryPathCount) / 1e6f, PerSec(deviceStats.secondaryPathCount, deviceStats.secondaryPathTimeMs) / 1e6f);
-			ROW("Deep", "%.1f M (%.1f M/s)", static_cast<float>(deviceStats.deepPathCount) / 1e6f, PerSec(deviceStats.deepPathCount, deviceStats.deepPathTimeMs) / 1e6f);
-			ROW("Shadow", "%.1f M (%.1f M/s)", static_cast<float>(deviceStats.shadowRayCount) / 1e6f, PerSec(deviceStats.shadowRayCount, deviceStats.shadowTimeMs) / 1e6f);
+			TableHeader("Rays/sec");
+			TableRow("Rays", "%.1f M (%.1f M/s)", static_cast<float>(deviceStats.pathCount) / 1e6f, PerSec(deviceStats.pathCount, GuiHelpers::GetFrameTimeMs()) / 1e6f);
+			TableRow("Primaries", "%.1f M (%.1f M/s)", static_cast<float>(deviceStats.primaryPathCount) / 1e6f, PerSec(deviceStats.primaryPathCount, deviceStats.primaryPathTimeMs) / 1e6f);
+			TableRow("Secondaries", "%.1f M (%.1f M/s)", static_cast<float>(deviceStats.secondaryPathCount) / 1e6f, PerSec(deviceStats.secondaryPathCount, deviceStats.secondaryPathTimeMs) / 1e6f);
+			TableRow("Deep", "%.1f M (%.1f M/s)", static_cast<float>(deviceStats.deepPathCount) / 1e6f, PerSec(deviceStats.deepPathCount, deviceStats.deepPathTimeMs) / 1e6f);
+			TableRow("Shadow", "%.1f M (%.1f M/s)", static_cast<float>(deviceStats.shadowRayCount) / 1e6f, PerSec(deviceStats.shadowRayCount, deviceStats.shadowTimeMs) / 1e6f);
 
 			// scene
-			HEADER("Scene");
-			ROW("Instance count", "%lld", scene->InstanceCount());
-			ROW("Model count", "%lld", scene->InstancedModelCount());
-			ROW("Texture count", "%lld", scene->TextureCount());
-			ROW("Triangle count", "%s", ThousandSeparators(scene->TriangleCount()).c_str());
-			ROW("Unique triangle count", "%s", ThousandSeparators(scene->UniqueTriangleCount()).c_str());
-			ROW("Lights", "%s", ThousandSeparators(scene->LightCount()).c_str());
-			ROW("Unique lights", "%s", ThousandSeparators(scene->UniqueLightCount()).c_str());
-			ROW("Light energy", "%f", scene->LightEnergy());
-			ROW("Sun energy", "%f", scene->SunEnergy());
+			TableHeader("Scene");
+			TableRow("Instance count", "%lld", scene->InstanceCount());
+			TableRow("Model count", "%lld", scene->InstancedModelCount());
+			TableRow("Texture count", "%lld", scene->TextureCount());
+			TableRow("Triangle count", "%s", ThousandSeparators(scene->TriangleCount()).c_str());
+			TableRow("Unique triangle count", "%s", ThousandSeparators(scene->UniqueTriangleCount()).c_str());
+			TableRow("Lights", "%s", ThousandSeparators(scene->LightCount()).c_str());
+			TableRow("Unique lights", "%s", ThousandSeparators(scene->UniqueLightCount()).c_str());
+			TableRow("Light energy", "%f", scene->LightEnergy());
+			TableRow("Sun energy", "%f", scene->SunEnergy());
 
 			// drivers
 			int driverVersion;
 			int cudaRuntime;
 			CUDA_CHECK(cudaDriverGetVersion(&driverVersion));
 			CUDA_CHECK(cudaRuntimeGetVersion(&cudaRuntime));
-			HEADER("CUDA");
-			ROW("CUDA API", "%d.%d", CUDA_VERSION / 1000, (CUDA_VERSION % 1000) / 10);
-			ROW("CUDA driver", "%d.%d", driverVersion / 1000, (driverVersion % 1000) / 10);
-			ROW("CUDA runtime", "%d.%d", cudaRuntime / 1000, (cudaRuntime % 1000) / 10);
-			ROW("Optix", "%d.%d", OPTIX_VERSION / 10000, (OPTIX_VERSION % 10000) / 100, OPTIX_VERSION % 100);
+			TableHeader("CUDA");
+			TableRow("CUDA API", "%d.%d", CUDA_VERSION / 1000, (CUDA_VERSION % 1000) / 10);
+			TableRow("CUDA driver", "%d.%d", driverVersion / 1000, (driverVersion % 1000) / 10);
+			TableRow("CUDA runtime", "%d.%d", cudaRuntime / 1000, (cudaRuntime % 1000) / 10);
+			TableRow("Optix", "%d.%d", OPTIX_VERSION / 10000, (OPTIX_VERSION % 10000) / 100, OPTIX_VERSION % 100);
 
 			// OpenGL
-			HEADER("OpenGL");
-			ROW("OpenGL Version", GLVersion());
-			ROW("OpenGL Vendor", GLVendor());
-			ROW("OpenGL Renderer", GLRenderer());
-			ROW("OpenGL Shading Language Version", GLShadingLanguageVersion());
+			TableHeader("OpenGL");
+			TableRow("OpenGL Version", GLVersion());
+			TableRow("OpenGL Vendor", GLVendor());
+			TableRow("OpenGL Renderer", GLRenderer());
+			TableRow("OpenGL Shading Language Version", GLShadingLanguageVersion());
 
 			ImGui::EndTable();
 		}
-
-#undef HEADER
-#undef ROW
 	}
 
 
