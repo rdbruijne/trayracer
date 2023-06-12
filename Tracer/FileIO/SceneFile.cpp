@@ -66,7 +66,6 @@ using namespace rapidjson;
 #define Key_Turbidity          "turbidity"
 #define Key_Uniforms           "uniforms"
 #define Key_Up                 "up"
-#define Key_VertPath           "vert"
 #define Key_ZDepthMax          "zdepthmax"
 
 namespace Tracer
@@ -300,12 +299,8 @@ namespace Tracer
 				if(!Read(jsonShader, Key_FragPath, fragPath))
 					continue;
 
-				std::string vertPath;
-				if(!Read(jsonShader, Key_VertPath, vertPath))
-					continue;
-
 				// create shader
-				std::shared_ptr<Shader> s = std::make_shared<Shader>(name, vertPath, fragPath);
+				std::shared_ptr<Shader> s = std::make_shared<Shader>(name, Shader::FullScreenQuadVert(), Shader::SourceType::Code, fragPath, Shader::SourceType::File);
 
 				// parse uniforms
 				int i;
@@ -616,7 +611,6 @@ namespace Tracer
 				Value jsonShader = Value(kObjectType);
 				Write(jsonShader, allocator, Key_Name, shader->Name());
 				Write(jsonShader, allocator, Key_FragPath, shader->FragmentFile());
-				Write(jsonShader, allocator, Key_VertPath, shader->VertexFile());
 
 				// export uniforms
 				Value jsonUniforms = Value(kObjectType);

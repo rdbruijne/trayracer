@@ -69,10 +69,14 @@ namespace Tracer
 	//--------------------------------------------------------------------------------------------------------------------------
 	// Shader
 	//--------------------------------------------------------------------------------------------------------------------------
-	Shader::Shader(const std::string& name, const std::string& vertexFile, const std::string& fragmentFile) :
+	Shader::Shader(const std::string& name, const std::string& vertex, SourceType vertexSourceType, const std::string& fragment, SourceType fragmentSourceType) :
 		Named(name),
-		mVertexFile(vertexFile),
-		mFragmentFile(fragmentFile)
+		mVertexSourceType(vertexSourceType),
+		mVertexFile(vertexSourceType == SourceType::File ? vertex : ""),
+		mVertexCode(vertexSourceType == SourceType::Code ? vertex : ""),
+		mFragmentSourceType(fragmentSourceType),
+		mFragmentFile(fragmentSourceType == SourceType::File ? fragment : ""),
+		mFragmentCode(fragmentSourceType == SourceType::Code ? fragment : "")
 	{
 		Compile();
 	}
@@ -92,42 +96,46 @@ namespace Tracer
 		Unload();
 
 		// load vertex shader
-		std::string vertCode = mVertexFile;
-		if(FileExists(mVertexFile))
-			vertCode = ReadFile(mVertexFile);
-		if(vertCode.empty())
-			FatalError("File \"%s\" not found or empty.", mVertexFile.c_str());
+		if(mVertexSourceType == SourceType::File)
+		{
+			mVertexCode = ReadFile(mVertexFile);
+			if(mVertexCode.empty())
+			{
+				FatalError("File not found or empty: %s", mVertexFile.c_str());
+				return;
+			}
+		}
 
 		// load fragment shader
-		std::string fragCode = mFragmentFile;
-		if(FileExists(mFragmentFile))
-			fragCode = ReadFile(mFragmentFile);
-		if(fragCode.empty())
-			FatalError("File \"%s\" not found or empty.", mFragmentFile.c_str());
+		if(mFragmentSourceType == SourceType::File)
+		{
+			mFragmentCode = ReadFile(mFragmentFile);
+			if(mFragmentCode.empty())
+			{
+				FatalError("File not found or empty: %s", mVertexFile.c_str());
+				return;
+			}
+		}
 
 		// compile vertex shader
-		const char* vertCodeCStr = vertCode.c_str();
-		GLint vertCodeSize = static_cast<GLint>(vertCode.size());
+		const char* vertCodeCStr = mVertexCode.c_str();
+		GLint vertCodeSize = static_cast<GLint>(mVertexCode.size());
 		mVertexShaderID = glCreateShader(GL_VERTEX_SHADER);
 		glShaderSource(mVertexShaderID, 1, &vertCodeCStr, &vertCodeSize);
 		glCompileShader(mVertexShaderID);
 		GL_CHECK();
 		if(!ValidateShader(mVertexShaderID, mErrorLog))
-		{
 			return;
-		}
 
 		// compile fragment shader
-		const char* fragCodeCStr = fragCode.c_str();
-		GLint fragCodeSize = static_cast<GLint>(fragCode.size());
+		const char* fragCodeCStr = mFragmentCode.c_str();
+		GLint fragCodeSize = static_cast<GLint>(mFragmentCode.size());
 		mFragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
 		glShaderSource(mFragmentShaderID, 1, &fragCodeCStr, &fragCodeSize);
 		glCompileShader(mFragmentShaderID);
 		GL_CHECK();
 		if(!ValidateShader(mFragmentShaderID, mErrorLog))
-		{
 			return;
-		}
 
 		// link shaders
 		mShaderID = glCreateProgram();
@@ -137,9 +145,7 @@ namespace Tracer
 		glLinkProgram(mShaderID);
 		GL_CHECK();
 		if(!ValidateProgram(mShaderID, mErrorLog))
-		{
 			return;
-		}
 
 		// parse uniforms
 		ParseUniforms();

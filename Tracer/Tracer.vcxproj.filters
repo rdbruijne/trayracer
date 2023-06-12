@@ -454,6 +454,12 @@
     <None Include="glsl\Tonemap.json">
       <Filter>glsl</Filter>
     </None>
+    <None Include="glsl\Monochrome.json">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\Negative.json">
+      <Filter>glsl</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="Optix\GPU\optix.cu">

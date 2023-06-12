@@ -271,7 +271,9 @@
     <None Include="FileIO\BinaryFile.inl" />
     <None Include="FileIO\JsonHelpers.inl" />
     <None Include="glsl\Monochrome.frag" />
+    <None Include="glsl\Monochrome.json" />
     <None Include="glsl\Negative.frag" />
+    <None Include="glsl\Negative.json" />
     <None Include="glsl\Tonemap.frag" />
     <None Include="glsl\Tonemap.json" />
     <None Include="glsl\TonemapAces.frag" />

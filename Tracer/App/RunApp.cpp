@@ -41,26 +41,31 @@ namespace Tracer
 			const std::vector<std::string> drops = window->Drops();
 			window->ClearDrops();
 
-			for(const std::string& d : drops)
+			for(const std::string& path : drops)
 			{
-				const std::string ext = FileExtension(d);
+				const std::string ext = FileExtension(path);
 				if(ToLower(ext) == ".json")
 				{
 					const int clearScene = MessageBoxA(NULL, "Override", "Override existing scene?", MB_YESNO | MB_ICONQUESTION);
 					if(clearScene == IDYES)
 					{
 						app->GetScene()->Clear();
-						SceneFile::Load(d, app->GetScene(), app->GetScene()->GetSky().get(), app->GetCameraNode(), renderer, window);
+						SceneFile::Load(path, app->GetScene(), app->GetScene()->GetSky().get(), app->GetCameraNode(), renderer, window);
 					}
 					else
 					{
-						SceneFile::Load(d, app->GetScene(), nullptr, nullptr, nullptr, nullptr);
+						SceneFile::Load(path, app->GetScene(), nullptr, nullptr, nullptr, nullptr);
 					}
 				}
-				else if(ModelFile::Supports(d))
+				if(ToLower(ext) == ".frag")
 				{
-					std::shared_ptr<Model> model = ModelFile::Import(app->GetScene(), d);
-					std::shared_ptr<Instance> inst = std::make_shared<Instance>(FileNameExt(d), model, make_float3x4());
+					std::shared_ptr<Shader> shader = std::make_shared<Shader>(FileName(path), Shader::FullScreenQuadVert(), Shader::SourceType::Code, path, Shader::SourceType::File);
+					window->PostStack().push_back(shader);
+				}
+				else if(ModelFile::Supports(path))
+				{
+					std::shared_ptr<Model> model = ModelFile::Import(app->GetScene(), path);
+					std::shared_ptr<Instance> inst = std::make_shared<Instance>(FileNameExt(path), model, make_float3x4());
 					app->GetScene()->Add(inst);
 				}
 			}

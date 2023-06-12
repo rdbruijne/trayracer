@@ -16,9 +16,15 @@ namespace Tracer
 	class Shader : public Named
 	{
 	public:
+		enum class SourceType
+		{
+			Code,
+			File
+		};
+
 		class Uniform;
 
-		explicit Shader(const std::string& name, const std::string& vertexFile, const std::string& fragmentFile);
+		explicit Shader(const std::string& name, const std::string& vertex, SourceType vertexSourceType, const std::string& fragment, SourceType fragmentSourceType);
 		~Shader();
 
 		void Compile();
@@ -36,8 +42,15 @@ namespace Tracer
 		bool IsEnabled() { return mEnabled; }
 		void SetEnabled(bool enabled) { mEnabled = enabled; }
 
-		const std::string& FragmentFile() const { return mFragmentFile; }
+		// vertex part
+		SourceType VertexSourceType() const { return mVertexSourceType; }
 		const std::string& VertexFile() const { return mVertexFile; }
+		const std::string& VertexCode() const { return mVertexCode; }
+
+		// fragment part
+		SourceType FragmentSourceType() const { return mFragmentSourceType; }
+		const std::string& FragmentFile() const { return mFragmentFile; }
+		const std::string& FragmentCode() const { return mFragmentCode; }
 
 		// deal with uniforms
 		std::map<std::string, Uniform>& Uniforms() { return mUniforms; }
@@ -65,8 +78,13 @@ namespace Tracer
 		bool mEnabled = true;
 		bool mIsValid = false;
 
+		SourceType mVertexSourceType;
 		std::string mVertexFile = "";
+		std::string mVertexCode = "";
+
+		SourceType mFragmentSourceType;
 		std::string mFragmentFile = "";
+		std::string mFragmentCode = "";
 
 		uint32_t mVertexShaderID = 0;
 		uint32_t mFragmentShaderID = 0;

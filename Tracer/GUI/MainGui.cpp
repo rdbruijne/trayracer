@@ -514,7 +514,7 @@ namespace Tracer
 			{
 				Logger::Debug("Adding new shader:");
 				Logger::Debug("Fragment: %s", fragmentFile.c_str());
-				postStack.push_back(std::make_shared<Shader>(FileName(fragmentFile), Shader::FullScreenQuadVert(), fragmentFile));
+				postStack.push_back(std::make_shared<Shader>(FileName(fragmentFile), Shader::FullScreenQuadVert(), Shader::SourceType::Code, fragmentFile, Shader::SourceType::File));
 				window->SetPostStack(postStack);
 			}
 		}
