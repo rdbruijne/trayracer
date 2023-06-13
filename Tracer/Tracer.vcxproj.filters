@@ -397,10 +397,34 @@
     <None Include="Resources\Material.inl">
       <Filter>Resources</Filter>
     </None>
+    <None Include="FileIO\JsonHelpers.inl">
+      <Filter>FileIO</Filter>
+    </None>
+    <None Include="Utility\Strings.inl">
+      <Filter>Utility</Filter>
+    </None>
+    <None Include="glsl\Exposure.frag">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\Gamma.frag">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\LinearToSRGB.frag">
+      <Filter>glsl</Filter>
+    </None>
     <None Include="glsl\Monochrome.frag">
       <Filter>glsl</Filter>
     </None>
     <None Include="glsl\Negative.frag">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\RadialBlur.frag">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\SRGBToLinear.frag">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\Tonemap.frag">
       <Filter>glsl</Filter>
     </None>
     <None Include="glsl\TonemapAces.frag">
@@ -424,8 +448,26 @@
     <None Include="glsl\TonemapUncharted2.frag">
       <Filter>glsl</Filter>
     </None>
-    <None Include="FileIO\JsonHelpers.inl">
-      <Filter>FileIO</Filter>
+    <None Include="glsl\Exposure.json">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\Gamma.json">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\LinearToSRGB.json">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\Monochrome.json">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\Negative.json">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\RadialBlur.json">
+      <Filter>glsl</Filter>
+    </None>
+    <None Include="glsl\Tonemap.json">
+      <Filter>glsl</Filter>
     </None>
     <None Include="glsl\TonemapAces.json">
       <Filter>glsl</Filter>
@@ -448,20 +490,8 @@
     <None Include="glsl\TonemapUncharted2.json">
       <Filter>glsl</Filter>
     </None>
-    <None Include="glsl\Tonemap.frag">
+    <None Include="glsl\SRGBToLinear.json">
       <Filter>glsl</Filter>
-    </None>
-    <None Include="glsl\Tonemap.json">
-      <Filter>glsl</Filter>
-    </None>
-    <None Include="glsl\Monochrome.json">
-      <Filter>glsl</Filter>
-    </None>
-    <None Include="glsl\Negative.json">
-      <Filter>glsl</Filter>
-    </None>
-    <None Include="Utility\Strings.inl">
-      <Filter>Utility</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

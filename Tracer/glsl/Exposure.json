@@ -1,0 +1,16 @@
+{
+    "name": "Exposure",
+    "uniforms":
+    [
+        {
+            "name": "exposure",
+            "type": "Float",
+            "range":
+            [
+                0,
+                100
+            ],
+            "logarithmic": true
+        }
+    ]
+}
