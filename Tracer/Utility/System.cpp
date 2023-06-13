@@ -12,9 +12,6 @@
 #include <Windows.h>
 #pragma warning(pop)
 
-// link libraries
-#pragma comment(lib, "Shcore.lib")
-
 
 
 namespace Tracer
