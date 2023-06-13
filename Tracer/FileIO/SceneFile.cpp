@@ -300,7 +300,7 @@ namespace Tracer
 					continue;
 
 				// create shader
-				std::shared_ptr<Shader> s = std::make_shared<Shader>(name, Shader::FullScreenQuadVert(), Shader::SourceType::Code, fragPath, Shader::SourceType::File);
+				std::shared_ptr<Shader> s = std::make_shared<Shader>(name, fragPath, Shader::SourceType::File);
 
 				// parse uniforms
 				int i;
@@ -331,6 +331,9 @@ namespace Tracer
 					}
 				}
 			}
+
+			if(shaders.size() == 0)
+				shaders.push_back(std::make_shared<Shader>("Tone Mapping", "glsl/Tonemap.frag", Shader::SourceType::File));
 
 			window->SetPostStack(shaders);
 		}

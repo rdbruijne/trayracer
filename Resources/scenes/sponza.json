@@ -156,9 +156,5 @@
         "angulardiameter": 32.0,
         "intensity": 10000.0,
         "turbidity": 4.0
-    },
-    "post": {
-        "exposure": 1.0,
-        "gamma": 2.200000047683716
     }
 }

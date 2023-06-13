@@ -55,7 +55,7 @@ namespace Tracer
 				}
 				if(ToLower(ext) == ".frag")
 				{
-					std::shared_ptr<Shader> shader = std::make_shared<Shader>(FileName(path), Shader::FullScreenQuadVert(), Shader::SourceType::Code, path, Shader::SourceType::File);
+					std::shared_ptr<Shader> shader = std::make_shared<Shader>(FileName(path), path, Shader::SourceType::File);
 					window->PostStack().push_back(shader);
 				}
 				else if(ModelFile::Supports(path))

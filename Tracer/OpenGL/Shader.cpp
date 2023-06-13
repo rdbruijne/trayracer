@@ -64,14 +64,28 @@ namespace Tracer
 	//--------------------------------------------------------------------------------------------------------------------------
 	// Shader
 	//--------------------------------------------------------------------------------------------------------------------------
-	Shader::Shader(const std::string& name, const std::string& vertex, SourceType vertexSourceType, const std::string& fragment, SourceType fragmentSourceType) :
+	Shader::Shader(const std::string& name) :
+		Shader(name, FullScreenQuadFrag(), SourceType::Code, FullScreenQuadVert(), SourceType::Code)
+	{
+	}
+
+
+
+	Shader::Shader(const std::string& name, const std::string& fragment, SourceType fragmentSourceType) :
+		Shader(name, fragment, fragmentSourceType, FullScreenQuadVert(), SourceType::Code)
+	{
+	}
+
+
+
+	Shader::Shader(const std::string& name, const std::string& fragment, SourceType fragmentSourceType, const std::string& vertex, SourceType vertexSourceType) :
 		Named(name),
-		mVertexSourceType(vertexSourceType),
-		mVertexFile(vertexSourceType == SourceType::File ? vertex : ""),
-		mVertexCode(vertexSourceType == SourceType::Code ? vertex : ""),
 		mFragmentSourceType(fragmentSourceType),
 		mFragmentFile(fragmentSourceType == SourceType::File ? fragment : ""),
-		mFragmentCode(fragmentSourceType == SourceType::Code ? fragment : "")
+		mFragmentCode(fragmentSourceType == SourceType::Code ? fragment : ""),
+		mVertexSourceType(vertexSourceType),
+		mVertexFile(vertexSourceType == SourceType::File ? vertex : ""),
+		mVertexCode(vertexSourceType == SourceType::Code ? vertex : "")
 	{
 		Compile();
 	}
@@ -96,7 +110,7 @@ namespace Tracer
 			mVertexCode = ReadFile(mVertexFile);
 			if(mVertexCode.empty())
 			{
-				FatalError("File not found or empty: %s", mVertexFile.c_str());
+				Logger::Error("File not found or empty: %s", mVertexFile.c_str());
 				return;
 			}
 		}
@@ -107,7 +121,7 @@ namespace Tracer
 			mFragmentCode = ReadFile(mFragmentFile);
 			if(mFragmentCode.empty())
 			{
-				FatalError("File not found or empty: %s", mVertexFile.c_str());
+				Logger::Error("File not found or empty: %s", mFragmentFile.c_str());
 				return;
 			}
 		}

@@ -403,12 +403,6 @@
     <None Include="Utility\Strings.inl">
       <Filter>Utility</Filter>
     </None>
-    <None Include="glsl\Exposure.frag">
-      <Filter>glsl</Filter>
-    </None>
-    <None Include="glsl\Gamma.frag">
-      <Filter>glsl</Filter>
-    </None>
     <None Include="glsl\LinearToSRGB.frag">
       <Filter>glsl</Filter>
     </None>
@@ -427,33 +421,6 @@
     <None Include="glsl\Tonemap.frag">
       <Filter>glsl</Filter>
     </None>
-    <None Include="glsl\TonemapAces.frag">
-      <Filter>glsl</Filter>
-    </None>
-    <None Include="glsl\TonemapFilmic.frag">
-      <Filter>glsl</Filter>
-    </None>
-    <None Include="glsl\TonemapLottes.frag">
-      <Filter>glsl</Filter>
-    </None>
-    <None Include="glsl\TonemapReinhard.frag">
-      <Filter>glsl</Filter>
-    </None>
-    <None Include="glsl\TonemapReinhard2.frag">
-      <Filter>glsl</Filter>
-    </None>
-    <None Include="glsl\TonemapUchimura.frag">
-      <Filter>glsl</Filter>
-    </None>
-    <None Include="glsl\TonemapUncharted2.frag">
-      <Filter>glsl</Filter>
-    </None>
-    <None Include="glsl\Exposure.json">
-      <Filter>glsl</Filter>
-    </None>
-    <None Include="glsl\Gamma.json">
-      <Filter>glsl</Filter>
-    </None>
     <None Include="glsl\LinearToSRGB.json">
       <Filter>glsl</Filter>
     </None>
@@ -467,27 +434,6 @@
       <Filter>glsl</Filter>
     </None>
     <None Include="glsl\Tonemap.json">
-      <Filter>glsl</Filter>
-    </None>
-    <None Include="glsl\TonemapAces.json">
-      <Filter>glsl</Filter>
-    </None>
-    <None Include="glsl\TonemapFilmic.json">
-      <Filter>glsl</Filter>
-    </None>
-    <None Include="glsl\TonemapLottes.json">
-      <Filter>glsl</Filter>
-    </None>
-    <None Include="glsl\TonemapReinhard.json">
-      <Filter>glsl</Filter>
-    </None>
-    <None Include="glsl\TonemapReinhard2.json">
-      <Filter>glsl</Filter>
-    </None>
-    <None Include="glsl\TonemapUchimura.json">
-      <Filter>glsl</Filter>
-    </None>
-    <None Include="glsl\TonemapUncharted2.json">
       <Filter>glsl</Filter>
     </None>
     <None Include="glsl\SRGBToLinear.json">

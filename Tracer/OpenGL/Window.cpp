@@ -86,7 +86,7 @@ namespace Tracer
 		glDepthMask(GL_FALSE);
 
 		// init shader
-		mQuadShader = new Shader("quad", Shader::FullScreenQuadVert(), Shader::SourceType::Code, Shader::FullScreenQuadFrag(), Shader::SourceType::Code);
+		mQuadShader = new Shader("quad");
 	}
 
 

@@ -187,6 +187,9 @@ namespace Tracer
 
 	std::string ReadFile(const std::string& filePath)
 	{
+		if(!FileExists(filePath))
+			return "";
+
 		std::ifstream fileStream(filePath);
 		assert(fileStream.is_open());
 		if(!fileStream.is_open())

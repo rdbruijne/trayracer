@@ -2,7 +2,7 @@
 
 uniform sampler2D convergeBuffer;
 uniform float exposure = 1;
-uniform float gamma = 1;
+uniform float gamma = 2.2;
 uniform int tonemapMethod = 0;
 
 // passed from vertex shader
@@ -164,10 +164,8 @@ vec3 TonemapUncharted2(vec3 x)
 
 vec3 Tonemap(vec3 x)
 {
-	// see Window::ShaderProperties::TonemapMethod
 	switch(tonemapMethod)
 	{
-	default:
 	case 0:
 		return TonemapAces(x);
 
@@ -188,6 +186,9 @@ vec3 Tonemap(vec3 x)
 
 	case 6:
 		return TonemapUncharted2(x);
+
+	default:
+		return x;
 	}
 }
 

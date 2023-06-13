@@ -40,7 +40,7 @@ namespace Demo
 		//mScene->Add(toadInst);
 
 		// set post stack
-		std::shared_ptr<Shader> tonemap = std::make_shared<Shader>("Aces Tone Mapping", Shader::FullScreenQuadVert(), Shader::SourceType::Code, "glsl/TonemapAces.frag", Shader::SourceType::File);
+		std::shared_ptr<Shader> tonemap = std::make_shared<Shader>("Tone Mapping", "glsl/Tonemap.frag", Shader::SourceType::File);
 		window->SetPostStack({tonemap});
 	}
 
