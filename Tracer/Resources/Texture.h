@@ -53,8 +53,8 @@ namespace Tracer
 		const GLTexture* GLTex() const { return mGlTexture; }
 
 	private:
-		std::string mPath = "";
-		int2 mResolution = make_int2(0, 0);
+		const std::string mPath = "";
+		const int2 mResolution = make_int2(0, 0);
 		std::vector<half4> mPixels;
 
 		// mutex

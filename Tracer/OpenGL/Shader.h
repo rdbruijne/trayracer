@@ -78,12 +78,12 @@ namespace Tracer
 		bool mEnabled = true;
 		bool mIsValid = false;
 
-		SourceType mVertexSourceType;
-		std::string mVertexFile = "";
+		const SourceType mVertexSourceType;
+		const std::string mVertexFile = "";
 		std::string mVertexCode = "";
 
-		SourceType mFragmentSourceType;
-		std::string mFragmentFile = "";
+		const SourceType mFragmentSourceType;
+		const std::string mFragmentFile = "";
 		std::string mFragmentCode = "";
 
 		uint32_t mVertexShaderID = 0;
@@ -147,7 +147,7 @@ namespace Tracer
 		void Set(uint32_t slot, GLTexture* tex);
 
 	private:
-		Types mType = Types::Unknown;
+		const Types mType = Types::Unknown;
 
 		// value
 		union Data

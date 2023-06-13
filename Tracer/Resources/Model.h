@@ -73,7 +73,7 @@ namespace Tracer
 		inline OptixTraversableHandle TraversableHandle() const { return mTraversableHandle; }
 
 	private:
-		std::string mFilePath;
+		const std::string mFilePath;
 		std::vector<std::shared_ptr<Material>> mMaterials;
 
 		// geometry

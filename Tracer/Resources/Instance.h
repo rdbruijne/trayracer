@@ -52,6 +52,6 @@ namespace Tracer
 		float3 mEuler = make_float3(0);
 		float3 mScale = make_float3(1);
 		float3x4 mTransform = make_float3x4();
-		std::shared_ptr<Model> mModel = nullptr;
+		const std::shared_ptr<Model> mModel = nullptr;
 	};
 }

@@ -40,7 +40,7 @@ namespace Tracer
 
 	private:
 		uint32_t mId = 0;
-		Types mType = Types::Byte4;
-		int2 mResolution;
+		const Types mType;
+		const int2 mResolution;
 	};
 };

@@ -31,6 +31,10 @@ namespace Tracer
 	class Texture;
 	class Renderer
 	{
+		// disable copying
+		Renderer(const Renderer&) = delete;
+		Renderer& operator =(const Renderer&) = delete;
+
 	public:
 		// settings
 		static constexpr int MaxTraceDepth = 16;

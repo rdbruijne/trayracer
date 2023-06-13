@@ -12,7 +12,6 @@ namespace Tracer
 	{
 		friend class Renderer;
 	public:
-		CudaDevice() = default;
 		explicit CudaDevice(int deviceID);
 		~CudaDevice();
 
@@ -29,7 +28,7 @@ namespace Tracer
 		static int Count();
 
 	private:
-		int mDeviceId;
+		const int mDeviceId;
 
 		// CUDA device properties
 		CUstream mStream = nullptr;
