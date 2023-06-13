@@ -23,14 +23,8 @@
 #include "CUDA/GPU/CudaFwd.h"
 
 // Optix
-#pragma warning(push)
-#pragma warning(disable: 5039) // 'function': pointer or reference to potentially throwing function passed to extern C function under -EHc. Undefined behavior may occur if this function throws an exception.
-#pragma warning(disable: 6011) // Dereferencing NULL pointer 'pointer-name'.
-#pragma warning(disable: 6387) // 'argument' may be 'value': this does not adhere to the specification for the function 'function name': Lines: x, y
-#pragma warning(disable: 26451) // Arithmetic overflow: Using operator 'operator' on a size-a byte value and then casting the result to a size-b byte value. Cast the value to the wider type before calling operator 'operator' to avoid overflow (io.2)
 #include "optix7/optix.h"
 #include "optix7/optix_stubs.h"
-#pragma warning(pop)
 
 // CUDA
 #include <cuda_gl_interop.h>

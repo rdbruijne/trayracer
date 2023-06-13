@@ -1,12 +1,7 @@
 #pragma once
 
 // Magic Enum
-#pragma warning(push)
-#pragma warning(disable: 4346) // 'name' : dependent name is not a type
-#pragma warning(disable: 4626) // 'derived class' : assignment operator was implicitly defined as deleted because a base class assignment operator is inaccessible or deleted
-#pragma warning(disable: 5027) // 'type': move assignment operator was implicitly defined as deleted
 #include "magic_enum/magic_enum.hpp"
-#pragma warning(pop)
 
 // ImGUI
 #include "imgui/imgui.h"

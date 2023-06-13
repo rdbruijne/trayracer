@@ -4,10 +4,7 @@
 #include "Optix/OptixError.h"
 
 // Optix
-#pragma warning(push)
-#pragma warning(disable: 5039) // '_function_': pointer or reference to potentially throwing function passed to `extern C` function under `-EHc`. Undefined behavior may occur if this function throws an exception.
 #include "optix7/optix_stubs.h"
-#pragma warning(pop)
 
 namespace Tracer
 {

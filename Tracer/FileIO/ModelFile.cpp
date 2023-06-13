@@ -13,15 +13,10 @@
 #include "Utility/Strings.h"
 
 // Assimp
-#pragma warning(push)
-#pragma warning(disable: 4619) // #pragma warning : there is no warning number 'number'
-#pragma warning(disable: 26451) // Arithmetic overflow: Using operator 'operator' on a size-a byte value and then casting the result to a size-b byte value. Cast the value to the wider type before calling operator 'operator' to avoid overflow (io.2)
-#pragma warning(disable: 26495) // Variable 'variable' is uninitialized. Always initialize a member variable (type.6).
 #include "assimp/Importer.hpp"
 #include "assimp/DefaultLogger.hpp"
 #include "assimp/scene.h"
 #include "assimp/postprocess.h"
-#pragma warning(pop)
 
 // C++
 #include <filesystem>

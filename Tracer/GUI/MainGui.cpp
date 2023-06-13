@@ -24,12 +24,7 @@
 #include "Utility/System.h"
 
 // Magic Enum
-#pragma warning(push)
-#pragma warning(disable: 4346) // 'name' : dependent name is not a type
-#pragma warning(disable: 4626) // 'derived class' : assignment operator was implicitly defined as deleted because a base class assignment operator is inaccessible or deleted
-#pragma warning(disable: 5027) // 'type': move assignment operator was implicitly defined as deleted
 #include "magic_enum/magic_enum.hpp"
-#pragma warning(pop)
 
 // ImGUI
 #include "imgui/imgui.h"
@@ -38,11 +33,8 @@
 #pragma warning(disable: 4201) // nonstandard extension used : nameless struct/union
 #pragma warning(disable: 4263) // 'function' : member function does not override any base class virtual member function
 #pragma warning(disable: 4264) // 'virtual_function' : no override available for virtual member function from base 'class'; function is hidden
-#pragma warning(disable: 4626) // 'derived class' : assignment operator was implicitly defined as deleted because a base class assignment operator is inaccessible or deleted
 #pragma warning(disable: 4458) // declaration of 'identifier' hides class member
-#pragma warning(disable: 5027) // 'type': move assignment operator was implicitly defined as deleted
 #pragma warning(disable: 5038) // data member 'member1' will be initialized after data member 'member2' | data member 'member' will be initialized after base class 'base_class'
-#pragma warning(disable: 5039) // '_function_': pointer or reference to potentially throwing function passed to `extern C` function under `-EHc`. Undefined behavior may occur if this function throws an exception.
 #include "imGuIZMO.quat/imGuIZMOquat.h"
 #pragma warning(pop)
 
