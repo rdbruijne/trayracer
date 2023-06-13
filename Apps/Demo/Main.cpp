@@ -32,7 +32,9 @@ namespace
 			GetConsoleScreenBufferInfo(consoleHandle, &info);
 			if(msColors.count(severity) != 0)
 				SetConsoleTextAttribute(consoleHandle, static_cast<WORD>(msColors[severity]));
-			std::cout << message << "\n";
+			std::cout << message;
+			if(message.size() == 0 || message.back() != '\n')
+				std::cout << '\n';
 			SetConsoleTextAttribute(consoleHandle, static_cast<WORD>(info.wAttributes & 0xF));
 		}
 

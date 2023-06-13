@@ -39,18 +39,16 @@ namespace Tracer
 {
 	namespace
 	{
-#pragma warning(push)
-#pragma warning(disable: 5264) // 'const Tracer::`anonymous namespace'::ImportLogStream::`vftable'': 'const' variable is not used
 		// stream to attach to assimp logger
+		template<Logger::Severity Severity>
 		class ImportLogStream : public Assimp::LogStream
 		{
 		public:
 			void write(const char* message) override
 			{
-				Logger::Info("[Assimp] %s", message);
+				Logger::Message(Severity, "[Assimp] %s", message);
 			}
 		};
-#pragma warning(pop)
 
 
 
@@ -347,16 +345,16 @@ namespace Tracer
 
 		const std::string importDir = Directory(globalPath);
 
-#if false
 		// attach log stream
 		static Assimp::Logger* defaultLogger = nullptr;
 		if(!defaultLogger)
 		{
-			defaultLogger = Assimp::DefaultLogger::create();
-			//defaultLogger->setLogSeverity(Assimp::Logger::VERBOSE);
-			defaultLogger->attachStream(new ImportLogStream(), Assimp::Logger::Debugging | Assimp::Logger::Info | Assimp::Logger::Err | Assimp::Logger::Warn);
+			defaultLogger = Assimp::DefaultLogger::create("assimp.log", Assimp::Logger::NORMAL);
+			defaultLogger->attachStream(new ImportLogStream<Logger::Severity::Debug>(), Assimp::Logger::Debugging);
+			defaultLogger->attachStream(new ImportLogStream<Logger::Severity::Info>(), Assimp::Logger::Info);
+			defaultLogger->attachStream(new ImportLogStream<Logger::Severity::Warning>(), Assimp::Logger::Warn);
+			defaultLogger->attachStream(new ImportLogStream<Logger::Severity::Error>(), Assimp::Logger::Err);
 		}
-#endif
 
 		// Importer
 		Assimp::Importer importer;

@@ -41,28 +41,19 @@ namespace Tracer
 
 		// log messages
 		template <typename... Args>
-		static void Debug(const char* fmt, Args&&... args)
-		{
-			HandleLog(Severity::Debug, fmt, std::forward<Args>(args)...);
-		}
+		static void Message(Severity severity, const char* fmt, Args&&... args);
 
 		template <typename... Args>
-		static void Info(const char* fmt, Args&&... args)
-		{
-			HandleLog(Severity::Info, fmt, std::forward<Args>(args)...);
-		}
+		static void Debug(const char* fmt, Args&&... args);
 
 		template <typename... Args>
-		static void Warning(const char* fmt, Args&&... args)
-		{
-			HandleLog(Severity::Warning, fmt, std::forward<Args>(args)...);
-		}
+		static void Info(const char* fmt, Args&&... args);
 
 		template <typename... Args>
-		static void Error(const char* fmt, Args&&... args)
-		{
-			HandleLog(Severity::Error, fmt, std::forward<Args>(args)...);
-		}
+		static void Warning(const char* fmt, Args&&... args);
+
+		template <typename... Args>
+		static void Error(const char* fmt, Args&&... args);
 
 	private:
 		static void HandleLog(Severity severity, const char* fmt, ...);
@@ -72,3 +63,5 @@ namespace Tracer
 
 	ENUM_BITWISE_OPERATORS(Logger::Severity);
 }
+
+#include "Logger.inl"

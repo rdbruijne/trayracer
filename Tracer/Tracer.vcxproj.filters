@@ -493,6 +493,9 @@
     <None Include="glsl\SRGBToLinear.json">
       <Filter>glsl</Filter>
     </None>
+    <None Include="Utility\Logger.inl">
+      <Filter>Utility</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="Optix\GPU\optix.cu">
