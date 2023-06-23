@@ -8,6 +8,7 @@
 #include "Tracer/Utility/Logger.h"
 
 // C++
+#include <fstream>
 #include <iostream>
 #include <map>
 
@@ -62,20 +63,47 @@ namespace
 			OutputDebugStringA("\n");
 		}
 	};
+
+
+
+	// File log stream
+	class FileLogStream : public Tracer::Logger::Stream
+	{
+	public:
+		FileLogStream(const std::string& appName)
+		{
+			mFileStream.open(appName + ".log", std::ofstream::out | std::ofstream::trunc); 
+		}
+
+		FileLogStream(const FileLogStream&) = delete;
+
+		void Write(Tracer::Logger::Severity /*severity*/, const std::string& message) override
+		{
+			static const std::string newline = "\n";
+			mFileStream.write(message.c_str(), static_cast<std::streamsize>(message.length()));
+			mFileStream.write(newline.c_str(), static_cast<std::streamsize>(newline.length()));
+			mFileStream.flush();
+		}
+
+		std::ofstream mFileStream;
+	};
 }
 
 
 
 int main(int /*argc*/, char** /*argv*/)
 {
+	const std::string appName = "TrayRacer";
+
 	// loggers
 	Tracer::Logger::Attach(std::make_shared<ConsoleLogStream>(), Tracer::Logger::Severity::All);
 	Tracer::Logger::Attach(std::make_shared<DebuggerLogStream>(), Tracer::Logger::Severity::All);
+	Tracer::Logger::Attach(std::make_shared<FileLogStream>(appName), Tracer::Logger::Severity::All);
 
 	// register GUI windows
 	Tracer::GuiHelpers::Register<Tracer::MainGui>(Tracer::Input::Keys::F1);
 
 	// run the app
 	Demo::App demoApp;
-	return Tracer::RunApp(&demoApp, "TrayRacer", make_int2(1920, 1080));
+	return Tracer::RunApp(&demoApp, appName, make_int2(1920, 1080));
 }
