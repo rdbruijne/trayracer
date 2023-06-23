@@ -9,7 +9,10 @@
 // Windows
 #include <shlwapi.h>
 
-
+// undo defines
+#ifdef CreateDirectory
+#undef CreateDirectory
+#endif
 
 namespace Tracer
 {
@@ -185,6 +188,22 @@ namespace Tracer
 
 
 
+	void CreateDirectory(const std::string& path)
+	{
+		if(!DirectoryExists(path))
+			CreateDirectoryA(path.c_str(), nullptr);
+	}
+
+
+
+	bool DirectoryExists(const std::string& path)
+	{
+		DWORD fileAttrib = GetFileAttributesA(path.c_str());
+		return (fileAttrib != INVALID_FILE_ATTRIBUTES && (fileAttrib & FILE_ATTRIBUTE_DIRECTORY));
+	}
+
+
+
 	std::string ReadFile(const std::string& filePath)
 	{
 		if(!FileExists(filePath))
@@ -232,6 +251,17 @@ namespace Tracer
 		fileStream.open(filePath, std::ofstream::out | std::ofstream::trunc);
 		assert(fileStream.is_open());
 		fileStream.write(text.c_str(), static_cast<std::streamsize>(text.length()));
+	}
+
+
+
+	void WriteFile(const std::string& filePath, const std::vector<std::string>& text)
+	{
+		std::ofstream fileStream;
+		fileStream.open(filePath, std::ofstream::out | std::ofstream::trunc);
+		assert(fileStream.is_open());
+		for(const std::string& str : text)
+			fileStream.write(str.c_str(), static_cast<std::streamsize>(str.length()));
 	}
 
 

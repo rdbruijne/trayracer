@@ -41,10 +41,15 @@ namespace Tracer
 	std::string GlobalPath(const std::string& path);
 	std::string RelativeFilePath(const std::string& path);
 
+	// directory handling
+	void CreateDirectory(const std::string& path);
+	bool DirectoryExists(const std::string& path);
+
 	// file handling
 	std::string ReadFile(const std::string& filePath);
 	std::vector<char> ReadBinaryFile(const std::string& filePath);
 	void WriteFile(const std::string& filePath, const std::string& text);
+	void WriteFile(const std::string& filePath, const std::vector<std::string>& text);
 	bool FileExists(const std::string& filePath);
 
 	// file times
