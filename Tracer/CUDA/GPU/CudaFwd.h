@@ -4,7 +4,7 @@
 #include "Common/CommonStructs.h"
 
 // C++
-#include <stdint.h>
+#include <cstdint>
 
 __host__ void SetCudaCounters(const RayCounters* data);
 __host__ void SetCudaLaunchParams(const LaunchParams* data);

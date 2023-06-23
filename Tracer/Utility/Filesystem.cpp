@@ -1,10 +1,10 @@
 #include "Filesystem.h"
 
 // C++
-#include <assert.h>
+#include <cassert>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
-#include <stdlib.h>
 
 // Windows
 #include <shlwapi.h>

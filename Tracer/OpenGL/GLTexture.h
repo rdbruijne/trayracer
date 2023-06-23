@@ -4,7 +4,7 @@
 #include "Utility/LinearMath.h"
 
 // C++
-#include <stdint.h>
+#include <cstdint>
 #include <vector>
 
 namespace Tracer

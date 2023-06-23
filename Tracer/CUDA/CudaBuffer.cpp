@@ -1,8 +1,5 @@
 #include "CudaBuffer.h"
 
-// C++
-#include <assert.h>
-
 namespace Tracer
 {
 	CudaBuffer::CudaBuffer(size_t size)

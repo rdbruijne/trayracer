@@ -6,7 +6,7 @@
 #include "glfw/glfw3native.h"
 
 // C++
-#include <assert.h>
+#include <cassert>
 
 namespace Tracer
 {

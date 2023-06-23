@@ -1,9 +1,9 @@
 #include "Strings.h"
 
 // C++
+#include <cstdarg>
 #include <algorithm>
 #include <sstream>
-#include <stdarg.h>
 
 
 

@@ -6,7 +6,7 @@
 
 // C++
 #include <array>
-#include <stdint.h>
+#include <cstdint>
 
 namespace Tracer
 {

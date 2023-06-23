@@ -4,7 +4,7 @@
 #include "Utility/Errors.h"
 
 // C++
-#include <assert.h>
+#include <cassert>
 #include <stdexcept>
 
 namespace Tracer

@@ -31,7 +31,7 @@
 #include <cuda_runtime.h>
 
 // C++
-#include <assert.h>
+#include <cassert>
 #include <set>
 #include <string>
 #include <thread>

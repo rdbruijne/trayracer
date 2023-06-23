@@ -18,7 +18,7 @@
 #include "imgui/imgui.h"
 
 // C++
-#include <assert.h>
+#include <cassert>
 #include <stdexcept>
 
 // Windows

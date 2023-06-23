@@ -4,7 +4,7 @@
 #include "CUDA/CudaError.h"
 
 // C++
-#include <assert.h>
+#include <cassert>
 #include <vector>
 
 namespace Tracer
