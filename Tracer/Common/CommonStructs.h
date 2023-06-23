@@ -20,10 +20,10 @@
 //------------------------------------------------------------------------------------------------------------------------------
 #define DECLARE_KERNEL_PARAMS	uint32_t pathCount, float4* __restrict__ accumulator, float4* __restrict__ albedo, \
 								float4* __restrict__ normals, float4* __restrict__ pathStates, \
-								uint4* hitData, float4* shadowRays, int2 resolution, \
+								uint4* hitData, float4* shadowRays, int resX, int resY, \
 								uint32_t stride, uint32_t pathLength, uint32_t renderFlags
 
-#define PASS_KERNEL_PARAMS		pathCount, accumulator, albedo, normals, pathStates, hitData, shadowRays, resolution, stride, pathLength, renderFlags
+#define PASS_KERNEL_PARAMS		pathCount, accumulator, albedo, normals, pathStates, hitData, shadowRays, resX, resY, stride, pathLength, renderFlags
 
 
 

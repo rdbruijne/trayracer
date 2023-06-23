@@ -487,6 +487,7 @@ namespace Disney
 		float3 value = make_float3(0);
 
 		// Sample the chosen component.
+		uint32_t sampleFlag = 0;
 		if(r0 < diffuseCdf)
 		{
 			Diffuse::Sample(mat, r0, r1, shadingInfo.wo, wi, component_pdf, value);
@@ -498,6 +499,7 @@ namespace Disney
 			Sheen::Sample(mat, r0, r1, shadingInfo.wo, wi, component_pdf, value);
 			probability = sheenWeight * component_pdf;
 			sheenWeight = 0;
+			sampleFlag |= BsdfFlags::Specular;
 		}
 		else if(r0 < specularCdf)
 		{
@@ -507,6 +509,7 @@ namespace Disney
 			GGX::Sample(alpha_x, alpha_y, mat, r0, r1, shadingInfo.wo, wi, component_pdf, value);
 			probability = specularWeight * component_pdf;
 			specularWeight = 0;
+			sampleFlag |= BsdfFlags::Specular;
 		}
 		else
 		{
@@ -514,6 +517,7 @@ namespace Disney
 			GTR1::Sample(alpha, alpha, mat, r0, r1, shadingInfo.wo, wi, component_pdf, value);
 			probability = clearcoatWeight * component_pdf;
 			clearcoatWeight = 0;
+			sampleFlag |= BsdfFlags::Specular;
 		}
 
 		// Evaluate the components.
@@ -556,7 +560,7 @@ namespace Disney
 		result.wi    = wi;
 		result.pdf   = probability > 1e-6f ? probability : 0;
 		result.T     = value;
-		result.flags = mat.roughness < Epsilon ? BsdfFlags::Specular : BsdfFlags::None;
+		result.flags = sampleFlag;//mat.roughness < Epsilon ? BsdfFlags::Specular : BsdfFlags::None;
 		return result;
 	}
 }

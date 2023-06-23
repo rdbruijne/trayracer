@@ -15,7 +15,7 @@ void ZDepthKernel(DECLARE_KERNEL_PARAMS)
 	const float3 O = make_float3(O4);
 	const float3 D = make_float3(D4);
 	const uint32_t pathIx = PathIx(__float_as_uint(O4.w));
-	const uint32_t pixelIx = pathIx % (resolution.x * resolution.y);
+	const uint32_t pixelIx = pathIx % (resX * resY);
 
 	// hit data
 	const uint4 hd = hitData[pathIx];

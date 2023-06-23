@@ -15,7 +15,7 @@ void AmbientOcclusionKernel(DECLARE_KERNEL_PARAMS)
 	const float3 O = make_float3(O4);
 	const float3 D = make_float3(D4);
 	const uint32_t pathIx = PathIx(__float_as_uint(O4.w));
-	const uint32_t pixelIx = pathIx % (resolution.x * resolution.y);
+	const uint32_t pixelIx = pathIx % (resX * resY);
 
 	// hit data
 	const uint4 hd = hitData[pathIx];
@@ -43,7 +43,9 @@ void AmbientOcclusionKernel(DECLARE_KERNEL_PARAMS)
 		const float3 newDir = SampleCosineHemisphere(intersection.shadingNormal, rnd(seed), rnd(seed));
 
 		// update path states
+		__threadfence();
 		const uint32_t extendIx = atomicAdd(&Counters->extendRays, 1);
+		__threadfence();
 		pathStates[extendIx + (stride * 0)] = make_float4(newOrigin, __uint_as_float(Pack(pathIx)));
 		pathStates[extendIx + (stride * 1)] = make_float4(newDir, 0);
 

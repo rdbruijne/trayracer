@@ -168,7 +168,7 @@ namespace Tracer
 		mRenderTimeEvent.Start(mCudaDevice->Stream());
 		mDeviceRenderer->RenderFrame(mKernelSettings, mRenderMode, renderFlags);
 		mRenderTimeEvent.Stop(mCudaDevice->Stream());
-		cudaStreamSynchronize(mCudaDevice->Stream());
+		CUDA_CHECK(cudaStreamSynchronize(mCudaDevice->Stream()));
 
 		// denoise the frame
 		DenoiseFrame();

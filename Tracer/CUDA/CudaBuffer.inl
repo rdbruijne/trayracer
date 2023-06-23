@@ -61,7 +61,6 @@ namespace Tracer
 
 
 
-
 	template<typename TYPE>
 	void Tracer::CudaBuffer::Download(TYPE* data, size_t count) const
 	{

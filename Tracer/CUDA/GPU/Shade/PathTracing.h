@@ -25,7 +25,7 @@ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 	const uint32_t pathIx = PathIx(data);
 	uint32_t flags = Flags(data);
 	const float extendPdf = T4.w;
-	const uint32_t pixelIx = pathIx % (resolution.x * resolution.y);
+	const uint32_t pixelIx = pathIx % (resX * resY);
 
 	// hit data
 	const uint4 hd = hitData[pathIx];
@@ -76,7 +76,7 @@ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 		else
 		{
 			// apply MIS
-			const float3 prevN = UnpackNormal(__float_as_uint(D4.w));
+			//const float3 prevN = UnpackNormal(__float_as_uint(D4.w));
 			const float lightPdf = LightPdf(D, tmax, intersection.area, intersection.shadingNormal);
 			const float pickProb = LightPickProbability(intersection.area, hitMaterial.emissive);
 			if ((extendPdf + lightPdf * pickProb) > 0)
@@ -128,7 +128,9 @@ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 	if((lightPdf > Epsilon) && (closure.shadow.pdf > Epsilon) && ((closure.extend.flags & BsdfFlags::Specular) == 0))
 	{
 		const float3 shadowT = (closure.shadow.T * lightRadiance) / (lightProb * lightPdf + closure.shadow.pdf);
+		__threadfence();
 		const int32_t shadowIx = atomicAdd(&Counters->shadowRays, 1);
+		__threadfence();
 		shadowRays[shadowIx + (stride * 0)] = make_float4(I, __uint_as_float(pixelIx));
 		shadowRays[shadowIx + (stride * 1)] = make_float4(L, lightDist);
 		shadowRays[shadowIx + (stride * 2)] = make_float4(SafeColor(shadowT), 0);
@@ -159,7 +161,9 @@ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 			flags &= ~BsdfFlags::Specular;
 
 		// update path states
+		__threadfence();
 		const int32_t extendIx = atomicAdd(&Counters->extendRays, 1);
+		__threadfence();
 		pathStates[extendIx + (stride * 0)] = make_float4(newOrigin, __uint_as_float(Pack(pathIx, flags)));
 		pathStates[extendIx + (stride * 1)] = make_float4(newDir, __uint_as_float(PackNormal(intersection.shadingNormal)));
 		pathStates[extendIx + (stride * 2)] = make_float4(fixnan(throughput), closure.extend.pdf);

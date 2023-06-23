@@ -21,7 +21,9 @@ void WireframeKernel(DECLARE_KERNEL_PARAMS)
 	if(pathLength == 0)
 	{
 		// update path states
+		__threadfence();
 		const int32_t extendIx = atomicAdd(&Counters->extendRays, 1);
+		__threadfence();
 		pathStates[extendIx + (stride * 0)] = make_float4(O4.x, O4.y, O4.z, __uint_as_float(Pack(pathIx)));
 		pathStates[extendIx + (stride * 1)] = make_float4(D4.x, D4.y, D4.z, 0);
 		pathStates[extendIx + (stride * 2)] = make_float4(__uint_as_float(primIx));
@@ -30,7 +32,7 @@ void WireframeKernel(DECLARE_KERNEL_PARAMS)
 	{
 		const float4 T4 = pathStates[jobIx + (stride * 2)];
 		const uint32_t prevT = __float_as_uint(T4.w);
-		const int32_t pixelIx = pathIx % (resolution.x * resolution.y);
+		const int32_t pixelIx = pathIx % (resX * resY);
 		if(prevT == primIx)
 			accumulator[pixelIx] += make_float4(1, 1, 1, 0);
 	}

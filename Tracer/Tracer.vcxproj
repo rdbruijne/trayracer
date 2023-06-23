@@ -49,11 +49,10 @@
     <CudaCompile>
       <Include>$(ProjectDir);$(SolutionDir)libraries</Include>
       <TargetMachinePlatform>64</TargetMachinePlatform>
-      <CodeGeneration>compute_87,sm_87</CodeGeneration>
+      <CodeGeneration>compute_89,sm_89</CodeGeneration>
       <AdditionalCompilerOptions>/wd4505 /wd4514 /wd4668 /wd4711 /wd4820 /wd5039 /wd5247 /wd5248</AdditionalCompilerOptions>
       <Keep>true</Keep>
       <KeepDir>$(IntDir)</KeepDir>
-      <InterleaveSourceInPTX>true</InterleaveSourceInPTX>
       <CompileOut>$(IntDir)\%(Filename)%(Extension).cubin</CompileOut>
       <FastMath>true</FastMath>
     </CudaCompile>
@@ -84,13 +83,12 @@
     </ClCompile>
     <CudaCompile>
       <Include>$(ProjectDir);$(SolutionDir)libraries</Include>
-      <TargetMachinePlatform>64</TargetMachinePlatform>
-      <CodeGeneration>compute_87,sm_87</CodeGeneration>
+      <CodeGeneration>compute_89,sm_89</CodeGeneration>
       <AdditionalCompilerOptions>/wd4505 /wd4514 /wd4668 /wd4711 /wd4820 /wd5039 /wd5247 /wd5248</AdditionalCompilerOptions>
-      <Keep>true</Keep>
       <KeepDir>$(IntDir)</KeepDir>
-      <InterleaveSourceInPTX>true</InterleaveSourceInPTX>
       <CompileOut>$(IntDir)\%(Filename)%(Extension).cubin</CompileOut>
+      <TargetMachinePlatform>64</TargetMachinePlatform>
+      <Keep>true</Keep>
       <FastMath>true</FastMath>
     </CudaCompile>
     <PreBuildEvent>

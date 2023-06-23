@@ -12,7 +12,7 @@ void MaterialPropertyKernel(DECLARE_KERNEL_PARAMS)
 
 	// extract path data
 	const uint32_t pathIx = PathIx(__float_as_uint(O4.w));
-	const uint32_t pixelIx = pathIx % (resolution.x * resolution.y);
+	const uint32_t pixelIx = pathIx % (resX * resY);
 
 	// hit data
 	const uint4 hd = hitData[pathIx];

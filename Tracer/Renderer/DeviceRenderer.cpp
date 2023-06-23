@@ -126,7 +126,7 @@ namespace Tracer
 
 		// finalize the frame
 		mLaunchParams.sampleCount += mLaunchParams.kernelSettings.multiSample;
-		FinalizeFrame(mAccumulator.Ptr<float4>(), mColorBuffer.Ptr<float4>(), make_int2(mLaunchParams.resX, mLaunchParams.resY), mLaunchParams.sampleCount);
+		FinalizeFrame(mAccumulator.Ptr<float4>(), mColorBuffer.Ptr<float4>(), mLaunchParams.resX, mLaunchParams.resY, mLaunchParams.sampleCount);
 
 		PostRender();
 	}
@@ -243,7 +243,8 @@ namespace Tracer
 			mPathStates.Ptr<float4>(),		// float4* pathStates
 			mHitData.Ptr<uint4>(),			// uint4* hitData
 			mShadowRayData.Ptr<float4>(),	// float4* shadowRays
-			make_int2(mLaunchParams.resX, mLaunchParams.resY), // int2 resolution
+			mLaunchParams.resX,				// int resX
+			mLaunchParams.resY,				// int resY
 			stride,							// uint32_t stride
 			pathLength,						// uint32_t pathLength
 			mLaunchParams.renderFlags);		// uint32_t renderFlags
