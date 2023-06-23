@@ -7,8 +7,8 @@
 #include <cuda_fp16.h>
 
 // C++
-#define _USE_MATH_DEFINES
-#include <math.h>
+#include <cassert>
+#include <cmath>
 
 namespace Tracer
 {
@@ -86,6 +86,24 @@ namespace Tracer
 	inline float2 fixnan(const float2& a) { return isfinite(a.x + a.y) ? a : make_float2(0); }
 	inline float3 fixnan(const float3& a) { return isfinite(a.x + a.y + a.z) ? a : make_float3(0); }
 	inline float4 fixnan(const float4& a) { return isfinite(a.x + a.y + a.z + a.w) ? a : make_float4(0); }
+
+
+
+	//--------------------------------------------------------------------------------------------------------------------------
+	// Type casting
+	//--------------------------------------------------------------------------------------------------------------------------
+	template<typename TO, typename FROM>
+	inline TO __intrinsic_cast(FROM x)
+	{
+		static_assert(sizeof(FROM) == sizeof(TO));
+		return *((TO*)(&x));
+	}
+
+	inline float __int_as_float(int x) { return __intrinsic_cast<float>(x); }
+	inline float __uint_as_float(uint32_t x) { return __intrinsic_cast<float>(x); }
+
+	inline int __float_as_int(float x) { return __intrinsic_cast<int>(x); }
+	inline uint32_t __float_as_uint(float x) { return __intrinsic_cast<uint32_t>(x); }
 
 
 
