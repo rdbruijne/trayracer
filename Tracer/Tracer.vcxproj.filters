@@ -383,6 +383,9 @@
     <ClInclude Include="CUDA\GPU\Shade\BSDF\Lambert.h">
       <Filter>CUDA\GPU\Shade\BSDF</Filter>
     </ClInclude>
+    <ClInclude Include="Utility\HelperMacros.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Model.h">

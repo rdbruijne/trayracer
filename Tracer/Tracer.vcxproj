@@ -221,6 +221,7 @@
     <ClInclude Include="Utility\Filesystem.h" />
     <ClInclude Include="Utility\LinearMath.h" />
     <ClInclude Include="Utility\Logger.h" />
+    <ClInclude Include="Utility\HelperMacros.h" />
     <ClInclude Include="Utility\Named.h" />
     <ClInclude Include="Utility\Stopwatch.h" />
     <ClInclude Include="Utility\Strings.h" />
