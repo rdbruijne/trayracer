@@ -118,10 +118,10 @@ namespace Tracer
 		// loop
 		uint32_t pathCount = static_cast<uint32_t>(mLaunchParams.resX) * mLaunchParams.resY * mLaunchParams.kernelSettings.multiSample;
 		mRenderTimeEvent.Start(mDevice->Stream());
-		int pathLength = 0;
+		uint32_t pathLength = 0;
 		do
 		{
-			RenderBounce(static_cast<uint32_t>(pathLength), pathCount);
+			RenderBounce(pathLength, pathCount);
 		} while(++pathLength < mLaunchParams.kernelSettings.maxDepth && pathCount > 0);
 		mRenderTimeEvent.Stop(mDevice->Stream());
 		cudaStreamSynchronize(mDevice->Stream());
@@ -186,11 +186,11 @@ namespace Tracer
 		// update timings
 		mRenderStats.primaryPathTimeMs = mTraceTimeEvents[0].Elapsed();
 		mRenderStats.secondaryPathTimeMs = mLaunchParams.kernelSettings.maxDepth > 1 ? mTraceTimeEvents[1].Elapsed() : 0;
-		for(int i = 2; i < mLaunchParams.kernelSettings.maxDepth; i++)
+		for(uint32_t i = 2; i < mLaunchParams.kernelSettings.maxDepth; i++)
 			mRenderStats.deepPathTimeMs += mTraceTimeEvents[static_cast<size_t>(i)].Elapsed();
-		for(int i = 0; i < mLaunchParams.kernelSettings.maxDepth; i++)
+		for(uint32_t i = 0; i < mLaunchParams.kernelSettings.maxDepth; i++)
 			mRenderStats.shadeTimeMs += mShadeTimeEvents[static_cast<size_t>(i)].Elapsed();
-		for(int i = 0; i < mLaunchParams.kernelSettings.maxDepth; i++)
+		for(uint32_t i = 0; i < mLaunchParams.kernelSettings.maxDepth; i++)
 			mRenderStats.shadowTimeMs += mShadowTimeEvents[static_cast<size_t>(i)].Elapsed();
 		mRenderStats.renderTimeMs = mRenderTimeEvent.Elapsed();
 	}

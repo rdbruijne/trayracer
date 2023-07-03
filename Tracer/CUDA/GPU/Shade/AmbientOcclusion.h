@@ -30,7 +30,7 @@ void AmbientOcclusionKernel(DECLARE_KERNEL_PARAMS)
 		if(primIx == ~0)
 			return;
 		
-		uint32_t seed = tea<2>(pathIx, pathLength + 1);
+		uint32_t seed = tea<2>(Params->kernelSettings.seed + pathIx, pathLength + 1);
 		seed = rot_seed(seed, Params->sampleCount);
 
 		// fetch intersection info

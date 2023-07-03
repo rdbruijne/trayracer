@@ -144,8 +144,9 @@ struct RayPickResult
 
 struct KernelSettings
 {
-	int multiSample;
-	int maxDepth;
+	uint32_t multiSample;
+	uint32_t maxDepth;
+	uint32_t seed;
 	float aoDist;
 	float zDepthMax;
 	float rayEpsilon;

@@ -124,6 +124,7 @@
     <ClCompile Include="FileIO\SceneFile.cpp" />
     <ClCompile Include="FileIO\ShaderDescriptor.cpp" />
     <ClCompile Include="FileIO\TextureFile.cpp" />
+    <ClCompile Include="GUI\GuiExtensions.cpp" />
     <ClCompile Include="GUI\MainGui.cpp" />
     <ClCompile Include="GUI\GuiHelpers.cpp" />
     <ClCompile Include="OpenGL\GLFramebuffer.cpp" />

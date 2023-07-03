@@ -13,7 +13,9 @@
 
 // C++
 #include <array>
+#include <ctime>
 #include <memory>
+#include <random>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -62,6 +64,9 @@ namespace Tracer
 
 		inline MaterialPropertyIds MaterialPropertyId() const { return mMaterialPropertyId; }
 		void SetMaterialPropertyId(MaterialPropertyIds id);
+
+		inline bool StaticNoise() const { return mUseStaticNoise; }
+		void SetStaticNoise(bool useStaticNoise);
 
 		// statistics
 		inline RenderStatistics Statistics() const { return mRenderStats; }
@@ -112,6 +117,9 @@ namespace Tracer
 		// render mode
 		RenderModes mRenderMode = RenderModes::PathTracing;
 		MaterialPropertyIds mMaterialPropertyId = MaterialPropertyIds::Diffuse;
+
+		bool mUseStaticNoise = false;
+		std::mt19937 mRandomEngine = std::mt19937(static_cast<unsigned int>(std::time(nullptr)));
 
 		// settings
 		KernelSettings mKernelSettings = {};

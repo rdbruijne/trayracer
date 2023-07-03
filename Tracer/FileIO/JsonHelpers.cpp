@@ -123,6 +123,21 @@ namespace Tracer
 
 
 
+	bool Read(const Value& jsonValue, const std::string_view& memberName, uint32_t& result)
+	{
+		if(!jsonValue.HasMember(memberName.data()))
+			return false;
+
+		const Value& val = jsonValue[memberName.data()];
+		if(!val.IsNumber())
+			return false;
+
+		result = val.GetUint();
+		return true;
+	}
+
+
+
 	bool Read(const Value& jsonValue, const std::string_view& memberName, int2& result)
 	{
 		if(!jsonValue.HasMember(memberName.data()))
@@ -273,6 +288,17 @@ namespace Tracer
 	{
 		Value v = Value(kObjectType);
 		v.SetInt(val);
+
+		Value key = Value(memberName.data(), allocator);
+		jsonValue.AddMember(key, v, allocator);
+	}
+
+
+
+	void Write(Value& jsonValue, Document::AllocatorType& allocator,const std::string_view& memberName, uint32_t val)
+	{
+		Value v = Value(kObjectType);
+		v.SetUint(val);
 
 		Value key = Value(memberName.data(), allocator);
 		jsonValue.AddMember(key, v, allocator);

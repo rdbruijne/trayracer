@@ -112,6 +112,9 @@
     <ClCompile Include="Utility\Errors.cpp">
       <Filter>Utility</Filter>
     </ClCompile>
+    <ClCompile Include="GUI\GuiExtensions.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">

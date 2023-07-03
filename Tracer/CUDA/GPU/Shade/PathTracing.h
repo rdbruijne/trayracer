@@ -97,7 +97,7 @@ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 	}
 
 	// generate seed
-	uint32_t seed = tea<2>(pathIx, Params->sampleCount + pathLength + 1);
+	uint32_t seed = tea<2>(Params->kernelSettings.seed + pathIx, Params->sampleCount + pathLength + 1);
 
 	// sample light
 	float lightProb;

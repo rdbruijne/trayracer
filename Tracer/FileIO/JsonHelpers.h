@@ -32,6 +32,7 @@ namespace Tracer
 	bool Read(const rapidjson::Value& jsonValue, const std::string_view& memberName, float4& result);
 	bool Read(const rapidjson::Value& jsonValue, const std::string_view& memberName, float3x4& result);
 	bool Read(const rapidjson::Value& jsonValue, const std::string_view& memberName, int& result);
+	bool Read(const rapidjson::Value& jsonValue, const std::string_view& memberName, uint32_t& result);
 	bool Read(const rapidjson::Value& jsonValue, const std::string_view& memberName, int2& result);
 	bool Read(const rapidjson::Value& jsonValue, const std::string_view& memberName, int3& result);
 	bool Read(const rapidjson::Value& jsonValue, const std::string_view& memberName, int4& result);
@@ -47,7 +48,8 @@ namespace Tracer
 	void Write(rapidjson::Value& jsonValue, rapidjson::Document::AllocatorType& allocator, const std::string_view& memberName, const float3& val);
 	void Write(rapidjson::Value& jsonValue, rapidjson::Document::AllocatorType& allocator, const std::string_view& memberName, const float4& val);
 	void Write(rapidjson::Value& jsonValue, rapidjson::Document::AllocatorType& allocator, const std::string_view& memberName, const float3x4& val);
-	void Write(rapidjson::Value& jsonValue, rapidjson::Document::AllocatorType& allocator,const std::string_view& memberName, int val);
+	void Write(rapidjson::Value& jsonValue, rapidjson::Document::AllocatorType& allocator, const std::string_view& memberName, int val);
+	void Write(rapidjson::Value& jsonValue, rapidjson::Document::AllocatorType& allocator, const std::string_view& memberName, uint32_t val);
 	void Write(rapidjson::Value& jsonValue, rapidjson::Document::AllocatorType& allocator, const std::string_view& memberName, const int2& val);
 	void Write(rapidjson::Value& jsonValue, rapidjson::Document::AllocatorType& allocator, const std::string_view& memberName, const int3& val);
 	void Write(rapidjson::Value& jsonValue, rapidjson::Document::AllocatorType& allocator, const std::string_view& memberName, const int4& val);

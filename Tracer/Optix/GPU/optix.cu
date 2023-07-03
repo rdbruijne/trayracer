@@ -244,7 +244,7 @@ void __raygen__()
 				InitializeFilm(pixelIx);
 
 			// set the seed
-			uint32_t seed = tea<2>(pathIx, params.sampleCount << 1);
+			uint32_t seed = tea<2>(params.kernelSettings.seed + pathIx, params.sampleCount << 1);
 
 			// prepare the payload
 			uint32_t bary = 0;
@@ -293,7 +293,7 @@ void __raygen__()
 			if(params.renderMode == RenderModes::Wireframe)
 			{
 				const int32_t pixelIx = pathIx % (params.resX * params.resY);
-				uint32_t seed = tea<2>(pathIx, (params.sampleCount << 1) | 1);
+				uint32_t seed = tea<2>(params.kernelSettings.seed + pathIx, (params.sampleCount << 1) | 1);
 				float T;
 				GenerateCameraRay(O, D, T, make_int2(pixelIx % params.resX, pixelIx / params.resX), seed);
 			}

@@ -39,7 +39,7 @@ void AmbientOcclusionShadingKernel(DECLARE_KERNEL_PARAMS)
 		float3 diff = hitMaterial.diffuse;
 
 		// bounce ray
-		uint32_t seed = tea<2>(pathIx, Params->sampleCount + pathLength + 1);
+		uint32_t seed = tea<2>(Params->kernelSettings.seed + pathIx, Params->sampleCount + pathLength + 1);
 		const float3 newOrigin = O + (D * tmax);
 		const float3 newDir = SampleCosineHemisphere(intersection.shadingNormal, rnd(seed), rnd(seed));
 

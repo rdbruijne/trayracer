@@ -476,7 +476,7 @@ namespace Tracer
 						uniform.Get(&i);
 						if(uniform.IsEnum())
 						{
-							if(ComboBox(identifier, i, uniform.EnumKeys()))
+							if(ImGui::ComboBox(identifier, i, uniform.EnumKeys()))
 								uniform.Set(i);
 						}
 						else if(uniform.HasRange())
@@ -597,14 +597,14 @@ namespace Tracer
 		ImGui::Text("Settings");
 
 		RenderModes renderMode = renderer->RenderMode();
-		if(ComboBox("Render Mode", renderMode))
+		if(ImGui::ComboBox("Render Mode", renderMode))
 			renderer->SetRenderMode(renderMode);
 
 		// kernel settings
 		KernelSettings settings = renderer->Settings();
 		bool settingsChanged = false;
-		settingsChanged = ImGui::SliderInt("Multi-sample", &settings.multiSample, 1, Renderer::MaxTraceDepth) || settingsChanged;
-		settingsChanged = ImGui::SliderInt("Max depth", &settings.maxDepth, 1, 16) || settingsChanged;
+		settingsChanged = ImGui::SliderUInt("Multi-sample", &settings.multiSample, 1, Renderer::MaxTraceDepth) || settingsChanged;
+		settingsChanged = ImGui::SliderUInt("Max depth", &settings.maxDepth, 1, 16) || settingsChanged;
 		settingsChanged = ImGui::SliderFloat("Ray epsilon", &settings.rayEpsilon, 0.f, 1.f, "%.5f", ImGuiSliderFlags_Logarithmic) || settingsChanged;
 
 		ImGui::BeginDisabled(renderMode != RenderModes::AmbientOcclusion && renderMode != RenderModes::AmbientOcclusionShading);
@@ -615,13 +615,17 @@ namespace Tracer
 		settingsChanged = ImGui::SliderFloat("Z-Depth max", &settings.zDepthMax, 0.f, 1e4f, "%.3f", ImGuiSliderFlags_Logarithmic) || settingsChanged;
 		ImGui::EndDisabled();
 
+		bool staticNoise = renderer->StaticNoise();
+		if(ImGui::Checkbox("Static noise", &staticNoise))
+			renderer->SetStaticNoise(staticNoise);
+
 		if(settingsChanged)
 			renderer->SetSettings(settings);
 
 		// debug property
 		MaterialPropertyIds matPropId = renderer->MaterialPropertyId();
 		ImGui::BeginDisabled(renderMode != RenderModes::MaterialProperty);
-		if(ComboBox("Material property", matPropId))
+		if(ImGui::ComboBox("Material property", matPropId))
 			renderer->SetMaterialPropertyId(matPropId);
 		ImGui::EndDisabled();
 

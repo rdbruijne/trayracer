@@ -159,6 +159,8 @@ namespace Tracer
 		if(mRenderMode == RenderModes::MaterialProperty)
 			renderFlags = static_cast<uint32_t>(mMaterialPropertyId);
 
+		mKernelSettings.seed = mUseStaticNoise ? 0 : mRandomEngine();
+
 		// render the frame
 		mRenderTimeEvent.Start(mCudaDevice->Stream());
 		mDeviceRenderer->RenderFrame(mKernelSettings, mRenderMode, renderFlags);
@@ -232,6 +234,13 @@ namespace Tracer
 			if(mRenderMode == RenderModes::MaterialProperty)
 				Reset();
 		}
+	}
+
+
+
+	void Renderer::SetStaticNoise(bool useStaticNoise)
+	{
+		mUseStaticNoise = useStaticNoise;
 	}
 
 
