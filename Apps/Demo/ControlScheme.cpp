@@ -26,15 +26,9 @@ namespace Demo
 
 
 
-	ControlScheme::ControlScheme()
+	ControlScheme::Entry::Entry(Input::Keys key) :
+		Entry(key, Tracer::Input::ModifierKeys::None, 1.f)
 	{
-		// load defaults
-		OrbitCameraMove     = Entry(Input::Keys::Mouse_Middle, .05f);
-		OrbitCameraOrbit    = Entry(Input::Keys::Mouse_Left, .005f);
-		OrbitCameraRotate   = Entry(Input::Keys::Mouse_Left, Input::ModifierKeys::Alt, .005f);
-		OrbitCameraRoll     = Entry(Input::Keys::Mouse_Right, Input::ModifierKeys::Alt, .01f);
-		OrbitCameraDolly    = Entry(Input::Keys::Mouse_Right, .01f);
-		OrbitCameraDollyAlt = Entry(Input::Keys::Mouse_Scroll, -.1f);
 	}
 
 
@@ -70,7 +64,7 @@ namespace Demo
 			return make_float2(0, 0);
 
 		// return scroll if the key is a mouse button
-		if(mKey >= Input::KeyData::FirstMouse && mKey <= Input::KeyData::LastMouse)
+		if(Input::IsMouseKey(mKey))
 			return window->CursorDelta() * mScalar;
 
 		// return keyboard result

@@ -25,10 +25,12 @@ namespace Tracer
 
 	void DeviceRenderer::SetCamera(CameraNode& camNode)
 	{
-		mLaunchParams.cameraPos            = camNode.Position();
-		mLaunchParams.cameraForward        = normalize(camNode.Target() - camNode.Position());
-		mLaunchParams.cameraSide           = normalize(cross(mLaunchParams.cameraForward, camNode.Up()));
-		mLaunchParams.cameraUp             = normalize(cross(mLaunchParams.cameraSide, mLaunchParams.cameraForward));
+		const float3x4 T = camNode.Transform();
+
+		mLaunchParams.cameraPos            = make_float3(T.tx, T.ty, T.tz);
+		mLaunchParams.cameraForward        = T.z;
+		mLaunchParams.cameraSide           = T.x;
+		mLaunchParams.cameraUp             = T.y;
 
 		mLaunchParams.cameraAperture       = camNode.Aperture();
 		mLaunchParams.cameraDistortion     = camNode.Distortion();

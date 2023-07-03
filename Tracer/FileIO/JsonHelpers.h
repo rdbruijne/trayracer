@@ -19,10 +19,7 @@ struct float4;
 struct int2;
 struct int3;
 struct int4;
-namespace Tracer
-{
-	struct float3x4;
-}
+struct float3x4;
 
 
 namespace Tracer
@@ -40,7 +37,7 @@ namespace Tracer
 	bool Read(const rapidjson::Value& jsonValue, const std::string_view& memberName, int4& result);
 	bool Read(const rapidjson::Value& jsonValue, const std::string_view& memberName, std::string& result);
 
-	template<typename Enum, std::enable_if_t<std::is_enum_v<Enum>, bool> = true>
+	template<typename Enum, std::enable_if_t<std::is_enum_v<Enum>, bool> = false>
 	bool Read(const rapidjson::Value& jsonValue, const std::string_view& memberName, Enum& result);
 
 	// Write helpers
@@ -56,7 +53,7 @@ namespace Tracer
 	void Write(rapidjson::Value& jsonValue, rapidjson::Document::AllocatorType& allocator, const std::string_view& memberName, const int4& val);
 	void Write(rapidjson::Value& jsonValue, rapidjson::Document::AllocatorType& allocator, const std::string_view& memberName, const std::string& val);
 
-	template<typename Enum, std::enable_if_t<std::is_enum_v<Enum>, bool> = true>
+	template<typename Enum, std::enable_if_t<std::is_enum_v<Enum>, bool> = false>
 	void Write(rapidjson::Value& jsonValue, rapidjson::Document::AllocatorType& allocator, const std::string_view& memberName, Enum val);
 }
 

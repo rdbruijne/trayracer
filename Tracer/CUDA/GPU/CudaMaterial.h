@@ -56,7 +56,7 @@ struct HitMaterial
 //------------------------------------------------------------------------------------------------------------------------------
 // CudaMaterial properties
 //------------------------------------------------------------------------------------------------------------------------------
-static inline __device__
+static __inline__ __device__
 int ColorChannels(const CudaMatarial& mat, MaterialPropertyIds propId)
 {
 	const CudaMaterialProperty& prop = mat.properties[static_cast<size_t>(propId)];
@@ -65,7 +65,7 @@ int ColorChannels(const CudaMatarial& mat, MaterialPropertyIds propId)
 
 
 
-static inline __device__
+static __inline__ __device__
 bool HasTexture(const CudaMatarial& mat, MaterialPropertyIds propId)
 {
 	const CudaMaterialProperty& prop = mat.properties[static_cast<size_t>(propId)];
@@ -74,7 +74,7 @@ bool HasTexture(const CudaMatarial& mat, MaterialPropertyIds propId)
 
 
 
-static inline __device__
+static __inline__ __device__
 float3 GetColor(const CudaMatarial& mat, MaterialPropertyIds propId, const float2& uv)
 {
 	const CudaMaterialProperty& prop = mat.properties[static_cast<size_t>(propId)];
@@ -99,7 +99,7 @@ float3 GetColor(const CudaMatarial& mat, MaterialPropertyIds propId, const float
 //------------------------------------------------------------------------------------------------------------------------------
 // Intersection
 //------------------------------------------------------------------------------------------------------------------------------
-static inline __device__
+static __inline__ __device__
 void GetIntersectionAttributes(uint32_t instIx, uint32_t primIx, float2 bary, Intersection& intersection, HitMaterial& hitMaterial)
 {
 	// fetch triangle

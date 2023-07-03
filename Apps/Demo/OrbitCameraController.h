@@ -26,6 +26,6 @@ namespace Demo
 		static bool PanCamera(Tracer::CameraNode& node, const float2& pan);
 		static bool RotateCamera(Tracer::CameraNode& node, float tilt, float pan, float roll);
 
-		static float3 sPrevUp;
+		inline static float3 sPrevUp = make_float3(0, 1, 0);
 	};
 }

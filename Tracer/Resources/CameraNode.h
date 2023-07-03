@@ -24,6 +24,9 @@ namespace Tracer
 		const float3& Up() const { return mUp; }
 		void SetUp(const float3& up);
 
+		// transform
+		float3x4 Transform() const;
+
 		// aperture
 		float Aperture() const { return mAperture; }
 		void SetAperture(float aperture);

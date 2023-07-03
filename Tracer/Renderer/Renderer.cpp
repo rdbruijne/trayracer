@@ -62,12 +62,7 @@ namespace Tracer
 		mDenoiser = std::make_shared<Denoiser>(mDeviceRenderer->Optix()->DeviceContext());
 
 		// init kernel settings
-		mKernelSettings;
-		mKernelSettings.multiSample = 1;
-		mKernelSettings.maxDepth = MaxTraceDepth;
-		mKernelSettings.aoDist = 1.f;
-		mKernelSettings.zDepthMax = 1.f;
-		mKernelSettings.rayEpsilon = Epsilon;
+		mKernelSettings = DefaultSettings();
 	}
 
 
@@ -244,6 +239,21 @@ namespace Tracer
 	RayPickResult Renderer::PickRay(int2 pixelIndex)
 	{
 		return mDeviceRenderer->PickRay(pixelIndex);
+	}
+
+
+
+	KernelSettings Renderer::DefaultSettings()
+	{
+		KernelSettings settings =
+		{
+			.multiSample = 1,
+			.maxDepth    = MaxTraceDepth,
+			.aoDist      = 1.f,
+			.zDepthMax   = 1.f,
+			.rayEpsilon  = Epsilon
+		};
+		return settings;
 	}
 
 

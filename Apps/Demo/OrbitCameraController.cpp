@@ -9,10 +9,6 @@
 using namespace Tracer;
 namespace Demo
 {
-	float3 OrbitCameraController::sPrevUp = make_float3(0, 1, 0);
-
-
-
 	bool OrbitCameraController::HandleInput(CameraNode& node, ControlScheme* scheme, Window* window)
 	{
 		// check inputs

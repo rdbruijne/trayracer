@@ -6,7 +6,7 @@ namespace Tracer
 		Resource(""),
 		mPosition(position),
 		mTarget(target),
-		mUp(up),
+		mUp(normalize(up)),
 		mFov(fov)
 	{
 	}
@@ -39,9 +39,20 @@ namespace Tracer
 	{
 		if(mUp != up)
 		{
-			mUp = up;
+			mUp = normalize(up);
 			MarkDirty();
 		}
+	}
+
+
+
+	float3x4 CameraNode::Transform() const
+	{
+		const float3 fwd = normalize(mTarget - mPosition);
+		const float3 side = cross(fwd, mUp);
+		const float3 up = cross(side, fwd);
+		const float3 pos = mPosition;
+		return make_float3x4(side, up, fwd, pos);
 	}
 
 

@@ -46,6 +46,8 @@
 constexpr uint32_t PackedPathIxShift = 4;
 constexpr uint32_t PackedFlagsMask = (1u << PackedPathIxShift) - 1;
 
+
+
 static __forceinline__ __device__
 uint32_t PathIx(uint32_t packed)
 {

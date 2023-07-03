@@ -13,7 +13,7 @@ namespace Tracer
 	namespace Input
 	{
 		// key codes (GLFW_KEY_<...>)
-		enum class Keys : unsigned int
+		enum class Keys : uint32_t
 		{
 			Unknown         = 0,
 
@@ -151,7 +151,7 @@ namespace Tracer
 
 
 		// modifiers
-		enum class ModifierKeys : unsigned int
+		enum class ModifierKeys : uint32_t
 		{
 			None  = 0x0,
 			Alt   = 0x1,
@@ -186,28 +186,57 @@ namespace Tracer
 
 
 
-		inline bool operator < (Keys key, KeyData data)
+		// compare Key with KeyData
+		inline constexpr bool operator < (Keys key, KeyData data)
 		{
 			return std::underlying_type_t<Keys>(key) < std::underlying_type_t<KeyData>(data);
 		}
 
-		inline bool operator > (Keys key, KeyData data)
+		inline constexpr bool operator > (Keys key, KeyData data)
 		{
 			return std::underlying_type_t<Keys>(key) > std::underlying_type_t<KeyData>(data);
 		}
 
-		inline bool operator <= (Keys key, KeyData data)
+		inline constexpr bool operator <= (Keys key, KeyData data)
 		{
 			return std::underlying_type_t<Keys>(key) <= std::underlying_type_t<KeyData>(data);
 		}
 
-		inline bool operator >= (Keys key, KeyData data)
+		inline constexpr bool operator >= (Keys key, KeyData data)
 		{
 			return std::underlying_type_t<Keys>(key) >= std::underlying_type_t<KeyData>(data);
 		}
 
 
 
+		// Key type
+		inline constexpr bool IsKeyboardKey(Keys key)
+		{
+			return key >= KeyData::FirstKeyboard && key <= KeyData::LastKeyboard;
+		}
+
+		inline constexpr bool IsMouseKey(Keys key)
+		{
+			return key >= KeyData::FirstMouse && key <= KeyData::LastMouse;
+		}
+
+		inline constexpr bool IsSpecialKey(Keys key)
+		{
+			return key >= KeyData::FirstSpecial && key <= KeyData::LastSpecial;
+		}
+
+
+
+		// Key index remapping
+		inline constexpr std::underlying_type_t<Keys> MouseKeyIndex(Keys key)
+		{
+			assert(IsMouseKey(key));
+			return std::underlying_type_t<Keys>(key) - std::underlying_type_t<KeyData>(KeyData::FirstMouse);
+		}
+
+
+
+		// Input state
 		class State
 		{
 		public:

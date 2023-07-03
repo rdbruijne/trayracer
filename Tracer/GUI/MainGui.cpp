@@ -216,6 +216,20 @@ namespace Tracer
 
 		ImGui::Spacing();
 
+		// [3 x 4]
+		ImGui::BeginDisabled(true);
+		ImGui::Text("Transformation matrix");
+		float3x4 T = cameraNode->Transform();
+		float row0[] = { T.x.x, T.x.y, T.x.z, T.tx };
+		float row1[] = { T.y.x, T.y.y, T.y.z, T.ty };
+		float row2[] = { T.z.x, T.z.y, T.z.z, T.tz };
+		ImGui::InputFloat4("", row0);
+		ImGui::InputFloat4("", row1);
+		ImGui::InputFloat4("", row2);
+		ImGui::EndDisabled();
+
+		ImGui::Spacing();
+
 		// lens
 		ImGui::Text("Lens");
 
@@ -686,7 +700,7 @@ namespace Tracer
 			sky->SetSunIntensity(sunIntensity);
 
 		float selectionBias = sky->SelectionBias();
-		if(ImGui::SliderFloat("Selection Bias", &selectionBias, 0.f, 100.f))
+		if(ImGui::SliderFloat("Selection Bias", &selectionBias, 0.f, 100.f, "%.3f", ImGuiSliderFlags_Logarithmic))
 			sky->SetSelectionBias(selectionBias);
 
 		// ground
@@ -822,6 +836,9 @@ namespace Tracer
 				if(OpenFileDialog("Json\0*.json\0", "Select a scene file", true, sceneFile))
 				{
 					scene->Clear();
+					new (scene->GetSky().get()) Sky();
+					new (GuiHelpers::GetCamNode()) CameraNode();
+					GuiHelpers::GetRenderer()->SetSettings(Renderer::DefaultSettings());
 					SceneFile::Load(sceneFile, scene, scene->GetSky().get(), GuiHelpers::GetCamNode(), GuiHelpers::GetRenderer(), GuiHelpers::GetRenderWindow());
 				}
 			}

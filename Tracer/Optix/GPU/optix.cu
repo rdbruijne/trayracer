@@ -35,7 +35,8 @@ enum RayTypes
 //------------------------------------------------------------------------------------------------------------------------------
 // Barycentrics
 //------------------------------------------------------------------------------------------------------------------------------
-static __device__ uint32_t EncodeBarycentrics(const float2& barycentrics)
+static __inline__ __device__
+uint32_t EncodeBarycentrics(const float2& barycentrics)
 {
 	const uint32_t bx = static_cast<uint32_t>(barycentrics.x * 65535.f) & 0xFFFF;
 	const uint32_t by = static_cast<uint32_t>(barycentrics.y * 65535.f) & 0xFFFF;
@@ -47,7 +48,7 @@ static __device__ uint32_t EncodeBarycentrics(const float2& barycentrics)
 //------------------------------------------------------------------------------------------------------------------------------
 // Camera ray
 //------------------------------------------------------------------------------------------------------------------------------
-static inline __device__
+static __inline__ __device__
 float2 SampleDisk(uint32_t& seed)
 {
 	// generate random 2D point in [-1, 1] range
@@ -77,7 +78,7 @@ float2 SampleDisk(uint32_t& seed)
 
 
 
-static inline __device__
+static __inline__ __device__
 float2 SampleTriangle(const float2& a, const float2& b, const float2& c, uint32_t& seed)
 {
 	const float s1 = rnd(seed);
@@ -88,7 +89,7 @@ float2 SampleTriangle(const float2& a, const float2& b, const float2& c, uint32_
 
 
 
-static inline __device__
+static __inline__ __device__
 float2 SampleBokeh(uint32_t& seed)
 {
 	// need at least 3 sides
@@ -112,7 +113,7 @@ float2 SampleBokeh(uint32_t& seed)
 
 
 
-static inline __device__
+static __inline__ __device__
 bool Distort(float2& lensCoord, float tanFov2, float distortion)
 {
 	// the center is never distorted
@@ -138,7 +139,7 @@ bool Distort(float2& lensCoord, float tanFov2, float distortion)
 
 
 
-static inline __device__
+static __inline__ __device__
 void GenerateCameraRay(float3& O, float3& D, float& T, int2 pixelIndex, uint32_t& seed)
 {
 	// locations
@@ -177,7 +178,7 @@ void GenerateCameraRay(float3& O, float3& D, float& T, int2 pixelIndex, uint32_t
 //------------------------------------------------------------------------------------------------------------------------------
 // Film
 //------------------------------------------------------------------------------------------------------------------------------
-static inline __device__
+static __inline__ __device__
 void InitializeFilm(int pixelIx)
 {
 	if(params.sampleCount == 0)

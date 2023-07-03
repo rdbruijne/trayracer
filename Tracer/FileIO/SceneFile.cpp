@@ -349,7 +349,9 @@ namespace Tracer
 			int i;
 			float f;
 
-			KernelSettings settings = renderer->Settings();
+			KernelSettings settings = Renderer::DefaultSettings();
+
+			// read JSON
 			const Value& jsonRenderer = doc[Key_Renderer];
 			if(Read(jsonRenderer, Key_MultiSample, i))
 				settings.multiSample = i;
@@ -361,6 +363,7 @@ namespace Tracer
 				settings.zDepthMax = f;
 			if(Read(jsonRenderer, Key_RayEpsilon, f))
 				settings.rayEpsilon = f;
+
 			renderer->SetSettings(settings);
 		}
 
@@ -371,11 +374,15 @@ namespace Tracer
 			if(!sky || !doc.HasMember(Key_Sky))
 				return;
 
+			// reset sky
+			new (sky) Sky();
+
 			// reusable variables for JSON reading
 			bool b;
 			float f;
 			float3 f3;
 
+			// read JSON
 			const Value& jsonSky = doc[Key_Sky];
 			if(Read(jsonSky, Key_Enabled, b))
 				sky->SetEnabled(b);

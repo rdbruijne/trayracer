@@ -83,6 +83,7 @@ namespace Tracer
 		inline const std::shared_ptr<Denoiser> GetDenoiser() const { return mDenoiser; }
 
 		// kernel settings
+		static KernelSettings DefaultSettings();
 		KernelSettings Settings() const { return mKernelSettings; }
 		void SetSettings(const KernelSettings& settings)
 		{

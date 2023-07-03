@@ -13,14 +13,13 @@ namespace Demo
 	class ControlScheme
 	{
 	public:
-		ControlScheme();
-
-		// entry
+		// Entry
 		struct Entry
 		{
 			Entry() = default;
+			explicit Entry(Tracer::Input::Keys key);
 			explicit Entry(Tracer::Input::Keys key, float scalar);
-			explicit Entry(Tracer::Input::Keys key, Tracer::Input::ModifierKeys modifiers = Tracer::Input::ModifierKeys::None, float scalar = 1.f);
+			explicit Entry(Tracer::Input::Keys key, Tracer::Input::ModifierKeys modifiers, float scalar);
 
 			// mouse events will be based on scroll/move, keyboard will be 0 or 1
 			float2 HandleInput(Tracer::Window* window);
@@ -33,11 +32,11 @@ namespace Demo
 		};
 
 		// Entries
-		Entry OrbitCameraMove;
-		Entry OrbitCameraOrbit;
-		Entry OrbitCameraRotate;
-		Entry OrbitCameraRoll;
-		Entry OrbitCameraDolly;
-		Entry OrbitCameraDollyAlt;
+		Entry OrbitCameraMove     = Entry(Tracer::Input::Keys::Mouse_Middle, .05f);
+		Entry OrbitCameraOrbit    = Entry(Tracer::Input::Keys::Mouse_Left, .005f);
+		Entry OrbitCameraRotate   = Entry(Tracer::Input::Keys::Mouse_Left, Tracer::Input::ModifierKeys::Alt, .005f);
+		Entry OrbitCameraRoll     = Entry(Tracer::Input::Keys::Mouse_Right, Tracer::Input::ModifierKeys::Alt, .01f);
+		Entry OrbitCameraDolly    = Entry(Tracer::Input::Keys::Mouse_Right, .01f);
+		Entry OrbitCameraDollyAlt = Entry(Tracer::Input::Keys::Mouse_Scroll, -.1f);
 	};
 }

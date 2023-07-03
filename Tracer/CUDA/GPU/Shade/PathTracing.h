@@ -40,7 +40,8 @@ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 	if(primIx == ~0)
 	{
 		const float3 sky = SampleSky(D, Sky->drawSun && (pathLength == 0 || flags & BsdfFlags::Specular));
-		const float3 contrib = SafeColor(T * sky);// * (1.f / extendPdf));
+		//const float3 contrib = SafeColor(T * sky * 1.f / extendPdf);
+		const float3 contrib = SafeColor(T * sky);
 		accumulator[pixelIx] += make_float4(contrib, 0);
 
 		// denoiser data

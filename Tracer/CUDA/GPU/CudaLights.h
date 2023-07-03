@@ -10,7 +10,7 @@
 
 #define ENABLE_SKY_NEE false
 
-static inline __device__
+static __inline__ __device__
 float LightPdf(const float3& D, float dst, float lightArea, const float3& lightNormal)
 {
 	return (dst * dst) / (fabsf(dot(D, lightNormal)) * lightArea);
@@ -18,14 +18,11 @@ float LightPdf(const float3& D, float dst, float lightArea, const float3& lightN
 
 
 
-static inline __device__
+static __inline__ __device__
 float LightPickProbability(float area, const float3& em)
 {
 #if ENABLE_SKY_NEE
-	// scene energy
-	const float3 sunRadiance = SampleSky(Sky->sunDir, false);
-	const float sunEnergy = (sunRadiance.x + sunRadiance.y + sunRadiance.z) * Sky->sunArea;
-	const float totalEnergy = sunEnergy + LightEnergy;
+	const float totalEnergy = Sky->sunEnergy + LightEnergy;
 #else
 	const float totalEnergy = LightEnergy;
 #endif
@@ -38,7 +35,7 @@ float LightPickProbability(float area, const float3& em)
 
 
 
-static inline __device__
+static __inline__ __device__
 int32_t SelectLight(uint32_t& seed)
 {
 	const float e = rnd(seed) * LightEnergy;
@@ -63,7 +60,7 @@ int32_t SelectLight(uint32_t& seed)
 
 
 
-static inline __device__
+static __inline__ __device__
 float3 SampleLight(uint32_t& seed, const float3& I, const float3& N, float& prob, float& pdf, float3& radiance, float& dist)
 {
 #if ENABLE_SKY_NEE

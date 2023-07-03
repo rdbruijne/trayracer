@@ -10,7 +10,7 @@
 // Colors
 //------------------------------------------------------------------------------------------------------------------------------
 // Convert an object ID to a color
-static inline __device__
+static __inline__ __device__
 float3 IdToColor(uint32_t id)
 {
 	// https://stackoverflow.com/a/9044057
@@ -29,7 +29,7 @@ float3 IdToColor(uint32_t id)
 
 
 // Linear <-> CIE XYZ
-static inline __device__
+static __inline__ __device__
 float3 LinearToCIEXYZ(const float3& rgb)
 {
 	return make_float3(
@@ -40,7 +40,7 @@ float3 LinearToCIEXYZ(const float3& rgb)
 
 
 
-static inline __device__
+static __inline__ __device__
 float3 CIEXYZToLinear(const float3& xyz)
 {
 	return make_float3(
@@ -52,7 +52,7 @@ float3 CIEXYZToLinear(const float3& xyz)
 
 
 // Linear <-> sRGB
-static inline __device__
+static __inline__ __device__
 float3 LessThan(const float3& f3, const float reference)
 {
 	return make_float3(
@@ -63,7 +63,7 @@ float3 LessThan(const float3& f3, const float reference)
 
 
 
-static inline __device__
+static __inline__ __device__
 float3 LinearToSRGB(const float3& rgb)
 {
 	const float3 clamped = clamp(rgb, 0.f, 1.f);
@@ -75,7 +75,7 @@ float3 LinearToSRGB(const float3& rgb)
 
 
 
-static inline __device__
+static __inline__ __device__
 float3 SRGBToLinear(const float3& srgb)
 {
 	const float3 clamped = clamp(srgb, 0.f, 1.f);
@@ -92,7 +92,7 @@ __constant__ float gMaxColorIntensity = 10.f;
 
 
 
-static inline __device__
+static __inline__ __device__
 float3 SafeColor(const float3& f3)
 {
 	return fixnan(clamp_scaled(f3, gMaxColorIntensity));
@@ -100,7 +100,7 @@ float3 SafeColor(const float3& f3)
 
 
 
-static inline __device__
+static __inline__ __device__
 float3 SafeColor(const float& f)
 {
 	return SafeColor(make_float3(f, f, f));
@@ -111,7 +111,7 @@ float3 SafeColor(const float& f)
 //------------------------------------------------------------------------------------------------------------------------------
 // Barycentrics
 //------------------------------------------------------------------------------------------------------------------------------
-static inline __device__
+static __inline__ __device__
 float2 Barycentric(float2 bc, const float2& v0, const float2& v1, const float2& v2)
 {
 	return v0 + ((v1 - v0) * bc.x) + ((v2 - v0) * bc.y);
@@ -119,7 +119,7 @@ float2 Barycentric(float2 bc, const float2& v0, const float2& v1, const float2& 
 
 
 
-static inline __device__
+static __inline__ __device__
 float3 Barycentric(float2 bc, const float3& v0, const float3& v1, const float3& v2)
 {
 	return v0 + ((v1 - v0) * bc.x) + ((v2 - v0) * bc.y);
@@ -127,7 +127,7 @@ float3 Barycentric(float2 bc, const float3& v0, const float3& v1, const float3& 
 
 
 
-static __device__
+static __inline__ __device__
 uint32_t EncodeBarycentrics(const float2& barycentrics)
 {
 	const uint32_t bx = static_cast<uint32_t>(barycentrics.x * 65535.f) & 0xFFFF;
@@ -137,7 +137,7 @@ uint32_t EncodeBarycentrics(const float2& barycentrics)
 
 
 
-static inline __device__
+static __inline__ __device__
 float2 DecodeBarycentrics(uint32_t barycentrics)
 {
 	const uint32_t bx = barycentrics >> 16;
@@ -150,7 +150,7 @@ float2 DecodeBarycentrics(uint32_t barycentrics)
 //------------------------------------------------------------------------------------------------------------------------------
 // Normal Packing
 //------------------------------------------------------------------------------------------------------------------------------
-static inline __device__
+static __inline__ __device__
 uint32_t PackNormal(const float3& N)
 {
 	// https://aras-p.info/texts/CompactNormalStorage.html -> Spheremap Transform
@@ -161,7 +161,7 @@ uint32_t PackNormal(const float3& N)
 
 
 
-static inline __device__
+static __inline__ __device__
 float3 UnpackNormal(uint32_t N)
 {
 	// https://aras-p.info/texts/CompactNormalStorage.html -> Spheremap Transform
@@ -178,7 +178,7 @@ float3 UnpackNormal(uint32_t N)
 //------------------------------------------------------------------------------------------------------------------------------
 // Orthonormal base
 //------------------------------------------------------------------------------------------------------------------------------
-static inline __device__
+static __inline__ __device__
 void OrthonormalBase(const float3 normal, float3& tangent, float3& bitangent)
 {
 	if(fabsf(normal.x) > fabsf(normal.y))
@@ -203,7 +203,7 @@ void OrthonormalBase(const float3 normal, float3& tangent, float3& bitangent)
 //------------------------------------------------------------------------------------------------------------------------------
 // Space transformations
 //------------------------------------------------------------------------------------------------------------------------------
-static inline __device__
+static __inline__ __device__
 float3 WorldToTangent(const float3& V, const float3& N, const float3& T, const float3& B)
 {
 	return make_float3(dot(V, T), dot(V, B), dot(V, N));
@@ -211,7 +211,7 @@ float3 WorldToTangent(const float3& V, const float3& N, const float3& T, const f
 
 
 
-static inline __device__
+static __inline__ __device__
 float3 WorldToTangent(const float3& V, const float3& N)
 {
 	float3 T, B;
@@ -221,7 +221,7 @@ float3 WorldToTangent(const float3& V, const float3& N)
 
 
 
-static inline __device__
+static __inline__ __device__
 float3 TangentToWorld(const float3& V, const float3& N, const float3& T, const float3& B)
 {
 	return (V.x * T) + (V.y * B) + (V.z * N);
@@ -229,7 +229,7 @@ float3 TangentToWorld(const float3& V, const float3& N, const float3& T, const f
 
 
 
-static inline __device__
+static __inline__ __device__
 float3 TangentToWorld(const float3& V, const float3& N)
 {
 	float3 T, B;
@@ -242,7 +242,7 @@ float3 TangentToWorld(const float3& V, const float3& N)
 //------------------------------------------------------------------------------------------------------------------------------
 // Sampling
 //------------------------------------------------------------------------------------------------------------------------------
-static inline __device__
+static __inline__ __device__
 float3 SampleHemisphere(float r0, float r1)
 {
 	const float sinTheta = sqrtf(1.f - r1);
@@ -255,7 +255,7 @@ float3 SampleHemisphere(float r0, float r1)
 
 
 
-static inline __device__
+static __inline__ __device__
 float3 SampleHemisphere(const float3& normal, float r0, float r1)
 {
 	float3 tangent, bitangent;
@@ -267,7 +267,7 @@ float3 SampleHemisphere(const float3& normal, float r0, float r1)
 
 
 
-static inline __device__
+static __inline__ __device__
 float3 SampleCosineHemisphere(float r0, float r1)
 {
 	// uniform sample disk
@@ -281,7 +281,7 @@ float3 SampleCosineHemisphere(float r0, float r1)
 
 
 
-static inline __device__
+static __inline__ __device__
 float3 SampleCosineHemisphere(const float3& normal, float r0, float r1)
 {
 	float3 tangent, bitangent;

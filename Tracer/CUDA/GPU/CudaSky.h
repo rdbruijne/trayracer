@@ -1,4 +1,4 @@
-// Hosek-Wilkie Sky Model
+// Preetham Sky Model
 // Adapted from https://github.com/Tw1ddle/Sky-Shader/blob/master/src/shaders/glsl/sky.fragment
 
 #pragma once
@@ -41,7 +41,7 @@
 
 
 
-static inline __device__
+static __inline__ __device__
 float3 TotalRayleigh(const float3& lambda)
 {
 	return	(make_float3(8.f * powf(Pi, 3.f) * powf(powf(SKY_REFRACTIVE_INDEX, 2.f) - 1.f, 2.f) * (6.f + 3.f * SKY_DEPOLARIZATION_FACTOR))) /
@@ -50,7 +50,7 @@ float3 TotalRayleigh(const float3& lambda)
 
 
 
-static inline __device__
+static __inline__ __device__
 float RayleighPhase(float cosTheta)
 {
 	return (3.f / (16.f * Pi)) * (1.f + powf(cosTheta, 2.f));
@@ -58,7 +58,7 @@ float RayleighPhase(float cosTheta)
 
 
 
-static inline __device__
+static __inline__ __device__
 float3 TotalMie(const float3& lambda, const float3& K, float T)
 {
 	const float c = 0.2f * T * 10e-18f;
@@ -67,7 +67,7 @@ float3 TotalMie(const float3& lambda, const float3& K, float T)
 
 
 
-static inline __device__
+static __inline__ __device__
 float HenyeyGreensteinPhase(float cosTheta, float g)
 {
 	return (1.f / (4.f * Pi)) * ((1.f - powf(g, 2.f)) / powf(1.f - 2.f * g * cosTheta + pow(g, 2.f), 1.5f));
@@ -75,7 +75,7 @@ float HenyeyGreensteinPhase(float cosTheta, float g)
 
 
 
-static inline __device__
+static __inline__ __device__
 float SunIntensity(float zenithAngleCos)
 {
 	return Sky->sunIntensity * max(0.f, 1.f - expf(-((SKY_SUN_FALLOFF_ANGLE - acosf(zenithAngleCos)) / SKY_SUN_INTENSITY_FALLOFF_STEEPNESS)));
@@ -83,7 +83,7 @@ float SunIntensity(float zenithAngleCos)
 
 
 
-static inline __device__
+static __inline__ __device__
 float3 Tonemap(const float3& color)
 {
 	return (color * (1.f + color / 1000.f)) / (color + 128.f);
@@ -91,7 +91,7 @@ float3 Tonemap(const float3& color)
 
 
 
-static inline __device__
+static __inline__ __device__
 float3 Saturation(const float3& L0)
 {
 	const float3 lumaPix = make_float3(0.299f, 0.587f, 0.114f);
@@ -101,7 +101,7 @@ float3 Saturation(const float3& L0)
 
 
 
-static inline __device__
+static __inline__ __device__
 float3 SampleSky(const float3& sampleDir, bool drawSun)
 {
 	// return black when the sky is disabled

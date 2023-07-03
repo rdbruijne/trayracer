@@ -341,13 +341,13 @@ namespace Tracer
 
 	bool Window::IsKeyDown(Input::Keys key) const
 	{
-		if(key < Input::KeyData::LastKeyboard)
+		if(Input::IsKeyboardKey(key))
 			return mCurInputState.Keyboard[static_cast<size_t>(key)];
 
-		if(key >= Input::KeyData::FirstMouse && key <= Input::KeyData::LastMouse)
+		if(Input::IsMouseKey(key))
 			return mCurInputState.Mouse[static_cast<size_t>(key) - static_cast<size_t>(Input::KeyData::FirstMouse)];
 
-		if(key >= Input::KeyData::FirstSpecial && key <= Input::KeyData::LastSpecial)
+		if(Input::IsSpecialKey(key))
 			return false;
 
 		assert(false);
@@ -358,19 +358,19 @@ namespace Tracer
 
 	bool Window::WasKeyPressed(Input::Keys key) const
 	{
-		if(key < Input::KeyData::LastKeyboard)
+		if(Input::IsKeyboardKey(key))
 		{
 			const size_t keyIx = static_cast<size_t>(key);
 			return mPrevInputState.Keyboard[keyIx] && !mCurInputState.Keyboard[keyIx];
 		}
 
-		if(key >= Input::KeyData::FirstMouse && key <= Input::KeyData::LastMouse)
+		if(Input::IsMouseKey(key))
 		{
-			const size_t keyIx = static_cast<size_t>(key) - static_cast<size_t>(Input::KeyData::FirstMouse);
+			const size_t keyIx = MouseKeyIndex(key);
 			return mPrevInputState.Mouse[keyIx] && !mCurInputState.Mouse[keyIx];
 		}
 
-		if(key >= Input::KeyData::FirstSpecial && key <= Input::KeyData::LastSpecial)
+		if(Input::IsSpecialKey(key))
 			return false;
 
 		assert(false);
