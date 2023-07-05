@@ -74,6 +74,7 @@ namespace Tracer
 			f.Write(model->Materials().size());
 			for(const std::shared_ptr<Material>& mat : materials)
 			{
+				assert(mat);
 				f.Write(mat->Name());
 				for(size_t i = 0; i < magic_enum::enum_count<MaterialPropertyIds>(); i++)
 				{
@@ -172,7 +173,10 @@ namespace Tracer
 			// name
 			aiString name;
 			if(aMat->Get(AI_MATKEY_NAME, name) != AI_SUCCESS)
-				return nullptr;
+			{
+				static int genNameIx = 1;
+				name = "__trayracer_mat__" + std::to_string(genNameIx++);
+			}
 
 			// create material
 			std::shared_ptr<Material> mat = std::make_shared<Material>(name.C_Str());
