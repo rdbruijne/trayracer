@@ -8,7 +8,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Tracer", "Tracer\Tracer.vcx
 		{41519746-C932-42D0-A110-6B5BEDAE7FF8} = {41519746-C932-42D0-A110-6B5BEDAE7FF8}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Libraries", "libraries\Libraries.vcxproj", "{41519746-C932-42D0-A110-6B5BEDAE7FF8}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Thirdparty", "thirdparty\Thirdparty.vcxproj", "{41519746-C932-42D0-A110-6B5BEDAE7FF8}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Demo", "Apps\Demo\Demo.vcxproj", "{EE7B195B-6C05-4EFE-B850-DCC3E0778122}"
 	ProjectSection(ProjectDependencies) = postProject

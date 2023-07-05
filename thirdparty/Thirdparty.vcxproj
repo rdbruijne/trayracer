@@ -14,7 +14,7 @@
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{41519746-c932-42d0-a110-6b5bedae7ff8}</ProjectGuid>
-    <RootNamespace>Libraries</RootNamespace>
+    <RootNamespace>Thirdparty</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -73,7 +73,7 @@
     </Lib>
     <PostBuildEvent>
       <Command>if not exist "$(SolutionDir)bin\" mkdir "$(SolutionDir)bin\"
-for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy "%%f" "$(SolutionDir)bin\"</Command>
+for /R "$(SolutionDir)thirdparty" %%f in (*.dll) do copy "%%f" "$(SolutionDir)bin\"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Copy Library DLLs</Message>
@@ -105,7 +105,7 @@ for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy "%%f" "$(SolutionDir)bin
     </Lib>
     <PostBuildEvent>
       <Command>if not exist "$(SolutionDir)bin\" mkdir "$(SolutionDir)bin\"
-for /R "$(SolutionDir)libraries" %%f in (*.dll) do copy "%%f" "$(SolutionDir)bin\"</Command>
+for /R "$(SolutionDir)thirdparty" %%f in (*.dll) do copy "%%f" "$(SolutionDir)bin\"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Copy Library DLLs</Message>

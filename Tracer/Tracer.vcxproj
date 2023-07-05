@@ -47,7 +47,7 @@
       <PreprocessorDefinitions>GLEW_STATIC;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <CudaCompile>
-      <Include>$(ProjectDir);$(SolutionDir)libraries</Include>
+      <Include>$(ProjectDir);$(SolutionDir)thirdparty</Include>
       <TargetMachinePlatform>64</TargetMachinePlatform>
       <CodeGeneration>compute_89,sm_89</CodeGeneration>
       <AdditionalCompilerOptions>/wd4505 /wd4514 /wd4668 /wd4711 /wd4820 /wd5039 /wd5247 /wd5248</AdditionalCompilerOptions>
@@ -72,8 +72,8 @@
     </PostBuildEvent>
     <ProjectReference />
     <Lib>
-      <AdditionalDependencies>assimp-vc142-mt.lib;IrrXML.lib;zlibstatic.lib;FreeImage.lib;cuda.lib;cudart.lib;opengl32.lib;glew32s.lib;glfw3.lib;nvrtc.lib;cudart_static.lib;Shlwapi.lib;Shcore.lib;</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)libraries\assimp;$(SolutionDir)libraries\FreeImage;$(SolutionDir)libraries\GL;$(SolutionDir)libraries\glfw;$(CUDA_PATH)\lib\x64;$(CudaToolkitLibDir)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>assimp\assimp-vc142-mt.lib;assimp\IrrXML.lib;assimp\zlibstatic.lib;FreeImage\FreeImage.lib;GL\glew32s.lib;glfw\glfw3.lib;cuda.lib;cudart.lib;opengl32.lib;nvrtc.lib;cudart_static.lib;Shlwapi.lib;Shcore.lib;</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)thirdparty;$(CudaToolkitLibDir)</AdditionalLibraryDirectories>
       <AdditionalOptions>/ignore:4006 %(AdditionalOptions)</AdditionalOptions>
     </Lib>
   </ItemDefinitionGroup>
@@ -82,7 +82,7 @@
       <PreprocessorDefinitions>GLEW_STATIC;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <CudaCompile>
-      <Include>$(ProjectDir);$(SolutionDir)libraries</Include>
+      <Include>$(ProjectDir);$(SolutionDir)thirdparty</Include>
       <CodeGeneration>compute_89,sm_89</CodeGeneration>
       <AdditionalCompilerOptions>/wd4505 /wd4514 /wd4668 /wd4711 /wd4820 /wd5039 /wd5247 /wd5248</AdditionalCompilerOptions>
       <KeepDir>$(IntDir)</KeepDir>
@@ -107,8 +107,8 @@
     </PostBuildEvent>
     <ProjectReference />
     <Lib>
-      <AdditionalDependencies>assimp-vc142-mt.lib;IrrXML.lib;zlibstatic.lib;FreeImage.lib;cuda.lib;cudart.lib;opengl32.lib;glew32s.lib;glfw3.lib;nvrtc.lib;cudart_static.lib;Shlwapi.lib;Shcore.lib;Shcore.lib;</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)libraries\assimp;$(SolutionDir)libraries\FreeImage;$(SolutionDir)libraries\GL;$(SolutionDir)libraries\glfw;$(CUDA_PATH)\lib\x64;$(CudaToolkitLibDir)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>assimp\assimp-vc142-mt.lib;assimp\IrrXML.lib;assimp\zlibstatic.lib;FreeImage\FreeImage.lib;GL\glew32s.lib;glfw\glfw3.lib;cuda.lib;cudart.lib;opengl32.lib;nvrtc.lib;cudart_static.lib;Shlwapi.lib;Shcore.lib;Shcore.lib;</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)thirdparty;$(CudaToolkitLibDir)</AdditionalLibraryDirectories>
       <AdditionalOptions>/ignore:4006 %(AdditionalOptions)</AdditionalOptions>
     </Lib>
   </ItemDefinitionGroup>
@@ -266,7 +266,7 @@
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\libraries\Libraries.vcxproj">
+    <ProjectReference Include="..\thirdparty\Thirdparty.vcxproj">
       <Project>{41519746-c932-42d0-a110-6b5bedae7ff8}</Project>
     </ProjectReference>
   </ItemGroup>
