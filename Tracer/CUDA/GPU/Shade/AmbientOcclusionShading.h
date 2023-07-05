@@ -35,6 +35,9 @@ void AmbientOcclusionShadingKernel(DECLARE_KERNEL_PARAMS)
 		HitMaterial hitMaterial = {};
 		GetIntersectionAttributes(instIx, primIx, bary, intersection, hitMaterial);
 
+		// patch intersection data
+		FixNormals(intersection, D);
+
 		// diffuse
 		float3 diff = hitMaterial.diffuse;
 

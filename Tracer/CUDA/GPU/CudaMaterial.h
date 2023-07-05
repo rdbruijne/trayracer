@@ -100,6 +100,21 @@ float3 GetColor(const CudaMatarial& mat, MaterialPropertyIds propId, const float
 // Intersection
 //------------------------------------------------------------------------------------------------------------------------------
 static __inline__ __device__
+void FixNormals(Intersection& intersection, const float3& D)
+{
+	// No transparency (yet): flip fix backfacing normals
+	if(dot(D, intersection.shadingNormal) > 0)
+	{
+		intersection.geometricNormal = -intersection.geometricNormal;
+		intersection.shadingNormal = -intersection.shadingNormal;
+		intersection.tangent = -intersection.tangent;
+		intersection.bitangent = -intersection.bitangent;
+	}
+}
+
+
+
+static __inline__ __device__
 void GetIntersectionAttributes(uint32_t instIx, uint32_t primIx, float2 bary, Intersection& intersection, HitMaterial& hitMaterial)
 {
 	// fetch triangle

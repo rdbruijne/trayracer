@@ -38,7 +38,10 @@ void AmbientOcclusionKernel(DECLARE_KERNEL_PARAMS)
 		HitMaterial hitMaterial = {};
 		GetIntersectionAttributes(instIx, primIx, bary, intersection, hitMaterial);
 
-		// fix infacing normal
+		// path intersection data
+		FixNormals(intersection, D);
+
+		// bounce ray
 		const float3 newOrigin = O + (D * tmax);
 		const float3 newDir = SampleCosineHemisphere(intersection.shadingNormal, rnd(seed), rnd(seed));
 

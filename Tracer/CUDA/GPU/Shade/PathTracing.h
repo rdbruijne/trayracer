@@ -59,6 +59,9 @@ void PathTracingKernel(DECLARE_KERNEL_PARAMS)
 	HitMaterial hitMaterial = {};
 	GetIntersectionAttributes(instIx, primIx, bary, intersection, hitMaterial);
 
+	// path intersection data
+	FixNormals(intersection, D);
+
 	// denoiser data
 	if(pathLength == 0)
 	{
