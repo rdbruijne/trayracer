@@ -48,10 +48,16 @@ namespace Tracer
 
 	float3x4 CameraNode::Transform() const
 	{
-		const float3 fwd = normalize(mTarget - mPosition);
-		const float3 side = cross(fwd, mUp);
-		const float3 up = cross(side, fwd);
+		//const float3 fwd = normalize(mTarget - mPosition);
+		//const float3 side = cross(fwd, mUp);
+		//const float3 up = cross(side, fwd);
+		//const float3 pos = mPosition;
+		//return make_float3x4(side, up, fwd, pos);
+
 		const float3 pos = mPosition;
+		const float3 fwd = normalize(mTarget - mPosition);
+		const float3 side = normalize(cross(fwd, mUp));
+		const float3 up = normalize(cross(side, fwd));
 		return make_float3x4(side, up, fwd, pos);
 	}
 
