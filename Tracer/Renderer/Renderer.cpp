@@ -3,6 +3,7 @@
 // Project
 #include "CUDA/CudaDevice.h"
 #include "GUI/MainGui.h"
+#include "Logging/Logger.h"
 #include "OpenGL/GLTexture.h"
 #include "Optix/Denoiser.h"
 #include "Optix/OptixError.h"
@@ -16,7 +17,6 @@
 #include "Resources/Texture.h"
 #include "Renderer/Sky.h"
 #include "Utility/LinearMath.h"
-#include "Utility/Logger.h"
 #include "Utility/Stopwatch.h"
 
 // SPT

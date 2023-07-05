@@ -1,7 +1,7 @@
 #include "Errors.h"
 
 // Project
-#include "Utility/Logger.h"
+#include "Logging/Logger.h"
 
 // C++
 #include <cassert>

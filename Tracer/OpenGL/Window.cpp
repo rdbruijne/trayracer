@@ -1,13 +1,13 @@
 #include "Window.h"
 
 // Project
+#include "Logging/Logger.h"
 #include "OpenGL/GLFramebuffer.h"
 #include "OpenGL/GLTexture.h"
 #include "OpenGL/Shader.h"
 #include "Resources/Texture.h"
 #include "Utility/Errors.h"
 #include "Utility/LinearMath.h"
-#include "Utility/Logger.h"
 
 // GL
 #include "GL/glew.h"

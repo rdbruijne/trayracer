@@ -4,6 +4,7 @@
 #include "FileIO/JsonHelpers.h"
 #include "FileIO/ModelFile.h"
 #include "FileIO/TextureFile.h"
+#include "Logging/Logger.h"
 #include "OpenGL/Shader.h"
 #include "OpenGL/Window.h"
 #include "Renderer/Renderer.h"
@@ -14,7 +15,6 @@
 #include "Resources/Material.h"
 #include "Resources/Model.h"
 #include "Utility/FileSystem.h"
-#include "Utility/Logger.h"
 #include "Utility/Stopwatch.h"
 #include "Utility/Strings.h"
 

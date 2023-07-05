@@ -49,9 +49,6 @@
     <ClCompile Include="GUI\MainGui.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="Utility\Logger.cpp">
-      <Filter>Utility</Filter>
-    </ClCompile>
     <ClCompile Include="Renderer\Sky.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
@@ -115,6 +112,18 @@
     <ClCompile Include="GUI\GuiExtensions.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
+    <ClCompile Include="Logging\Logger.cpp">
+      <Filter>Logging</Filter>
+    </ClCompile>
+    <ClCompile Include="Logging\ConsoleLogStream.cpp">
+      <Filter>Logging</Filter>
+    </ClCompile>
+    <ClCompile Include="Logging\DebuggerLogStream.cpp">
+      <Filter>Logging</Filter>
+    </ClCompile>
+    <ClCompile Include="Logging\FileLogStream.cpp">
+      <Filter>Logging</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">
@@ -161,6 +170,9 @@
     </Filter>
     <Filter Include="CUDA\GPU\Shade\BSDF">
       <UniqueIdentifier>{554e0a88-70d6-4981-b2be-dc8a3826a0ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Logging">
+      <UniqueIdentifier>{68be75d7-af03-4067-b9f4-d9e35466c838}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -217,9 +229,6 @@
     </ClInclude>
     <ClInclude Include="GUI\MainGui.h">
       <Filter>GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="Utility\Logger.h">
-      <Filter>Utility</Filter>
     </ClInclude>
     <ClInclude Include="Utility\Enum.h">
       <Filter>Utility</Filter>
@@ -389,6 +398,18 @@
     <ClInclude Include="Utility\HelperMacros.h">
       <Filter>Utility</Filter>
     </ClInclude>
+    <ClInclude Include="Logging\Logger.h">
+      <Filter>Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Logging\ConsoleLogStream.h">
+      <Filter>Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Logging\DebuggerLogStream.h">
+      <Filter>Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Logging\FileLogStream.h">
+      <Filter>Logging</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Model.h">
@@ -445,8 +466,8 @@
     <None Include="glsl\SRGBToLinear.json">
       <Filter>glsl</Filter>
     </None>
-    <None Include="Utility\Logger.inl">
-      <Filter>Utility</Filter>
+    <None Include="Logging\Logger.inl">
+      <Filter>Logging</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

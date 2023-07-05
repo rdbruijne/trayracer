@@ -1,10 +1,10 @@
 #include "OptixRenderer.h"
 
 // Project
+#include "Logging/Logger.h"
 #include "Optix/OptixError.h"
 #include "Renderer/Renderer.h"
 #include "Utility/Errors.h"
-#include "Utility/Logger.h"
 #include "Utility/FileSystem.h"
 
 // Optix

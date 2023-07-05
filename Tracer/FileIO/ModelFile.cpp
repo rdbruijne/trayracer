@@ -3,12 +3,12 @@
 // Project
 #include "FileIO/BinaryFile.h"
 #include "FileIO/TextureFile.h"
+#include "Logging/Logger.h"
 #include "Renderer/Scene.h"
 #include "Resources/Material.h"
 #include "Resources/Model.h"
 #include "Resources/Texture.h"
 #include "Utility/FileSystem.h"
-#include "Utility/Logger.h"
 #include "Utility/Stopwatch.h"
 #include "Utility/Strings.h"
 

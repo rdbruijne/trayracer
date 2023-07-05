@@ -127,6 +127,9 @@
     <ClCompile Include="GUI\GuiExtensions.cpp" />
     <ClCompile Include="GUI\MainGui.cpp" />
     <ClCompile Include="GUI\GuiHelpers.cpp" />
+    <ClCompile Include="Logging\ConsoleLogStream.cpp" />
+    <ClCompile Include="Logging\DebuggerLogStream.cpp" />
+    <ClCompile Include="Logging\FileLogStream.cpp" />
     <ClCompile Include="OpenGL\GLFramebuffer.cpp" />
     <ClCompile Include="OpenGL\GLHelpers.cpp" />
     <ClCompile Include="OpenGL\GLTexture.cpp" />
@@ -147,7 +150,7 @@
     <ClCompile Include="Resources\Texture.cpp" />
     <ClCompile Include="Utility\Errors.cpp" />
     <ClCompile Include="Utility\Filesystem.cpp" />
-    <ClCompile Include="Utility\Logger.cpp" />
+    <ClCompile Include="Logging\Logger.cpp" />
     <ClCompile Include="Utility\Stopwatch.cpp" />
     <ClCompile Include="Utility\Strings.cpp" />
     <ClCompile Include="Utility\System.cpp" />
@@ -197,6 +200,9 @@
     <ClInclude Include="GUI\GuiWindow.h" />
     <ClInclude Include="GUI\MainGui.h" />
     <ClInclude Include="GUI\GuiHelpers.h" />
+    <ClInclude Include="Logging\ConsoleLogStream.h" />
+    <ClInclude Include="Logging\DebuggerLogStream.h" />
+    <ClInclude Include="Logging\FileLogStream.h" />
     <ClInclude Include="OpenGL\GLFramebuffer.h" />
     <ClInclude Include="OpenGL\GLHelpers.h" />
     <ClInclude Include="OpenGL\GLTexture.h" />
@@ -221,7 +227,7 @@
     <ClInclude Include="Utility\Errors.h" />
     <ClInclude Include="Utility\Filesystem.h" />
     <ClInclude Include="Utility\LinearMath.h" />
-    <ClInclude Include="Utility\Logger.h" />
+    <ClInclude Include="Logging\Logger.h" />
     <ClInclude Include="Utility\HelperMacros.h" />
     <ClInclude Include="Utility\Named.h" />
     <ClInclude Include="Utility\Stopwatch.h" />
@@ -247,7 +253,7 @@
     <None Include="glsl\Tonemap.json" />
     <None Include="Resources\Material.inl" />
     <None Include="Resources\Model.h" />
-    <None Include="Utility\Logger.inl" />
+    <None Include="Logging\Logger.inl" />
     <None Include="Utility\Strings.inl" />
   </ItemGroup>
   <ItemGroup>

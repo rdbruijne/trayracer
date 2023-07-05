@@ -7,6 +7,7 @@
 #include "FileIO/TextureFile.h"
 #include "GUI/GuiHelpers.h"
 #include "GUI/MainGui.h"
+#include "Logging/Logger.h"
 #include "OpenGL/GLHelpers.h"
 #include "OpenGL/Input.h"
 #include "OpenGL/Shader.h"
@@ -16,7 +17,6 @@
 #include "Resources/Instance.h"
 #include "Utility/Errors.h"
 #include "Utility/FileSystem.h"
-#include "Utility/Logger.h"
 #include "Utility/Stopwatch.h"
 #include "Utility/Strings.h"
 

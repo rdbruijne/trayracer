@@ -2,7 +2,7 @@
 
 // Project
 #include "CUDA/CudaError.h"
-#include "Utility/Logger.h"
+#include "Logging/Logger.h"
 
 // CUDA
 #include <cuda_runtime.h>

@@ -2,11 +2,11 @@
 
 // project
 #include "FileIO/ShaderDescriptor.h"
+#include "Logging/Logger.h"
 #include "OpenGL/GLHelpers.h"
 #include "OpenGL/GLTexture.h"
 #include "Utility/Errors.h"
 #include "Utility/FileSystem.h"
-#include "Utility/Logger.h"
 
 // Magic Enum
 #include "magic_enum/magic_enum.hpp"
