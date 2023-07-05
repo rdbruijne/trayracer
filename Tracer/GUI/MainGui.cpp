@@ -289,6 +289,23 @@ namespace Tracer
 			return;
 		}
 
+		static const std::vector<MaterialPropertyIds> UnusedProperties =
+		{
+			MaterialPropertyIds::Anisotropic,
+			MaterialPropertyIds::Clearcoat,
+			MaterialPropertyIds::ClearcoatGloss,
+			//MaterialPropertyIds::Diffuse,
+			//MaterialPropertyIds::Emissive,
+			MaterialPropertyIds::Metallic,
+			//MaterialPropertyIds::Normal,
+			//MaterialPropertyIds::Roughness,
+			MaterialPropertyIds::Sheen,
+			MaterialPropertyIds::SheenTint,
+			MaterialPropertyIds::Specular,
+			MaterialPropertyIds::SpecularTint,
+			MaterialPropertyIds::Subsurface,
+		};
+
 		// fetch material
 		std::shared_ptr<Material> mat = mSelectedMaterial.lock();
 
@@ -308,6 +325,9 @@ namespace Tracer
 			for(size_t i = 0; i < magic_enum::enum_count<MaterialPropertyIds>(); i++)
 			{
 				const MaterialPropertyIds id = static_cast<MaterialPropertyIds>(i);
+				if(std::find(UnusedProperties.begin(), UnusedProperties.end(), id) != UnusedProperties.end())
+					continue;
+
 				const std::string propName = std::string(magic_enum::enum_name(id));
 
 				ImGui::TableNextRow();
