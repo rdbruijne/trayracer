@@ -65,14 +65,15 @@
       </Message>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>xcopy /r /d /i /s /y "$(ProjectDir)glsl" "$(SolutionDir)bin\glsl"</Command>
+      <Command>xcopy /d /i /s /y "$(ProjectDir)glsl" "$(SolutionDir)bin\glsl"
+for /R "$(SolutionDir)thirdparty" %%f in (*.dll) do xcopy /d /y "%%f" "$(SolutionDir)bin"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Copy resources</Message>
     </PostBuildEvent>
     <ProjectReference />
     <Lib>
-      <AdditionalDependencies>assimp\assimp-vc142-mt.lib;assimp\IrrXML.lib;assimp\zlibstatic.lib;FreeImage\FreeImage.lib;GL\glew32s.lib;glfw\glfw3.lib;cuda.lib;cudart.lib;opengl32.lib;nvrtc.lib;cudart_static.lib;Shlwapi.lib;Shcore.lib;</AdditionalDependencies>
+      <AdditionalDependencies>assimp\assimp-vc142-mt.lib;assimp\IrrXML.lib;assimp\zlibstatic.lib;FreeImage\FreeImage.lib;GL\glew32s.lib;glfw\glfw3.lib;imgui\imgui_$(Configuration).lib;imGuIZMO.quat\imGuIZMO.quat_$(Configuration).lib;cuda.lib;cudart.lib;opengl32.lib;nvrtc.lib;cudart_static.lib;Shlwapi.lib;Shcore.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)thirdparty;$(CudaToolkitLibDir)</AdditionalLibraryDirectories>
       <AdditionalOptions>/ignore:4006 %(AdditionalOptions)</AdditionalOptions>
     </Lib>
@@ -100,14 +101,15 @@
       </Message>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>xcopy /r /d /i /s /y "$(ProjectDir)glsl" "$(SolutionDir)bin\glsl"</Command>
+      <Command>xcopy /d /i /s /y "$(ProjectDir)glsl" "$(SolutionDir)bin\glsl"
+for /R "$(SolutionDir)thirdparty" %%f in (*.dll) do xcopy /d /y "%%f" "$(SolutionDir)bin"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Copy resources</Message>
     </PostBuildEvent>
     <ProjectReference />
     <Lib>
-      <AdditionalDependencies>assimp\assimp-vc142-mt.lib;assimp\IrrXML.lib;assimp\zlibstatic.lib;FreeImage\FreeImage.lib;GL\glew32s.lib;glfw\glfw3.lib;cuda.lib;cudart.lib;opengl32.lib;nvrtc.lib;cudart_static.lib;Shlwapi.lib;Shcore.lib;Shcore.lib;</AdditionalDependencies>
+      <AdditionalDependencies>assimp\assimp-vc142-mt.lib;assimp\IrrXML.lib;assimp\zlibstatic.lib;FreeImage\FreeImage.lib;GL\glew32s.lib;glfw\glfw3.lib;imgui\imgui_$(Configuration).lib;imGuIZMO.quat\imGuIZMO.quat_$(Configuration).lib;cuda.lib;cudart.lib;opengl32.lib;nvrtc.lib;cudart_static.lib;Shlwapi.lib;Shcore.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)thirdparty;$(CudaToolkitLibDir)</AdditionalLibraryDirectories>
       <AdditionalOptions>/ignore:4006 %(AdditionalOptions)</AdditionalOptions>
     </Lib>
@@ -264,11 +266,6 @@
       <CompileOut Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)bin\%(Filename)_debug.optixir</CompileOut>
       <NvccCompilation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">optix-ir</NvccCompilation>
     </CudaCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\thirdparty\Thirdparty.vcxproj">
-      <Project>{41519746-c932-42d0-a110-6b5bedae7ff8}</Project>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

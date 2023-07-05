@@ -1,6 +1,12 @@
+# Directories
 .vs/
 bin/
-build/
+**/build/
+
+# Filetypes
+*.log
+*.idb
+*.pdb
 
 # Ignore scene files not explicitly added
 Resources/scenes/*.json

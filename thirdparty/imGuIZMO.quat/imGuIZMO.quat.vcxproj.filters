@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="imGuIZMOquat.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="imGuIZMOquat.h" />
+    <ClInclude Include="vgConfig.h" />
+    <ClInclude Include="vGizmo.h" />
+    <ClInclude Include="vGizmoMath.h" />
+    <ClInclude Include="vgMath.h" />
+  </ItemGroup>
+</Project>
