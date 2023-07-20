@@ -469,6 +469,9 @@
     <None Include="Logging\Logger.inl">
       <Filter>Logging</Filter>
     </None>
+    <None Include="GUI\GuiExtensions.inl">
+      <Filter>GUI</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="Optix\GPU\optix.cu">

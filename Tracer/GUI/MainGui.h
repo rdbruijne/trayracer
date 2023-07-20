@@ -23,7 +23,7 @@ namespace Tracer
 		void SelectMaterial(std::weak_ptr<Material> material);
 
 	private:
-		void DrawImpl();
+		void DrawImpl() override;
 
 		// elements
 		void CameraElements();

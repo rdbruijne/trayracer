@@ -253,6 +253,7 @@ for /R "$(SolutionDir)thirdparty" %%f in (*.dll) do xcopy /d /y "%%f" "$(Solutio
     <None Include="glsl\SRGBToLinear.json" />
     <None Include="glsl\Tonemap.frag" />
     <None Include="glsl\Tonemap.json" />
+    <None Include="GUI\GuiExtensions.inl" />
     <None Include="Resources\Material.inl" />
     <None Include="Resources\Model.h" />
     <None Include="Logging\Logger.inl" />

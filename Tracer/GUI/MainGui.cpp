@@ -104,7 +104,8 @@ namespace Tracer
 		inline void TableHeader(const std::string& text)
 		{
 			ImGui::TableNextRow();
-			ImGui::TableNextColumn();
+			ImGui::TableSetColumnIndex(0);
+			//ImGui::PushStyleVar(ImGuiStyleVar_COUNT
 			ImGui::Text(text.c_str());
 		}
 
@@ -116,14 +117,14 @@ namespace Tracer
 			constexpr float IndentSize = 16.f;
 
 			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
 
 			const float indent = IndentSize * (Indent + 1);
-			ImGui::TableNextColumn();
 			ImGui::Indent(indent);
 			ImGui::Text(identifier.c_str());
 			ImGui::Unindent(indent);
-
 			ImGui::TableNextColumn();
+
 			ImGui::Text(format(fmt.c_str(), std::forward<Arg>(args)...).c_str());
 		}
 	}
@@ -214,7 +215,7 @@ namespace Tracer
 		if(ImGui::InputFloat3("Up", up))
 			cameraNode->SetUp(make_float3(up[0], up[1], up[2]));
 
-		ImGui::Spacing();
+		ImGui::NewLine();
 
 		// [3 x 4]
 		ImGui::BeginDisabled(true);
@@ -228,7 +229,7 @@ namespace Tracer
 		ImGui::InputFloat4("", row2);
 		ImGui::EndDisabled();
 
-		ImGui::Spacing();
+		ImGui::NewLine();
 
 		// lens
 		ImGui::Text("Lens");
@@ -455,7 +456,7 @@ namespace Tracer
 				if(ImGui::Button("Reload"))
 					shader->Compile();
 
-				ImGui::Spacing();
+				ImGui::NewLine();
 
 				if(!shader->IsValid())
 				{
@@ -591,7 +592,7 @@ namespace Tracer
 		}
 
 		// resolution
-		ImGui::Spacing();
+		ImGui::NewLine();
 		ImGui::Text("Resolution");
 
 		bool fullscreen = window->IsFullscreen();
@@ -613,7 +614,7 @@ namespace Tracer
 			mResolution = window->Resolution();
 
 		// render mode
-		ImGui::Spacing();
+		ImGui::NewLine();
 		ImGui::Text("Settings");
 
 		RenderModes renderMode = renderer->RenderMode();
@@ -650,7 +651,7 @@ namespace Tracer
 		ImGui::EndDisabled();
 
 		// denoiser
-		ImGui::Spacing();
+		ImGui::NewLine();
 		ImGui::Text("Denoiser");
 
 		std::shared_ptr<Denoiser> denoiser = renderer->GetDenoiser();
@@ -676,12 +677,10 @@ namespace Tracer
 		}
 
 		Scene_Scene();
-		ImGui::Spacing();
-		ImGui::Spacing();
+		ImGui::NewLine();
 
 		Scene_Models();
-		ImGui::Spacing();
-		ImGui::Spacing();
+		ImGui::NewLine();
 
 		Scene_Instances();
 	}

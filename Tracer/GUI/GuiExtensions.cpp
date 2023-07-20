@@ -1,5 +1,8 @@
 #include "GuiExtensions.h"
 
+// C++
+#include <unordered_map>
+
 namespace ImGui
 {
 	bool SliderUInt(const char* label, unsigned int* v, unsigned int v_min, unsigned int v_max, const char* format, ImGuiSliderFlags flags)
@@ -64,12 +67,12 @@ namespace ImGui
 	{
 		bool changed = false;
 		const std::string propName = (value >= 0 && value < static_cast<int>(keys.size())) ? keys[static_cast<size_t>(value)] : "";
-		if(ImGui::BeginCombo(name.c_str(), propName.c_str()))
+		if(BeginCombo(name.c_str(), propName.c_str()))
 		{
 			for(int i = 0; i < static_cast<int>(keys.size()); i++)
 			{
 				const std::string itemName = keys[static_cast<size_t>(i)];
-				if(ImGui::Selectable(itemName.c_str(), i == value))
+				if(Selectable(itemName.c_str(), i == value))
 				{
 					value = i;
 					changed = true;
@@ -77,10 +80,10 @@ namespace ImGui
 
 				if(i == value)
 				{
-					ImGui::SetItemDefaultFocus();
+					SetItemDefaultFocus();
 				}
 			}
-			ImGui::EndCombo();
+			EndCombo();
 		}
 		return changed;
 	}
