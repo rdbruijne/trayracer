@@ -342,8 +342,12 @@ namespace Tracer
 		// check instances
 		for(const std::shared_ptr<Instance>& inst : scene->Instances())
 		{
-			rebuildLights = rebuildLights || (inst->IsDirty() && (inst->GetModel()->LightCount() > 0));
-			inst->MarkClean();
+			const std::shared_ptr<Model>& model = inst->GetModel();
+			if(model)
+			{
+				rebuildLights = rebuildLights || (inst->IsDirty() && inst->GetModel()->LightCount() > 0);
+				inst->MarkClean();
+			}
 		}
 
 		// build lights
@@ -472,9 +476,12 @@ namespace Tracer
 		for(const std::shared_ptr<Instance>& inst : scene->Instances())
 		{
 			const std::shared_ptr<Model>& model = inst->GetModel();
-			instances.push_back(inst->InstanceData(instanceId++));
-			meshData.push_back(model->CudaMesh());
-			invTransforms.push_back(inverse(inst->Transform()));
+			if(model)
+			{
+				instances.push_back(inst->InstanceData(instanceId++));
+				meshData.push_back(model->CudaMesh());
+				invTransforms.push_back(inverse(inst->Transform()));
+			}
 		}
 
 		// CUDA mesh data

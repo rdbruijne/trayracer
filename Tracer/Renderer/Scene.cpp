@@ -5,6 +5,7 @@
 #include "Resources/Model.h"
 #include "Resources/Instance.h"
 #include "Resources/Material.h"
+#include "Logging/Logger.h"
 
 // C++
 #include <map>
@@ -178,9 +179,12 @@ namespace Tracer
 
 	void Scene::Add(std::shared_ptr<Instance> instance)
 	{
-		assert(instance->GetModel() != nullptr);
+		if(!instance->GetModel())
+			Logger::Warning("No model set for instance: %s", instance->Name().c_str());
 
-		Add(instance->GetModel());
+		if(instance->GetModel())
+			Add(instance->GetModel());
+
 		if(instance && std::find(mInstances.begin(), mInstances.end(), instance) == mInstances.end())
 		{
 			mInstances.push_back(instance);

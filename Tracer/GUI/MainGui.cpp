@@ -910,6 +910,11 @@ namespace Tracer
 		for(const std::shared_ptr<Model>& m : models)
 			modelNames.push_back(m->Name().c_str());
 
+		// clear selection when selected instance no longer exists
+		if(mSelectedModel.expired())
+			SelectModel(std::numeric_limits<int>::max());
+
+		// controls
 		const ImGuiTableFlags tableFlags = ImGuiTableFlags_BordersInnerV;
 		if(ImGui::BeginTable("Scene models", 2, tableFlags))
 		{
@@ -929,38 +934,41 @@ namespace Tracer
 				std::string modelFile = ImportModelDialog();
 				if(!modelFile.empty())
 				{
-					std::shared_ptr<Model> model = ModelFile::Import(scene, modelFile);
-					if(model)
-						scene->Add(model);
+					std::shared_ptr<Model> importedModel = ModelFile::Import(scene, modelFile);
+					if(importedModel)
+						scene->Add(importedModel);
 
+					// select newly imported model
 					models = scene->Models();
 					mSelectedModelIx = static_cast<int>(models.size() - 1);
 					strcpy_s(mModelName, mNameBufferSize, models[static_cast<size_t>(mSelectedModelIx)]->Name().c_str());
 				}
 			}
 
-			if(mSelectedModelIx >= static_cast<int>(models.size()))
-				mSelectedModelIx = 0;
-			std::shared_ptr<Model> model = models.size() > 0 ? models[static_cast<size_t>(mSelectedModelIx)] : nullptr;
-
-			// delete
-			if(ImGui::Button("Delete##delete_model"))
+			// model controls
+			std::shared_ptr<Model> model = mSelectedModel.expired() ? nullptr : mSelectedModel.lock();
+			ImGui::BeginDisabled(!model);
 			{
-				scene->Remove(model);
-				models = scene->Models();
-				SelectModel(0);
-			}
+				// delete
+				if(ImGui::Button("Delete##delete_model"))
+				{
+					scene->Remove(model);
+					models = scene->Models();
+					SelectModel(0);
+				}
 
-			// create instance
-			if(ImGui::Button("Create instance") && model)
-			{
-				scene->Add(std::make_shared<Instance>(model->Name(), model, make_float3x4()));
-				strcpy_s(mInstanceName, mNameBufferSize, scene->Instances()[static_cast<size_t>(mSelectedInstanceIx)]->Name().c_str());
-			}
+				// create instance
+				if(ImGui::Button("Create instance") && model)
+				{
+					scene->Add(std::make_shared<Instance>(model->Name(), model, make_float3x4()));
+					strcpy_s(mInstanceName, mNameBufferSize, scene->Instances()[static_cast<size_t>(mSelectedInstanceIx)]->Name().c_str());
+				}
 
-			// Properties
-			if(ImGui::InputText("Name##model_name", mModelName, mNameBufferSize, ImGuiInputTextFlags_EnterReturnsTrue) && model && strlen(mModelName) > 0)
-				model->SetName(mModelName);
+				// Properties
+				if(ImGui::InputText("Name##model_name", mModelName, mNameBufferSize, ImGuiInputTextFlags_EnterReturnsTrue) && model && strlen(mModelName) > 0)
+					model->SetName(mModelName);
+			}
+			ImGui::EndDisabled();
 
 			ImGui::EndTable();
 		}
@@ -977,6 +985,11 @@ namespace Tracer
 		for(std::shared_ptr<Instance> inst : instances)
 			instanceNames.push_back(inst->Name().c_str());
 
+		// clear selection when selected instance no longer exists
+		if(mSelectedInstance.expired())
+			SelectInstance(std::numeric_limits<int>::max());
+
+		// controls
 		const ImGuiTableFlags tableFlags = ImGuiTableFlags_BordersInnerV;
 		if(ImGui::BeginTable("Scene instances", 2, tableFlags))
 		{
@@ -991,68 +1004,57 @@ namespace Tracer
 			ImGui::TableNextColumn();
 			if(instances.size() > 0)
 			{
-				if(mSelectedInstanceIx >= static_cast<int>(instances.size()))
-					mSelectedInstanceIx = 0;
-
-				std::shared_ptr<Instance> inst = instances[static_cast<size_t>(mSelectedInstanceIx)];
-				std::shared_ptr<Model> model = inst->GetModel();
-
-				// Name
-				if(ImGui::InputText("Name##inst_name", mInstanceName, mNameBufferSize, ImGuiInputTextFlags_EnterReturnsTrue) && inst && strlen(mInstanceName) > 0)
-					inst->SetName(mInstanceName);
-
-				ImGui::InputText("Model",
-								 model ? const_cast<char*>(model->Name().c_str()) : nullptr,
-								 model ? static_cast<int>(model->Name().length()) : 0ull,
-								 ImGuiInputTextFlags_ReadOnly);
-
-				// transform
-				float3 pos;
-				float3 scale;
-				float3 euler;
-				inst->DecomposedTransform(pos, euler, scale);
-
-				float p[] = { pos.x, pos.y, pos.z };
-				float s[] = { scale.x, scale.y, scale.z };
-				float e[] = { euler.x * RadToDeg, euler.y * RadToDeg, euler.z * RadToDeg };
-
-				bool changed = false;
-				if(ImGui::InputFloat3("Pos", p, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue))
+				// instance controls
+				std::shared_ptr<Instance> inst = mSelectedInstance.expired() ? nullptr : mSelectedInstance.lock();
+				ImGui::BeginDisabled(!inst);
 				{
-					pos = make_float3(p[0], p[1], p[2]);
-					changed = true;
-				}
+					// Name
+					if(ImGui::InputText("Name##inst_name", mInstanceName, mNameBufferSize, ImGuiInputTextFlags_EnterReturnsTrue) && inst && strlen(mInstanceName) > 0)
+						inst->SetName(mInstanceName);
 
-				if(ImGui::InputFloat3("Scale", s, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue))
-				{
-					scale = make_float3(s[0], s[1], s[2]);
-					changed = true;
-				}
+					// Model
+					ImGui::BeginDisabled(!inst || !inst->GetModel());
+					ImGui::InputText("Model", mInstanceModelName, mNameBufferSize, ImGuiInputTextFlags_ReadOnly);
+					ImGui::EndDisabled();
 
-				if(ImGui::InputFloat3("Euler", e, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue))
-				{
-					euler = make_float3(e[0] * DegToRad, e[1] * DegToRad, e[2] * DegToRad);
-					changed = true;
-				}
+					// transform
+					float3 pos = make_float3(0);
+					float3 scale = make_float3(1);
+					float3 euler = make_float3(0);
+					if(inst)
+						inst->DecomposedTransform(pos, euler, scale);
 
-				if(changed)
-				{
-					inst->SetDecomposedTransform(pos, euler, scale);
-				}
+					float p[] = { pos.x, pos.y, pos.z };
+					float s[] = { scale.x, scale.y, scale.z };
+					float e[] = { euler.x * RadToDeg, euler.y * RadToDeg, euler.z * RadToDeg };
 
-				// show/hide
-				if(ImGui::Button(inst->IsVisible() ? "Hide" : "Show"))
-				{
-					inst->SetVisible(!inst->IsVisible());
-				}
+					bool changed = false;
+					changed = ImGui::InputFloat3("Pos", p, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue) || changed;
+					changed = ImGui::InputFloat3("Scale", s, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue) || changed;
+					changed = ImGui::InputFloat3("Euler", e, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue) || changed;
 
-				// delete
-				ImGui::SameLine();
-				if(ImGui::Button("Delete##delete_instance"))
-				{
-					GuiHelpers::GetScene()->Remove(inst);
-					SelectInstance(0);
+					if(changed && inst)
+					{
+						pos = make_float3(p[0], p[1], p[2]);
+						scale = make_float3(s[0], s[1], s[2]);
+						euler = make_float3(e[0] * DegToRad, e[1] * DegToRad, e[2] * DegToRad);
+						inst->SetDecomposedTransform(pos, euler, scale);
+					}
+
+					// show/hide
+					bool visible = inst ? inst->IsVisible() : false;
+					if(ImGui::Button(visible ? "Hide" : "Show"))
+						inst->SetVisible(!visible);
+
+					// delete
+					ImGui::SameLine();
+					if(ImGui::Button("Delete##delete_instance"))
+					{
+						GuiHelpers::GetScene()->Remove(inst);
+						SelectInstance(0);
+					}
 				}
+				ImGui::EndDisabled();
 			}
 
 			ImGui::EndTable();
@@ -1064,11 +1066,18 @@ namespace Tracer
 	void MainGui::SelectModel(int ix)
 	{
 		mSelectedModelIx = ix;
-		const std::vector<std::shared_ptr<Model>>& models = GuiHelpers::GetScene()->Models();
-		if(static_cast<int>(models.size()) > mSelectedModelIx)
-			strcpy_s(mModelName, mNameBufferSize, models[static_cast<size_t>(mSelectedModelIx)]->Name().c_str());
-		else
+		const std::vector<std::shared_ptr<Model>>& sceneModels = GuiHelpers::GetScene()->Models();
+		if(mSelectedModelIx >= static_cast<int>(sceneModels.size()))
+		{
+			mSelectedModel.reset();
 			mModelName[0] = '\0';
+		}
+		else
+		{
+			const std::shared_ptr<Model>& model = sceneModels[static_cast<size_t>(mSelectedModelIx)];
+			mSelectedModel = model;
+			strcpy_s(mModelName, mNameBufferSize, model->Name().c_str());
+		}
 	}
 
 
@@ -1076,10 +1085,24 @@ namespace Tracer
 	void MainGui::SelectInstance(int ix)
 	{
 		mSelectedInstanceIx = ix;
-		const std::vector<std::shared_ptr<Instance>>& instances = GuiHelpers::GetScene()->Instances();
-		if(static_cast<int>(instances.size()) > mSelectedInstanceIx)
-			strcpy_s(mInstanceName, mNameBufferSize, instances[static_cast<size_t>(mSelectedInstanceIx)]->Name().c_str());
-		else
+		const std::vector<std::shared_ptr<Instance>>& sceneInstances = GuiHelpers::GetScene()->Instances();
+
+		if(mSelectedInstanceIx >= static_cast<int>(sceneInstances.size()))
+		{
+			mSelectedInstance.reset();
 			mInstanceName[0] = '\0';
+			mInstanceModelName[0] = '\0';
+		}
+		else
+		{
+			const std::shared_ptr<Instance>& instance = sceneInstances[static_cast<size_t>(mSelectedInstanceIx)];
+			mSelectedInstance = instance;
+			strcpy_s(mInstanceName, mNameBufferSize, instance->Name().c_str());
+
+			mInstanceModelName[0] = '\0';
+			const std::shared_ptr<Model>& instanceModel = instance->GetModel();
+			if(instanceModel)
+				strcpy_s(mInstanceModelName, mNameBufferSize, instanceModel->Name().c_str());
+		}
 	}
 }

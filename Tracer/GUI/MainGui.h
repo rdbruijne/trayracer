@@ -11,7 +11,9 @@
 
 namespace Tracer
 {
+	class Instance;
 	class Material;
+	class Model;
 	class MainGui : public GuiWindow
 	{
 	public:
@@ -55,10 +57,15 @@ namespace Tracer
 		// material
 		std::weak_ptr<Material> mSelectedMaterial = {};
 
-		int mSelectedModelIx = 0;
+		// model
+		std::weak_ptr<Model> mSelectedModel = {};
+		int mSelectedModelIx = std::numeric_limits<int>::max();
 		char mModelName[mNameBufferSize] = {};
 
-		int mSelectedInstanceIx = 0;
+		// instance
+		std::weak_ptr<Instance> mSelectedInstance = {};
+		int mSelectedInstanceIx = std::numeric_limits<int>::max();
 		char mInstanceName[mNameBufferSize] = {};
+		char mInstanceModelName[mNameBufferSize] = {};
 	};
 }
