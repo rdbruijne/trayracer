@@ -10,6 +10,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Demo", "Apps\Demo\Demo.vcxp
 		{AD79D7B9-264E-42A5-A77D-FFB6B3B056EF} = {AD79D7B9-264E-42A5-A77D-FFB6B3B056EF}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Benchmark", "Apps\Benchmark\Benchmark.vcxproj", "{57225DD5-AF95-4E45-9760-27416EF6A034}"
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -24,6 +25,10 @@ Global
 		{EE7B195B-6C05-4EFE-B850-DCC3E0778122}.Debug|x64.Build.0 = Debug|x64
 		{EE7B195B-6C05-4EFE-B850-DCC3E0778122}.Release|x64.ActiveCfg = Release|x64
 		{EE7B195B-6C05-4EFE-B850-DCC3E0778122}.Release|x64.Build.0 = Release|x64
+		{57225DD5-AF95-4E45-9760-27416EF6A034}.Debug|x64.ActiveCfg = Debug|x64
+		{57225DD5-AF95-4E45-9760-27416EF6A034}.Debug|x64.Build.0 = Debug|x64
+		{57225DD5-AF95-4E45-9760-27416EF6A034}.Release|x64.ActiveCfg = Release|x64
+		{57225DD5-AF95-4E45-9760-27416EF6A034}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
