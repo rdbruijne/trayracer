@@ -105,6 +105,17 @@ _ARIT_ENUM_T constexpr T operator >>= (T& a, E b) noexcept { return a = a >> b; 
 
 
 //------------------------------------------------------------------------------------------------------------------------------
+// Flag helpers
+//------------------------------------------------------------------------------------------------------------------------------
+_BIT_ENUM_T constexpr bool HasFlag(E val, E flag) noexcept { return (val & flag) == flag; }
+
+_BIT_ENUM_T constexpr E AddFlag(E val, E flag) noexcept { return val | flag; }
+_BIT_ENUM_T constexpr E RemoveFlag(E val, E flag) noexcept { return val & ~flag; }
+_BIT_ENUM_T constexpr E ToggleFlag(E val, E flag) noexcept { return val ^ flag; }
+
+
+
+//------------------------------------------------------------------------------------------------------------------------------
 // Compare operators
 //------------------------------------------------------------------------------------------------------------------------------
 // logical NOT
