@@ -32,6 +32,8 @@ using namespace rapidjson;
 #define Key_Aperture           "aperture"
 #define Key_AoDist             "aodist"
 #define Key_Bias               "bias"
+#define Key_BokehRotation      "bokehrotation"
+#define Key_BokehSideCount     "bokehsides"
 #define Key_Camera             "camera"
 #define Key_Dir                "dir"
 #define Key_Distortion         "distortion"
@@ -72,6 +74,15 @@ namespace Tracer
 {
 	namespace
 	{
+		struct InstanceInfo
+		{
+			std::string name = "";
+			std::string modelName = "";
+			float3x4 transform = make_float3x4();
+		};
+
+
+
 		//----------------------------------------------------------------------------------------------------------------------
 		// Import sections
 		//----------------------------------------------------------------------------------------------------------------------
@@ -89,6 +100,8 @@ namespace Tracer
 			float distortion = 0;
 			float focalDist = 1e5f;
 			float fov = 90.f;
+			float bokehRotation = 0;
+			int bokehSideCount = 0;
 
 			Read(jsonCamera, Key_Position, pos);
 			Read(jsonCamera, Key_Target, target);
@@ -97,6 +110,8 @@ namespace Tracer
 			Read(jsonCamera, Key_Distortion, distortion);
 			Read(jsonCamera, Key_FocalDist, focalDist);
 			Read(jsonCamera, Key_Fov, fov);
+			Read(jsonCamera, Key_BokehRotation, bokehRotation);
+			Read(jsonCamera, Key_BokehSideCount, bokehSideCount);
 
 			// corrections
 			fov = fminf(fmaxf(fov, .1f), 179.9f);
@@ -109,16 +124,9 @@ namespace Tracer
 			camNode->SetAperture(aperture);
 			camNode->SetDistortion(distortion);
 			camNode->SetFocalDist(focalDist);
+			camNode->SetBokehRotation(bokehRotation);
+			camNode->SetBokehSideCount(bokehSideCount);
 		}
-
-
-
-		struct InstanceInfo
-		{
-			std::string name = "";
-			std::string modelName = "";
-			float3x4 transform = make_float3x4();
-		};
 
 
 
@@ -452,6 +460,8 @@ namespace Tracer
 			Write(jsonCam, allocator, Key_Distortion, camNode->Distortion());
 			Write(jsonCam, allocator, Key_FocalDist, camNode->FocalDist());
 			Write(jsonCam, allocator, Key_Fov, camNode->Fov() * RadToDeg);
+			Write(jsonCam, allocator, Key_BokehRotation, camNode->BokehSideCount());
+			Write(jsonCam, allocator, Key_BokehSideCount, camNode->BokehSideCount());
 
 			// add new JSON node to the document
 			doc.AddMember(Key_Camera, jsonCam, allocator);
@@ -468,7 +478,7 @@ namespace Tracer
 			if(instances.size() == 0)
 				return;
 
-			Value jsonInstanceList(kArrayType);
+			Value jsonInstanceList = Value(kArrayType);
 			for(const std::shared_ptr<Instance>& inst : instances)
 			{
 				if(!inst->GetModel())
@@ -478,10 +488,13 @@ namespace Tracer
 				Value jsonInst = Value(kObjectType);
 				Write(jsonInst, allocator, Key_Name, inst->Name());
 				Write(jsonInst, allocator, Key_Model, uniqueModelNames[inst->GetModel()]);
+
 				Value jsonMatrix = Value(kObjectType);
 				Write(jsonMatrix, allocator, Key_Matrix, inst->Transform());
+
 				Value jsonTransform = Value(kArrayType);
 				jsonTransform.PushBack(jsonMatrix, allocator);
+
 				jsonInst.AddMember(Key_Transform, jsonTransform, allocator);
 
 				// add model to array
@@ -503,7 +516,7 @@ namespace Tracer
 			if(models.size() == 0)
 				return;
 
-			Value jsonModelList(kArrayType);
+			Value jsonModelList = Value(kArrayType);
 			for(const std::shared_ptr<Model>& model : models)
 			{
 				Value jsonMaterialList = Value(kArrayType);
@@ -540,6 +553,7 @@ namespace Tracer
 				Value jsonModel = Value(kObjectType);
 				Write(jsonModel, allocator, Key_Model, uniqueModelNames[model]);
 				jsonModel.AddMember(Key_Materials, jsonMaterialList, allocator);
+
 				jsonModelList.PushBack(jsonModel, allocator);
 			}
 
@@ -551,7 +565,7 @@ namespace Tracer
 
 		void ExportModels(std::map<std::shared_ptr<Model>, std::string> uniqueModelNames, Document& doc, Document::AllocatorType& allocator)
 		{
-			Value jsonModelList(kArrayType);
+			Value jsonModelList = Value(kArrayType);
 			for(const auto& [model, name] : uniqueModelNames)
 			{
 				Value jsonModel = Value(kObjectType);
