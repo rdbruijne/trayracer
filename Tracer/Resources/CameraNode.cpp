@@ -63,6 +63,21 @@ namespace Tracer
 
 
 
+	void CameraNode::SetTransform(const float3x4& t)
+	{
+		const float3 pos = make_float3(t.tx, t.ty, t.tz);
+		const float3 side = t.x;
+		const float3 up = t.y;
+		const float3 fwd = t.z;
+
+		mPosition = pos;
+		mTarget = pos + fwd;
+		mUp = up;
+		MarkDirty();
+	}
+
+
+
 	void CameraNode::SetAperture(float aperture)
 	{
 		if(mAperture != aperture)

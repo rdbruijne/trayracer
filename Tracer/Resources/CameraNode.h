@@ -26,6 +26,7 @@ namespace Tracer
 
 		// transform
 		float3x4 Transform() const;
+		void SetTransform(const float3x4& t);
 
 		// aperture
 		float Aperture() const { return mAperture; }
@@ -50,17 +51,23 @@ namespace Tracer
 		float BokehRotation() const { return mBokehRotation; }
 		void SetBokehRotation(float rotation);
 
+		// flags
+		uint32_t Flags() const { return mFlags; }
+		void SetFlags(uint32_t flags) { mFlags = flags; }
+
 	private:
 		float3 mPosition = make_float3(0, 0, -1);
-		float3 mTarget = make_float3(0, 0, 0);
-		float3 mUp = make_float3(0, 1, 0);
-
 		float mAperture = 0;
-		float mDistortion = 0;
-		float mFocalDist = 1e5f;
-		float mFov = 1.57079633f;
 
-		int mBokehSideCount = 0;
+		float3 mTarget = make_float3(0, 0, 0);
+		float mDistortion = 0;
+
+		float3 mUp = make_float3(0, 1, 0);
+		float mFocalDist = 1e5f;
+
+		float mFov = 1.57079633f;
 		float mBokehRotation = 0;
+		int mBokehSideCount = 0;
+		uint32_t mFlags;
 	};
 }
