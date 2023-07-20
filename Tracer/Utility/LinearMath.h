@@ -79,6 +79,24 @@ inline bool operator != (const float4& a, const float4& b) { return !(a == b); }
 
 
 
+inline int2 operator / (const int2& a, const int b) { return make_int2(a.x / b, a.y / b); }
+inline int3 operator / (const int3& a, const int b) { return make_int3(a.x / b, a.y / b, a.z / b); }
+inline int4 operator / (const int4& a, const int b) { return make_int4(a.x / b, a.y / b, a.z / b, a.w / b); }
+inline uint2 operator / (const uint2& a, const int b) { return make_uint2(a.x / b, a.y / b); }
+inline uint3 operator / (const uint3& a, const int b) { return make_uint3(a.x / b, a.y / b, a.z / b); }
+inline uint4 operator / (const uint4& a, const int b) { return make_uint4(a.x / b, a.y / b, a.z / b, a.w / b); }
+
+
+
+inline void operator /= (int2& a, const int b) { a.x /= b; a.y /= b; }
+inline void operator /= (int3& a, const int b) { a.x /= b; a.y /= b; a.z /= b; }
+inline void operator /= (int4& a, const int b) { a.x /= b; a.y /= b; a.z /= b; a.w /= b; }
+inline void operator /= (uint2& a, const int b) { a.x /= b; a.y /= b; }
+inline void operator /= (uint3& a, const int b) { a.x /= b; a.y /= b; a.z /= b; }
+inline void operator /= (uint4& a, const int b) { a.x /= b; a.y /= b; a.z /= b; a.w /= b; }
+
+
+
 // fix floating point error numbers
 inline bool isfinite(float f) { return f == f; }
 inline float2 fixnan(const float2& a) { return isfinite(a.x + a.y) ? a : make_float2(0); }
