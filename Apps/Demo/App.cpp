@@ -1,9 +1,7 @@
 #include "App.h"
 
-// Project
-#include "OrbitCameraController.h"
-
 // Tracer
+#include "Tracer/Controllers/OrbitCameraController.h"
 #include "Tracer/FileIO/ModelFile.h"
 #include "Tracer/FileIO/SceneFile.h"
 #include "Tracer/GUI/MainGui.h"

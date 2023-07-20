@@ -8,7 +8,6 @@
 // GPU
 #include "CUDA/GPU/CudaFwd.h"
 
-
 namespace Tracer
 {
 	DeviceRenderer::DeviceRenderer(std::shared_ptr<CudaDevice> device) :

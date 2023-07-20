@@ -124,6 +124,12 @@
     <ClCompile Include="Logging\FileLogStream.cpp">
       <Filter>Logging</Filter>
     </ClCompile>
+    <ClCompile Include="Controllers\FlyCameraController.cpp">
+      <Filter>Controllers</Filter>
+    </ClCompile>
+    <ClCompile Include="Controllers\OrbitCameraController.cpp">
+      <Filter>Controllers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">
@@ -173,6 +179,9 @@
     </Filter>
     <Filter Include="Logging">
       <UniqueIdentifier>{68be75d7-af03-4067-b9f4-d9e35466c838}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Controllers">
+      <UniqueIdentifier>{46794e24-7002-4109-9d29-aa23f65180b0}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -409,6 +418,12 @@
     </ClInclude>
     <ClInclude Include="Logging\FileLogStream.h">
       <Filter>Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Controllers\FlyCameraController.h">
+      <Filter>Controllers</Filter>
+    </ClInclude>
+    <ClInclude Include="Controllers\OrbitCameraController.h">
+      <Filter>Controllers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

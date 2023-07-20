@@ -116,6 +116,8 @@ for /R "$(SolutionDir)thirdparty" %%f in (*.dll) do xcopy /d /y "%%f" "$(Solutio
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="App\RunApp.cpp" />
+    <ClCompile Include="Controllers\FlyCameraController.cpp" />
+    <ClCompile Include="Controllers\OrbitCameraController.cpp" />
     <ClCompile Include="CUDA\CudaBuffer.cpp" />
     <ClCompile Include="CUDA\CudaDevice.cpp" />
     <ClCompile Include="CUDA\CudaError.cpp" />
@@ -161,6 +163,8 @@ for /R "$(SolutionDir)thirdparty" %%f in (*.dll) do xcopy /d /y "%%f" "$(Solutio
     <ClInclude Include="App\App.h" />
     <ClInclude Include="App\RunApp.h" />
     <ClInclude Include="Common\CommonStructs.h" />
+    <ClInclude Include="Controllers\FlyCameraController.h" />
+    <ClInclude Include="Controllers\OrbitCameraController.h" />
     <ClInclude Include="CUDA\CudaBuffer.h" />
     <ClInclude Include="CUDA\CudaDevice.h" />
     <ClInclude Include="CUDA\CudaError.h" />

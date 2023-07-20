@@ -68,7 +68,7 @@ namespace Tracer
 		float2 CursorPos() const;
 		float2 Scroll() const;
 		float2 CursorDelta() const;
-		float2 ScrollDelta() const;		
+		float2 ScrollDelta() const;
 
 		// post shader
 		std::vector<std::shared_ptr<Shader>>& PostStack() { return mPostStack; }

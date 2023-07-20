@@ -1,11 +1,10 @@
 #include "OrbitCameraController.h"
 
 // Tracer
-#include "Tracer/OpenGL/Window.h"
-#include "Tracer/Resources/CameraNode.h"
+#include "OpenGL/Window.h"
+#include "Resources/CameraNode.h"
 
-using namespace Tracer;
-namespace Demo
+namespace Tracer
 {
 	bool OrbitCameraController::HandleInput(CameraNode& node, Window* window)
 	{
