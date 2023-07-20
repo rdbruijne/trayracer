@@ -282,6 +282,29 @@ inline float4 transform(const float3x4& a, const float4& b)
 
 
 
+// operators
+inline float4 operator * (const float3x4& a, const float4& b)
+{
+	return transform(a, b);
+}
+
+
+
+inline float3x4 operator * (const float3x4& a, const float3x4& b)
+{
+	return transform(a, b);
+}
+
+
+
+inline float3x4& operator *= (float3x4& a, const float3x4& b)
+{
+	a = transform(a, b);
+	return a;
+}
+
+
+
 // rotate
 inline float3x4 rotate_x_3x4(float a)
 {
@@ -484,7 +507,15 @@ inline float3x4 inverse(const float3x4& a)
 
 
 
-// decompose
+// compose float3x4
+inline float3x4 compose_3x4(const float3& pos, const float3& euler, const float3& scale)
+{
+	return rotate_3x4(euler) * scale_3x4(scale) * translate_3x4(pos);
+}
+
+
+
+// decompose float3x4
 inline void decompose(const float3x4& a, float3& pos, float3& euler, float3& scale)
 {
 	pos = make_float3(a.tx, a.ty, a.tz);
@@ -510,10 +541,3 @@ inline void decompose(const float3x4& a, float3& pos, float3& euler, float3& sca
 	scale = fixnan(scale);
 	euler = fixnan(euler);
 }
-
-
-
-// operators
-inline float4 operator * (const float3x4& a, const float4& b) { return transform(a, b); }
-inline float3x4 operator * (const float3x4& a, const float3x4& b) { return transform(a, b); }
-inline float3x4& operator *= (float3x4& a, const float3x4& b) { return a = transform(a, b); }
