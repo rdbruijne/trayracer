@@ -119,15 +119,6 @@ namespace Tracer
 			// update the app
 			app->Tick(renderer, window, frameTimeMs * 1e-3f);
 
-			// build the scene
-			renderer->UpdateScene(app->GetScene());
-
-			// run Optix
-			renderer->RenderFrame(window->RenderTexture());
-
-			// run window shaders
-			window->Display();
-
 			// handle drops
 			if(window->HasDrops())
 				HandleDrops(app, renderer, window);
@@ -145,6 +136,15 @@ namespace Tracer
 			GuiHelpers::Set(app->GetScene());
 			GuiHelpers::SetFrameTimeMs(frameTimeMs);
 			GuiHelpers::DrawGui();
+
+			// build the scene
+			renderer->UpdateScene(app->GetScene());
+
+			// run Optix
+			renderer->RenderFrame(window->RenderTexture());
+
+			// run window shaders
+			window->Display();
 
 			// finalize GUI
 			GuiHelpers::EndFrame();
