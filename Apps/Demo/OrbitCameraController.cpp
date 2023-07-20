@@ -1,22 +1,20 @@
 #include "OrbitCameraController.h"
 
-// Project
-#include "ControlScheme.h"
-
 // Tracer
+#include "Tracer/OpenGL/Window.h"
 #include "Tracer/Resources/CameraNode.h"
 
 using namespace Tracer;
 namespace Demo
 {
-	bool OrbitCameraController::HandleInput(CameraNode& node, ControlScheme* scheme, Window* window)
+	bool OrbitCameraController::HandleInput(CameraNode& node, Window* window)
 	{
 		// check inputs
-		const float2 camMove   = scheme->OrbitCameraMove.HandleInput(window);
-		const float2 camOrbit  = scheme->OrbitCameraOrbit.HandleInput(window);
-		const float2 camRotate = scheme->OrbitCameraRotate.HandleInput(window);
-		const float2 camRoll   = scheme->OrbitCameraRoll.HandleInput(window);
-		const float2 camDolly  = scheme->OrbitCameraDolly.HandleInput(window) + scheme->OrbitCameraDollyAlt.HandleInput(window);
+		const float2 camMove   = window->CheckInput(sOrbitCameraMove);
+		const float2 camOrbit  = window->CheckInput(sOrbitCameraOrbit);
+		const float2 camRotate = window->CheckInput(sOrbitCameraRotate);
+		const float2 camRoll   = window->CheckInput(sOrbitCameraRoll);
+		const float2 camDolly  = window->CheckInput(sOrbitCameraDolly) + window->CheckInput(sOrbitCameraDollyAlt);
 
 		// apply inputs
 		bool hasChanged = false;

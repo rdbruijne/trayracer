@@ -55,7 +55,7 @@ namespace Demo
 	void App::Tick([[maybe_unused]] Renderer* renderer, [[maybe_unused]] Window* window, [[maybe_unused]] float dt)
 	{
 		// handle camera controller
-		OrbitCameraController::HandleInput(mCamera, &mControlScheme, window);
+		OrbitCameraController::HandleInput(mCamera, window);
 
 		// ray picker
 		if(window->WasKeyPressed(Input::Keys::Mouse_Left))

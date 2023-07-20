@@ -246,5 +246,20 @@ namespace Tracer
 			float2 MouseScroll = make_float2(0, 0);
 			bool MouseIsWithinWindow = true;
 		};
+
+
+
+		// Keybinding
+		struct Keybind
+		{
+			Keybind() = default;
+			explicit Keybind(Keys key) : Keybind(key, ModifierKeys::None, 1.f) {}
+			explicit Keybind(Keys key, float scalar) : Keybind(key, ModifierKeys::None, scalar) {}
+			explicit Keybind(Keys key, ModifierKeys modifiers, float scalar) : Key(key), Modifiers(modifiers), Scalar(scalar) {}
+
+			Keys Key = Keys::Unknown;
+			ModifierKeys Modifiers = ModifierKeys::None;
+			float Scalar = 1.f;
+		};
 	};
 }

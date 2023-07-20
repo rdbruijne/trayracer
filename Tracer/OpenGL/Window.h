@@ -59,13 +59,16 @@ namespace Tracer
 
 		// Input
 		void UpdateInput();
+		float2 CheckInput(Input::Keybind keybind);
+
 		bool IsKeyDown(Input::Keys key) const;
 		bool WasKeyPressed(Input::Keys key) const;
+		bool IsModifierDown(Input::ModifierKeys modifier);
 		bool IsCursorWithinWindow() const;
 		float2 CursorPos() const;
 		float2 Scroll() const;
 		float2 CursorDelta() const;
-		float2 ScrollDelta() const;
+		float2 ScrollDelta() const;		
 
 		// post shader
 		std::vector<std::shared_ptr<Shader>>& PostStack() { return mPostStack; }

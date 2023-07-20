@@ -339,6 +339,31 @@ namespace Tracer
 
 
 
+	// mouse events will be based on scroll/move, keyboard will be 0 or 1
+	float2 Window::CheckInput(Input::Keybind keybind)
+	{
+		// handle scrollwheel
+		if(keybind.Key == Input::Keys::Mouse_Scroll)
+			return ScrollDelta() * keybind.Scalar;
+
+		// check key
+		if(!IsKeyDown(keybind.Key))
+			return make_float2(0, 0);
+
+		// check modifier keys
+		if (keybind.Modifiers != Input::ModifierKeys::None && !IsModifierDown(keybind.Modifiers))
+			return make_float2(0, 0);
+
+		// return scroll if the key is a mouse button
+		if(Input::IsMouseKey(keybind.Key))
+			return CursorDelta() * keybind.Scalar;
+
+		// return keyboard result
+		return make_float2(keybind.Scalar, keybind.Scalar);
+	}
+
+
+
 	bool Window::IsKeyDown(Input::Keys key) const
 	{
 		if(Input::IsKeyboardKey(key))
@@ -375,6 +400,25 @@ namespace Tracer
 
 		assert(false);
 		return false;
+	}
+
+
+
+	bool Window::IsModifierDown(Input::ModifierKeys modifier)
+	{
+		using Keys = Input::Keys;
+		using ModifierKeys = Input::ModifierKeys;
+
+		if(HasFlag(modifier, ModifierKeys::Alt) && !IsKeyDown(Keys::LeftAlt) && !IsKeyDown(Keys::RightAlt))
+			return false;
+
+		if(HasFlag(modifier, ModifierKeys::Ctrl) && !IsKeyDown(Keys::LeftControl) && !IsKeyDown(Keys::RightControl))
+			return false;
+
+		if(HasFlag(modifier, ModifierKeys::Shift) && !IsKeyDown(Keys::LeftShift) && !IsKeyDown(Keys::RightShift))
+			return false;
+
+		return true;
 	}
 
 
