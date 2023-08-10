@@ -56,27 +56,27 @@ namespace Demo
 		OrbitCameraController::HandleInput(mCamera, window);
 
 		// ray picker
-		if(window->WasKeyPressed(Input::Keys::Mouse_Left))
+		if(window->WasPressed(Input::MouseButtons::Left))
 		{
 			const float2 cursorPos = window->CursorPos();
 			const int2 cursorPosI2 = make_int2(static_cast<int32_t>(cursorPos.x), static_cast<int32_t>(cursorPos.y));
 
 			// camera focal distance
-			if(window->IsKeyDown(Input::Keys::F))
+			if(window->IsDown(Input::Keys::F))
 			{
 				const RayPickResult result = renderer->PickRay(cursorPosI2);
 				mCamera.SetFocalDist(result.tmax);
 			}
 
 			// camera target
-			if(window->IsKeyDown(Input::Keys::T))
+			if(window->IsDown(Input::Keys::T))
 			{
 				const RayPickResult result = renderer->PickRay(cursorPosI2);
 				mCamera.SetTarget(mCamera.Position() + result.rayDir * result.tmax);
 			}
 
 			// material editor
-			if(window->IsKeyDown(Input::Keys::M))
+			if(window->IsDown(Input::Keys::M))
 			{
 				const RayPickResult result = renderer->PickRay(cursorPosI2);
 				GuiWindow::Get<MainGui>()->SelectMaterial(mScene->GetMaterial(result.instIx, result.primIx));

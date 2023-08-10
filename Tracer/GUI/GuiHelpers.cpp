@@ -98,13 +98,30 @@ namespace Tracer
 
 	void GuiHelpers::DrawGui()
 	{
-		for(auto& [key, gui] : mGuiItems)
+		for(const auto& [keybind, gui] : mGuiItems)
 		{
-			if(mRenderWindow->WasKeyPressed(key))
+			if(mRenderWindow->WasPressed(keybind))
 				gui->SetEnabled(!gui->IsEnabled());
 
 			gui->Update();
 			gui->Draw();
 		}
+	}
+
+
+
+	bool GuiHelpers::IsRegistered(Input::Keybind keybind)
+	{
+		for(const auto& [kb, window] : mGuiItems)
+			if(keybind == kb)
+				return true;
+		return false;
+	}
+
+
+
+	bool GuiHelpers::IsRegistered(Input::Keys key, Input::Modifiers modifiers)
+	{
+		return IsRegistered(Input::Keybind{ key, modifiers });
 	}
 }

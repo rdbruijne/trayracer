@@ -9,18 +9,25 @@ namespace Tracer
 	bool OrbitCameraController::HandleInput(CameraNode& node, Window* window)
 	{
 		// check inputs
-		const float2 camMove   = window->CheckInput(sOrbitCameraMove);
-		const float2 camOrbit  = window->CheckInput(sOrbitCameraOrbit);
-		const float2 camRotate = window->CheckInput(sOrbitCameraRotate);
-		const float2 camRoll   = window->CheckInput(sOrbitCameraRoll);
-		const float2 camDolly  = window->CheckInput(sOrbitCameraDolly) + window->CheckInput(sOrbitCameraDollyAlt);
+		const float2 dCursor  = window->CursorDelta();
+		const float camMove   = window->CheckInput(sMove) * sMoveSpeed;
+		const float camOrbit  = window->CheckInput(sOrbit) * sOrbitSpeed;
+		const float camRotate = window->CheckInput(sRotate) * sRotateSpeed;
+		//const float camRoll   = window->CheckInput(sRoll) * sRollSpeed;
+		const float camDolly  = window->CheckInput(sDolly) * sDollySpeed;
+		const float camDolly2 = window->CheckInput(sDollyAlt) * sDollyAltSpeed;
+
+		// early-out if no input detected
+		if(camMove == 0 && camOrbit == 0 && camRotate == 0 && camDolly == 0 && camDolly2 == 0)
+			return false;
 
 		// apply inputs
 		bool hasChanged = false;
-		hasChanged = OrbitCamera(node, -camOrbit) || hasChanged;
-		hasChanged = PanCamera(node, camMove * make_float2(-1, 1)) || hasChanged;
-		hasChanged = DollyCamera(node, camDolly.y) || hasChanged;
-		hasChanged = RotateCamera(node, camRotate.y, camRotate.x, 0) || hasChanged;
+		hasChanged = OrbitCamera(node, -camOrbit * dCursor) || hasChanged;
+		hasChanged = PanCamera(node, camMove * make_float2(-1, 1) * dCursor) || hasChanged;
+		hasChanged = DollyCamera(node, camDolly * dCursor.y) || hasChanged;
+		hasChanged = DollyCamera(node, camDolly2) || hasChanged;
+		hasChanged = RotateCamera(node, camRotate * dCursor.y, camRotate * dCursor.x, 0) || hasChanged;
 		sPrevUp = RecalculateUpVector(node, sPrevUp);
 		return hasChanged;
 	}
@@ -69,7 +76,9 @@ namespace Tracer
 			return false;
 
 		const float3 dir = node.Target() - node.Position();
-		const float3 diff = ((normalize(cross(dir, sPrevUp)) * move.x) + (sPrevUp * move.y)) * length(dir) + (dir * move.z);
+		const float3 diff = ((normalize(cross(dir, sPrevUp)) * move.x) +
+							 (sPrevUp * move.y)) * length(dir) +
+							 (dir * move.z);
 
 		node.SetPosition(node.Position() + diff);
 		node.SetTarget(node.Target() + diff);

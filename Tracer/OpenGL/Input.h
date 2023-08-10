@@ -7,17 +7,17 @@
 // C++
 #include <array>
 #include <cstdint>
+#include <variant>
+
+// https://www.glfw.org/docs/3.3/input_guide.html
 
 namespace Tracer
 {
 	namespace Input
 	{
 		// key codes (GLFW_KEY_<...>)
-		enum class Keys : uint32_t
+		enum class Keys : uint16_t
 		{
-			Unknown         = 0,
-
-			// Keyboard
 			Space           = 32,
 			Apostrophe      = 39,
 			Comma           = 44,
@@ -139,127 +139,157 @@ namespace Tracer
 			RightSuper      = 347,
 			Menu            = 348,
 
-			// Mouse
-			Mouse_Left,
-			Mouse_Right,
-			Mouse_Middle,
-
-			// cannot be queried
-			Mouse_Scroll
+			_Count          = Menu
 		};
 
 
 
-		// modifiers
-		enum class ModifierKeys : uint32_t
+		// modifiers (GLFW_MOD_<...>)
+		enum class Modifiers : uint8_t
 		{
-			None  = 0x0,
-			Alt   = 0x1,
-			Ctrl  = 0x2,
-			Shift = 0x4
+			None     = 0x0000,
+			Shift    = 0x0001, // If this bit is set one or more Shift keys were held down.
+			Ctrl     = 0x0002, // If this bit is set one or more Control keys were held down.
+			Alt      = 0x0004, // If this bit is set one or more Alt keys were held down.
+			Super    = 0x0008, // If this bit is set one or more Super keys were held down.
+			CapsLock = 0x0010, // If this bit is set the Caps Lock key is enabled and the GLFW_LOCK_KEY_MODS input mode is set.
+			NumLock  = 0x0020  // If this bit is set the Num Lock key is enabled and the GLFW_LOCK_KEY_MODS input mode is set.
 		};
-		ENUM_BITWISE_OPERATORS(ModifierKeys);
+		ENUM_BITWISE_OPERATORS(Modifiers);
 
 
 
-		// keys helpers
-		enum class KeyData : std::underlying_type_t<Keys>
+		// key codes (GLFW_MOUSE_BUTTON_<...>)
+		enum class MouseButtons : uint8_t
 		{
-			// keyboard
-			FirstKeyboard = 0,
-			LastKeyboard  = Keys::Menu,
-			KeyboardCount = LastKeyboard - FirstKeyboard + 1,
+			Button1,
+			Button2,
+			Button3,
+			Button4,
+			Button5,
+			Button6,
+			Button7,
+			Button8,
 
-			// mouse
-			FirstMouse    = Keys::Mouse_Left,
-			LastMouse     = Keys::Mouse_Middle,
-			MouseCount    = LastMouse - FirstMouse + 1,
+			Left   = Button1,
+			Right  = Button2,
+			Middle = Button3,
 
-			// special
-			FirstSpecial  = Keys::Mouse_Scroll,
-			LastSpecial   = Keys::Mouse_Scroll,
-			SpecialCount  = LastSpecial - FirstSpecial + 1,
-
-			// Total
-			Count         = LastMouse,
+			_Count = Button8
 		};
 
 
 
-		// compare Key with KeyData
-		inline constexpr bool operator < (Keys key, KeyData data)
+		enum class MouseScroll : uint8_t
 		{
-			return std::underlying_type_t<Keys>(key) < std::underlying_type_t<KeyData>(data);
-		}
+			Horizontal,
+			Vertical,
 
-		inline constexpr bool operator > (Keys key, KeyData data)
+			_Count = 2
+		};
+
+
+
+		enum class MouseMove : uint8_t
 		{
-			return std::underlying_type_t<Keys>(key) > std::underlying_type_t<KeyData>(data);
-		}
+			Horizontal,
+			Vertical,
 
-		inline constexpr bool operator <= (Keys key, KeyData data)
-		{
-			return std::underlying_type_t<Keys>(key) <= std::underlying_type_t<KeyData>(data);
-		}
-
-		inline constexpr bool operator >= (Keys key, KeyData data)
-		{
-			return std::underlying_type_t<Keys>(key) >= std::underlying_type_t<KeyData>(data);
-		}
+			_Count = 2
+		};
 
 
 
-		// Key type
-		inline constexpr bool IsKeyboardKey(Keys key)
-		{
-			return key >= KeyData::FirstKeyboard && key <= KeyData::LastKeyboard;
-		}
-
-		inline constexpr bool IsMouseKey(Keys key)
-		{
-			return key >= KeyData::FirstMouse && key <= KeyData::LastMouse;
-		}
-
-		inline constexpr bool IsSpecialKey(Keys key)
-		{
-			return key >= KeyData::FirstSpecial && key <= KeyData::LastSpecial;
-		}
-
-
-
-		// Key index remapping
-		inline constexpr std::underlying_type_t<Keys> MouseKeyIndex(Keys key)
-		{
-			assert(IsMouseKey(key));
-			return std::underlying_type_t<Keys>(key) - std::underlying_type_t<KeyData>(KeyData::FirstMouse);
-		}
-
-
-
+#pragma warning(push)
+#pragma warning(disable: 4324) // warning C4324: 'Tracer::Input::State': structure was padded due to alignment specifier
 		// Input state
 		class State
 		{
 		public:
-			std::array<bool, static_cast<size_t>(KeyData::KeyboardCount)> Keyboard = {};
-			std::array<bool, static_cast<size_t>(KeyData::MouseCount)> Mouse = {};
+			bool MouseIsWithinWindow = true;
 			float2 MousePos = make_float2(0, 0);
 			float2 MouseScroll = make_float2(0, 0);
-			bool MouseIsWithinWindow = true;
+			Modifiers Modifiers = Modifiers::None;
+
+			std::array<bool, static_cast<size_t>(MouseButtons::_Count)> Mouse = {};
+			std::array<bool, static_cast<size_t>(Keys::_Count)> Keyboard = {};
 		};
+#pragma warning(pop)
 
 
 
 		// Keybinding
-		struct Keybind
+		class Keybind
 		{
-			Keybind() = default;
-			explicit Keybind(Keys key) : Keybind(key, ModifierKeys::None, 1.f) {}
-			explicit Keybind(Keys key, float scalar) : Keybind(key, ModifierKeys::None, scalar) {}
-			explicit Keybind(Keys key, ModifierKeys modifiers, float scalar) : Key(key), Modifiers(modifiers), Scalar(scalar) {}
+		public:
+			enum class Types : uint8_t
+			{
+				None = 0,
+				Key,
+				MouseButton,
+				MouseScroll,
+				MouseMove
+			};
 
-			Keys Key = Keys::Unknown;
-			ModifierKeys Modifiers = ModifierKeys::None;
-			float Scalar = 1.f;
+			Keybind() = default;
+
+			explicit Keybind(Keys key, Modifiers modifiers = Modifiers::None) :
+				mType(Types::Key), mModifiers(modifiers), mBinding(static_cast<uint16_t>(key)) {}
+			explicit Keybind(MouseButtons key, Modifiers modifiers = Modifiers::None) :
+				mType(Types::MouseButton), mModifiers(modifiers), mBinding(static_cast<uint16_t>(key)) {}
+			explicit Keybind(MouseScroll key, Modifiers modifiers = Modifiers::None) :
+				mType(Types::MouseScroll), mModifiers(modifiers), mBinding(static_cast<uint16_t>(key)) {}
+			explicit Keybind(MouseMove key, Modifiers modifiers = Modifiers::None) :
+				mType(Types::MouseMove), mModifiers(modifiers), mBinding(static_cast<uint16_t>(key)) {}
+
+			// basic data
+			Types Type() const { return mType; }
+			Modifiers Mods() const { return mModifiers; }
+			uint16_t Binding() const { return mBinding; }
+
+			// binding
+			template<typename TYPE>
+			bool Is() const noexcept
+			{
+				if constexpr (std::is_same<TYPE, Keys>())
+					return mType == Types::Key;
+				if constexpr (std::is_same<TYPE, MouseButtons>())
+					return mType == Types::MouseButton;
+				if constexpr (std::is_same<TYPE, MouseScroll>())
+					return mType == Types::MouseScroll;
+				if constexpr (std::is_same<TYPE, MouseMove>())
+					return mType == Types::MouseMove;
+			}
+
+			template<typename TYPE>
+			TYPE Get() const
+			{
+				assert(Is<TYPE>());
+				return static_cast<TYPE>(mBinding);
+			}
+
+			template<typename TYPE>
+			bool TryGet(TYPE& val) const
+			{
+				if(Is<TYPE>())
+				{
+					val = static_cast<TYPE>(mBinding);
+					return true;
+				}
+				return false;
+			}
+
+			// comparison
+			friend bool operator == (const Keybind& a, const Keybind& b)
+			{
+				return (a.mType == b.mType) && (a.mModifiers == b.mModifiers) && (a.mBinding == b.mBinding);
+			}
+			friend bool operator != (const Keybind& a, const Keybind& b) { return !(a == b); }
+
+		private:
+			Types mType = Types::None; // u8
+			Modifiers mModifiers = Modifiers::None; // u8
+			uint16_t mBinding; // u16
 		};
 	};
 }

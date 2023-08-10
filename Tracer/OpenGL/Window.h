@@ -59,15 +59,27 @@ namespace Tracer
 
 		// Input
 		void UpdateInput();
-		float2 CheckInput(Input::Keybind keybind);
+		float CheckInput(Input::Keybind keybind) const;
 
-		bool IsKeyDown(Input::Keys key) const;
-		bool WasKeyPressed(Input::Keys key) const;
-		bool IsModifierDown(Input::ModifierKeys modifier);
+		// keys down
+		bool IsDown(Input::Keys key) const;
+		bool IsDown(Input::Modifiers keys) const;
+		bool IsDown(Input::MouseButtons button) const;
+		bool IsDown(Input::Keybind keybind) const;
+
+		// keys pressed
+		bool WasPressed(Input::Keys key) const;
+		bool WasPressed(Input::Modifiers keys) const;
+		bool WasPressed(Input::MouseButtons button) const;
+		bool WasPressed(Input::Keybind keybind) const;
+
+		// mouse cursor
 		bool IsCursorWithinWindow() const;
 		float2 CursorPos() const;
-		float2 Scroll() const;
 		float2 CursorDelta() const;
+
+		// scroll wheels
+		float2 ScrollPos() const;
 		float2 ScrollDelta() const;
 
 		// post shader

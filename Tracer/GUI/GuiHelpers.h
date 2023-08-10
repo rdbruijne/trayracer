@@ -5,7 +5,7 @@
 #include "OpenGL/Input.h"
 
 // C++
-#include <map>
+#include <vector>
 
 namespace Tracer
 {
@@ -25,13 +25,6 @@ namespace Tracer
 		static void EndFrame();
 		static void DrawGui();
 
-		// registering
-		template<class Type>
-		static void Register(Input::Keys key)
-		{
-			mGuiItems[key] = GuiWindow::Get<Type>();
-		}
-
 		// set data
 		static void Set(CameraNode* node) { mCamNode = node; }
 		static void Set(Renderer* renderer) { mRenderer = renderer; }
@@ -45,6 +38,22 @@ namespace Tracer
 		static Window* GetRenderWindow() { return mRenderWindow; }
 		static Scene* GetScene() { return mScene; }
 
+		// registering
+		static bool IsRegistered(Input::Keybind keybind);
+		static bool IsRegistered(Input::Keys key, Input::Modifiers modifiers = Input::Modifiers::None);
+
+		template<class Type>
+		static void Register(Input::Keybind keybind)
+		{
+			mGuiItems.push_back(keybind, GuiWindow::Get<Type>());
+		}
+
+		template<class Type>
+		static void Register(Input::Keys key, Input::Modifiers modifiers = Input::Modifiers::None)
+		{
+			mGuiItems.push_back({ Input::Keybind(key, modifiers), GuiWindow::Get<Type>() });
+		}
+
 	private:
 		// data
 		static inline CameraNode* mCamNode = nullptr;
@@ -54,6 +63,6 @@ namespace Tracer
 		static inline Scene* mScene = nullptr;
 
 		// gui windows
-		static inline std::map<Input::Keys, GuiWindow*> mGuiItems;
+		static inline std::vector<std::pair<Input::Keybind, GuiWindow*>> mGuiItems;
 	};
 }

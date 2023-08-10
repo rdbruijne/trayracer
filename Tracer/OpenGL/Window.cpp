@@ -62,13 +62,16 @@ namespace Tracer
 
 		// set window callbacks
 		glfwSetKeyCallback(mHandle, Window::KeyCallback);
-		//glfwSetCharCallback(mHandle, Window::CharCallback);
-		//glfwSetCharModsCallback(mHandle, Window::CharModsCallback);
+		glfwSetCharCallback(mHandle, Window::CharCallback);
+		glfwSetCharModsCallback(mHandle, Window::CharModsCallback);
 		glfwSetMouseButtonCallback(mHandle, Window::MouseButtonCallback);
 		glfwSetCursorPosCallback(mHandle, Window::CursorPosCallback);
 		glfwSetCursorEnterCallback(mHandle, Window::CursorEnterCallback);
 		glfwSetScrollCallback(mHandle, Window::ScrollCallback);
 		glfwSetDropCallback(mHandle, Window::DropCallback);
+
+		// set input modes
+		glfwSetInputMode(mHandle, GLFW_LOCK_KEY_MODS, GLFW_TRUE);
 
 		// init GL
 		if(glewInit() != GLEW_OK)
@@ -339,86 +342,110 @@ namespace Tracer
 
 
 
-	// mouse events will be based on scroll/move, keyboard will be 0 or 1
-	float2 Window::CheckInput(Input::Keybind keybind)
+	// mouse events will be based on scroll/move, keys will be 0 or 1
+	float Window::CheckInput(Input::Keybind keybind) const
 	{
-		// handle scrollwheel
-		if(keybind.Key == Input::Keys::Mouse_Scroll)
-			return ScrollDelta() * keybind.Scalar;
+		// keyboard key
+		Input::Keys keyboardKey;
+		if(keybind.TryGet(keyboardKey))
+			return IsDown(keyboardKey) && IsDown(keybind.Mods()) ? 1.f : 0.f;
 
-		// check key
-		if(!IsKeyDown(keybind.Key))
-			return make_float2(0, 0);
+		// mouse key
+		Input::MouseButtons MouseButtons;
+		if(keybind.TryGet(MouseButtons))
+			return IsDown(MouseButtons) && IsDown(keybind.Mods()) ? 1.f : 0.f;
 
-		// check modifier keys
-		if (keybind.Modifiers != Input::ModifierKeys::None && !IsModifierDown(keybind.Modifiers))
-			return make_float2(0, 0);
+		// mouse scroll
+		Input::MouseScroll mouseScroll;
+		if(keybind.TryGet(mouseScroll))
+			return mouseScroll == Input::MouseScroll::Vertical ? ScrollDelta().y : ScrollDelta().x;
 
-		// return scroll if the key is a mouse button
-		if(Input::IsMouseKey(keybind.Key))
-			return CursorDelta() * keybind.Scalar;
+		// mouse move
+		Input::MouseMove mouseMove;
+		if(keybind.TryGet(mouseMove))
+			return mouseMove == Input::MouseMove::Vertical ? CursorDelta().y : CursorDelta().x;
 
-		// return keyboard result
-		return make_float2(keybind.Scalar, keybind.Scalar);
+		Logger::Error("Invalid keybind provided.");
+		assert(false);
+		return 0.f;
 	}
 
 
 
-	bool Window::IsKeyDown(Input::Keys key) const
+	bool Window::IsDown(Input::Keys key) const
 	{
-		if(Input::IsKeyboardKey(key))
-			return mCurInputState.Keyboard[static_cast<size_t>(key)];
+		return mCurInputState.Keyboard[static_cast<size_t>(key)];
+	}
 
-		if(Input::IsMouseKey(key))
-			return mCurInputState.Mouse[static_cast<size_t>(key) - static_cast<size_t>(Input::KeyData::FirstMouse)];
 
-		if(Input::IsSpecialKey(key))
-			return false;
 
-		assert(false);
+	bool Window::IsDown(Input::Modifiers keys) const
+	{
+		return HasFlag(mCurInputState.Modifiers, keys);
+	}
+
+
+
+	bool Window::IsDown(Input::MouseButtons button) const
+	{
+		return mCurInputState.Mouse[static_cast<size_t>(button)];
+	}
+
+
+	
+	bool Window::IsDown(Input::Keybind keybind) const
+	{
+		// keyboard key
+		Input::Keys keyboardKey;
+		if(keybind.TryGet(keyboardKey))
+			return IsDown(keyboardKey) && IsDown(keybind.Mods());
+
+		// mouse key
+		Input::MouseButtons MouseButtons;
+		if(keybind.TryGet(MouseButtons))
+			return IsDown(MouseButtons) && IsDown(keybind.Mods());
+
 		return false;
 	}
 
 
 
-	bool Window::WasKeyPressed(Input::Keys key) const
+	bool Window::WasPressed(Input::Keys key) const
 	{
-		if(Input::IsKeyboardKey(key))
-		{
-			const size_t keyIx = static_cast<size_t>(key);
-			return mPrevInputState.Keyboard[keyIx] && !mCurInputState.Keyboard[keyIx];
-		}
-
-		if(Input::IsMouseKey(key))
-		{
-			const size_t keyIx = MouseKeyIndex(key);
-			return mPrevInputState.Mouse[keyIx] && !mCurInputState.Mouse[keyIx];
-		}
-
-		if(Input::IsSpecialKey(key))
-			return false;
-
-		assert(false);
-		return false;
+		const size_t keyIx = static_cast<size_t>(key);
+		return mCurInputState.Keyboard[keyIx] && !mPrevInputState.Keyboard[keyIx];
 	}
 
 
 
-	bool Window::IsModifierDown(Input::ModifierKeys modifier)
+	bool Window::WasPressed(Input::Modifiers keys) const
 	{
-		using Keys = Input::Keys;
-		using ModifierKeys = Input::ModifierKeys;
+		return HasFlag(mCurInputState.Modifiers, keys) && !HasFlag(mPrevInputState.Modifiers, keys);
+	}
 
-		if(HasFlag(modifier, ModifierKeys::Alt) && !IsKeyDown(Keys::LeftAlt) && !IsKeyDown(Keys::RightAlt))
-			return false;
 
-		if(HasFlag(modifier, ModifierKeys::Ctrl) && !IsKeyDown(Keys::LeftControl) && !IsKeyDown(Keys::RightControl))
-			return false;
 
-		if(HasFlag(modifier, ModifierKeys::Shift) && !IsKeyDown(Keys::LeftShift) && !IsKeyDown(Keys::RightShift))
-			return false;
+	bool Window::WasPressed(Input::MouseButtons button) const
+	{
+		const size_t buttonIx = static_cast<size_t>(button);
+		return mCurInputState.Mouse[buttonIx] && !mPrevInputState.Mouse[buttonIx];
+	}
 
-		return true;
+
+
+	bool Window::WasPressed(Input::Keybind keybind) const
+	{
+		// keyboard key
+		Input::Keys keyboardKey;
+		if(keybind.TryGet(keyboardKey))
+			return WasPressed(keyboardKey) && IsDown(keybind.Mods());
+
+		// mouse key
+		Input::MouseButtons MouseButtons;
+		if(keybind.TryGet(MouseButtons))
+			return WasPressed(MouseButtons) && IsDown(keybind.Mods());
+
+		return false;
 	}
 
 
@@ -437,16 +464,16 @@ namespace Tracer
 
 
 
-	float2 Window::Scroll() const
+	float2 Window::CursorDelta() const
 	{
-		return mCurInputState.MouseScroll;
+		return mCurInputState.MousePos - mPrevInputState.MousePos;
 	}
 
 
 
-	float2 Window::CursorDelta() const
+	float2 Window::ScrollPos() const
 	{
-		return mCurInputState.MousePos - mPrevInputState.MousePos;
+		return mCurInputState.MouseScroll;
 	}
 
 
@@ -525,18 +552,20 @@ namespace Tracer
 	//--------------------------------------------------------------------------------------------------------------------------
 	// GLFW Input callbacks
 	//--------------------------------------------------------------------------------------------------------------------------
-	void Window::KeyCallback(GLFWwindow* handle, int key, int /*scancode*/, int action, int /*mods*/) noexcept
+	void Window::KeyCallback(GLFWwindow* handle, int key, int /*scancode*/, int action, int mods) noexcept
 	{
-		if(ImGui::GetIO().WantCaptureKeyboard)
-			return;
-
-		Window* const window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(handle));
-		if(key < static_cast<int>(Input::KeyData::KeyboardCount))
-			window->mNextInputState.Keyboard[static_cast<size_t>(key)] = (action == GLFW_PRESS || action == GLFW_REPEAT);
+		if(!ImGui::GetIO().WantCaptureKeyboard)
+		{
+			Window* const window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(handle));
+			if(key < static_cast<int>(Input::Keys::_Count))
+				window->mNextInputState.Keyboard[static_cast<size_t>(key)] = (action != GLFW_RELEASE);
+			window->mNextInputState.Modifiers = static_cast<Input::Modifiers>(mods);
+		}
 	}
 
 
 
+	// receives Unicode code points for key events that would have led to regular text input
 	void Window::CharCallback(GLFWwindow* /*handle*/, unsigned int /*codepoint*/) noexcept
 	{
 		//Window* const window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(handle));
@@ -553,45 +582,41 @@ namespace Tracer
 
 	void Window::MouseButtonCallback(GLFWwindow* handle, int button, int action, int /*mods*/) noexcept
 	{
-		if(ImGui::GetIO().WantCaptureMouse)
-			return;
-
-		Window* const window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(handle));
-		if(button < static_cast<int>(Input::KeyData::MouseCount))
-			window->mNextInputState.Mouse[static_cast<size_t>(button)] = (action == GLFW_PRESS);
+		if(!ImGui::GetIO().WantCaptureMouse)
+		{
+			Window* const window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(handle));
+			window->mNextInputState.Mouse[static_cast<size_t>(button)] = (action != GLFW_RELEASE);
+		}
 	}
 
 
 
 	void Window::CursorPosCallback(GLFWwindow* handle, double xPos, double yPos) noexcept
 	{
-		if(ImGui::GetIO().WantCaptureMouse)
-			return;
-
-		Window* const window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(handle));
-		window->mNextInputState.MousePos = make_float2(static_cast<float>(xPos), static_cast<float>(yPos));
+		if(!ImGui::GetIO().WantCaptureMouse)
+		{
+			Window* const window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(handle));
+			window->mNextInputState.MousePos = make_float2(static_cast<float>(xPos), static_cast<float>(yPos));
+		}
 	}
 
 
 
 	void Window::CursorEnterCallback(GLFWwindow* handle, int entered) noexcept
 	{
-		//if(ImGui::GetIO().WantCaptureMouse)
-		//	return;
-
 		Window* const window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(handle));
-		window->mNextInputState.MouseIsWithinWindow = !entered;
+		window->mNextInputState.MouseIsWithinWindow = (entered != 0);
 	}
 
 
 
 	void Window::ScrollCallback(GLFWwindow* handle, double xOffset, double yOffset) noexcept
 	{
-		if(ImGui::GetIO().WantCaptureMouse)
-			return;
-
-		Window* const window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(handle));
-		window->mNextInputState.MouseScroll += make_float2(static_cast<float>(xOffset), static_cast<float>(yOffset));
+		if(!ImGui::GetIO().WantCaptureMouse)
+		{
+			Window* const window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(handle));
+			window->mNextInputState.MouseScroll += make_float2(static_cast<float>(xOffset), static_cast<float>(yOffset));
+		}
 	}
 
 

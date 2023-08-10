@@ -9,13 +9,13 @@ namespace Tracer
 	bool FlyCameraController::HandleInput(CameraNode& node, Window* window, float dt)
 	{
 		// check inputs
-		const float moveX = window->CheckInput(mMoveRight).x - window->CheckInput(mMoveLeft).x;
-		const float moveY = window->CheckInput(mMoveUp).x - window->CheckInput(mMoveDown).x;
-		const float moveZ = window->CheckInput(mMoveForward).x - window->CheckInput(mMoveBack).x;
+		const float moveX = window->CheckInput(mMoveRight) - window->CheckInput(mMoveLeft);
+		const float moveY = window->CheckInput(mMoveUp) - window->CheckInput(mMoveDown);
+		const float moveZ = window->CheckInput(mMoveForward) - window->CheckInput(mMoveBack);
 
-		const float tilt = window->CheckInput(mTiltDown).x - window->CheckInput(mTiltUp).x;
-		const float pan = window->CheckInput(mPanLeft).x - window->CheckInput(mPanRight).x;
-		const float roll = window->CheckInput(mRollRight).x - window->CheckInput(mRollLeft).x;
+		const float tilt = window->CheckInput(mTiltDown) - window->CheckInput(mTiltUp);
+		const float pan = window->CheckInput(mPanLeft) - window->CheckInput(mPanRight);
+		const float roll = window->CheckInput(mRollRight) - window->CheckInput(mRollLeft);
 
 		// early-out if no input detected
 		if(moveX == 0 && moveY == 0 && moveZ == 0 && tilt == 0 && pan == 0 && roll == 0)
@@ -25,18 +25,18 @@ namespace Tracer
 		float moveScalar = 100.f * dt;
 		float rotateScalar = .5f * dt;
 		constexpr float moveMultiplier = 10.f;
-		constexpr float RotateMultiplier = 10.f;
+		constexpr float rotateMultiplier = 10.f;
 
-		if(window->IsModifierDown(Input::ModifierKeys::Shift))
+		if(window->IsDown(Input::Modifiers::Shift))
 		{
 			moveScalar *= moveMultiplier;
-			rotateScalar *= RotateMultiplier;
+			rotateScalar *= rotateMultiplier;
 		}
 
-		if(window->IsModifierDown(Input::ModifierKeys::Ctrl))
+		if(window->IsDown(Input::Modifiers::Ctrl))
 		{
 			moveScalar /= moveMultiplier;
-			rotateScalar /= RotateMultiplier;
+			rotateScalar /= rotateMultiplier;
 		}
 
 		// camera transform

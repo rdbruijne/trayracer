@@ -25,11 +25,18 @@ namespace Tracer
 		inline static float3 sPrevUp = make_float3(0, 1, 0);
 
 		// keybinds
-		inline static Input::Keybind sOrbitCameraMove     = Input::Keybind(Input::Keys::Mouse_Middle, .05f);
-		inline static Input::Keybind sOrbitCameraOrbit    = Input::Keybind(Input::Keys::Mouse_Left, .005f);
-		inline static Input::Keybind sOrbitCameraRotate   = Input::Keybind(Input::Keys::Mouse_Left, Input::ModifierKeys::Alt, .005f);
-		inline static Input::Keybind sOrbitCameraRoll     = Input::Keybind(Input::Keys::Mouse_Right, Input::ModifierKeys::Alt, .01f);
-		inline static Input::Keybind sOrbitCameraDolly    = Input::Keybind(Input::Keys::Mouse_Right, .01f);
-		inline static Input::Keybind sOrbitCameraDollyAlt = Input::Keybind(Input::Keys::Mouse_Scroll, -.1f);
+		inline static float sMoveSpeed     = .05f;
+		inline static float sOrbitSpeed    = .005f;
+		inline static float sRotateSpeed   = .005f;
+		inline static float sRollSpeed     = .01f;
+		inline static float sDollySpeed    = .01f;
+		inline static float sDollyAltSpeed = -.1f;
+
+		inline static Input::Keybind sMove     = Input::Keybind(Input::MouseButtons::Middle);
+		inline static Input::Keybind sOrbit    = Input::Keybind(Input::MouseButtons::Left);
+		inline static Input::Keybind sRotate   = Input::Keybind(Input::MouseButtons::Left, Input::Modifiers::Alt);
+		//inline static Input::Keybind sRoll     = Input::Keybind(Input::MouseButtons::Right, Input::Modifiers::Alt);
+		inline static Input::Keybind sDolly    = Input::Keybind(Input::MouseButtons::Right);
+		inline static Input::Keybind sDollyAlt = Input::Keybind(Input::MouseScroll::Vertical);
 	};
 }

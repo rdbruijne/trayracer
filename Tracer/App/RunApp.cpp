@@ -113,7 +113,7 @@ namespace Tracer
 			// user input
 			window->UpdateInput();
 
-			if(window->WasKeyPressed(Input::Keys::Escape))
+			if(window->WasPressed(Input::Keys::Escape))
 				break;
 
 			// update the app

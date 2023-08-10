@@ -7,10 +7,10 @@ namespace Tracer
 	public:
 		virtual ~GuiWindow() = default;
 
-		template<class TYPE>
-		static TYPE* const Get()
+		template<class Type>
+		static Type* const Get()
 		{
-			static TYPE inst = {};
+			static Type inst = {};
 			return &inst;
 		}
 
