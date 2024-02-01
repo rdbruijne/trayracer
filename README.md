@@ -2,7 +2,7 @@
 
 ![Bistro](Screenshots/bistro.png)
 
-Personal path tracer project.
+TrayRacer is a physically based rendering framework developed as a spare time hobby/research project. It uses wavefront ray tracing to reach high ray throughput on RTX hardware using NVIDIA OptiX.
 
 # Controls
 
